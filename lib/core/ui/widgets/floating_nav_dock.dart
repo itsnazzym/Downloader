@@ -30,7 +30,7 @@ class FloatingNavDock extends StatelessWidget {
               path: '/',
               isSelected: currentLocation == '/',
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             _buildNavItem(
               context,
               icon: Icons.settings_rounded,

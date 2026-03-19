@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import '../../domain/entities/download_request.dart';
 import '../../../../../core/logger/logger_service.dart';
+import '../../../../../core/utils/media_file_utils.dart';
 import '../../../../../services/binary_locator.dart';
 
 /// Source for downloading via gallery-dl CLI
@@ -72,12 +74,17 @@ class GalleryDlSource {
       '-o', 'filename={title|description|tweet_id|id|filename}.{extension}',
     ];
 
-    // === BROWSER COOKIES FOR ALL SITES ===
-    // Always extract cookies from Firefox for maximum compatibility
-    args.addAll(['--cookies-from-browser', 'firefox']);
-    LoggerService.i(
-      'GalleryDlSource: Using Firefox cookies for authentication',
-    );
+    if (request.cookiesFilePath != null &&
+        request.cookiesFilePath!.isNotEmpty) {
+      args.addAll(['--cookies', request.cookiesFilePath!]);
+      LoggerService.i('GalleryDlSource: Using supplied cookies file');
+    } else if (request.cookieBrowser != null &&
+        request.cookieBrowser!.isNotEmpty) {
+      args.addAll(['--cookies-from-browser', request.cookieBrowser!]);
+      LoggerService.i(
+        'GalleryDlSource: Using browser cookies for authentication: ${request.cookieBrowser}',
+      );
+    }
 
     // The URL to download (must be last)
     args.add(request.url);
@@ -93,6 +100,9 @@ class GalleryDlSource {
       int downloadedCount = 0;
       String currentFile = '';
       String? extractedTitle;
+      String? lastSavedPath;
+      String? previewImagePath;
+      String? galleryDirectory;
 
       // Listen to stdout for progress
       await for (final data in process.stdout.transform(utf8.decoder)) {
@@ -112,11 +122,28 @@ class GalleryDlSource {
               downloadedCount: downloadedCount,
               isComplete: false,
               title: extractedTitle,
+              filePath: lastSavedPath,
+              thumbnailPath: previewImagePath,
             );
-          } else if (line.contains('\\') || line.contains('/')) {
+          } else if (_looksLikePath(line)) {
             // This looks like a file path - extract the title from it
+            final resolvedPath = _resolveSavedPath(
+              line.trim(),
+              request.outputFolder,
+            );
+            if (resolvedPath == null) {
+              continue;
+            }
+
             downloadedCount++;
-            final fileName = _extractFileNameFromPath(line.trim());
+            lastSavedPath = resolvedPath;
+            galleryDirectory ??= p.dirname(resolvedPath);
+            if (previewImagePath == null &&
+                MediaFileUtils.isImageFile(resolvedPath)) {
+              previewImagePath = resolvedPath;
+            }
+
+            final fileName = _extractFileNameFromPath(resolvedPath);
             if (fileName != null && fileName.isNotEmpty) {
               extractedTitle = fileName;
               LoggerService.debug('Extracted title from file: $extractedTitle');
@@ -126,6 +153,8 @@ class GalleryDlSource {
               downloadedCount: downloadedCount,
               isComplete: false,
               title: extractedTitle,
+              filePath: lastSavedPath,
+              thumbnailPath: previewImagePath,
             );
           }
         }
@@ -142,11 +171,25 @@ class GalleryDlSource {
 
       if (exitCode == 0) {
         LoggerService.i('GalleryDlSource: Download completed!');
+        final representativePath = previewImagePath ?? lastSavedPath;
+        final directoryTarget = _shouldUseDirectoryTarget(
+          galleryDirectory: galleryDirectory,
+          outputFolder: request.outputFolder,
+          downloadedCount: downloadedCount,
+        );
         yield GalleryDlProgressEvent(
           status: 'Completed ($downloadedCount files)',
           downloadedCount: downloadedCount,
           isComplete: true,
-          title: extractedTitle,
+          title: _deriveCompletedTitle(
+            extractedTitle,
+            galleryDirectory,
+            downloadedCount,
+          ),
+          filePath: representativePath,
+          thumbnailPath: previewImagePath,
+          directoryPath: galleryDirectory,
+          isGallery: directoryTarget,
         );
       } else {
         throw Exception('gallery-dl exited with code $exitCode');
@@ -184,6 +227,59 @@ class GalleryDlSource {
       return null;
     }
   }
+
+  bool _looksLikePath(String line) {
+    final trimmed = line.trim();
+    return trimmed.contains('\\') || trimmed.contains('/');
+  }
+
+  String? _resolveSavedPath(String path, String? outputFolder) {
+    final trimmed = path.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    if (p.isAbsolute(trimmed)) {
+      return trimmed;
+    }
+
+    if (outputFolder != null && outputFolder.isNotEmpty) {
+      return p.join(outputFolder, trimmed);
+    }
+
+    return trimmed;
+  }
+
+  String _deriveCompletedTitle(
+    String? extractedTitle,
+    String? galleryDirectory,
+    int downloadedCount,
+  ) {
+    if (downloadedCount > 1 && galleryDirectory != null) {
+      return '${p.basename(galleryDirectory)} ($downloadedCount items)';
+    }
+
+    return extractedTitle ?? 'Gallery Download';
+  }
+
+  bool _shouldUseDirectoryTarget({
+    required String? galleryDirectory,
+    required String? outputFolder,
+    required int downloadedCount,
+  }) {
+    if (downloadedCount <= 1 ||
+        galleryDirectory == null ||
+        galleryDirectory.isEmpty) {
+      return false;
+    }
+
+    if (outputFolder == null || outputFolder.isEmpty) {
+      return true;
+    }
+
+    return p.normalize(galleryDirectory).toLowerCase() !=
+        p.normalize(outputFolder).toLowerCase();
+  }
 }
 
 class GalleryDlProgressEvent {
@@ -191,11 +287,19 @@ class GalleryDlProgressEvent {
   final int downloadedCount;
   final bool isComplete;
   final String? title;
+  final String? filePath;
+  final String? thumbnailPath;
+  final String? directoryPath;
+  final bool isGallery;
 
   GalleryDlProgressEvent({
     required this.status,
     required this.downloadedCount,
     required this.isComplete,
     this.title,
+    this.filePath,
+    this.thumbnailPath,
+    this.directoryPath,
+    this.isGallery = false,
   });
 }

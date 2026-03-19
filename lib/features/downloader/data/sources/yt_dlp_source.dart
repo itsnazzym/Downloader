@@ -42,6 +42,7 @@ class YtDlpSource {
   Future<Map<String, dynamic>> fetchMetadata(
     String url, {
     String? cookies,
+    String? cookiesFilePath,
   }) async {
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) throw Exception('yt-dlp binary not found');
@@ -51,8 +52,10 @@ class YtDlpSource {
     // --no-playlist ensures we get a single video JSON, preventing multiple JSONs for playlist URLs
     final args = ['--dump-json', '--no-warnings', '--no-playlist', url];
 
-    if (cookies != null && cookies.isNotEmpty) {
+    if (_isCookieHeader(cookies)) {
       args.addAll(['--add-header', 'Cookie:$cookies']);
+    } else if (cookiesFilePath != null && cookiesFilePath.isNotEmpty) {
+      args.addAll(['--cookies', cookiesFilePath]);
     }
 
     final result = await _processRunner.run(ytDlp, args);
@@ -266,16 +269,19 @@ class YtDlpSource {
       args.add('srt'); // Convert all subs to srt for better support
     }
 
-    // === BROWSER COOKIES - ALWAYS USE FIREFOX ===
-    // Force Firefox cookies for all downloads to ensure consistency
-    args.addAll(['--cookies-from-browser', 'firefox']);
-    LoggerService.i('Using Firefox cookies for authentication');
-
-    if (request.rawCookies != null && request.rawCookies!.isNotEmpty) {
+    if (_isCookieHeader(request.rawCookies)) {
       args.addAll(['--add-header', 'Cookie:${request.rawCookies}']);
       LoggerService.i('Using supplied session cookies');
-    } else if (request.cookiesFilePath != null) {
+    } else if (request.cookiesFilePath != null &&
+        request.cookiesFilePath!.isNotEmpty) {
       args.addAll(['--cookies', request.cookiesFilePath!]);
+      LoggerService.i('Using supplied cookies file');
+    } else if (request.cookieBrowser != null &&
+        request.cookieBrowser!.isNotEmpty) {
+      args.addAll(['--cookies-from-browser', request.cookieBrowser!]);
+      LoggerService.i(
+        'Using browser cookies for authentication: ${request.cookieBrowser}',
+      );
     }
 
     args.addAll(['--retries', '3']);
@@ -726,6 +732,14 @@ class YtDlpSource {
       // ignore
     }
     return '';
+  }
+
+  bool _isCookieHeader(String? rawCookies) {
+    if (rawCookies == null || rawCookies.isEmpty) {
+      return false;
+    }
+
+    return !rawCookies.contains('\t') && rawCookies.contains('=');
   }
 }
 

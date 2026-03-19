@@ -23,10 +23,10 @@ class DownloadView extends ConsumerWidget {
               const _DownloadTopBar(),
 
               // Divider
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: AppColors.border),
 
               // List
-              const Expanded(child: DownloadList()),
+              Expanded(child: DownloadList()),
             ],
           ),
         ),
@@ -41,7 +41,7 @@ class DownloadView extends ConsumerWidget {
 
             return Container(
               width: 300,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(left: BorderSide(color: AppColors.border)),
                 color: AppColors.surface,
               ),
@@ -72,26 +72,22 @@ class _DownloadTopBar extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           // Refresh Library
           IconButton(
             onPressed: () async {
               ref.read(downloadListProvider.notifier).refreshLibrary();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text('Refreshing library...'),
                   duration: Duration(seconds: 2),
                 ),
               );
             },
-            icon: const Icon(
-              Icons.refresh,
-              size: 20,
-              color: AppColors.textSecondary,
-            ),
+            icon: Icon(Icons.refresh, size: 20, color: AppColors.textSecondary),
             tooltip: "Refresh Library",
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           // Clear History
           IconButton(
             onPressed: () {
@@ -99,21 +95,21 @@ class _DownloadTopBar extends ConsumerWidget {
               showDialog(
                 context: context,
                 builder: (c) => AlertDialog(
-                  title: const Text("Clear History"),
-                  content: const Text(
+                  title: Text("Clear History"),
+                  content: Text(
                     "Remove all completed, failed, and canceled downloads? Active downloads will remain.",
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(c),
-                      child: const Text("Cancel"),
+                      child: Text("Cancel"),
                     ),
                     TextButton(
                       onPressed: () {
                         ref.read(downloadListProvider.notifier).clearHistory();
                         Navigator.pop(c);
                       },
-                      child: const Text(
+                      child: Text(
                         "Clear",
                         style: TextStyle(color: AppColors.error),
                       ),
@@ -122,29 +118,25 @@ class _DownloadTopBar extends ConsumerWidget {
                 ),
               );
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.delete_sweep_outlined,
               size: 20,
               color: AppColors.textSecondary,
             ),
             tooltip: "Clear History",
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
 
           // View Mode & Sort Menu
           PopupMenuButton<String>(
-            icon: const Icon(
-              Icons.sort,
-              size: 20,
-              color: AppColors.textSecondary,
-            ),
+            icon: Icon(Icons.sort, size: 20, color: AppColors.textSecondary),
             tooltip: "Sort & View",
             itemBuilder: (context) {
               final currentSort = ref.read(downloadSortProvider);
               final currentMode = ref.read(downloadViewModeProvider);
 
               return [
-                const PopupMenuItem(
+                PopupMenuItem(
                   enabled: false,
                   child: Text(
                     "Sort By",
@@ -154,46 +146,34 @@ class _DownloadTopBar extends ConsumerWidget {
                 CheckedPopupMenuItem(
                   checked: currentSort == DownloadSort.dateDesc,
                   value: 'dateDesc',
-                  child: const Text(
-                    "Date (Newest)",
-                    style: TextStyle(fontSize: 13),
-                  ),
+                  child: Text("Date (Newest)", style: TextStyle(fontSize: 13)),
                   onTap: () => ref.read(downloadSortProvider.notifier).state =
                       DownloadSort.dateDesc,
                 ),
                 CheckedPopupMenuItem(
                   checked: currentSort == DownloadSort.dateAsc,
                   value: 'dateAsc',
-                  child: const Text(
-                    "Date (Oldest)",
-                    style: TextStyle(fontSize: 13),
-                  ),
+                  child: Text("Date (Oldest)", style: TextStyle(fontSize: 13)),
                   onTap: () => ref.read(downloadSortProvider.notifier).state =
                       DownloadSort.dateAsc,
                 ),
                 CheckedPopupMenuItem(
                   checked: currentSort == DownloadSort.nameAsc,
                   value: 'nameAsc',
-                  child: const Text(
-                    "Name (A-Z)",
-                    style: TextStyle(fontSize: 13),
-                  ),
+                  child: Text("Name (A-Z)", style: TextStyle(fontSize: 13)),
                   onTap: () => ref.read(downloadSortProvider.notifier).state =
                       DownloadSort.nameAsc,
                 ),
                 CheckedPopupMenuItem(
                   checked: currentSort == DownloadSort.sizeDesc,
                   value: 'sizeDesc',
-                  child: const Text(
-                    "Size (Largest)",
-                    style: TextStyle(fontSize: 13),
-                  ),
+                  child: Text("Size (Largest)", style: TextStyle(fontSize: 13)),
                   onTap: () => ref.read(downloadSortProvider.notifier).state =
                       DownloadSort.sizeDesc,
                 ),
 
-                const PopupMenuDivider(),
-                const PopupMenuItem(
+                PopupMenuDivider(),
+                PopupMenuItem(
                   enabled: false,
                   child: Text(
                     "View Mode",
@@ -203,7 +183,7 @@ class _DownloadTopBar extends ConsumerWidget {
                 CheckedPopupMenuItem(
                   checked: currentMode == DownloadViewMode.list,
                   value: 'list',
-                  child: const Text("List", style: TextStyle(fontSize: 13)),
+                  child: Text("List", style: TextStyle(fontSize: 13)),
                   onTap: () =>
                       ref.read(downloadViewModeProvider.notifier).state =
                           DownloadViewMode.list,
@@ -211,7 +191,7 @@ class _DownloadTopBar extends ConsumerWidget {
                 CheckedPopupMenuItem(
                   checked: currentMode == DownloadViewMode.detailed,
                   value: 'detailed',
-                  child: const Text("Detailed", style: TextStyle(fontSize: 13)),
+                  child: Text("Detailed", style: TextStyle(fontSize: 13)),
                   onTap: () =>
                       ref.read(downloadViewModeProvider.notifier).state =
                           DownloadViewMode.detailed,
@@ -247,15 +227,12 @@ class _SearchBar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         children: [
-          const Icon(Icons.search, size: 16, color: AppColors.textSecondary),
-          const SizedBox(width: 8),
+          Icon(Icons.search, size: 16, color: AppColors.textSecondary),
+          SizedBox(width: 8),
           Expanded(
             child: TextField(
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textPrimary,
-              ),
-              decoration: const InputDecoration(
+              style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+              decoration: InputDecoration(
                 isDense: true,
                 hintText: "Search downloads...",
                 hintStyle: TextStyle(

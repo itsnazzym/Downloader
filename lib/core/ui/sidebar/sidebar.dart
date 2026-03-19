@@ -13,6 +13,7 @@ import '../../../../features/downloader/presentation/providers/filtered_download
 import '../../../../features/downloader/presentation/providers/downloader_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../features/downloader/domain/enums/download_status.dart';
+import '../../../../features/downloader/domain/utils/download_item_media.dart';
 
 import 'dart:ui'; // For ImageFilter
 
@@ -24,6 +25,7 @@ class AppSidebar extends ConsumerWidget {
     // Watch relevant state
     final statusFilter = ref.watch(downloadStatusFilterProvider);
     final sourceFilter = ref.watch(downloadSourceFilterProvider);
+    final mediaFilter = ref.watch(downloadMediaTypeFilterProvider);
     final allDownloadsAsync = ref.watch(downloadListProvider);
     final allDownloads = allDownloadsAsync.valueOrNull ?? [];
     final settings = ref.watch(settingsProvider);
@@ -46,6 +48,16 @@ class AppSidebar extends ConsumerWidget {
           (i) =>
               i.status == DownloadStatus.failed ||
               i.status == DownloadStatus.canceled,
+        )
+        .length;
+    final countVideos = allDownloads
+        .where(
+          (item) => DownloadItemMedia.detect(item) == DownloadMediaType.video,
+        )
+        .length;
+    final countAudios = allDownloads
+        .where(
+          (item) => DownloadItemMedia.detect(item) == DownloadMediaType.audio,
         )
         .length;
 
@@ -88,12 +100,23 @@ class AppSidebar extends ConsumerWidget {
       ref.read(downloadStatusFilterProvider.notifier).state = status;
       ref.read(downloadSourceFilterProvider.notifier).state =
           null; // Reset source
+      ref.read(downloadMediaTypeFilterProvider.notifier).state =
+          DownloadMediaTypeFilter.all;
     }
 
     void setSource(String? source) {
       ref.read(downloadSourceFilterProvider.notifier).state = source;
       ref.read(downloadStatusFilterProvider.notifier).state =
           DownloadStatusFilter.all; // Reset status
+      ref.read(downloadMediaTypeFilterProvider.notifier).state =
+          DownloadMediaTypeFilter.all;
+    }
+
+    void setMedia(DownloadMediaTypeFilter type) {
+      ref.read(downloadMediaTypeFilterProvider.notifier).state = type;
+      ref.read(downloadStatusFilterProvider.notifier).state =
+          DownloadStatusFilter.all;
+      ref.read(downloadSourceFilterProvider.notifier).state = null;
     }
 
     final String location = GoRouterState.of(context).uri.path;
@@ -148,7 +171,8 @@ class AppSidebar extends ConsumerWidget {
                             isLoading: allDownloadsAsync.isLoading,
                             isSelected:
                                 statusFilter == DownloadStatusFilter.all &&
-                                sourceFilter == null,
+                                sourceFilter == null &&
+                                mediaFilter == DownloadMediaTypeFilter.all,
                             onTap: () => setStatus(DownloadStatusFilter.all),
                           ),
                           _NavItem(
@@ -157,7 +181,9 @@ class AppSidebar extends ConsumerWidget {
                             count: countActive,
                             isLoading: allDownloadsAsync.isLoading,
                             isSelected:
-                                statusFilter == DownloadStatusFilter.active,
+                                statusFilter == DownloadStatusFilter.active &&
+                                sourceFilter == null &&
+                                mediaFilter == DownloadMediaTypeFilter.all,
                             onTap: () => setStatus(DownloadStatusFilter.active),
                           ),
                           _NavItem(
@@ -166,7 +192,10 @@ class AppSidebar extends ConsumerWidget {
                             count: countCompleted,
                             isLoading: allDownloadsAsync.isLoading,
                             isSelected:
-                                statusFilter == DownloadStatusFilter.completed,
+                                statusFilter ==
+                                    DownloadStatusFilter.completed &&
+                                sourceFilter == null &&
+                                mediaFilter == DownloadMediaTypeFilter.all,
                             onTap: () =>
                                 setStatus(DownloadStatusFilter.completed),
                           ),
@@ -176,7 +205,9 @@ class AppSidebar extends ConsumerWidget {
                             count: countFailed,
                             isLoading: allDownloadsAsync.isLoading,
                             isSelected:
-                                statusFilter == DownloadStatusFilter.failed,
+                                statusFilter == DownloadStatusFilter.failed &&
+                                sourceFilter == null &&
+                                mediaFilter == DownloadMediaTypeFilter.all,
                             onTap: () => setStatus(DownloadStatusFilter.failed),
                           ),
                           const Gap(AppSpacing.s),
@@ -185,6 +216,37 @@ class AppSidebar extends ConsumerWidget {
                             label: "Statistics",
                             isSelected: location == '/stats',
                             onTap: () => context.go('/stats'),
+                          ),
+                        ],
+                      ),
+                      const Gap(AppSpacing.m),
+                      Divider(
+                        color: AppColors.border.withValues(alpha: 0.3),
+                        height: 1,
+                      ),
+                      const Gap(AppSpacing.m),
+                      _NavSection(
+                        title: "MEDIA",
+                        children: [
+                          _NavItem(
+                            icon: Icons.movie_creation_outlined,
+                            label: "Videos",
+                            count: countVideos,
+                            isLoading: allDownloadsAsync.isLoading,
+                            isSelected:
+                                mediaFilter == DownloadMediaTypeFilter.video,
+                            onTap: () =>
+                                setMedia(DownloadMediaTypeFilter.video),
+                          ),
+                          _NavItem(
+                            icon: Icons.audiotrack_rounded,
+                            label: "Audio",
+                            count: countAudios,
+                            isLoading: allDownloadsAsync.isLoading,
+                            isSelected:
+                                mediaFilter == DownloadMediaTypeFilter.audio,
+                            onTap: () =>
+                                setMedia(DownloadMediaTypeFilter.audio),
                           ),
                         ],
                       ),
@@ -231,7 +293,12 @@ class AppSidebar extends ConsumerWidget {
                                   icon: icon,
                                   label: source,
                                   count: sourceCounts[source] ?? 0,
-                                  isSelected: sourceFilter == source,
+                                  isSelected:
+                                      sourceFilter == source &&
+                                      statusFilter ==
+                                          DownloadStatusFilter.all &&
+                                      mediaFilter ==
+                                          DownloadMediaTypeFilter.all,
                                   onTap: () => setSource(source),
                                 );
                               }).toList(),
@@ -566,7 +633,7 @@ class _ExpandableNavItemState extends State<_ExpandableNavItem>
                   ),
                   RotationTransition(
                     turns: _iconTurns,
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 16,
                       color: AppColors.textSecondary,

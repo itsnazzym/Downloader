@@ -77,7 +77,7 @@ class _PrimaryButtonState extends State<PrimaryButton>
             children: [
               if (widget.icon != null) ...[
                 Icon(widget.icon, color: Colors.white, size: 18),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
               ],
               Text(
                 widget.label,

@@ -7,14 +7,15 @@ import 'package:modern_downloader/features/downloader/domain/enums/download_stat
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/services/metadata_extractor_service.dart';
 import 'package:modern_downloader/core/services/thumbnail_service.dart';
+import 'package:modern_downloader/core/utils/media_file_utils.dart';
 import 'package:modern_downloader/services/binary_locator.dart';
 
 class LibraryScannerService {
   final BinaryLocator _binaryLocator;
   late final ThumbnailService _thumbnailService;
 
-  /// Cache of all video files found during scanning
-  List<File>? _videoFileCache;
+  /// Cache of all indexable media files found during scanning
+  List<File>? _mediaFileCache;
   String? _lastScannedPath;
 
   LibraryScannerService(this._binaryLocator) {
@@ -29,8 +30,8 @@ class LibraryScannerService {
     final fixedItems = <DownloadItem>[];
     LoggerService.i('LibraryScanner: logic start for ${items.length} items');
 
-    // Build cache of all video files in basePath (recursive)
-    await _buildVideoCache(basePath);
+    // Build cache of all indexable media files in basePath (recursive)
+    await _buildMediaCache(basePath);
 
     for (final item in items) {
       if (item.status == DownloadStatus.downloading ||
@@ -42,7 +43,7 @@ class LibraryScannerService {
       var fixedItem = item;
 
       // 1. Check Main File
-      if (item.filePath == null || !File(item.filePath!).existsSync()) {
+      if (!_pathExists(item.filePath)) {
         final foundPath = _findFileFor(item);
         if (foundPath != null) {
           LoggerService.debug('LibraryScanner: Fixed path for ${item.title}');
@@ -70,38 +71,13 @@ class LibraryScannerService {
         }
       }
 
-      // 2. Check/Fix Thumbnail - validate existing and generate if missing
-      if (fixedItem.filePath != null &&
-          File(fixedItem.filePath!).existsSync()) {
-        // First, validate existing thumbnailUrl - clear if file doesn't exist
-        if (fixedItem.thumbnailUrl != null &&
-            !fixedItem.thumbnailUrl!.startsWith('http')) {
-          // It's a local path - check if file exists
-          String decodedPath = fixedItem.thumbnailUrl!;
-          try {
-            decodedPath = Uri.decodeFull(fixedItem.thumbnailUrl!);
-          } catch (_) {}
-
-          if (!File(decodedPath).existsSync()) {
-            // Thumbnail file is missing - clear it so we can regenerate
-            fixedItem = fixedItem.copyWith(thumbnailUrl: null);
-          }
-        }
-
-        // Now try to find or generate thumbnail if needed
-        if (fixedItem.thumbnailUrl == null ||
-            !fixedItem.thumbnailUrl!.startsWith('http')) {
-          // First try existing sidecar
-          var thumb = _findSidecarThumbnail(fixedItem.filePath!);
-
-          // If no sidecar, generate one
-          thumb ??= await _thumbnailService.generateThumbnail(
-            fixedItem.filePath!,
-          );
-
-          if (thumb != null) {
-            fixedItem = fixedItem.copyWith(thumbnailUrl: thumb);
-          }
+      if (_pathExists(fixedItem.filePath)) {
+        final thumbnail = await _resolveThumbnailForPath(
+          fixedItem.filePath!,
+          existingThumbnail: fixedItem.thumbnailUrl,
+        );
+        if (thumbnail != fixedItem.thumbnailUrl) {
+          fixedItem = fixedItem.copyWith(thumbnailUrl: thumbnail);
         }
       }
 
@@ -136,49 +112,24 @@ class LibraryScannerService {
       final dir = Directory(downloadPath);
       if (!dir.existsSync()) return [];
 
-      final extractor = MetadataExtractorService(_binaryLocator);
-
       // Get all known paths (normalized) to avoid duplicates
       final knownPaths = knownItems
-          .where((i) => i.filePath != null)
+          .where((i) => i.filePath != null && File(i.filePath!).existsSync())
           .map((i) => i.filePath!.toLowerCase())
           .toSet();
-
       // Scan recursively
       await for (final entity in dir.list(recursive: true)) {
         if (entity is File) {
-          if (knownPaths.contains(entity.path.toLowerCase())) continue;
-          if (_isVideo(entity.path)) {
-            LoggerService.i('LibraryScanner: Found new video ${entity.path}');
+          final normalizedPath = entity.path.toLowerCase();
+          if (knownPaths.contains(normalizedPath) ||
+              !_shouldIndexFile(entity.path)) {
+            continue;
+          }
 
-            final id = const Uuid().v4();
-            final metadata = await extractor.extract(entity.path);
-            final filename = entity.uri.pathSegments.last;
-            final cleanTitle = TitleCleanerService.clean(
-              metadata?.title ?? filename,
-            );
-
-            // Detect source from metadata URL or folder structure
-            final source = _detectSource(
-              metadata?.sourceUrl,
-              entity.path,
-              downloadPath,
-            );
-
-            final newItem = DownloadItem(
-              id: id,
-              // Use a synthetic URL with the source domain for proper detection
-              request: DownloadRequest(
-                url: metadata?.sourceUrl ?? 'https://$source.detected/imported',
-              ),
-              title: cleanTitle,
-              status: DownloadStatus.completed,
-              progress: 1.0,
-              filePath: entity.path,
-              sortOrder: 9999,
-              thumbnailUrl: _findSidecarThumbnail(entity.path),
-            );
-            newItems.add(newItem);
+          LoggerService.i('LibraryScanner: Found new media ${entity.path}');
+          final item = await _buildItemFromFile(entity, downloadPath);
+          if (item != null) {
+            newItems.add(item);
           }
         }
       }
@@ -252,13 +203,13 @@ class LibraryScannerService {
     return knownSources.contains(folder);
   }
 
-  /// Builds a cache of all video files in the given path (recursive)
-  Future<void> _buildVideoCache(String basePath) async {
-    if (_lastScannedPath == basePath && _videoFileCache != null) {
+  /// Builds a cache of all indexable media files in the given path (recursive)
+  Future<void> _buildMediaCache(String basePath) async {
+    if (_lastScannedPath == basePath && _mediaFileCache != null) {
       return; // Use existing cache
     }
 
-    _videoFileCache = [];
+    _mediaFileCache = [];
     _lastScannedPath = basePath;
 
     try {
@@ -266,12 +217,12 @@ class LibraryScannerService {
       if (!dir.existsSync()) return;
 
       await for (final entity in dir.list(recursive: true)) {
-        if (entity is File && _isVideo(entity.path)) {
-          _videoFileCache!.add(entity);
+        if (entity is File && _shouldIndexFile(entity.path)) {
+          _mediaFileCache!.add(entity);
         }
       }
       LoggerService.i(
-        'LibraryScanner: Cached ${_videoFileCache!.length} video files from $basePath',
+        'LibraryScanner: Cached ${_mediaFileCache!.length} media files from $basePath',
       );
     } catch (e) {
       LoggerService.e('LibraryScanner: Error building cache', e);
@@ -280,17 +231,18 @@ class LibraryScannerService {
 
   /// Finds a file matching the item's title using normalized comparison
   String? _findFileFor(DownloadItem item) {
-    if (item.title == null || _videoFileCache == null) return null;
+    if (item.title == null || _mediaFileCache == null) return null;
 
     final normalizedTitle = _normalize(item.title!);
     if (normalizedTitle.isEmpty) return null;
+    final candidates = _candidateFilesFor(item);
 
     // Try exact filename match from previous path
     if (item.filePath != null) {
       final oldFilename = item.filePath!.split(RegExp(r'[/\\]')).last;
       final normalizedOldFilename = _normalize(oldFilename);
 
-      for (final file in _videoFileCache!) {
+      for (final file in candidates) {
         final filename = file.uri.pathSegments.last;
         final normalizedFilename = _normalize(filename);
 
@@ -301,7 +253,7 @@ class LibraryScannerService {
     }
 
     // Try title-based matching
-    for (final file in _videoFileCache!) {
+    for (final file in candidates) {
       final filename = file.uri.pathSegments.last;
       final normalizedFilename = _normalize(filename);
 
@@ -318,7 +270,10 @@ class LibraryScannerService {
   String _normalize(String input) {
     // Remove file extensions
     var s = input.replaceAll(
-      RegExp(r'\.(mp4|mkv|webm|mov|avi)$', caseSensitive: false),
+      RegExp(
+        r'\.(mp4|mkv|webm|mov|avi|flv|m4v|3gp|wmv|mp3|aac|opus|m4a|ogg|flac|wav|wma)$',
+        caseSensitive: false,
+      ),
       '',
     );
     // Remove URLs
@@ -365,12 +320,101 @@ class LibraryScannerService {
     return null;
   }
 
-  bool _isVideo(String path) {
-    final ext = path.toLowerCase();
-    return ext.endsWith('.mp4') ||
-        ext.endsWith('.mkv') ||
-        ext.endsWith('.webm') ||
-        ext.endsWith('.mov') ||
-        ext.endsWith('.avi');
+  Future<DownloadItem?> _buildItemFromFile(File file, String basePath) async {
+    final id = const Uuid().v4();
+    final metadata = _shouldExtractMetadata(file.path)
+        ? await MetadataExtractorService(_binaryLocator).extract(file.path)
+        : null;
+    final filename = file.uri.pathSegments.last;
+    final cleanTitle = TitleCleanerService.clean(metadata?.title ?? filename);
+    final source = _detectSource(metadata?.sourceUrl, file.path, basePath);
+    final thumbnail = await _resolveThumbnailFor(file.path);
+
+    return DownloadItem(
+      id: id,
+      request: DownloadRequest(
+        url: metadata?.sourceUrl ?? 'https://$source.detected/imported',
+      ),
+      title: cleanTitle,
+      status: DownloadStatus.completed,
+      progress: 1.0,
+      filePath: file.path,
+      sortOrder: 9999,
+      thumbnailUrl: thumbnail,
+    );
+  }
+
+  bool _shouldExtractMetadata(String path) {
+    return MediaFileUtils.isVideoFile(path) || MediaFileUtils.isAudioFile(path);
+  }
+
+  Future<String?> _resolveThumbnailFor(
+    String mediaPath, {
+    String? existingThumbnail,
+  }) async {
+    if (existingThumbnail != null && existingThumbnail.isNotEmpty) {
+      if (MediaFileUtils.isNetworkUrl(existingThumbnail) ||
+          File(existingThumbnail).existsSync()) {
+        return existingThumbnail;
+      }
+    }
+
+    final sidecar = _findSidecarThumbnail(mediaPath);
+    if (sidecar != null) {
+      return sidecar;
+    }
+
+    if (MediaFileUtils.isVideoFile(mediaPath)) {
+      return _thumbnailService.generateThumbnail(mediaPath);
+    }
+
+    return null;
+  }
+
+  Future<String?> _resolveThumbnailForPath(
+    String path, {
+    String? existingThumbnail,
+  }) async {
+    return _resolveThumbnailFor(path, existingThumbnail: existingThumbnail);
+  }
+
+  bool _shouldIndexFile(String path) {
+    if (!MediaFileUtils.isVideoFile(path) &&
+        !MediaFileUtils.isAudioFile(path)) {
+      return false;
+    }
+
+    final normalized = path.toLowerCase().replaceAll('/', '\\');
+    if (normalized.contains('\\thumbnails\\')) {
+      return false;
+    }
+
+    return true;
+  }
+
+  Iterable<File> _candidateFilesFor(DownloadItem item) {
+    final allFiles = _mediaFileCache ?? const <File>[];
+    final currentPath = item.filePath;
+    if (currentPath == null || currentPath.isEmpty) {
+      return allFiles;
+    }
+
+    if (MediaFileUtils.isVideoFile(currentPath)) {
+      return allFiles.where((file) => MediaFileUtils.isVideoFile(file.path));
+    }
+
+    if (MediaFileUtils.isAudioFile(currentPath)) {
+      return allFiles.where((file) => MediaFileUtils.isAudioFile(file.path));
+    }
+
+    return allFiles;
+  }
+
+  bool _pathExists(String? path) {
+    if (path == null || path.isEmpty) {
+      return false;
+    }
+
+    return File(path).existsSync();
   }
 }

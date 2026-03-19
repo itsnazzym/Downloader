@@ -1,324 +1,398 @@
-// Modern Downloader Content Script (Premium)
-// Scans for videos and links to add permanent, customizable download buttons with quality selection.
+(function () {
+  const Common = window.ModernDownloaderCommon;
+  const api = chrome;
+  const QUALITY_OPTIONS = [
+    { label: 'Best', value: 'best' },
+    { label: '1080p', value: '1080p' },
+    { label: '720p', value: '720p' },
+  ];
+  const overlayRegistry = new Map();
+  let syncSettings = { ...Common.DEFAULT_SYNC_SETTINGS };
+  let observer = null;
+  let scanTimer = null;
+  let layoutFrame = null;
 
-const PROCESSED = new WeakSet();
-const VIDEO_PATTERNS = [
-    '/video-', '/watch?v=', '/reels/', '/reel/', '/status/',
-    '/view_video.php', '/video_view', '/play/', '/v/', '/view/', '/watch/',
-    'tiktok.com', 'instagram.com/p/', 'x.com/status'
-];
+  function storageGet(area, keys) {
+    return new Promise((resolve) => api.storage[area].get(keys, resolve));
+  }
 
-// Default Settings
-let SETTINGS = {
-    btnColor: '#6C5DD3', // Modern Purple
-    btnPosition: 'top-right', // top-right, top-left, bottom-right, bottom-left
-    btnSize: 'normal', // small, normal, large
-    showQualitySelector: true
-};
+  function sanitizeLabel(value, fallback) {
+    const cleaned = Common.sanitizeText(value, 64);
+    return cleaned || fallback;
+  }
 
-// Load settings
-chrome.storage.sync.get(['btnColor', 'btnPosition', 'btnSize'], (items) => {
-    if (items.btnColor) SETTINGS.btnColor = items.btnColor;
-    if (items.btnPosition) SETTINGS.btnPosition = items.btnPosition;
-    if (items.btnSize) SETTINGS.btnSize = items.btnSize;
-});
+  function isCurrentSiteAllowed() {
+    return Common.isSiteAllowed(window.location.hostname, syncSettings.siteAccessMode, syncSettings.siteRules);
+  }
 
-// Helper: Find platform specific URL
-function findPlatformSpecificUrl(element) {
-    const hostname = window.location.hostname;
+  function getSiteSelectors() {
+    const siteKey = Common.getSiteKey(window.location.hostname);
+    switch (siteKey) {
+      case 'youtube':
+        return ['a#thumbnail[href*="/watch"]', 'a[href*="/shorts/"]', 'a[href*="/clip/"]'];
+      case 'instagram':
+        return ['a[href*="/reel/"]', 'a[href*="/reels/"]'];
+      case 'tiktok':
+        return ['a[href*="/video/"]'];
+      case 'twitch':
+        return ['a[href*="/videos/"]', 'a[href*="/clip/"]', 'a[href*="/clips/"]'];
+      case 'facebook':
+        return ['a[href*="/watch/"]', 'a[href*="/videos/"]', 'a[href*="fb.watch"]', 'a[href*="/reel/"]'];
+      default:
+        return [];
+    }
+  }
+
+  function hasVisualThumbnail(anchor) {
+    if (!anchor) {
+      return false;
+    }
+
+    const rect = anchor.getBoundingClientRect();
+    if (rect.width < 96 || rect.height < 54) {
+      return false;
+    }
+
+    return Boolean(anchor.querySelector('img, picture, video, canvas'));
+  }
+
+  function getTargetLabel(element, fallback) {
+    if (!element) {
+      return fallback;
+    }
+
+    const text = element.getAttribute('aria-label') || element.textContent || element.title || fallback;
+    return sanitizeLabel(text, fallback);
+  }
+
+  function resolveVideoElementCandidate(video) {
+    if (!video || !video.isConnected) {
+      return null;
+    }
+
     const pageUrl = window.location.href;
+    const directMedia = video.currentSrc && !video.currentSrc.startsWith('blob:') ? video.currentSrc : '';
+    let mediaUrl = directMedia;
+    let label = getTargetLabel(video.closest('article, section, main, [role="dialog"]'), 'Detected video');
+    let anchor = video;
 
-    // STRATEGY 1: Direct Parent Link (Standard)
-    const findNearestPermalink = (el) => {
-        // ... (Existing logic kept for compatibility, but refined) ...
-        if (el.tagName === 'A' && el.href && VIDEO_PATTERNS.some(p => el.href.includes(p))) {
-            return el.href;
-        }
-        let curr = el.parentElement;
-        let depth = 0;
-        while (curr && depth < 10) {
-            if (curr.tagName === 'A' && curr.href && VIDEO_PATTERNS.some(p => curr.href.includes(p)) && !curr.href.includes('preview')) {
-                return curr.href;
-            }
-            depth++;
-            curr = curr.parentElement;
-        }
-        return null;
-    };
+    const container = video.closest('article, section, main, [role="dialog"], .player, .video-player');
+    const siteKey = Common.getSiteKey(window.location.hostname);
 
-    // STRATEGY 2: Container Search (for X.com, Instagram, etc where link is sibling)
-    const findLinkInContainer = (el) => {
-        // Go up to find a semantic container
-        const container = el.closest('article, .user-post, [data-testid="tweet"], .feed-shared-update-v2');
-        if (container) {
-            // Priority: X.com / Twitter status link
-            const twitterLink = container.querySelector('a[href*="/status/"]');
-            if (twitterLink) return twitterLink.href;
-
-            // Generic video link finder
-            const link = container.querySelector('a[href*="/video/"], a[href*="/watch?v="], a[href*="/reel/"]');
-            if (link) return link.href;
-        }
-        return null;
-    };
-
-    if (element.tagName === 'VIDEO') {
-        // Try Standard first
-        let deepLink = findNearestPermalink(element);
-        if (deepLink) return deepLink;
-
-        // Try Container Search (Smarter)
-        deepLink = findLinkInContainer(element);
-        if (deepLink) return deepLink;
-
-        let mediaUrl = element.currentSrc || element.src;
-        if (mediaUrl && !mediaUrl.startsWith('blob:') && !mediaUrl.includes('preview')) {
-            return mediaUrl;
-        }
-    } else if (element.tagName === 'A') {
-        return element.href;
+    if (siteKey === 'youtube') {
+      mediaUrl = '';
+      label = sanitizeLabel(document.title, 'YouTube video');
+      anchor = video;
+    } else if (siteKey === 'twitter') {
+      const permalink = container?.querySelector('a[href*="/status/"]');
+      mediaUrl = permalink?.href || '';
+      label = getTargetLabel(container, 'Tweet video');
+      anchor = container || video;
+    } else if (siteKey === 'instagram') {
+      const reelLink = container?.querySelector('a[href*="/reel/"], a[href*="/reels/"]');
+      mediaUrl = reelLink?.href || '';
+      label = getTargetLabel(container, 'Instagram reel');
+      anchor = container || video;
+    } else if (siteKey === 'facebook') {
+      const watchLink = container?.querySelector('a[href*="/watch/"], a[href*="/videos/"], a[href*="fb.watch"]');
+      mediaUrl = watchLink?.href || directMedia || '';
+      label = getTargetLabel(container, 'Facebook video');
+      anchor = container || video;
+    } else if (siteKey === 'tiktok') {
+      mediaUrl = Common.isLikelyVideoPageUrl(pageUrl) ? '' : directMedia;
+      label = getTargetLabel(container, 'TikTok video');
+      anchor = container || video;
+    } else if (siteKey === 'twitch') {
+      mediaUrl = Common.isLikelyVideoPageUrl(pageUrl) ? '' : directMedia;
+      label = getTargetLabel(container, 'Twitch video');
+      anchor = container || video;
     }
 
-    // Fallback to page URL if specifically on a video page
-    if (VIDEO_PATTERNS.some(p => pageUrl.includes(p))) return pageUrl;
+    const validation = Common.validateVideoTarget(mediaUrl, pageUrl);
+    if (!validation.ok) {
+      return null;
+    }
 
-    return null; // Return null if not sure
-}
+    return {
+      key: validation.preferredUrl,
+      pageUrl,
+      mediaUrl,
+      label,
+      anchor,
+    };
+  }
 
-function createButtonUI(targetUrl) {
+  function resolveAnchorCandidate(anchor) {
+    if (!anchor?.href || !hasVisualThumbnail(anchor)) {
+      return null;
+    }
+
+    const validation = Common.validateVideoTarget(anchor.href, anchor.href);
+    if (!validation.ok) {
+      return null;
+    }
+
+    return {
+      key: validation.preferredUrl,
+      pageUrl: anchor.href,
+      mediaUrl: anchor.href,
+      label: getTargetLabel(anchor, 'Video page'),
+      anchor,
+    };
+  }
+
+  function collectCandidates() {
+    if (!isCurrentSiteAllowed()) {
+      return [];
+    }
+
+    const candidates = [];
+    const seenKeys = new Set();
+
+    document.querySelectorAll('video').forEach((video) => {
+      const candidate = resolveVideoElementCandidate(video);
+      if (candidate && !seenKeys.has(candidate.key)) {
+        seenKeys.add(candidate.key);
+        candidates.push(candidate);
+      }
+    });
+
+    for (const selector of getSiteSelectors()) {
+      document.querySelectorAll(selector).forEach((anchor) => {
+        const candidate = resolveAnchorCandidate(anchor);
+        if (candidate && !seenKeys.has(candidate.key)) {
+          seenKeys.add(candidate.key);
+          candidates.push(candidate);
+        }
+      });
+    }
+
+    return candidates;
+  }
+
+  function setButtonState(entry, state, message) {
+    entry.button.dataset.state = state;
+    entry.button.textContent =
+      state === 'sending'
+        ? 'Sending...'
+        : state === 'sent'
+          ? 'Sent'
+          : state === 'offline'
+            ? 'Offline'
+            : state === 'error'
+              ? 'Error'
+              : 'Download';
+    entry.button.title = message || entry.candidate.label;
+  }
+
+  function createOverlayEntry(candidate) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'md-btn-wrapper';
-
-    // Positioning styles based on settings
+    wrapper.className = 'md-video-btn';
     Object.assign(wrapper.style, {
-        position: 'absolute',
-        zIndex: '2147483647', // Max Z-Index
-        display: 'flex',
-        alignItems: 'center',
-        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-        gap: '2px',
-        gap: '2px',
-        opacity: '1', // Always visible
-        transition: 'opacity 0.2s ease',
-        pointerEvents: 'auto' // Always clickable
+      position: 'fixed',
+      zIndex: '2147483647',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      pointerEvents: 'auto',
     });
 
-    // Handle position
-    const offset = '8px';
-    if (SETTINGS.btnPosition === 'top-right') { wrapper.style.top = offset; wrapper.style.right = offset; }
-    else if (SETTINGS.btnPosition === 'top-left') { wrapper.style.top = offset; wrapper.style.left = offset; }
-    else if (SETTINGS.btnPosition === 'bottom-right') { wrapper.style.bottom = offset; wrapper.style.right = offset; }
-    else if (SETTINGS.btnPosition === 'bottom-left') { wrapper.style.bottom = offset; wrapper.style.left = offset; }
-
-    // Main Button
-    const btn = document.createElement('button');
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download`;
-
-    // Style
-    const basePadding = SETTINGS.btnSize === 'small' ? '4px 8px' : '6px 12px';
-    const fontSize = SETTINGS.btnSize === 'small' ? '11px' : '13px';
-
-    Object.assign(btn.style, {
-        backgroundColor: SETTINGS.btnColor,
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px 0 0 6px',
-        padding: basePadding,
-        fontSize: fontSize,
-        fontWeight: '600',
-        cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        pointerEvents: 'auto'
+    const select = document.createElement('select');
+    Object.assign(select.style, {
+      height: '30px',
+      borderRadius: '8px',
+      border: '1px solid rgba(255, 255, 255, 0.16)',
+      background: 'rgba(17, 20, 27, 0.94)',
+      color: '#f4f6fb',
+      padding: '0 8px',
+      fontSize: '12px',
+      boxShadow: '0 10px 24px rgba(0, 0, 0, 0.28)',
+      backdropFilter: 'blur(12px)',
+    });
+    QUALITY_OPTIONS.forEach((option) => {
+      const item = document.createElement('option');
+      item.value = option.value;
+      item.textContent = option.label;
+      select.appendChild(item);
     });
 
-    if (!SETTINGS.showQualitySelector) btn.style.borderRadius = '6px';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Download';
+    Object.assign(button.style, {
+      height: '30px',
+      borderRadius: '999px',
+      border: '1px solid rgba(255, 255, 255, 0.12)',
+      padding: '0 12px',
+      background: 'linear-gradient(135deg, rgba(32, 163, 158, 0.96), rgba(17, 108, 130, 0.96))',
+      color: '#ffffff',
+      fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+      fontSize: '12px',
+      fontWeight: '700',
+      cursor: 'pointer',
+      boxShadow: '0 10px 24px rgba(0, 0, 0, 0.28)',
+      backdropFilter: 'blur(12px)',
+    });
+    button.title = candidate.label;
 
-    // Dropdown Toggle
-    let toggle = null;
-    let dropdown = null;
-    let selectedQuality = 'best'; // default
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setButtonState(entry, 'sending', candidate.label);
 
-    if (SETTINGS.showQualitySelector) {
-        toggle = document.createElement('button');
-        toggle.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-        Object.assign(toggle.style, {
-            backgroundColor: SETTINGS.btnColor,
-            filter: 'brightness(0.9)', // Slightly darker
-            color: 'white',
-            border: 'none',
-            borderLeft: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '0 6px 6px 0',
-            padding: basePadding,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            height: '100%',
-            pointerEvents: 'auto',
-            boxShadow: '2px 0 12px rgba(0,0,0,0.1)'
-        });
+      api.runtime.sendMessage(
+        {
+          type: 'DOWNLOAD_BTN_CLICK',
+          mediaUrl: candidate.mediaUrl,
+          pageUrl: candidate.pageUrl,
+          options: {
+            preferredQuality: select.value,
+          },
+        },
+        (response) => {
+          if (api.runtime.lastError) {
+            setButtonState(entry, 'offline', 'Desktop app is offline.');
+            return;
+          }
 
-        // Dropdown Menu
-        dropdown = document.createElement('div');
-        Object.assign(dropdown.style, {
-            position: 'absolute',
-            top: '100%',
-            right: '0',
-            marginTop: '0px', // Remove gap to prevent mouseleave
-            backgroundColor: '#1E1E24',
-            borderRadius: '6px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            border: '1px solid #333',
-            display: 'none',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            minWidth: '120px',
-            pointerEvents: 'auto'
-        });
+          if (response?.ok) {
+            setButtonState(entry, 'sent', 'Download sent to the desktop app.');
+            setTimeout(() => setButtonState(entry, 'ready', candidate.label), 1800);
+            return;
+          }
 
-        const options = [
-            { label: 'Best Quality', val: 'best' },
-            { label: '1080p', val: '1080p' },
-            { label: '720p', val: '720p' },
-            { label: 'Audio Only', val: 'audio' }
-        ];
+          const code = response?.code || 'ERROR';
+          setButtonState(entry, code === 'APP_OFFLINE' ? 'offline' : 'error', response?.message || 'Send failed.');
+        },
+      );
+    });
 
-        options.forEach(opt => {
-            const item = document.createElement('div');
-            item.textContent = opt.label;
-            Object.assign(item.style, {
-                padding: '8px 12px',
-                color: '#EEE',
-                fontSize: '12px',
-                cursor: 'pointer',
-                transition: 'background 0.1s'
-            });
-            item.onmouseenter = () => item.style.backgroundColor = SETTINGS.btnColor;
-            item.onmouseleave = () => item.style.backgroundColor = 'transparent';
-            item.onclick = (e) => {
-                e.stopPropagation();
-                selectedQuality = opt.val;
-                btn.innerHTML = selectedQuality === 'audio'
-                    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg> Audio`
-                    : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> ${opt.label}`;
-                dropdown.style.display = 'none';
-            };
-            dropdown.appendChild(item);
-        });
+    wrapper.appendChild(select);
+    wrapper.appendChild(button);
+    document.documentElement.appendChild(wrapper);
 
-        wrapper.appendChild(dropdown);
-    }
-
-    // Logic
-    btn.onclick = (e) => {
-        console.log("Download button clicked!");
-        e.preventDefault();
-        e.stopPropagation();
-
-        const opts = {};
-        if (selectedQuality === 'audio') opts.isAudioOnly = true;
-        else if (selectedQuality !== 'best') opts.preferredQuality = selectedQuality;
-
-        chrome.runtime.sendMessage({
-            type: 'DOWNLOAD_BTN_CLICK',
-            url: targetUrl,
-            pageUrl: window.location.href,
-            options: opts
-        });
-
-        const originalText = btn.innerHTML;
-        btn.innerHTML = 'Sent!';
-        btn.style.backgroundColor = '#4CAF50';
-        if (toggle) toggle.style.backgroundColor = '#4CAF50';
-
-        setTimeout(() => {
-            btn.innerHTML = originalText;
-            btn.style.backgroundColor = SETTINGS.btnColor;
-            if (toggle) toggle.style.backgroundColor = SETTINGS.btnColor;
-        }, 2000);
+    const entry = {
+      candidate,
+      wrapper,
+      button,
+      select,
     };
 
-    if (toggle) {
-        toggle.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const isOpen = dropdown.style.display === 'flex';
-            dropdown.style.display = isOpen ? 'none' : 'flex';
-            // Clear any pending close timer if we manually toggle
-            if (wrapper._closeTimer) clearTimeout(wrapper._closeTimer);
-        };
+    return entry;
+  }
 
-        // Robust hover handling with delay
-        wrapper.onmouseenter = () => {
-            if (wrapper._closeTimer) clearTimeout(wrapper._closeTimer);
-        };
+  function cleanupStaleEntries(activeKeys) {
+    for (const [key, entry] of overlayRegistry.entries()) {
+      if (!activeKeys.has(key) || !entry.candidate.anchor?.isConnected) {
+        entry.wrapper.remove();
+        overlayRegistry.delete(key);
+      }
+    }
+  }
 
-        wrapper.onmouseleave = () => {
-            wrapper._closeTimer = setTimeout(() => {
-                dropdown.style.display = 'none';
-            }, 500); // 500ms grace period
-        };
+  function layoutOverlays() {
+    layoutFrame = null;
+    for (const entry of overlayRegistry.values()) {
+      const rect = entry.candidate.anchor.getBoundingClientRect();
+      const visible =
+        rect.width >= 40 &&
+        rect.height >= 24 &&
+        rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.top < window.innerHeight &&
+        rect.left < window.innerWidth;
 
-        // Ensure jumping from button to dropdown clears timer
-        dropdown.onmouseenter = () => {
-            if (wrapper._closeTimer) clearTimeout(wrapper._closeTimer);
-        };
+      if (!visible) {
+        entry.wrapper.style.display = 'none';
+        continue;
+      }
+
+      entry.wrapper.style.display = 'flex';
+      entry.wrapper.style.top = `${Math.max(8, rect.top + 8)}px`;
+      entry.wrapper.style.left = `${Math.max(8, rect.left + 8)}px`;
+    }
+  }
+
+  function scheduleLayout() {
+    if (layoutFrame) {
+      return;
     }
 
-    wrapper.appendChild(btn);
-    if (toggle) wrapper.appendChild(toggle);
+    layoutFrame = window.requestAnimationFrame(layoutOverlays);
+  }
 
-    return wrapper;
-}
-
-function injectButton(container, targetUrl) {
-    if (PROCESSED.has(container)) return;
-
-    const style = window.getComputedStyle(container);
-    if (style.position === 'static') {
-        container.style.position = 'relative';
+  function runScan() {
+    scanTimer = null;
+    if (!isCurrentSiteAllowed()) {
+      cleanupStaleEntries(new Set());
+      return;
     }
 
-    const ui = createButtonUI(targetUrl);
-    container.appendChild(ui);
-    PROCESSED.add(container);
+    const candidates = collectCandidates();
+    const activeKeys = new Set();
+    for (const candidate of candidates) {
+      activeKeys.add(candidate.key);
+      if (overlayRegistry.has(candidate.key)) {
+        overlayRegistry.get(candidate.key).candidate = candidate;
+      } else {
+        overlayRegistry.set(candidate.key, createOverlayEntry(candidate));
+      }
+    }
 
-    // Always visible
-    ui.style.opacity = '1';
-    ui.style.pointerEvents = 'auto';
-}
+    cleanupStaleEntries(activeKeys);
+    scheduleLayout();
+  }
 
-function scan() {
-    // 1. Videos
-    document.querySelectorAll('video').forEach(video => {
-        if (!video.parentElement) return;
-        const url = findPlatformSpecificUrl(video);
-        if (url) injectButton(video.parentElement, url);
+  function scheduleScan() {
+    if (scanTimer) {
+      clearTimeout(scanTimer);
+    }
+    scanTimer = setTimeout(runScan, 200);
+  }
+
+  async function refreshSettings() {
+    const result = await storageGet('sync', ['siteAccessMode', 'siteRules']);
+    syncSettings = {
+      siteAccessMode: result.siteAccessMode || Common.DEFAULT_SYNC_SETTINGS.siteAccessMode,
+      siteRules: Common.normalizeRuleList(result.siteRules),
+    };
+    scheduleScan();
+  }
+
+  api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type === 'GET_PAGE_CONTEXT') {
+      const detectedTargets = collectCandidates().slice(0, 5).map((candidate) => ({
+        key: candidate.key,
+        label: candidate.label,
+        mediaUrl: candidate.mediaUrl,
+        pageUrl: candidate.pageUrl,
+      }));
+
+      sendResponse({
+        ok: true,
+        siteAllowed: isCurrentSiteAllowed(),
+        canDownloadPage: Common.isLikelyVideoPageUrl(window.location.href),
+        detectedTargets,
+      });
+    }
+  });
+
+  api.storage.onChanged.addListener((changes, area) => {
+    if (area === 'sync' && (changes.siteAccessMode || changes.siteRules)) {
+      refreshSettings();
+    }
+  });
+
+  refreshSettings().then(() => {
+    runScan();
+    observer = new MutationObserver(scheduleScan);
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src', 'href'],
     });
-
-    // 2. Thumbnails (Aggressive scan)
-    document.querySelectorAll('a').forEach(a => {
-        if (PROCESSED.has(a)) return;
-        const href = a.href;
-        if (href && VIDEO_PATTERNS.some(p => href.includes(p))) {
-            // Basic heuristic
-            const rect = a.getBoundingClientRect();
-            if (rect.width > 100 && rect.height > 60) {
-                const url = href;
-                injectButton(a, url);
-            }
-        }
-    });
-}
-
-// Initial
-scan();
-setInterval(scan, 1000);
-
-// Observer
-const observer = new MutationObserver((mutations) => {
-    if (mutations.length > 0) scan();
-});
-observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('scroll', scheduleLayout, true);
+    window.addEventListener('resize', scheduleLayout);
+  });
+})();

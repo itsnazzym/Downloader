@@ -53,7 +53,7 @@ class _CupertinoSearchBarState extends State<CupertinoSearchBar> {
             color: _isFocused ? IOSTheme.systemBlue : IOSTheme.systemGray,
             size: 20,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: widget.controller,
@@ -79,14 +79,14 @@ class _CupertinoSearchBarState extends State<CupertinoSearchBar> {
                 widget.controller.clear();
                 setState(() {});
               },
-              child: const Icon(
+              child: Icon(
                 CupertinoIcons.clear_circled_solid,
                 color: IOSTheme.systemGray,
                 size: 18,
               ),
             ),
           if (widget.trailing != null) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             widget.trailing!,
           ],
         ],

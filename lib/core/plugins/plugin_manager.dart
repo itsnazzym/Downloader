@@ -1,30 +1,49 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/binary_locator.dart';
+import '../../services/process_runner.dart';
+import '../../services/service_providers.dart';
 import 'plugin_interface.dart';
 import 'builtin/auto_rename_plugin.dart';
+import 'builtin/duplicate_guard_plugin.dart';
+import 'builtin/ffmpeg_normalize_plugin.dart';
+import 'builtin/metadata_enricher_plugin.dart';
+import 'builtin/post_process_script_plugin.dart';
 import 'builtin/smart_organizer_plugin.dart';
+import 'builtin/storage_cleaner_plugin.dart';
+import 'builtin/thumbnail_sheet_plugin.dart';
+import 'builtin/webhook_notifier_plugin.dart';
 
 /// Manages the lifecycle and state of all plugins.
 class PluginManager extends StateNotifier<PluginManagerState> {
-  PluginManager() : super(PluginManagerState.initial()) {
+  PluginManager(this._binaryLocator, this._processRunner)
+    : super(PluginManagerState.initial()) {
     _loadPlugins();
   }
+
+  final BinaryLocator _binaryLocator;
+  final ProcessRunner _processRunner;
 
   Future<void> _loadPlugins() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Register built-in plugins
-    // Register built-in plugins
     final builtins = <DownloaderPlugin>[
+      DuplicateGuardPlugin(),
       AutoRenamePlugin(),
+      FfmpegNormalizePlugin(_binaryLocator),
       SmartOrganizerPlugin(),
+      MetadataEnricherPlugin(_binaryLocator, _processRunner),
+      ThumbnailSheetPlugin(_binaryLocator),
+      StorageCleanerPlugin(),
+      WebhookNotifierPlugin(),
+      PostProcessScriptPlugin(),
     ];
 
     final plugins = <PluginEntry>[];
     for (final plugin in builtins) {
       final key = 'plugin_enabled_${plugin.id}';
-      final enabled = prefs.getBool(key) ?? true;
+      final enabled = prefs.getBool(key) ?? plugin.enabledByDefault;
       try {
         if (enabled) await plugin.onInit();
         plugins.add(PluginEntry(plugin: plugin, isEnabled: enabled));
@@ -41,19 +60,43 @@ class PluginManager extends StateNotifier<PluginManagerState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('plugin_enabled_$pluginId', enabled);
 
-    final updated = state.plugins.map((entry) {
+    final updated = <PluginEntry>[];
+    for (final entry in state.plugins) {
       if (entry.plugin.id == pluginId) {
-        if (enabled) {
-          entry.plugin.onInit();
-        } else {
-          entry.plugin.dispose();
+        try {
+          if (enabled) {
+            await entry.plugin.onInit();
+          } else {
+            await entry.plugin.dispose();
+          }
+          updated.add(PluginEntry(plugin: entry.plugin, isEnabled: enabled));
+        } catch (e) {
+          updated.add(
+            PluginEntry(plugin: entry.plugin, isEnabled: false, error: '$e'),
+          );
         }
-        return PluginEntry(plugin: entry.plugin, isEnabled: enabled);
+      } else {
+        updated.add(entry);
       }
-      return entry;
-    }).toList();
+    }
 
     state = PluginManagerState(plugins: updated, isLoaded: true);
+  }
+
+  Future<PluginPreDownloadResult?> onBeforeDownload(
+    PluginDownloadEvent event,
+  ) async {
+    for (final entry in state.enabledPlugins) {
+      try {
+        final result = await entry.plugin.onBeforeDownload(event);
+        if (result?.shouldCancel == true) {
+          return result;
+        }
+      } catch (e) {
+        debugPrint('Plugin ${entry.plugin.id} error before download: $e');
+      }
+    }
+    return null;
   }
 
   /// Dispatch download start event to all enabled plugins
@@ -74,19 +117,20 @@ class PluginManager extends StateNotifier<PluginManagerState> {
   ) async {
     String? currentFilePath = event.filePath;
     String? currentTitle = event.title;
+    String? currentThumbnailPath =
+        event.sourceMetadata?['thumbnail'] as String?;
     bool modified = false;
 
     for (final entry in state.enabledPlugins) {
       try {
         // Create updated event for the next plugin in the chain
-        final currentEvent = PluginDownloadEvent(
-          downloadId: event.downloadId,
-          url: event.url,
+        final currentEvent = event.copyWith(
           filePath: currentFilePath,
           title: currentTitle,
-          source: event.source,
-          progress: event.progress,
-          error: event.error,
+          sourceMetadata: {
+            ...?event.sourceMetadata,
+            if (currentThumbnailPath != null) 'thumbnail': currentThumbnailPath,
+          },
         );
 
         final result = await entry.plugin.onDownloadComplete(currentEvent);
@@ -100,6 +144,10 @@ class PluginManager extends StateNotifier<PluginManagerState> {
             currentTitle = result.newTitle;
             modified = true;
           }
+          if (result.newThumbnailPath != null) {
+            currentThumbnailPath = result.newThumbnailPath;
+            modified = true;
+          }
         }
       } catch (e) {
         debugPrint('Plugin ${entry.plugin.id} error on complete: $e');
@@ -110,6 +158,7 @@ class PluginManager extends StateNotifier<PluginManagerState> {
       return PluginModificationResult(
         newFilePath: currentFilePath,
         newTitle: currentTitle,
+        newThumbnailPath: currentThumbnailPath,
       );
     }
     return null;
@@ -162,5 +211,8 @@ class PluginManagerState {
 /// Riverpod provider for the plugin manager
 final pluginManagerProvider =
     StateNotifierProvider<PluginManager, PluginManagerState>(
-      (ref) => PluginManager(),
+      (ref) => PluginManager(
+        ref.read(binaryLocatorProvider),
+        ref.read(processRunnerProvider),
+      ),
     );

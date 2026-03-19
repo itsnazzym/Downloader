@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/core/utils/media_file_utils.dart';
+import 'package:modern_downloader/features/downloader/domain/utils/download_item_media.dart';
 
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -34,12 +36,12 @@ class DownloadInspector extends ConsumerWidget {
     );
 
     if (item.id == 'deleted') {
-      return const Center(child: Text("Select a download"));
+      return Center(child: Text("Select a download"));
     }
 
     return Animate(
       key: ValueKey(downloadId),
-      effects: const [
+      effects: [
         FadeEffect(),
         SlideEffect(begin: Offset(0.05, 0)),
       ],
@@ -51,7 +53,7 @@ class DownloadInspector extends ConsumerWidget {
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             alignment: Alignment.centerLeft,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: AppColors.border)),
             ),
             child: Text(
@@ -66,21 +68,18 @@ class DownloadInspector extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Preview
-                  // Preview
-                  // Preview
-                  // Preview
-                  // Preview
-                  // Preview
                   (() {
-                    final validPath = _getValidVideoPath(item.filePath);
-                    if (validPath != null && _isVideo(validPath)) {
+                    final validPath = _getExistingTargetPath(item.filePath);
+                    if (validPath != null &&
+                        File(validPath).existsSync() &&
+                        _isVideo(validPath)) {
                       return VideoPreviewWidget(
                         filePath: validPath,
                         thumbnailUrl: item.thumbnailUrl,
                         onFullscreen: () => _openMediaFile(ref, validPath),
                       );
                     }
+
                     return Container(
                       height: 180,
                       width: double.infinity,
@@ -95,15 +94,10 @@ class DownloadInspector extends ConsumerWidget {
                           if (item.thumbnailUrl != null)
                             Opacity(
                               opacity: 0.5,
-                              child: Image.network(
-                                item.thumbnailUrl!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
+                              child: _buildPreviewImage(item.thumbnailUrl!),
                             ),
-                          const Icon(
-                            Icons.movie_creation_outlined,
+                          Icon(
+                            _iconForItem(item, validPath),
                             size: 48,
                             color: AppColors.textSecondary,
                           ),
@@ -111,7 +105,7 @@ class DownloadInspector extends ConsumerWidget {
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: () => _openMediaFile(ref, validPath),
+                                onTap: () => _openPreviewTarget(ref, validPath),
                                 borderRadius: BorderRadius.circular(30),
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
@@ -121,8 +115,8 @@ class DownloadInspector extends ConsumerWidget {
                                     ),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
-                                    Icons.play_arrow_rounded,
+                                  child: Icon(
+                                    Icons.open_in_new_rounded,
                                     color: Colors.white,
                                     size: 32,
                                   ),
@@ -134,7 +128,7 @@ class DownloadInspector extends ConsumerWidget {
                     );
                   })(),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // Metadata
                   _InfoRow(
@@ -152,7 +146,7 @@ class DownloadInspector extends ConsumerWidget {
                   _InfoRow(label: "ID", value: item.id, isMono: true),
 
                   if (item.error != null) ...[
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -164,16 +158,16 @@ class DownloadInspector extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
                             color: AppColors.error,
                             size: 20,
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               item.error!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.error,
                                 fontSize: 13,
                               ),
@@ -184,7 +178,7 @@ class DownloadInspector extends ConsumerWidget {
                     ),
                   ],
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // Actions
                   Row(
@@ -198,18 +192,18 @@ class DownloadInspector extends ConsumerWidget {
                                   .read(downloadListProvider.notifier)
                                   .cancelDownload(item.id);
                             },
-                            icon: const Icon(Icons.cancel_outlined, size: 18),
-                            label: const Text("Cancel"),
+                            icon: Icon(Icons.cancel_outlined, size: 18),
+                            label: Text("Cancel"),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.error,
-                              side: const BorderSide(color: AppColors.error),
+                              side: BorderSide(color: AppColors.error),
                             ),
                           ),
                         ),
 
                       if (item.status == DownloadStatus.downloading ||
                           item.status == DownloadStatus.extracting)
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
 
                       // Retry button for failed/canceled/paused downloads
                       if (item.status == DownloadStatus.failed ||
@@ -222,11 +216,11 @@ class DownloadInspector extends ConsumerWidget {
                                   .read(downloadListProvider.notifier)
                                   .retryDownload(item);
                             },
-                            icon: const Icon(Icons.refresh, size: 18),
-                            label: const Text("Retry"),
+                            icon: Icon(Icons.refresh, size: 18),
+                            label: Text("Retry"),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
+                              side: BorderSide(color: AppColors.primary),
                             ),
                           ),
                         ),
@@ -234,7 +228,7 @@ class DownloadInspector extends ConsumerWidget {
                       if (item.status == DownloadStatus.failed ||
                           item.status == DownloadStatus.canceled ||
                           item.status == DownloadStatus.paused)
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
 
                       Expanded(
                         child: OutlinedButton.icon(
@@ -247,22 +241,22 @@ class DownloadInspector extends ConsumerWidget {
                             // The view will rebuild and might error content if we don't handle "not found" carefully.
                             // It's handled below.
                           },
-                          icon: const Icon(Icons.delete_outline, size: 18),
-                          label: const Text("Delete"),
+                          icon: Icon(Icons.delete_outline, size: 18),
+                          label: Text("Delete"),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.textPrimary,
-                            side: const BorderSide(color: AppColors.border),
+                            side: BorderSide(color: AppColors.border),
                           ),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // Logs
                   Text("Logs", style: Theme.of(context).textTheme.titleSmall),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Container(
                     height: 200,
                     width: double.infinity,
@@ -300,7 +294,10 @@ class DownloadInspector extends ConsumerWidget {
 
   void _openFile(String path) {
     try {
-      Process.run('explorer', [path]);
+      final target = FileSystemEntity.isDirectorySync(path)
+          ? path
+          : '/select,$path';
+      Process.run('explorer', [target]);
     } catch (e) {
       debugPrint("Error opening file: $e");
     }
@@ -313,6 +310,10 @@ class DownloadInspector extends ConsumerWidget {
     } else {
       _openFile(path);
     }
+  }
+
+  void _openPreviewTarget(WidgetRef ref, String path) {
+    _openMediaFile(ref, path);
   }
 
   bool _isMedia(String path) {
@@ -334,11 +335,7 @@ class DownloadInspector extends ConsumerWidget {
 
   bool _isVideo(String path) {
     final ext = path.toLowerCase();
-    return ext.endsWith('.mp4') ||
-        ext.endsWith('.mkv') ||
-        ext.endsWith('.webm') ||
-        ext.endsWith('.mov') ||
-        ext.endsWith('.avi') ||
+    return MediaFileUtils.isVideoFile(ext) ||
         ext.endsWith('.flv') ||
         ext.endsWith('.m4v') ||
         ext.endsWith('.3gp') ||
@@ -347,12 +344,15 @@ class DownloadInspector extends ConsumerWidget {
         ext.endsWith('.part'); // Allow previewing partial files if supported
   }
 
-  String? _getValidVideoPath(String? path) {
+  String? _getExistingTargetPath(String? path) {
     if (path == null || path.isEmpty) return null;
     if (File(path).existsSync()) return path;
 
     // Fallback: Check common extensions if not present
-    final extensions = ['.mp4', '.mkv', '.webm', '.mov'];
+    final extensions = [
+      ...MediaFileUtils.videoExtensions,
+      ...MediaFileUtils.audioExtensions,
+    ];
     for (final ext in extensions) {
       if (!path.toLowerCase().endsWith(ext)) {
         final newPath = '$path$ext';
@@ -361,6 +361,43 @@ class DownloadInspector extends ConsumerWidget {
     }
 
     return null;
+  }
+
+  Widget _buildPreviewImage(String source) {
+    if (MediaFileUtils.isNetworkUrl(source)) {
+      return Image.network(
+        source,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
+    }
+
+    final file = File(source);
+    if (!file.existsSync()) {
+      return const SizedBox.shrink();
+    }
+
+    return Image.file(
+      file,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+    );
+  }
+
+  IconData _iconForItem(DownloadItem item, String? path) {
+    if (path != null && _isAudio(path)) {
+      return Icons.audiotrack_rounded;
+    }
+
+    switch (DownloadItemMedia.detect(item)) {
+      case DownloadMediaType.audio:
+        return Icons.audiotrack_rounded;
+      case DownloadMediaType.video:
+      case DownloadMediaType.unknown:
+        return Icons.movie_creation_outlined;
+    }
   }
 }
 
@@ -384,14 +421,14 @@ class _InfoRow extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             value,
             style: TextStyle(

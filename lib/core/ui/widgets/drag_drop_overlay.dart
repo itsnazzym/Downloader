@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -46,13 +47,13 @@ class _DragDropOverlayState extends ConsumerState<DragDropOverlay> {
                         Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.cloud_upload_outlined,
                                   size: 80,
                                   color: AppColors.primary,
                                 ),
-                                const SizedBox(height: 16),
-                                const Text(
+                                SizedBox(height: 16),
+                                Text(
                                   "Drop links or files here",
                                   style: TextStyle(
                                     fontSize: 24,
@@ -60,8 +61,8 @@ class _DragDropOverlayState extends ConsumerState<DragDropOverlay> {
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                const Text(
+                                SizedBox(height: 8),
+                                Text(
                                   "They will be added to your download queue",
                                   style: TextStyle(
                                     fontSize: 14,
@@ -82,30 +83,64 @@ class _DragDropOverlayState extends ConsumerState<DragDropOverlay> {
     );
   }
 
-  void _handleDrop(DropDoneDetails details) {
-    // 1. Handle Files
-    if (details.files.isNotEmpty) {
-      for (final file in details.files) {
-        // Check if it's a text file or just treat path as potential input?
-        // For now, valid URLs or paths are handled by startDownload logic (if extended).
-        // But usually dragging a file path implies "downloading" doesn't make sense unless it's a torrent/metafile.
-        // If it's a text file, maybe parse it?
-        // Let's assume the user drags a link (which might come as a file on some OSs?)
-        // Or drag a .torrent file.
-        // For now, pass path to provider.
-        ref.read(downloadListProvider.notifier).startDownload(file.path);
+  Future<void> _handleDrop(DropDoneDetails details) async {
+    final urls = <String>{};
+
+    for (final file in details.files) {
+      final path = file.path.trim();
+      if (_isHttpUrl(path)) {
+        urls.add(path);
+        continue;
+      }
+
+      if (path.toLowerCase().endsWith('.url')) {
+        final extracted = await _extractUrlFromInternetShortcut(path);
+        if (extracted != null) {
+          urls.add(extracted);
+        }
+        continue;
+      }
+
+      if (path.toLowerCase().endsWith('.txt')) {
+        urls.addAll(await _extractUrlsFromTextFile(path));
       }
     }
 
-    // 2. Handle URIs (if provided separately, though desktop_drop typically maps URIs to files if they are files, or text?)
-    // desktop_drop mainly gives XFiles. if dragging text/url, it might not trigger?
-    // desktop_drop supports URI dragging on some platforms.
-    // If details.files is empty, we might need to check other data, but DropDoneDetails only has files.
-    // On Windows/Linux/macOS, dragging a URL from browser often creates a .url file or passes the URL as text.
-    // XFile might contain the URL if it's a text drag? No, XFile is a file.
+    for (final url in urls) {
+      ref.read(downloadListProvider.notifier).startDownload(url);
+    }
+  }
 
-    // If the library supports text, we'd use it. But desktop_drop 0.4.x is file focused.
-    // However, dragging a link from Chrome to a Flutter app often results in nothing with desktop_drop unless it's a file.
-    // BUT, let's stick to what we have.
+  bool _isHttpUrl(String value) {
+    return value.startsWith('http://') || value.startsWith('https://');
+  }
+
+  Future<String?> _extractUrlFromInternetShortcut(String path) async {
+    try {
+      final lines = await File(path).readAsLines();
+      for (final line in lines) {
+        if (line.startsWith('URL=')) {
+          final url = line.substring(4).trim();
+          if (_isHttpUrl(url)) {
+            return url;
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<Set<String>> _extractUrlsFromTextFile(String path) async {
+    final urls = <String>{};
+    try {
+      final lines = await File(path).readAsLines();
+      for (final line in lines) {
+        final trimmed = line.trim();
+        if (_isHttpUrl(trimmed)) {
+          urls.add(trimmed);
+        }
+      }
+    } catch (_) {}
+    return urls;
   }
 }

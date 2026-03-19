@@ -33,4 +33,46 @@ class FormatUtils {
     }
     return count.toString();
   }
+
+  /// Parses human-readable byte strings like "12.4MiB", "1.5 GB" or "950 KB".
+  static int parseBytes(String value) {
+    final normalized = value.trim().replaceAll('~', '');
+    if (normalized.isEmpty) {
+      return 0;
+    }
+
+    final match = RegExp(
+      r'^([\d]+(?:[.,]\d+)?)\s*([KMGT]?i?B)?$',
+      caseSensitive: false,
+    ).firstMatch(normalized);
+
+    if (match == null) {
+      return 0;
+    }
+
+    final amount = double.tryParse(match.group(1)!.replaceAll(',', '.'));
+    if (amount == null) {
+      return 0;
+    }
+
+    final unit = (match.group(2) ?? 'B').toUpperCase();
+    const factors = <String, int>{
+      'B': 1,
+      'KB': 1000,
+      'MB': 1000 * 1000,
+      'GB': 1000 * 1000 * 1000,
+      'TB': 1000 * 1000 * 1000 * 1000,
+      'KIB': 1024,
+      'MIB': 1024 * 1024,
+      'GIB': 1024 * 1024 * 1024,
+      'TIB': 1024 * 1024 * 1024 * 1024,
+    };
+
+    final factor = factors[unit];
+    if (factor == null) {
+      return 0;
+    }
+
+    return (amount * factor).round();
+  }
 }

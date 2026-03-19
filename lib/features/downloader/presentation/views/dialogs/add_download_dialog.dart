@@ -132,7 +132,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                 userAgent: widget.userAgent,
                 cookiesFilePath: settings.cookiesFilePath,
                 organizeBySite: settings.organizeBySite,
-                cookieBrowser: _selectedBrowser,
+                cookieBrowser: _selectedBrowser ?? '',
                 videoFormatId: selectedFormatId == 'best'
                     ? null
                     : selectedFormatId,
@@ -150,7 +150,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
             .startDownload(
               url,
               rawCookies: widget.initialCookies,
-              cookieBrowser: _selectedBrowser,
+              cookieBrowser: _selectedBrowser ?? '',
             );
         if (mounted) Navigator.of(context).pop();
       } finally {
@@ -219,7 +219,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                               }
                             });
                           },
-                          child: const Text("Select All"),
+                          child: Text("Select All"),
                         ),
                         TextButton(
                           onPressed: () {
@@ -229,7 +229,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                               }
                             });
                           },
-                          child: const Text("Deselect All"),
+                          child: Text("Deselect All"),
                         ),
                       ],
                     ),
@@ -244,7 +244,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                             value: selected[index],
                             title: Text(
                               title,
-                              style: const TextStyle(fontSize: 13),
+                              style: TextStyle(fontSize: 13),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -264,7 +264,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Cancel"),
+                  child: Text("Cancel"),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -295,7 +295,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                           finalUrl,
                           rawCookies: widget.initialCookies,
                           userAgent: widget.userAgent,
-                          cookieBrowser: _selectedBrowser,
+                          cookieBrowser: _selectedBrowser ?? '',
                         );
                         count++;
                       }
@@ -321,7 +321,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: AppColors.border),
       ),
       child: Container(
         width: 400,
@@ -339,10 +339,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                 controller: _urlController,
                 hint: "Paste link here...",
                 label: "URL",
-                prefixIcon: const Icon(
-                  Icons.link,
-                  color: AppColors.textSecondary,
-                ),
+                prefixIcon: Icon(Icons.link, color: AppColors.textSecondary),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a URL';
@@ -354,7 +351,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
               ),
               const Gap(AppSpacing.m),
               DropdownButtonFormField<String?>(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Extract Cookies From Browser',
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(
@@ -363,7 +360,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                   ),
                 ),
                 initialValue: _selectedBrowser,
-                items: const [
+                items: [
                   DropdownMenuItem(value: null, child: Text('None (Default)')),
                   DropdownMenuItem(
                     value: 'chrome',
@@ -389,7 +386,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
               ),
               const Gap(AppSpacing.l),
               if (_isLoading)
-                const Center(child: LinearProgressIndicator())
+                Center(child: LinearProgressIndicator())
               else
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,

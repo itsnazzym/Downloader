@@ -15,6 +15,17 @@ class FileOrganizationService {
     '.wmv',
   ];
 
+  static const audioExtensions = [
+    '.mp3',
+    '.m4a',
+    '.wav',
+    '.flac',
+    '.aac',
+    '.ogg',
+    '.opus',
+    '.wma',
+  ];
+
   /// Extensions considered as image files
   static const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 
@@ -124,15 +135,13 @@ class FileOrganizationService {
     final baseName = p.basenameWithoutExtension(filePath);
     final parentPath = p.dirname(filePath);
 
-    for (final videoExt in videoExtensions) {
-      final potential = p.join(parentPath, '$baseName$videoExt');
+    for (final mediaExt in [...videoExtensions, ...audioExtensions]) {
+      final potential = p.join(parentPath, '$baseName$mediaExt');
       if (File(potential).existsSync()) {
         return true; // It's a sidecar thumbnail
       }
     }
-
-    // Also consider any loose image file as potentially a thumbnail
-    return true;
+    return false;
   }
 
   /// Checks if a file is temporary/partial download

@@ -1,3 +1,5 @@
+import '../../features/downloader/domain/entities/download_request.dart';
+
 /// Base class for all plugins in Modern Downloader.
 ///
 /// Plugins can hook into download lifecycle events and provide
@@ -21,8 +23,19 @@ abstract class DownloaderPlugin {
   /// Whether this is a built-in plugin
   bool get isBuiltIn => false;
 
+  /// Whether the plugin should start enabled when no preference exists yet.
+  bool get enabledByDefault => true;
+
   /// Called when the plugin is loaded
   Future<void> onInit() async {}
+
+  /// Called after metadata resolution but before the actual download starts.
+  /// Plugins can veto the download, for example to block duplicates.
+  Future<PluginPreDownloadResult?> onBeforeDownload(
+    PluginDownloadEvent event,
+  ) async {
+    return null;
+  }
 
   /// Called when a download starts
   Future<void> onDownloadStart(PluginDownloadEvent event) async {}
@@ -49,28 +62,96 @@ abstract class DownloaderPlugin {
 class PluginModificationResult {
   final String? newFilePath;
   final String? newTitle;
+  final String? newThumbnailPath;
 
-  const PluginModificationResult({this.newFilePath, this.newTitle});
+  const PluginModificationResult({
+    this.newFilePath,
+    this.newTitle,
+    this.newThumbnailPath,
+  });
 }
 
 /// Data passed to plugin lifecycle hooks
 class PluginDownloadEvent {
   final String downloadId;
   final String url;
+  final DownloadRequest? request;
   final String? filePath;
   final String? title;
   final String source;
   final double progress;
   final String? error;
+  final String? outputDirectory;
+  final Map<String, dynamic>? sourceMetadata;
+  final List<PluginDownloadSnapshot> existingDownloads;
 
   const PluginDownloadEvent({
     required this.downloadId,
     required this.url,
+    this.request,
     this.filePath,
     this.title,
     required this.source,
     this.progress = 0.0,
     this.error,
+    this.outputDirectory,
+    this.sourceMetadata,
+    this.existingDownloads = const [],
+  });
+
+  PluginDownloadEvent copyWith({
+    DownloadRequest? request,
+    String? filePath,
+    String? title,
+    double? progress,
+    String? error,
+    String? outputDirectory,
+    Map<String, dynamic>? sourceMetadata,
+    List<PluginDownloadSnapshot>? existingDownloads,
+  }) {
+    return PluginDownloadEvent(
+      downloadId: downloadId,
+      url: url,
+      request: request ?? this.request,
+      filePath: filePath ?? this.filePath,
+      title: title ?? this.title,
+      source: source,
+      progress: progress ?? this.progress,
+      error: error ?? this.error,
+      outputDirectory: outputDirectory ?? this.outputDirectory,
+      sourceMetadata: sourceMetadata ?? this.sourceMetadata,
+      existingDownloads: existingDownloads ?? this.existingDownloads,
+    );
+  }
+}
+
+class PluginDownloadSnapshot {
+  final String downloadId;
+  final String url;
+  final String status;
+  final String? filePath;
+  final String? title;
+
+  const PluginDownloadSnapshot({
+    required this.downloadId,
+    required this.url,
+    required this.status,
+    this.filePath,
+    this.title,
+  });
+}
+
+class PluginPreDownloadResult {
+  final bool shouldCancel;
+  final bool isDuplicate;
+  final String? message;
+  final String? existingFilePath;
+
+  const PluginPreDownloadResult({
+    this.shouldCancel = false,
+    this.isDuplicate = false,
+    this.message,
+    this.existingFilePath,
   });
 }
 

@@ -13,6 +13,7 @@ import '../../../../../core/design_system/components/app_card.dart';
 import '../../../../../core/design_system/components/status_badge.dart';
 import '../../../domain/entities/download_item.dart';
 import '../../../domain/enums/download_status.dart';
+import '../../../domain/utils/download_item_media.dart';
 import '../../providers/filtered_downloads_provider.dart';
 import '../../providers/downloader_provider.dart';
 import 'download_item_skeleton.dart';
@@ -43,7 +44,7 @@ class DownloadList extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+            Icon(Icons.error_outline, size: 48, color: AppColors.error),
             const Gap(AppSpacing.m),
             Text(
               "Error loading downloads",
@@ -229,9 +230,9 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                             ),
                           )
                         else
-                          const Center(
+                          Center(
                             child: Icon(
-                              Icons.movie_outlined,
+                              _placeholderIcon(),
                               color: AppColors.textSecondary,
                               size: 48,
                             ),
@@ -294,7 +295,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    widget.item.source,
+                                    '${widget.item.source} | ${DownloadItemMedia.label(DownloadItemMedia.detect(widget.item))}',
                                     style: AppTypography.mono.copyWith(
                                       fontSize: 10,
                                     ),
@@ -318,7 +319,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                 children: [
                                   IconButton(
                                     onPressed: widget.onRetry,
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.refresh,
                                       size: 16,
                                       color: AppColors.primary,
@@ -326,7 +327,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                   ),
                                   IconButton(
                                     onPressed: widget.onCancel,
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.close,
                                       size: 16,
                                       color: AppColors.error,
@@ -358,7 +359,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
       return Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => const Center(
+        errorBuilder: (_, _, _) => Center(
           child: Icon(Icons.movie_outlined, color: AppColors.textSecondary),
         ),
       );
@@ -376,16 +377,26 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
       return Image.file(
         file,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => const Center(
+        errorBuilder: (_, _, _) => Center(
           child: Icon(Icons.movie_outlined, color: AppColors.textSecondary),
         ),
       );
     }
 
     // File doesn't exist - show placeholder
-    return const Center(
+    return Center(
       child: Icon(Icons.movie_outlined, color: AppColors.textSecondary),
     );
+  }
+
+  IconData _placeholderIcon() {
+    switch (DownloadItemMedia.detect(widget.item)) {
+      case DownloadMediaType.audio:
+        return Icons.audiotrack_rounded;
+      case DownloadMediaType.video:
+      case DownloadMediaType.unknown:
+        return Icons.movie_outlined;
+    }
   }
 }
 
@@ -445,8 +456,8 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                             widget.item.thumbnailUrl!,
                           ),
                         )
-                      : const Icon(
-                          Icons.movie_outlined,
+                      : Icon(
+                          _placeholderIcon(),
                           color: AppColors.textSecondary,
                           size: 24,
                         ),
@@ -540,17 +551,14 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                   const Gap(AppSpacing.s),
                   IconButton(
                     onPressed: widget.onRetry,
-                    icon: const Icon(
-                      Icons.refresh_rounded,
-                      color: AppColors.primary,
-                    ),
+                    icon: Icon(Icons.refresh_rounded, color: AppColors.primary),
                     tooltip: "Retry Download",
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(8),
                   ),
                   IconButton(
                     onPressed: widget.onCancel,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline_rounded,
                       color: AppColors.error,
                     ),
@@ -572,6 +580,7 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
 
     // Source
     parts.add(widget.item.source);
+    parts.add(DownloadItemMedia.label(DownloadItemMedia.detect(widget.item)));
 
     // Size logic
     if (widget.item.totalSize.isNotEmpty) {
@@ -612,14 +621,14 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
         fit: BoxFit.cover,
         width: 48,
         height: 48,
-        errorWidget: (_, _, _) => const Icon(
+        errorWidget: (_, _, _) => Icon(
           Icons.movie_outlined,
           color: AppColors.textSecondary,
           size: 24,
         ),
         placeholder: (_, _) => Container(
           color: AppColors.background,
-          child: const Center(
+          child: Center(
             child: SizedBox(
               width: 16,
               height: 16,
@@ -645,7 +654,7 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
         fit: BoxFit.cover,
         width: 48,
         height: 48,
-        errorBuilder: (_, _, _) => const Icon(
+        errorBuilder: (_, _, _) => Icon(
           Icons.movie_outlined,
           color: AppColors.textSecondary,
           size: 24,
@@ -654,10 +663,16 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
     }
 
     // File doesn't exist - show placeholder
-    return const Icon(
-      Icons.movie_outlined,
-      color: AppColors.textSecondary,
-      size: 24,
-    );
+    return Icon(Icons.movie_outlined, color: AppColors.textSecondary, size: 24);
+  }
+
+  IconData _placeholderIcon() {
+    switch (DownloadItemMedia.detect(widget.item)) {
+      case DownloadMediaType.audio:
+        return Icons.audiotrack_rounded;
+      case DownloadMediaType.video:
+      case DownloadMediaType.unknown:
+        return Icons.movie_outlined;
+    }
   }
 }

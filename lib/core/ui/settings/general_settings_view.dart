@@ -22,7 +22,7 @@ class GeneralSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        leading: const SizedBox(), // Hide back button if shown by default
+        leading: SizedBox(), // Hide back button if shown by default
         backgroundColor: AppColors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
@@ -84,7 +84,7 @@ class GeneralSettingsView extends ConsumerWidget {
                         DropdownTile(
                           title: "Preferred Quality",
                           value: settings.preferredQuality,
-                          options: const ["best", "manual", "manual+"],
+                          options: ["best", "manual", "manual+"],
                           onChanged: settingsNotifier.setPreferredQuality,
                           icon: Icons.high_quality,
                         ),

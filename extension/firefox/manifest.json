@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Modern Downloader",
-    "version": "2.0.0",
+    "version": "1.0.5",
     "description": "Send links directly to Modern Downloader app.",
     "permissions": [
         "activeTab",

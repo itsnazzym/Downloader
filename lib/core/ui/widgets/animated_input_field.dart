@@ -86,10 +86,7 @@ class _AnimatedInputFieldState extends State<AnimatedInputField> {
             duration: 200.ms,
             opacity: widget.controller.text.isNotEmpty ? 1 : 0,
             child: IconButton(
-              icon: const Icon(
-                Icons.clear_rounded,
-                color: Palette.textSecondary,
-              ),
+              icon: Icon(Icons.clear_rounded, color: Palette.textSecondary),
               onPressed: widget.controller.clear,
             ),
           ),

@@ -39,7 +39,7 @@ class DownloadCard extends StatelessWidget {
                     color: IOSTheme.systemBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.play_circle_fill_rounded,
                     color: IOSTheme.systemBlue,
                     size: 28,

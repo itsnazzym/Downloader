@@ -29,37 +29,37 @@ class IOSTheme {
   // --- Typography ---
   static TextTheme get textTheme {
     return GoogleFonts.interTextTheme().copyWith(
-      displayLarge: const TextStyle(
+      displayLarge: TextStyle(
         fontSize: 40,
         fontWeight: FontWeight.w800,
         letterSpacing: -1.0,
         color: label,
       ),
-      displayMedium: const TextStyle(
+      displayMedium: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.8,
         color: label,
       ),
-      titleLarge: const TextStyle(
+      titleLarge: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.5,
         color: label,
       ),
-      bodyLarge: const TextStyle(
+      bodyLarge: TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w500,
         letterSpacing: -0.4,
         color: label,
       ),
-      bodyMedium: const TextStyle(
+      bodyMedium: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w400,
         letterSpacing: -0.2,
         color: label,
       ),
-      labelSmall: const TextStyle(
+      labelSmall: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w500,
         color: secondaryLabel,

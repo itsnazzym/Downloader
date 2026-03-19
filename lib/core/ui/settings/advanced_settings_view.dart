@@ -25,7 +25,7 @@ class AdvancedSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: SizedBox(),
         backgroundColor: AppColors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
@@ -95,7 +95,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                         DropdownTile(
                           title: "Cookies from Browser",
                           value: settings.cookieBrowser,
-                          options: const [
+                          options: [
                             "firefox",
                             "chrome",
                             "edge",
@@ -188,7 +188,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                             },
                             trailing: settings.cookiesFilePath.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.delete_outline,
                                       color: AppColors.error,
                                     ),

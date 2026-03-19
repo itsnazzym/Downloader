@@ -7,6 +7,7 @@ import 'core/platform/platform_info.dart';
 import 'core/providers/settings_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/runtime_palette.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 
@@ -57,7 +58,9 @@ void main(List<String> args) async {
   }
 
   if (initialUrl != null) {
-    container.read(launchUrlProvider.notifier).state = initialUrl;
+    container.read(launchDataProvider.notifier).state = LaunchData.dialog(
+      initialUrl,
+    );
   }
 
   if (PlatformInfo.isDesktop) {
@@ -119,7 +122,9 @@ class _ProtocolListener extends ProtocolListener {
   void onProtocolUrlReceived(String url) {
     final extractedUrl = _extractUrlFromUri(url);
     if (extractedUrl != null) {
-      container.read(launchUrlProvider.notifier).state = extractedUrl;
+      container.read(launchDataProvider.notifier).state = LaunchData.dialog(
+        extractedUrl,
+      );
       windowManager.show();
       windowManager.focus();
     }
@@ -171,12 +176,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   void _handleClipboardUrl(String url) {
     // Show Notification with action or just a toast
     NotificationService().showClipboardDetected(url);
-    // Optionally we could show a dialog if the window is focused
-    // But simply updating the variable or notifying is safer for now.
-
-    // We can also auto-set the launchUrlProvider if we want the "Add Download" dialog
-    // to pick it up immediately when the user clicks "+"
-    ref.read(launchUrlProvider.notifier).state = url;
+    ref.read(launchDataProvider.notifier).state = LaunchData.dialog(url);
   }
 
   @override
@@ -210,27 +210,47 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(settingsProvider);
+    final systemBrightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
     ThemeMode themeMode;
+    Brightness effectiveBrightness;
     switch (settings.themeMode) {
       case 'light':
         themeMode = ThemeMode.light;
+        effectiveBrightness = Brightness.light;
         break;
       case 'dark':
         themeMode = ThemeMode.dark;
+        effectiveBrightness = Brightness.dark;
         break;
       default:
         themeMode = ThemeMode.system;
+        effectiveBrightness = systemBrightness;
     }
+
+    AppThemeRuntime.setActivePalette(
+      themePreset: settings.themePreset,
+      accentValue: settings.customAccentColor,
+      brightness: effectiveBrightness,
+    );
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: AppConfig.appName,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.buildTheme(
+        themePreset: settings.themePreset,
+        accentColor: settings.customAccentColor,
+        brightness: Brightness.light,
+      ),
+      darkTheme: AppTheme.buildTheme(
+        themePreset: settings.themePreset,
+        accentColor: settings.customAccentColor,
+        brightness: Brightness.dark,
+      ),
       themeMode: themeMode,
       locale: Locale(settings.locale),
-      localizationsDelegates: const [
+      localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

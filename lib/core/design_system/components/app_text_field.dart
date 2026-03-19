@@ -31,7 +31,7 @@ class AppTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: AppTypography.label),
-        const SizedBox(height: AppSpacing.xs),
+        SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: controller,
           onChanged: onChanged,
@@ -52,23 +52,23 @@ class AppTextField extends StatelessWidget {
             ),
             border: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.borderSubtle),
+              borderSide: BorderSide(color: AppColors.borderSubtle),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.borderSubtle),
+              borderSide: BorderSide(color: AppColors.borderSubtle),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide(color: AppColors.primary),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.error),
+              borderSide: BorderSide(color: AppColors.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.error),
+              borderSide: BorderSide(color: AppColors.error),
             ),
           ),
         ),

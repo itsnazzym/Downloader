@@ -33,7 +33,7 @@ class QualitySelectionDialog extends StatelessWidget {
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: AppColors.border),
       ),
       child: Container(
         width: 500,
@@ -44,7 +44,7 @@ class QualitySelectionDialog extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.high_quality, color: AppColors.primary),
+                Icon(Icons.high_quality, color: AppColors.primary),
                 const Gap(AppSpacing.m),
                 Expanded(
                   child: Text(
@@ -78,7 +78,7 @@ class QualitySelectionDialog extends StatelessWidget {
                   shrinkWrap: true,
                   itemCount: formats.length,
                   separatorBuilder: (context, index) =>
-                      const Divider(height: 1, color: AppColors.border),
+                      Divider(height: 1, color: AppColors.border),
                   itemBuilder: (context, index) {
                     final f = formats[index];
                     final formatId = f['format_id'] as String;
@@ -135,7 +135,7 @@ class QualitySelectionDialog extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.chevron_right,
                         size: 20,
                         color: AppColors.textDisabled,

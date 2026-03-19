@@ -47,7 +47,7 @@ class CustomEmptyState extends StatelessWidget {
           const Gap(24),
           Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -67,10 +67,7 @@ class CustomEmptyState extends StatelessWidget {
             const Gap(8),
             Text(
               description!,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
               maxLines: 2,
             ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
@@ -79,11 +76,11 @@ class CustomEmptyState extends StatelessWidget {
             const Gap(24),
             OutlinedButton.icon(
               onPressed: onAction,
-              icon: const Icon(Icons.add, size: 18),
+              icon: Icon(Icons.add, size: 18),
               label: Text(actionLabel!),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
+                side: BorderSide(color: AppColors.primary),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,

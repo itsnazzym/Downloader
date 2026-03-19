@@ -1,64 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Modern Downloader</title>
-    <link rel="stylesheet" href="popup.css">
-</head>
-
-<body>
-    <div class="header">
-        <div class="title-row">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span>Modern Downloader</span>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="header">
+        <div>
+          <div class="eyebrow">Chrome Extension</div>
+          <h1>Modern Downloader</h1>
+          <p id="status-text" class="status-text">Checking local app...</p>
         </div>
-        <!-- Status Indicator Icon Only -->
-        <div id="status-indicator" class="status-dot disconnected" title="Disconnected"></div>
+        <div id="status-indicator" class="status-indicator offline"></div>
+      </header>
+
+      <section class="panel actions-panel">
+        <div class="section-title">Quick Actions</div>
+        <div class="button-grid">
+          <button id="open-app-btn" class="action-button primary" type="button">Open App</button>
+          <button id="test-connection-btn" class="action-button" type="button">Test Connection</button>
+          <button id="download-page-btn" class="action-button" type="button">Download Page</button>
+          <button id="download-detected-btn" class="action-button" type="button">Download Detected</button>
+          <button id="clear-recent-btn" class="action-button" type="button">Clear Recent</button>
+          <button id="reset-settings-btn" class="action-button danger" type="button">Reset Settings</button>
+        </div>
+      </section>
+
+      <section class="panel diagnostics-panel">
+        <div class="section-title">Diagnostics</div>
+        <div class="diagnostic-grid">
+          <div class="diagnostic-item">
+            <span class="diagnostic-label">Protocol</span>
+            <span id="protocol-version" class="diagnostic-value">-</span>
+          </div>
+          <div class="diagnostic-item">
+            <span class="diagnostic-label">App Version</span>
+            <span id="app-version" class="diagnostic-value">-</span>
+          </div>
+          <div class="diagnostic-item">
+            <span class="diagnostic-label">Current Site</span>
+            <span id="active-site" class="diagnostic-value">-</span>
+          </div>
+          <div class="diagnostic-item">
+            <span class="diagnostic-label">Last Send</span>
+            <span id="last-send" class="diagnostic-value">-</span>
+          </div>
+        </div>
+        <div id="connection-error" class="message-box hidden"></div>
+        <div id="connection-log" class="log-list"></div>
+      </section>
+
+      <section class="panel settings-panel">
+        <div class="section-title">Local Settings</div>
+        <label class="field">
+          <span>Port</span>
+          <input id="port-input" type="number" min="1" max="65535" />
+        </label>
+        <label class="field">
+          <span>API Token</span>
+          <input id="token-input" type="password" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Cookie Browser Fallback</span>
+          <select id="cookie-browser-select">
+            <option value="auto">Auto</option>
+            <option value="chrome">Chrome</option>
+            <option value="edge">Edge</option>
+            <option value="brave">Brave</option>
+            <option value="opera">Opera</option>
+            <option value="vivaldi">Vivaldi</option>
+            <option value="firefox">Firefox</option>
+          </select>
+        </label>
+        <label class="toggle">
+          <input id="cookies-toggle" type="checkbox" />
+          <span>Auto-send cookies for supported video sites</span>
+        </label>
+        <label class="toggle">
+          <input id="notifications-toggle" type="checkbox" />
+          <span>Show Chrome notifications after send</span>
+        </label>
+        <label class="toggle">
+          <input id="debug-toggle" type="checkbox" />
+          <span>Enable debug logging</span>
+        </label>
+      </section>
+
+      <section class="panel settings-panel">
+        <div class="section-title">Site Rules</div>
+        <label class="field">
+          <span>Policy</span>
+          <select id="site-access-mode">
+            <option value="supported">All supported sites</option>
+            <option value="blocklist">Block listed sites</option>
+            <option value="allowlist">Only allow listed sites</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Sites</span>
+          <textarea id="site-rules-input" rows="4" placeholder="youtube.com&#10;tiktok.com"></textarea>
+        </label>
+        <button id="toggle-current-site-btn" class="action-button" type="button">Disable on current site</button>
+      </section>
+
+      <section class="panel">
+        <div class="section-title" id="recent-title">Recent Jobs</div>
+        <div id="downloads-list" class="downloads-list"></div>
+      </section>
     </div>
 
-    <div class="content">
-        <div class="section-title">Recent Downloads</div>
-        <div id="downloads-list" class="downloads-list">
-            <!-- Items injected by JS -->
-            <div class="empty-state">No active downloads</div>
-        </div>
-    </div>
-
-    <!-- Consolidated Footer with Settings -->
-    <div class="footer-settings">
-        <div class="settings-row">
-            <div class="setting-item">
-                <label for="browser-select">Browser</label>
-                <select id="browser-select"
-                    style="width: 100px; padding: 2px; border-radius: 4px; background: #333; color: white; border: 1px solid #444;">
-                    <option value="auto">Auto (Default)</option>
-                    <option value="firefox">Firefox (Force)</option>
-                    <option value="brave">Brave</option>
-                    <option value="chrome">Chrome</option>
-                    <option value="edge">Edge</option>
-                    <option value="opera">Opera</option>
-                    <option value="vivaldi">Vivaldi</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label for="port-input">Port</label>
-                <input type="number" id="port-input" value="6969" placeholder="6969">
-            </div>
-            <div class="setting-item checkbox-item">
-                <input type="checkbox" id="cookies-toggle" checked>
-                <label for="cookies-toggle">Auto-Cookies</label>
-            </div>
-        </div>
-        <div id="connection-msg" class="connection-msg">Offline</div>
-    </div>
-
+    <script src="common.js"></script>
     <script src="popup.js"></script>
-</body>
-
+  </body>
 </html>

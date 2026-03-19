@@ -7,6 +7,10 @@ class VideoMetadata {
   final int durationSeconds;
   final int? width;
   final int? height;
+  final String? videoCodec;
+  final String? audioCodec;
+  final String? container;
+  final int? bitRate;
   final String? title;
   final String? artist;
   final String? comment;
@@ -16,6 +20,10 @@ class VideoMetadata {
     required this.durationSeconds,
     this.width,
     this.height,
+    this.videoCodec,
+    this.audioCodec,
+    this.container,
+    this.bitRate,
     this.title,
     this.artist,
     this.comment,
@@ -63,8 +71,13 @@ class MetadataExtractorService {
         (s) => s['codec_type'] == 'video',
         orElse: () => null,
       );
+      final audioStream = streams.firstWhere(
+        (s) => s['codec_type'] == 'audio',
+        orElse: () => null,
+      );
 
       final duration = double.tryParse(format['duration'] ?? '0') ?? 0;
+      final bitRate = int.tryParse(format['bit_rate']?.toString() ?? '');
       final tags = format['tags'] as Map<String, dynamic>?;
 
       String? sourceUrl;
@@ -88,6 +101,10 @@ class MetadataExtractorService {
         durationSeconds: duration.toInt(),
         width: videoStream != null ? videoStream['width'] : null,
         height: videoStream != null ? videoStream['height'] : null,
+        videoCodec: videoStream?['codec_name']?.toString(),
+        audioCodec: audioStream?['codec_name']?.toString(),
+        container: format['format_name']?.toString(),
+        bitRate: bitRate,
         title: tags?['title'],
         artist: tags?['artist'],
         comment: tags?['comment'],

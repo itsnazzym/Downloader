@@ -1,4 +1,4 @@
-const PORT = 6969;
+let currentPort = 6969;
 let socket = null;
 let isConnected = false;
 const api = chrome || browser;
@@ -15,13 +15,22 @@ const SUPPORTED_DOMAINS = [
 ];
 let cookieDebounce = null;
 
+function getConfiguredPort() {
+    return new Promise((resolve) => {
+        api.storage.local.get(['serverPort'], (result) => {
+            resolve(result.serverPort || 6969);
+        });
+    });
+}
+
 // ==========================================
 // 1. WebSocket Connection & Logic
 // ==========================================
-function connect() {
-    console.log(`Connecting to Modern Downloader app on localhost:${PORT}...`);
+async function connect() {
+    currentPort = await getConfiguredPort();
+    console.log(`Connecting to Modern Downloader app on localhost:${currentPort}...`);
     try {
-        socket = new WebSocket(`ws://localhost:${PORT}`);
+        socket = new WebSocket(`ws://localhost:${currentPort}`);
 
         socket.onopen = () => {
             console.log("✅ Connected to Modern Downloader App");
@@ -64,6 +73,24 @@ function connect() {
         setTimeout(connect, 5000);
     }
 }
+
+api.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes.serverPort) {
+        return;
+    }
+
+    const nextPort = changes.serverPort.newValue || 6969;
+    if (nextPort === currentPort) {
+        return;
+    }
+
+    currentPort = nextPort;
+    if (socket) {
+        socket.close();
+    } else {
+        connect();
+    }
+});
 
 function handleAppMessage(message) {
     if (message.type === 'PROGRESS') {

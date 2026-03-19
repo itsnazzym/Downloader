@@ -109,7 +109,7 @@ class _ToastCard extends StatelessWidget {
                           ),
                           child: Icon(icon, color: color, size: 20),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,17 +117,17 @@ class _ToastCard extends StatelessWidget {
                             children: [
                               Text(
                                 toast.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
                               ),
                               if (toast.description != null) ...[
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4),
                                 Text(
                                   toast.description!,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 12,
                                   ),
@@ -138,10 +138,10 @@ class _ToastCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         IconButton(
                           onPressed: onDismiss,
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.close_rounded,
                             color: AppColors.textSecondary,
                             size: 18,

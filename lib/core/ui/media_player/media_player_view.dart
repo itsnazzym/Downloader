@@ -93,7 +93,7 @@ class _MediaPlayerViewState extends ConsumerState<MediaPlayerView> {
                             onPressed: () {
                               ref.read(mediaPlayerProvider.notifier).close();
                             },
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
                               color: Colors.white,
                               size: 24,

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/providers/launch_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
+import '../../../../core/utils/format_utils.dart';
 import '../../domain/entities/download_item.dart';
 import '../../domain/entities/download_request.dart';
 import '../../domain/enums/download_status.dart';
@@ -42,6 +44,7 @@ final downloaderRepositoryProvider = Provider<IDownloaderRepository>((ref) {
     ref.read(persistenceServiceProvider),
     ref.read(libraryScannerServiceProvider),
     ref.read(pluginManagerProvider.notifier),
+    () => ref.read(settingsProvider).outputFolder,
   );
 });
 
@@ -135,6 +138,7 @@ class DownloadListNotifier
       _pendingUpdates.clear();
 
       updates.forEach((id, item) {
+        final previous = itemMap[id];
         itemMap[id] = item;
 
         // Side effects for terminal states (handled once per event effectively)
@@ -144,13 +148,14 @@ class DownloadListNotifier
             item.status == DownloadStatus.canceled ||
             item.status == DownloadStatus.duplicate) {
           // Stats
-          if (item.status == DownloadStatus.completed) {
-            // Check if we already handled this completion?
-            // The stream might emit multiple 'completed' if not careful, but usually once.
-            // We rely on repository.
+          if (item.status == DownloadStatus.completed &&
+              previous?.status != DownloadStatus.completed) {
             _ref
                 .read(downloadStatsProvider.notifier)
-                .recordDownload(source: item.source);
+                .recordDownload(
+                  source: item.source,
+                  bytesDownloaded: _extractRecordedBytes(item),
+                );
           }
 
           // Auto-delete duplicates
@@ -227,71 +232,62 @@ class DownloadListNotifier
     String? cookiesFilePath,
     bool? organizeBySite,
     String? cookieBrowser,
+    bool? audioOnlyOverride,
   }) async {
-    final settings = _ref.read(settingsProvider);
-
-    final request = DownloadRequest(
-      url: url,
-      outputFolder: settings.outputFolder.isNotEmpty
-          ? settings.outputFolder
-          : null,
-      audioOnly: settings.audioOnly,
-      preferredQuality: settings.preferredQuality,
-      outputFormat: settings.outputFormat,
-      audioFormat: settings.audioFormat,
-      embedThumbnail: settings.embedThumbnail,
-      embedSubtitles: settings.embedSubtitles,
-      twitterIncludeReplies: settings.twitterIncludeReplies,
-      twitchDownloadChat: settings.twitchDownloadChat,
-      twitchQuality: settings.twitchQuality,
-      cookiesFilePath:
-          cookiesFilePath ??
-          (settings.cookiesFilePath.isNotEmpty
-              ? settings.cookiesFilePath
-              : null),
-      useTorProxy: settings.useTorProxy,
-      concurrentFragments: settings.concurrentFragments,
-      rawCookies: rawCookies,
-      videoFormatId: videoFormatId,
-      cookieBrowser: cookieBrowser ?? settings.cookieBrowser,
-      organizeBySite: organizeBySite ?? settings.organizeBySite,
-      userAgent: userAgent,
+    _queue.add(
+      _buildRequest(
+        url,
+        rawCookies: rawCookies,
+        videoFormatId: videoFormatId,
+        userAgent: userAgent,
+        cookiesFilePath: cookiesFilePath,
+        organizeBySite: organizeBySite,
+        cookieBrowser: cookieBrowser,
+        audioOnlyOverride: audioOnlyOverride,
+      ),
     );
-
-    _queue.add(request);
     await _processQueue();
   }
 
   Future<void> startDownloadsBatch(List<String> urls) async {
-    final settings = _ref.read(settingsProvider);
-
     for (final url in urls) {
-      final request = DownloadRequest(
-        url: url,
-        outputFolder: settings.outputFolder.isNotEmpty
-            ? settings.outputFolder
-            : null,
-        audioOnly: settings.audioOnly,
-        preferredQuality: settings.preferredQuality,
-        outputFormat: settings.outputFormat,
-        audioFormat: settings.audioFormat,
-        embedThumbnail: settings.embedThumbnail,
-        embedSubtitles: settings.embedSubtitles,
-        twitterIncludeReplies: settings.twitterIncludeReplies,
-        twitchDownloadChat: settings.twitchDownloadChat,
-        twitchQuality: settings.twitchQuality,
-        cookiesFilePath: settings.cookiesFilePath.isNotEmpty
-            ? settings.cookiesFilePath
-            : null,
-        useTorProxy: settings.useTorProxy,
-        concurrentFragments: settings.concurrentFragments,
-        cookieBrowser: settings.cookieBrowser,
-        organizeBySite: settings.organizeBySite,
-      );
-      _queue.add(request);
+      _queue.add(_buildRequest(url));
     }
 
     await _processQueue();
+  }
+
+  Future<void> startFromLaunchData(LaunchData data) async {
+    if (data.isPlaylist) {
+      try {
+        final items = await _repository.fetchPlaylist(data.url);
+        if (items.length > 1) {
+          for (final item in items) {
+            _queue.add(
+              _buildRequest(
+                _resolvePlaylistEntryUrl(item, data.url),
+                rawCookies: data.cookies,
+                userAgent: data.userAgent,
+                cookieBrowser: data.cookieBrowser,
+                audioOnlyOverride: data.isAudioOnly,
+              ),
+            );
+          }
+          await _processQueue();
+          return;
+        }
+      } catch (_) {
+        // Fall back to a single download below.
+      }
+    }
+
+    await startDownload(
+      data.url,
+      rawCookies: data.cookies,
+      userAgent: data.userAgent,
+      cookieBrowser: data.cookieBrowser,
+      audioOnlyOverride: data.isAudioOnly,
+    );
   }
 
   Future<void> deleteDownload(String id) async {
@@ -371,6 +367,80 @@ class DownloadListNotifier
     } finally {
       _isProcessingQueue = false;
     }
+  }
+
+  DownloadRequest _buildRequest(
+    String url, {
+    String? rawCookies,
+    String? videoFormatId,
+    String? userAgent,
+    String? cookiesFilePath,
+    bool? organizeBySite,
+    String? cookieBrowser,
+    bool? audioOnlyOverride,
+  }) {
+    final settings = _ref.read(settingsProvider);
+    final normalizedCookieBrowser = cookieBrowser != null
+        ? (cookieBrowser.isEmpty ? null : cookieBrowser)
+        : settings.cookieBrowser;
+
+    return DownloadRequest(
+      url: url,
+      outputFolder: settings.outputFolder.isNotEmpty
+          ? settings.outputFolder
+          : null,
+      audioOnly: audioOnlyOverride ?? settings.audioOnly,
+      preferredQuality: settings.preferredQuality,
+      outputFormat: settings.outputFormat,
+      audioFormat: settings.audioFormat,
+      embedThumbnail: settings.embedThumbnail,
+      embedSubtitles: settings.embedSubtitles,
+      twitterIncludeReplies: settings.twitterIncludeReplies,
+      twitchDownloadChat: settings.twitchDownloadChat,
+      twitchQuality: settings.twitchQuality,
+      cookiesFilePath:
+          cookiesFilePath ??
+          (settings.cookiesFilePath.isNotEmpty
+              ? settings.cookiesFilePath
+              : null),
+      useTorProxy: settings.useTorProxy,
+      concurrentFragments: settings.concurrentFragments,
+      rawCookies: rawCookies,
+      videoFormatId: videoFormatId,
+      cookieBrowser: normalizedCookieBrowser,
+      organizeBySite: organizeBySite ?? settings.organizeBySite,
+      userAgent: userAgent,
+    );
+  }
+
+  String _resolvePlaylistEntryUrl(
+    Map<String, dynamic> item,
+    String originalUrl,
+  ) {
+    final itemUrl = item['url'] as String?;
+    if (itemUrl != null && itemUrl.startsWith('http')) {
+      return itemUrl;
+    }
+
+    if (item['id'] != null &&
+        (itemUrl == null || !itemUrl.startsWith('http'))) {
+      if (item['ie_key'] == 'Youtube' || originalUrl.contains('youtu')) {
+        return 'https://www.youtube.com/watch?v=${item['id']}';
+      }
+    }
+
+    return itemUrl ?? originalUrl;
+  }
+
+  int _extractRecordedBytes(DownloadItem item) {
+    final candidates = [item.totalSize, item.downloadedSize];
+    for (final candidate in candidates) {
+      final parsed = FormatUtils.parseBytes(candidate);
+      if (parsed > 0) {
+        return parsed;
+      }
+    }
+    return 0;
   }
 }
 

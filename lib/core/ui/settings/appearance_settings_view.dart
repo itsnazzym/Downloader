@@ -28,7 +28,7 @@ class _AppearanceSettingsViewState
       extendBodyBehindAppBar: true,
       backgroundColor: ds.AppColors.background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: SizedBox(),
         backgroundColor: ds.AppColors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
@@ -69,14 +69,14 @@ class _AppearanceSettingsViewState
                         DropdownTile(
                           title: "Theme",
                           value: settings.themeMode,
-                          options: const ["system", "dark", "light"],
+                          options: ["system", "dark", "light"],
                           onChanged: settingsNotifier.setThemeMode,
                           icon: Icons.brightness_4_rounded,
                         ),
 
-                        const SizedBox(height: AppSpacing.l),
+                        SizedBox(height: AppSpacing.l),
                         const SectionTitle("Theme Preset"),
-                        const SizedBox(height: AppSpacing.s),
+                        SizedBox(height: AppSpacing.s),
 
                         // Preset Grid
                         _ThemePresetGrid(
@@ -84,9 +84,9 @@ class _AppearanceSettingsViewState
                           onSelect: (id) => settingsNotifier.setThemePreset(id),
                         ),
 
-                        const SizedBox(height: AppSpacing.l),
+                        SizedBox(height: AppSpacing.l),
                         const SectionTitle("Accent Color"),
-                        const SizedBox(height: AppSpacing.s),
+                        SizedBox(height: AppSpacing.s),
 
                         // Color Picker
                         _AccentColorPicker(
@@ -98,12 +98,12 @@ class _AppearanceSettingsViewState
                           },
                         ),
 
-                        const SizedBox(height: AppSpacing.l),
+                        SizedBox(height: AppSpacing.l),
                         const SectionTitle("Language"),
                         DropdownTile(
                           title: "Language",
                           value: settings.locale,
-                          options: const ["en", "fr", "ar"],
+                          options: ["en", "fr", "ar"],
                           onChanged: settingsNotifier.setLocale,
                           icon: Icons.language_rounded,
                         ),
@@ -162,13 +162,13 @@ class _ThemePresetGrid extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _ColorDot(color: preset.primary, size: 14),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     _ColorDot(color: preset.surface, size: 14),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     _ColorDot(color: preset.textPrimary, size: 14),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   preset.name,
                   style: TextStyle(
@@ -264,7 +264,7 @@ class _AccentColorPicker extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -282,7 +282,7 @@ class _AccentColorPicker extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Color Grid
           Wrap(
@@ -315,7 +315,7 @@ class _AccentColorPicker extends StatelessWidget {
                         : [],
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 18)
+                      ? Icon(Icons.check, color: Colors.white, size: 18)
                       : null,
                 ),
               );

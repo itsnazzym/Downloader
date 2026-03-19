@@ -118,26 +118,24 @@ class _SmartOrganizerSettingsViewState
               children: [
                 TextField(
                   controller: nameController,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
                     labelText: 'Name',
                     labelStyle: TextStyle(color: AppColors.textPrimary),
                   ),
                 ),
                 TextField(
                   controller: patternController,
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Pattern (Keyword or Regex)',
-                    labelStyle: const TextStyle(color: AppColors.textPrimary),
+                    labelStyle: TextStyle(color: AppColors.textPrimary),
                     helperText: isRegex ? 'RegExp pattern' : 'Contains text',
-                    helperStyle: const TextStyle(
-                      color: AppColors.textSecondary,
-                    ),
+                    helperStyle: TextStyle(color: AppColors.textSecondary),
                   ),
                 ),
                 CheckboxListTile(
-                  title: const Text('Is Regex'),
+                  title: Text('Is Regex'),
                   value: isRegex,
                   onChanged: (v) => setState(() => isRegex = v ?? false),
                 ),
@@ -147,8 +145,8 @@ class _SmartOrganizerSettingsViewState
                     Expanded(
                       child: TextField(
                         controller: targetController,
-                        style: const TextStyle(color: AppColors.textPrimary),
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: AppColors.textPrimary),
+                        decoration: InputDecoration(
                           labelText: 'Target Subfolder',
                           labelStyle: TextStyle(color: AppColors.textPrimary),
                           enabledBorder: OutlineInputBorder(
@@ -163,7 +161,7 @@ class _SmartOrganizerSettingsViewState
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.folder_open,
                         color: AppColors.textPrimary,
                       ),
@@ -178,7 +176,7 @@ class _SmartOrganizerSettingsViewState
                   ],
                 ),
                 CheckboxListTile(
-                  title: const Text('Active'),
+                  title: Text('Active'),
                   value: active,
                   onChanged: (v) => setState(() => active = v ?? true),
                 ),
@@ -188,7 +186,7 @@ class _SmartOrganizerSettingsViewState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -208,7 +206,7 @@ class _SmartOrganizerSettingsViewState
                 _addOrUpdateRule(newRule);
                 Navigator.pop(context);
               },
-              child: const Text('Save'),
+              child: Text('Save'),
             ),
           ],
         ),
@@ -272,11 +270,11 @@ class _SmartOrganizerSettingsViewState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Download Model'),
+        title: Text('Download Model'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Select a popular model to pull:'),
+            Text('Select a popular model to pull:'),
             const Gap(16),
             Wrap(
               spacing: 8,
@@ -284,7 +282,7 @@ class _SmartOrganizerSettingsViewState
                   .map(
                     (m) => ActionChip(
                       label: Text(m),
-                      avatar: const Icon(Icons.download, size: 16),
+                      avatar: Icon(Icons.download, size: 16),
                       onPressed: () {
                         _pullModel(m);
                         Navigator.pop(context);
@@ -294,7 +292,7 @@ class _SmartOrganizerSettingsViewState
                   .toList(),
             ),
             const Gap(16),
-            const Text(
+            Text(
               'Note: This requires a fast internet connection. Check Ollama logs for progress.',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
@@ -303,7 +301,7 @@ class _SmartOrganizerSettingsViewState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text('Close'),
           ),
         ],
       ),
@@ -330,7 +328,7 @@ class _SmartOrganizerSettingsViewState
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => Center(child: CircularProgressIndicator()),
     );
 
     int movedCount = 0;
@@ -367,7 +365,7 @@ class _SmartOrganizerSettingsViewState
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppColors.background,
         body: Center(child: CircularProgressIndicator()),
       );
@@ -376,7 +374,7 @@ class _SmartOrganizerSettingsViewState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Smart Organization'),
+        title: Text('Smart Organization'),
         backgroundColor: AppColors.background,
         elevation: 0,
         foregroundColor: AppColors.textPrimary,
@@ -391,8 +389,8 @@ class _SmartOrganizerSettingsViewState
               child: Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('Smart Guess (AI Curator)'),
-                    subtitle: const Text(
+                    title: Text('Smart Guess (AI Curator)'),
+                    subtitle: Text(
                       'Automatically categorize files based on common patterns or Local AI.',
                     ),
                     value: _smartGuessEnabled,
@@ -402,7 +400,7 @@ class _SmartOrganizerSettingsViewState
                     },
                   ),
                   if (_smartGuessEnabled) ...[
-                    const Divider(height: 1),
+                    Divider(height: 1),
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -410,10 +408,8 @@ class _SmartOrganizerSettingsViewState
                         children: [
                           DropdownButtonFormField<String>(
                             dropdownColor: AppColors.surface,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                            ),
-                            decoration: const InputDecoration(
+                            style: TextStyle(color: AppColors.textPrimary),
+                            decoration: InputDecoration(
                               labelText: 'AI Mode',
                               labelStyle: TextStyle(
                                 color: AppColors.textPrimary,
@@ -430,7 +426,7 @@ class _SmartOrganizerSettingsViewState
                               ),
                             ),
                             initialValue: _aiMode,
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: 'offline',
                                 child: Text(
@@ -461,10 +457,8 @@ class _SmartOrganizerSettingsViewState
                             const Gap(16),
                             TextField(
                               controller: _ollamaUrlController,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                              ),
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: AppColors.textPrimary),
+                              decoration: InputDecoration(
                                 labelText: 'Ollama API URL',
                                 labelStyle: TextStyle(
                                   color: AppColors.textPrimary,
@@ -491,27 +485,27 @@ class _SmartOrganizerSettingsViewState
                                 Expanded(
                                   child: TextField(
                                     controller: _ollamaModelController,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: AppColors.textPrimary,
                                     ),
                                     decoration: InputDecoration(
                                       labelText: 'Model Name',
-                                      labelStyle: const TextStyle(
+                                      labelStyle: TextStyle(
                                         color: AppColors.textPrimary,
                                       ),
-                                      border: const OutlineInputBorder(),
-                                      enabledBorder: const OutlineInputBorder(
+                                      border: OutlineInputBorder(),
+                                      enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                           color: AppColors.textSecondary,
                                         ),
                                       ),
                                       helperText:
                                           'Select from list or type manually',
-                                      helperStyle: const TextStyle(
+                                      helperStyle: TextStyle(
                                         color: AppColors.textSecondary,
                                       ),
                                       suffixIcon: PopupMenuButton<String>(
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.arrow_drop_down,
                                           color: AppColors.textPrimary,
                                         ),
@@ -528,7 +522,7 @@ class _SmartOrganizerSettingsViewState
                                               value: choice,
                                               child: Text(
                                                 choice,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   color: AppColors.textPrimary,
                                                 ),
                                               ),
@@ -542,26 +536,26 @@ class _SmartOrganizerSettingsViewState
                                 ),
                                 IconButton(
                                   icon: _isFetchingModels
-                                      ? const SizedBox(
+                                      ? SizedBox(
                                           width: 20,
                                           height: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                           ),
                                         )
-                                      : const Icon(Icons.refresh),
+                                      : Icon(Icons.refresh),
                                   onPressed: _fetchModels,
                                   tooltip: 'Refresh Models',
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.download),
+                                  icon: Icon(Icons.download),
                                   onPressed: _showDownloadModelDialog,
                                   tooltip: 'Download Model',
                                 ),
                               ],
                             ),
                             const Gap(8),
-                            const Text(
+                            Text(
                               'Make sure Ollama is running (`ollama serve`).',
                               style: TextStyle(
                                 fontSize: 12,
@@ -582,7 +576,7 @@ class _SmartOrganizerSettingsViewState
               children: [
                 const SectionTitle('Custom Rules'),
                 IconButton(
-                  icon: const Icon(Icons.add),
+                  icon: Icon(Icons.add),
                   onPressed: () => _showRuleDialog(),
                   tooltip: 'Add Rule',
                 ),
@@ -621,7 +615,7 @@ class _SmartOrganizerSettingsViewState
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: AppColors.error),
+                        icon: Icon(Icons.delete, color: AppColors.error),
                         onPressed: () => _deleteRule(rule.id),
                       ),
                     ],
@@ -634,15 +628,12 @@ class _SmartOrganizerSettingsViewState
             const SectionTitle('Tools'),
             Card(
               child: ListTile(
-                leading: const Icon(
-                  Icons.drive_file_move,
-                  color: AppColors.primary,
-                ),
-                title: const Text('Organize Existing Files'),
-                subtitle: const Text(
+                leading: Icon(Icons.drive_file_move, color: AppColors.primary),
+                title: Text('Organize Existing Files'),
+                subtitle: Text(
                   'Scan a folder and organize files using current rules/AI.',
                 ),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: Icon(Icons.chevron_right),
                 onTap: _organizeFolder,
               ),
             ),

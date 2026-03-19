@@ -82,7 +82,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
         showDialog(
           context: context,
           builder: (c) => AlertDialog(
-            title: const Text("Organization Complete"),
+            title: Text("Organization Complete"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,16 +96,13 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
                   const Gap(8),
                   Text(
                     "⚠️ ${result.errors.length} errors occurred",
-                    style: const TextStyle(color: Colors.orange),
+                    style: TextStyle(color: Colors.orange),
                   ),
                 ],
               ],
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(c),
-                child: const Text("OK"),
-              ),
+              TextButton(onPressed: () => Navigator.pop(c), child: Text("OK")),
             ],
           ),
         );
@@ -127,7 +124,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: SizedBox(),
         backgroundColor: AppColors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,

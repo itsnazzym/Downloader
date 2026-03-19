@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/features/downloader/domain/utils/download_item_media.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 
 // --- Filter State Definitions ---
@@ -19,6 +21,8 @@ enum DownloadViewMode {
   detailed, // Grid-like cards
 }
 
+enum DownloadMediaTypeFilter { all, video, audio }
+
 // Changed to String for dynamic source support
 final downloadSourceFilterProvider = StateProvider<String?>(
   (ref) => null,
@@ -36,6 +40,10 @@ final downloadSortProvider = StateProvider<DownloadSort>(
   (ref) => DownloadSort.dateDesc,
 );
 
+final downloadMediaTypeFilterProvider = StateProvider<DownloadMediaTypeFilter>(
+  (ref) => DownloadMediaTypeFilter.all,
+);
+
 final downloadViewModeProvider = StateProvider<DownloadViewMode>(
   (ref) => DownloadViewMode.list,
 );
@@ -51,6 +59,7 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
   final query = ref.watch(downloadSearchQueryProvider).toLowerCase();
   final statusFilter = ref.watch(downloadStatusFilterProvider);
   final sourceFilter = ref.watch(downloadSourceFilterProvider);
+  final mediaFilter = ref.watch(downloadMediaTypeFilterProvider);
   final sort = ref.watch(downloadSortProvider);
 
   return allDownloadsState.when(
@@ -60,7 +69,12 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
         if (query.isNotEmpty) {
           final title = (item.title ?? '').toLowerCase();
           final url = item.request.url.toLowerCase();
-          if (!title.contains(query) && !url.contains(query)) {
+          final source = item.source.toLowerCase();
+          final filePath = (item.filePath ?? '').toLowerCase();
+          if (!title.contains(query) &&
+              !url.contains(query) &&
+              !source.contains(query) &&
+              !filePath.contains(query)) {
             return false;
           }
         }
@@ -103,6 +117,24 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
           }
         }
 
+        if (mediaFilter != DownloadMediaTypeFilter.all) {
+          final itemType = DownloadItemMedia.detect(item);
+          switch (mediaFilter) {
+            case DownloadMediaTypeFilter.video:
+              if (itemType != DownloadMediaType.video) {
+                return false;
+              }
+              break;
+            case DownloadMediaTypeFilter.audio:
+              if (itemType != DownloadMediaType.audio) {
+                return false;
+              }
+              break;
+            case DownloadMediaTypeFilter.all:
+              break;
+          }
+        }
+
         return true;
       }).toList();
 
@@ -119,14 +151,13 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
           case DownloadSort.nameDesc:
             return (b.title ?? '').compareTo(a.title ?? '');
           case DownloadSort.sizeAsc:
-            // Need to parse size string, complex but doable or fallback to 0
-            // For now simple string compare might be flawed for sizes "10 MB" vs "2 GB"
-            // Better to have bytes in entity but we have formatted string.
-            // We'll rely on string or skip for now if too complex to parse here without helper.
-            // Let's rely on basic string compare as placeholder or implement parser.
-            return (a.totalSize).compareTo(b.totalSize);
+            return _extractComparableSize(
+              a,
+            ).compareTo(_extractComparableSize(b));
           case DownloadSort.sizeDesc:
-            return (b.totalSize).compareTo(a.totalSize);
+            return _extractComparableSize(
+              b,
+            ).compareTo(_extractComparableSize(a));
         }
       });
 
@@ -136,3 +167,12 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
     error: (e, st) => AsyncValue.error(e, st),
   );
 });
+
+int _extractComparableSize(DownloadItem item) {
+  final total = FormatUtils.parseBytes(item.totalSize);
+  if (total > 0) {
+    return total;
+  }
+
+  return FormatUtils.parseBytes(item.downloadedSize);
+}

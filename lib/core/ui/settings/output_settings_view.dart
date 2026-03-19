@@ -25,7 +25,7 @@ class OutputSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: SizedBox(),
         backgroundColor: AppColors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
@@ -82,7 +82,7 @@ class OutputSettingsView extends ConsumerWidget {
                         DropdownTile(
                           title: "Format",
                           value: settings.outputFormat,
-                          options: const ["mp4", "mkv", "webm"],
+                          options: ["mp4", "mkv", "webm"],
                           onChanged: settingsNotifier.setOutputFormat,
                           icon: Icons.video_file,
                         ),

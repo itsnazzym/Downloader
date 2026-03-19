@@ -18,6 +18,44 @@ class LaunchData {
     this.isPlaylist = false,
     this.cookieBrowser,
   });
+
+  factory LaunchData.dialog(
+    String url, {
+    String? cookies,
+    String? userAgent,
+    bool isAudioOnly = false,
+    bool isPlaylist = false,
+    String? cookieBrowser,
+  }) {
+    return LaunchData(
+      url: url,
+      cookies: cookies,
+      userAgent: userAgent,
+      isAudioOnly: isAudioOnly,
+      shouldAutoStart: false,
+      isPlaylist: isPlaylist,
+      cookieBrowser: cookieBrowser,
+    );
+  }
+
+  factory LaunchData.autoStart(
+    String url, {
+    String? cookies,
+    String? userAgent,
+    bool isAudioOnly = false,
+    bool isPlaylist = false,
+    String? cookieBrowser,
+  }) {
+    return LaunchData(
+      url: url,
+      cookies: cookies,
+      userAgent: userAgent,
+      isAudioOnly: isAudioOnly,
+      shouldAutoStart: true,
+      isPlaylist: isPlaylist,
+      cookieBrowser: cookieBrowser,
+    );
+  }
 }
 
 /// Holds the data that triggered the app launch or a remote request.

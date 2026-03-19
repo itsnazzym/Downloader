@@ -62,7 +62,7 @@ class AppButton extends StatelessWidget {
     };
 
     final BorderSide? border = switch (type) {
-      AppButtonType.secondary => const BorderSide(color: AppColors.border),
+      AppButtonType.secondary => BorderSide(color: AppColors.border),
       _ => null,
     };
 

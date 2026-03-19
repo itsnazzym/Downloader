@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player_win/video_player_win.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/utils/media_file_utils.dart';
 import 'package:glass/glass.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
@@ -97,19 +98,9 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
             if (widget.thumbnailUrl != null)
               Opacity(
                 opacity: 0.3,
-                child: Image.network(
-                  widget.thumbnailUrl!,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.movie_creation_outlined,
-                    size: 48,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
+                child: _buildThumbnail(widget.thumbnailUrl!),
               ),
-            const Center(
+            Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation(AppColors.primary),
@@ -153,14 +144,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
           children: [
             // Thumbnail / Background when not playing
             if (widget.thumbnailUrl != null && !_isHovering)
-              Positioned.fill(
-                child: Image.network(
-                  widget.thumbnailUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const SizedBox(),
-                ),
-              ),
+              Positioned.fill(child: _buildThumbnail(widget.thumbnailUrl!)),
 
             // Native Windows Player
             SizedBox.expand(
@@ -259,7 +243,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                             builder: (context, value, child) {
                               return Text(
                                 _formatDuration(value.position),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 10,
                                   fontFamily: 'JetBrains Mono',
@@ -302,7 +286,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                                 child:
                                     Container(
                                       padding: const EdgeInsets.all(6),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.fullscreen_rounded,
                                         color: Colors.white,
                                         size: 20,
@@ -371,5 +355,42 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
     return "$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  Widget _buildThumbnail(String pathOrUrl) {
+    if (MediaFileUtils.isNetworkUrl(pathOrUrl)) {
+      return Image.network(
+        pathOrUrl,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Icon(
+          Icons.movie_creation_outlined,
+          size: 48,
+          color: AppColors.textSecondary,
+        ),
+      );
+    }
+
+    final file = File(pathOrUrl);
+    if (!file.existsSync()) {
+      return Icon(
+        Icons.movie_creation_outlined,
+        size: 48,
+        color: AppColors.textSecondary,
+      );
+    }
+
+    return Image.file(
+      file,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Icon(
+        Icons.movie_creation_outlined,
+        size: 48,
+        color: AppColors.textSecondary,
+      ),
+    );
   }
 }

@@ -92,7 +92,7 @@ class _StorageChartState extends State<StorageChart> {
       return Container(
         height: 200,
         alignment: Alignment.center,
-        child: const CircularProgressIndicator(),
+        child: CircularProgressIndicator(),
       );
     }
 
@@ -100,7 +100,7 @@ class _StorageChartState extends State<StorageChart> {
       return Container(
         height: 100,
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           "Storage info unavailable",
           style: TextStyle(color: AppColors.textSecondary),
         ),
@@ -139,7 +139,7 @@ class _StorageChartState extends State<StorageChart> {
               ),
               IconButton(
                 onPressed: _loadStorageInfo,
-                icon: const Icon(Icons.refresh, color: AppColors.textSecondary),
+                icon: Icon(Icons.refresh, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -264,14 +264,14 @@ class _Indicator extends StatelessWidget {
             color: color,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 text,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textSecondary,
@@ -279,7 +279,7 @@ class _Indicator extends StatelessWidget {
               ),
               Text(
                 size,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,

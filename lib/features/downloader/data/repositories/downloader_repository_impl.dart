@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/download_item.dart';
 import '../../domain/entities/download_request.dart';
@@ -19,6 +20,7 @@ import '../datasources/persistence_service.dart';
 import '../../../../core/services/title_cleaner_service.dart';
 import '../../../../core/plugins/plugin_manager.dart';
 import '../../../../core/plugins/plugin_interface.dart';
+import '../../../../core/utils/media_file_utils.dart';
 
 class DownloaderRepositoryImpl implements IDownloaderRepository {
   final YtDlpSource _source;
@@ -26,6 +28,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final PersistenceService _persistenceService;
   final LibraryScannerService _libraryScanner;
   final PluginManager _pluginManager;
+  final String Function() _resolveOutputFolder;
 
   final _controller = StreamController<DownloadItem>.broadcast();
   final _activeDownloads = <String, DownloadItem>{};
@@ -37,6 +40,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     this._persistenceService,
     this._libraryScanner,
     this._pluginManager,
+    this._resolveOutputFolder,
   ) {
     _loadInitialData();
   }
@@ -47,6 +51,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
     for (final item in loaded) {
       if (_activeDownloads.containsKey(item.id)) continue;
+      if (!_shouldKeepPersistedItem(item)) continue;
       var status = item.status;
       if (status == DownloadStatus.downloading ||
           status == DownloadStatus.extracting) {
@@ -80,10 +85,15 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   }
 
   Future<String?> _getDownloadPath() async {
+    final configuredPath = _resolveOutputFolder().trim();
+    if (configuredPath.isNotEmpty) {
+      return configuredPath;
+    }
+
     if (Platform.isWindows) {
       final userProfile = Platform.environment['USERPROFILE'];
       if (userProfile == null) return null;
-      return '$userProfile\\Videos\\VOILA';
+      return '$userProfile\\Downloads';
     }
     return null;
   }
@@ -216,10 +226,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     const maxRetries = 3;
 
     Future<void> run() async {
+      DownloadRequest currentRequest = request;
+      Map<String, dynamic>? sourceMetadata;
       File? tempCookiesFile;
+      bool preDownloadPluginsDispatched = false;
       try {
         // 1. Prepare Cookies
-        DownloadRequest currentRequest = request;
         if (request.rawCookies != null && request.rawCookies!.isNotEmpty) {
           // Check if it's a Header string (Extension) or Netscape file content
           // Headers usually have "name=value;" and NO tabs. Netscape has tabs.
@@ -277,8 +289,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             try {
               final metadata = await _source.fetchMetadata(
                 currentRequest.url,
-                cookies: currentRequest.rawCookies,
+                cookies: _isCookieHeader(currentRequest.rawCookies)
+                    ? currentRequest.rawCookies
+                    : null,
+                cookiesFilePath: !_isCookieHeader(currentRequest.rawCookies)
+                    ? currentRequest.cookiesFilePath
+                    : null,
               );
+              sourceMetadata = metadata;
               final String? fetchedTitle = metadata['title'];
               finalThumbnail = metadata['thumbnail'];
               final String? videoId = metadata['id'];
@@ -348,6 +366,46 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               );
             }
 
+            if (!preDownloadPluginsDispatched) {
+              final preDownloadResult = await _pluginManager.onBeforeDownload(
+                await _buildPluginEvent(
+                  id,
+                  request: currentRequest,
+                  sourceMetadata: sourceMetadata,
+                ),
+              );
+
+              if (preDownloadResult?.shouldCancel == true) {
+                _update(
+                  _activeDownloads[id]!.copyWith(
+                    status: preDownloadResult!.isDuplicate
+                        ? DownloadStatus.duplicate
+                        : DownloadStatus.canceled,
+                    progress: preDownloadResult.isDuplicate ? 1.0 : 0.0,
+                    speed:
+                        preDownloadResult.message ??
+                        (preDownloadResult.isDuplicate
+                            ? 'Duplicate blocked'
+                            : 'Canceled by plugin'),
+                    step: 'Blocked by plugin',
+                    filePath:
+                        preDownloadResult.existingFilePath ??
+                        _activeDownloads[id]!.filePath,
+                  ),
+                );
+                return;
+              }
+
+              await _pluginManager.onDownloadStart(
+                await _buildPluginEvent(
+                  id,
+                  request: currentRequest,
+                  sourceMetadata: sourceMetadata,
+                ),
+              );
+              preDownloadPluginsDispatched = true;
+            }
+
             // 5. Download Execution
             _update(
               _activeDownloads[id]!.copyWith(
@@ -400,32 +458,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               _activeDownloads[id]!.title ?? 'Download Complete',
             );
 
-            // 7. Plugin Processing
-            try {
-              final pluginResult = await _pluginManager.onDownloadComplete(
-                PluginDownloadEvent(
-                  downloadId: id,
-                  url: currentRequest.url,
-                  filePath: _activeDownloads[id]!.filePath,
-                  title: _activeDownloads[id]!.title,
-                  source: _activeDownloads[id]!.source,
-                  progress: 1.0,
-                ),
-              );
-
-              if (pluginResult != null) {
-                _update(
-                  _activeDownloads[id]!.copyWith(
-                    filePath:
-                        pluginResult.newFilePath ??
-                        _activeDownloads[id]!.filePath,
-                    title: pluginResult.newTitle ?? _activeDownloads[id]!.title,
-                  ),
-                );
-              }
-            } catch (pluginError) {
-              LoggerService.e('Plugin processing failed', pluginError);
-            }
+            await _runCompletionPlugins(
+              id,
+              currentRequest,
+              sourceMetadata: sourceMetadata,
+            );
 
             // Note: stats recording is handled by the provider layer
             return;
@@ -442,7 +479,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         LoggerService.e('Download $id FATAL ERROR', e, st);
         if (GalleryDlSource.shouldUseFallback(request.url)) {
           try {
-            await _tryGalleryDlFallback(id, request);
+            await _tryGalleryDlFallback(id, currentRequest);
+            await _runCompletionPlugins(
+              id,
+              currentRequest,
+              sourceMetadata: sourceMetadata,
+            );
             return;
           } catch (ge) {
             LoggerService.w('Gallery DL fallback failed: $ge');
@@ -458,6 +500,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           _activeDownloads[id]?.title ?? 'Download Failed',
           e.toString(),
         );
+        await _runFailurePlugins(
+          id,
+          currentRequest,
+          e,
+          sourceMetadata: sourceMetadata,
+        );
       } finally {
         if (tempCookiesFile?.existsSync() ?? false) {
           tempCookiesFile?.deleteSync();
@@ -471,12 +519,27 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   Future<void> _tryGalleryDlFallback(String id, DownloadRequest request) async {
     _update(_activeDownloads[id]!.copyWith(status: DownloadStatus.downloading));
     await for (final progress in _galleryDlSource.download(id, request)) {
+      final videoPath = _resolveFallbackVideoPath(progress.filePath);
+
       if (progress.isComplete) {
+        if (videoPath == null) {
+          await _cleanupUnsupportedFallback(progress);
+          throw Exception(
+            'This project only supports video downloads. Photo-only downloads are blocked.',
+          );
+        }
+
         _update(
           _activeDownloads[id]!.copyWith(
             status: DownloadStatus.completed,
             progress: 1.0,
             title: progress.title ?? _activeDownloads[id]?.title ?? 'Unknown',
+            speed: progress.status,
+            filePath: videoPath,
+            thumbnailUrl:
+                progress.thumbnailPath ??
+                _activeDownloads[id]?.thumbnailUrl ??
+                _activeDownloads[id]?.thumbnailUrl,
           ),
         );
       } else {
@@ -487,6 +550,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 progress.title ??
                 _activeDownloads[id]?.title ??
                 'Processing...',
+            filePath: videoPath ?? _activeDownloads[id]?.filePath,
+            thumbnailUrl:
+                progress.thumbnailPath ?? _activeDownloads[id]?.thumbnailUrl,
           ),
         );
       }
@@ -496,6 +562,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   @override
   Future<void> pauseDownload(String id) async {
     await _source.cancel(id);
+    await _galleryDlSource.cancel(id);
     if (_activeDownloads.containsKey(id)) {
       _update(
         _activeDownloads[id]!.copyWith(
@@ -509,6 +576,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   @override
   Future<void> cancelDownload(String id) async {
     await _source.cancel(id);
+    await _galleryDlSource.cancel(id);
     if (_activeDownloads.containsKey(id)) {
       _update(
         _activeDownloads[id]!.copyWith(
@@ -523,54 +591,74 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   Future<void> deleteDownload(String id) async {
     // 1. Cancel active process if running
     await _source.cancel(id);
+    await _galleryDlSource.cancel(id);
 
     // 2. Locate the item to find its file path
     final item = _activeDownloads[id];
     if (item != null && item.filePath != null) {
       try {
-        final file = File(item.filePath!);
-
-        // Delete main file
-        if (await file.exists()) {
-          await file.delete();
-          LoggerService.i('Deleted file: ${item.filePath}');
-        }
-
-        // Delete sidecar thumbnails (.jpg, .webp, .png next to video)
-        final dotIndex = item.filePath!.lastIndexOf('.');
-        if (dotIndex != -1) {
-          final basePath = item.filePath!.substring(0, dotIndex);
-          for (final ext in ['.jpg', '.webp', '.png']) {
-            try {
-              final thumbFile = File('$basePath$ext');
-              if (await thumbFile.exists()) {
-                await thumbFile.delete();
-                LoggerService.i('Deleted thumbnail: $basePath$ext');
-              }
-            } catch (_) {}
-          }
-        }
-
-        // 3. Cleanup temporary files (.part, .ytdl, etc.)
-        final directory = file.parent;
+        final itemPath = item.filePath!;
+        final directory = Directory(itemPath);
         if (await directory.exists()) {
-          final filename = file.uri.pathSegments.last.replaceAll(
-            RegExp(r'\.\w+$'),
-            '',
-          );
-          await for (final entity in directory.list()) {
-            if (entity is File) {
-              final name = entity.uri.pathSegments.last;
-              if (name.contains(filename) &&
-                  (name.endsWith('.part') ||
-                      name.endsWith('.ytdl') ||
-                      name.endsWith('.aria2') ||
-                      name.contains('.f') ||
-                      name.endsWith('.temp'))) {
-                try {
-                  await entity.delete();
-                  LoggerService.debug('Cleaned up temp file: $name');
-                } catch (_) {}
+          final libraryRoot = await _getDownloadPath();
+          final normalizedDirectory = p.normalize(directory.path).toLowerCase();
+          final normalizedRoot = libraryRoot == null
+              ? null
+              : p.normalize(libraryRoot).toLowerCase();
+
+          if (normalizedRoot != null && normalizedDirectory == normalizedRoot) {
+            LoggerService.w(
+              'Refusing to delete library root for item ${item.id}: $itemPath',
+            );
+          } else {
+            await directory.delete(recursive: true);
+            LoggerService.i('Deleted gallery directory: $itemPath');
+          }
+        } else {
+          final file = File(itemPath);
+
+          // Delete main file
+          if (await file.exists()) {
+            await file.delete();
+            LoggerService.i('Deleted file: ${item.filePath}');
+          }
+
+          // Delete sidecar thumbnails (.jpg, .webp, .png next to video)
+          final dotIndex = item.filePath!.lastIndexOf('.');
+          if (dotIndex != -1) {
+            final basePath = item.filePath!.substring(0, dotIndex);
+            for (final ext in ['.jpg', '.webp', '.png']) {
+              try {
+                final thumbFile = File('$basePath$ext');
+                if (await thumbFile.exists()) {
+                  await thumbFile.delete();
+                  LoggerService.i('Deleted thumbnail: $basePath$ext');
+                }
+              } catch (_) {}
+            }
+          }
+
+          // 3. Cleanup temporary files (.part, .ytdl, etc.)
+          final parentDirectory = file.parent;
+          if (await parentDirectory.exists()) {
+            final filename = file.uri.pathSegments.last.replaceAll(
+              RegExp(r'\.\w+$'),
+              '',
+            );
+            await for (final entity in parentDirectory.list()) {
+              if (entity is File) {
+                final name = entity.uri.pathSegments.last;
+                if (name.contains(filename) &&
+                    (name.endsWith('.part') ||
+                        name.endsWith('.ytdl') ||
+                        name.endsWith('.aria2') ||
+                        name.contains('.f') ||
+                        name.endsWith('.temp'))) {
+                  try {
+                    await entity.delete();
+                    LoggerService.debug('Cleaned up temp file: $name');
+                  } catch (_) {}
+                }
               }
             }
           }
@@ -638,6 +726,104 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     return _source.fetchPlaylist(url);
   }
 
+  Future<void> _runCompletionPlugins(
+    String id,
+    DownloadRequest request, {
+    Map<String, dynamic>? sourceMetadata,
+  }) async {
+    try {
+      final pluginResult = await _pluginManager.onDownloadComplete(
+        await _buildPluginEvent(
+          id,
+          request: request,
+          sourceMetadata: sourceMetadata,
+        ),
+      );
+
+      if (pluginResult != null) {
+        _update(
+          _activeDownloads[id]!.copyWith(
+            filePath:
+                pluginResult.newFilePath ?? _activeDownloads[id]!.filePath,
+            title: pluginResult.newTitle ?? _activeDownloads[id]!.title,
+            thumbnailUrl:
+                pluginResult.newThumbnailPath ??
+                _activeDownloads[id]!.thumbnailUrl,
+          ),
+        );
+      }
+    } catch (pluginError, st) {
+      LoggerService.e('Plugin processing failed', pluginError, st);
+    }
+  }
+
+  Future<void> _runFailurePlugins(
+    String id,
+    DownloadRequest request,
+    Object error, {
+    Map<String, dynamic>? sourceMetadata,
+  }) async {
+    try {
+      await _pluginManager.onDownloadFailed(
+        await _buildPluginEvent(
+          id,
+          request: request,
+          sourceMetadata: sourceMetadata,
+          error: error.toString(),
+        ),
+      );
+    } catch (pluginError, st) {
+      LoggerService.e('Plugin failure hook failed', pluginError, st);
+    }
+  }
+
+  Future<PluginDownloadEvent> _buildPluginEvent(
+    String id, {
+    DownloadRequest? request,
+    Map<String, dynamic>? sourceMetadata,
+    String? error,
+  }) async {
+    final item = _activeDownloads[id];
+    final outputDirectory = await _resolvePluginOutputDirectory(
+      request ?? item?.request,
+    );
+
+    return PluginDownloadEvent(
+      downloadId: id,
+      url: request?.url ?? item?.request.url ?? '',
+      request: request ?? item?.request,
+      filePath: item?.filePath,
+      title: item?.title,
+      source: item?.source ?? _extractSourceFromUrl(request?.url ?? ''),
+      progress: item?.progress ?? 0.0,
+      error: error ?? item?.error,
+      outputDirectory: outputDirectory,
+      sourceMetadata: sourceMetadata,
+      existingDownloads: _activeDownloads.values
+          .map(
+            (download) => PluginDownloadSnapshot(
+              downloadId: download.id,
+              url: download.request.url,
+              status: download.status.name,
+              filePath: download.filePath,
+              title: download.title,
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Future<String?> _resolvePluginOutputDirectory(
+    DownloadRequest? request,
+  ) async {
+    final configured = request?.outputFolder?.trim();
+    if (configured != null && configured.isNotEmpty) {
+      return configured;
+    }
+
+    return _getDownloadPath();
+  }
+
   String _extractInitialTitle(String url) {
     if (url.contains('youtube.com') || url.contains('youtu.be')) {
       return 'YouTube Video';
@@ -656,6 +842,40 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     }
     // For unknown sources, derive a clean title from the URL
     return TitleCleanerService.deriveTitleFromUrl(url);
+  }
+
+  String _extractSourceFromUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final host = uri.host.toLowerCase();
+      if (host.contains('youtube') || host.contains('youtu.be')) {
+        return 'YouTube';
+      }
+      if (host.contains('twitter') ||
+          host == 'x.com' ||
+          host.endsWith('.x.com')) {
+        return 'Twitter';
+      }
+      if (host.contains('twitch')) {
+        return 'Twitch';
+      }
+      if (host.contains('kick')) {
+        return 'Kick';
+      }
+      if (host.contains('tiktok')) {
+        return 'TikTok';
+      }
+      if (host.contains('instagram')) {
+        return 'Instagram';
+      }
+      if (host.contains('facebook') ||
+          host.contains('fb.com') ||
+          host.contains('fb.watch')) {
+        return 'Facebook';
+      }
+    } catch (_) {}
+
+    return 'Other';
   }
 
   String _shouldUpdateTitle(String? current, String? proposed) {
@@ -720,6 +940,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     for (final map in list) {
       try {
         final item = DownloadItem.fromJson(map);
+        if (!_shouldKeepPersistedItem(item)) {
+          continue;
+        }
         if (!_activeDownloads.containsKey(item.id)) {
           _activeDownloads[item.id] = item;
           _controller.add(item);
@@ -732,6 +955,56 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
     if (changed) {
       _saveToDisk();
+    }
+  }
+
+  bool _isCookieHeader(String? rawCookies) {
+    if (rawCookies == null || rawCookies.isEmpty) {
+      return false;
+    }
+
+    return !rawCookies.contains('\t') && rawCookies.contains('=');
+  }
+
+  bool _shouldKeepPersistedItem(DownloadItem item) {
+    final filePath = item.filePath;
+    if (filePath == null || filePath.isEmpty) {
+      return true;
+    }
+
+    return MediaFileUtils.isVideoFile(filePath) ||
+        MediaFileUtils.isAudioFile(filePath);
+  }
+
+  String? _resolveFallbackVideoPath(String? filePath) {
+    if (filePath == null || filePath.isEmpty) {
+      return null;
+    }
+
+    if (MediaFileUtils.isVideoFile(filePath)) {
+      return filePath;
+    }
+
+    return null;
+  }
+
+  Future<void> _cleanupUnsupportedFallback(
+    GalleryDlProgressEvent progress,
+  ) async {
+    final directoryPath = progress.directoryPath;
+    if (directoryPath != null && directoryPath.isNotEmpty) {
+      final directory = Directory(directoryPath);
+      if (await directory.exists()) {
+        await directory.delete(recursive: true);
+      }
+    }
+
+    final filePath = progress.filePath;
+    if (filePath != null && filePath.isNotEmpty) {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
     }
   }
 }

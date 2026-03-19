@@ -20,7 +20,7 @@ class PerformanceSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: SizedBox(),
         backgroundColor: AppColors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,

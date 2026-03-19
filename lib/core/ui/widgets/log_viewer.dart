@@ -29,7 +29,7 @@ class LogViewer extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 4),
           child: Text(
             log,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'JetBrains Mono',
               fontSize: 11,
               color: AppColors.textSecondary,

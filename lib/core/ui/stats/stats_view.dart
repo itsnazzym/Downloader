@@ -160,7 +160,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
               child: Wrap(
                 spacing: AppSpacing.m,
                 runSpacing: AppSpacing.s,
-                children: const [
+                children: [
                   _ShortcutChip(keys: 'Ctrl+N', label: 'New Download'),
                   _ShortcutChip(keys: 'Ctrl+,', label: 'Settings'),
                   _ShortcutChip(keys: 'Ctrl+D', label: 'Dashboard'),
@@ -254,7 +254,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
             barRods: [
               BarChartRodData(
                 toY: last7[i].downloads.toDouble(),
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [AppColors.primary, AppColors.info],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,

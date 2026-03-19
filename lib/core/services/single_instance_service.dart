@@ -67,7 +67,9 @@ class SingleInstanceService {
         }
 
         if (finalUrl != null) {
-          container.read(launchUrlProvider.notifier).state = finalUrl;
+          container.read(launchDataProvider.notifier).state = LaunchData.dialog(
+            finalUrl,
+          );
 
           // Re-focus original window
           try {

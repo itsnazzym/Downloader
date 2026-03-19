@@ -245,7 +245,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                   ),
                 ),
 
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
 
                 // Controls row
                 Row(
@@ -277,7 +277,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                       ),
                     ),
 
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
 
                     // Volume
                     Icon(
@@ -314,7 +314,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                       ),
                     ),
 
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
 
                     // Play/Pause
                     _ControlButton(
@@ -332,7 +332,7 @@ class _PlayerControlsState extends State<PlayerControls> {
 
                 // Speed menu
                 if (_showSpeedMenu) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   _SpeedMenu(
                     currentSpeed: state.playbackSpeed,
                     onSelect: (speed) {
@@ -405,7 +405,7 @@ class _SeekPreviewPopup extends StatelessWidget {
                   controls: NoVideoControls,
                   fill: Colors.black,
                 )
-              : const Center(
+              : Center(
                   child: SizedBox(
                     width: 20,
                     height: 20,
@@ -417,7 +417,7 @@ class _SeekPreviewPopup extends StatelessWidget {
                 ),
         ),
 
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
 
         // Time label
         Container(
@@ -428,7 +428,7 @@ class _SeekPreviewPopup extends StatelessWidget {
           ),
           child: Text(
             timeLabel,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: 11,
               fontWeight: FontWeight.w600,

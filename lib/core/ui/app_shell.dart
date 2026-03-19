@@ -52,7 +52,7 @@ class AppShell extends ConsumerWidget {
                     child: Row(
                       children: [
                         // Sidebar
-                        const SizedBox(width: 250, child: AppSidebar()),
+                        SizedBox(width: 250, child: AppSidebar()),
 
                         // Vertical Divider
                         Container(width: 1, color: AppColors.border),
@@ -83,15 +83,7 @@ class AppShell extends ConsumerWidget {
     ref.read(launchDataProvider.notifier).state = null;
 
     if (data.shouldAutoStart) {
-      // Direct start for extensions
-      ref
-          .read(downloadListProvider.notifier)
-          .startDownload(
-            data.url,
-            rawCookies: data.cookies,
-            userAgent: data.userAgent,
-            cookieBrowser: data.cookieBrowser,
-          );
+      ref.read(downloadListProvider.notifier).startFromLaunchData(data);
 
       // Show Toast
       ref
@@ -133,7 +125,7 @@ class AppTitleBar extends StatelessWidget {
                 color: Colors.transparent, // Hit test target
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: const Text(
+                child: Text(
                   "", // Title could go here
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
@@ -153,7 +145,7 @@ class AppTitleBar extends StatelessWidget {
                   },
                   icon: Icons.minimize,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _WindowButton(
                   color: const Color(0xFF28C940), // Green (Max)
                   onTap: () async {
@@ -165,7 +157,7 @@ class AppTitleBar extends StatelessWidget {
                   },
                   icon: Icons.crop_square,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _WindowButton(
                   color: const Color(0xFFFF5F57), // Red (Close)
                   onTap: () {

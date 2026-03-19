@@ -56,7 +56,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             height: 1,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
@@ -88,7 +88,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         DropdownTile(
                           title: "Preferred Quality",
                           value: settings.preferredQuality,
-                          options: const ["best", "manual", "manual+"],
+                          options: ["best", "manual", "manual+"],
                           onChanged: settingsNotifier.setPreferredQuality,
                           icon: Icons.high_quality,
                         ),
@@ -112,7 +112,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         DropdownTile(
                           title: "Format",
                           value: settings.outputFormat,
-                          options: const ["mp4", "mkv", "webm"],
+                          options: ["mp4", "mkv", "webm"],
                           onChanged: settingsNotifier.setOutputFormat,
                           icon: Icons.video_file,
                         ),
@@ -158,7 +158,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         DropdownTile(
                           title: "Cookies from Browser",
                           value: settings.cookieBrowser,
-                          options: const [
+                          options: [
                             "firefox",
                             "chrome",
                             "edge",
@@ -195,7 +195,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                             },
                             trailing: settings.cookiesFilePath.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.delete_outline,
                                       color: AppColors.error,
                                     ),
@@ -530,13 +530,10 @@ class DropdownTile extends StatelessWidget {
             ),
             child: DropdownButton<String>(
               value: value,
-              underline: const SizedBox(),
+              underline: SizedBox(),
               dropdownColor: AppColors.surface,
               style: AppTypography.body,
-              icon: const Icon(
-                Icons.arrow_drop_down,
-                color: AppColors.textSecondary,
-              ),
+              icon: Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
               items: options
                   .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                   .toList(),
@@ -614,7 +611,7 @@ class ActionTile extends StatelessWidget {
                 if (trailing != null)
                   trailing!
                 else
-                  const Icon(
+                  Icon(
                     Icons.chevron_right,
                     color: AppColors.textDisabled,
                     size: 20,
