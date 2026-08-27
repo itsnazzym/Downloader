@@ -114,7 +114,7 @@ class BrowserExtensionInstaller {
     try {
       final xpi = await downloadFirefoxXpiToTemp();
       if (xpi == null) return false;
-      return launchFirefoxWithXpi(xpi);
+      return await launchFirefoxWithXpi(xpi);
     } catch (e) {
       LoggerService.w('Firefox headless install failed: $e');
       return false;

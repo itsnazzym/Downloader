@@ -414,10 +414,10 @@ class KickSource {
       if (head.statusCode == 403 ||
           head.statusCode == 405 ||
           head.statusCode == 501) {
-        return _getRangeOk(uri);
+        return await _getRangeOk(uri);
       }
     } catch (_) {
-      return _getRangeOk(uri);
+      return await _getRangeOk(uri);
     }
     return false;
   }
