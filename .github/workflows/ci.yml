@@ -89,15 +89,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git fetch --tags --force origin
           line=$(grep '^version:' pubspec.yaml)
           full="${line#version: }"
           full="${full// /}"
           name="${full%%+*}"
           build="${full#*+}"
+          if [[ "$build" == "$name" ]]; then
+            build=0
+          fi
           IFS=. read -r major minor patch <<< "$name"
           patch=$((patch + 1))
           build=$((build + 1))
           semver="${major}.${minor}.${patch}"
+          while git rev-parse "refs/tags/v${semver}" >/dev/null 2>&1; do
+            echo "Tag v${semver} already exists — skipping"
+            patch=$((patch + 1))
+            build=$((build + 1))
+            semver="${major}.${minor}.${patch}"
+          done
           new_version="${semver}+${build}"
           sed -i "s/^version: .*/version: ${new_version}/" pubspec.yaml
           echo "semver=${semver}" >> "$GITHUB_OUTPUT"
@@ -116,7 +126,14 @@ jobs:
 
       - name: Tag release
         shell: bash
-        run: git tag "${{ steps.bump.outputs.tag }}"
+        run: |
+          set -euo pipefail
+          tag="${{ steps.bump.outputs.tag }}"
+          if [[ -z "$tag" ]]; then
+            echo "Bump step produced an empty tag" >&2
+            exit 1
+          fi
+          git tag "$tag"
 
       - name: Install dependencies
         run: flutter pub get
