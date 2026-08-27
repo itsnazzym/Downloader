@@ -19,14 +19,28 @@ $artifacts = "signed-xpi"
 if (Test-Path $artifacts) { Remove-Item $artifacts -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 
-npx --yes web-ext@8 sign `
-    --source-dir extension/firefox `
-    --api-key $issuer `
-    --api-secret $secret `
-    --channel unlisted `
-    --artifacts-dir $artifacts
+$signed = $null
+for ($attempt = 1; $attempt -le 20; $attempt++) {
+    $manifest = Get-Content "extension/firefox/manifest.json" -Raw | ConvertFrom-Json
+    Write-Host "Signing Firefox add-on version $($manifest.version) (attempt $attempt)"
+    $signOutput = npx --yes web-ext@8 sign `
+        --source-dir extension/firefox `
+        --api-key $issuer `
+        --api-secret $secret `
+        --channel unlisted `
+        --artifacts-dir $artifacts 2>&1 | Out-String
+    Write-Host $signOutput
+    $signed = Get-ChildItem $artifacts -Filter *.xpi -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($signed) { break }
+    if ($signOutput -match 'already exists') {
+        Write-Host "AMO already has version $($manifest.version) — bumping patch"
+        dart run tool/build_extension.dart --bump-patch
+        if ($LASTEXITCODE -ne 0) { throw "Failed to bump add-on version after AMO conflict" }
+        continue
+    }
+    throw "web-ext sign failed without producing an XPI"
+}
 
-$signed = Get-ChildItem $artifacts -Filter *.xpi | Select-Object -First 1
 if (-not $signed) { throw "web-ext sign produced no XPI" }
 
 Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force

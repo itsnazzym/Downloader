@@ -114,6 +114,7 @@ jobs:
           echo "tag=v${semver}" >> "$GITHUB_OUTPUT"
           echo "build_number=${build}" >> "$GITHUB_OUTPUT"
           echo "Bumped to ${new_version} (tag v${semver})"
+          dart run tool/build_extension.dart --bump-patch --release-tag "v${semver}"
 
       - name: Commit version bump
         shell: bash
@@ -121,7 +122,12 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pubspec.yaml
+          git add pubspec.yaml \
+            extension/shared/manifest.chrome.json \
+            extension/shared/manifest.firefox.json \
+            extension/chrome/manifest.json \
+            extension/firefox/manifest.json \
+            extension_version.json
           git commit -m "chore(release): ${{ steps.bump.outputs.tag }}"
 
       - name: Tag release
@@ -139,15 +145,7 @@ jobs:
         run: flutter pub get
 
       - name: Build browser extensions
-        run: dart run tool/build_extension.dart
-
-      - name: Set Firefox update link for release tag
-        shell: pwsh
-        run: |
-          $updateManifest = Get-Content "extension_version.json" -Raw | ConvertFrom-Json
-          $update = $updateManifest.addons.'moderndownloader@extension.addon'.updates[0]
-          $update.update_link = "https://github.com/${{ github.repository }}/releases/download/${{ steps.bump.outputs.tag }}/modern_downloader_firefox.xpi"
-          $updateManifest | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 "extension_version.json"
+        run: dart run tool/build_extension.dart --release-tag ${{ steps.bump.outputs.tag }}
 
       - name: Build Windows release
         run: >
@@ -210,13 +208,28 @@ jobs:
           $artifacts = "signed-xpi"
           if (Test-Path $artifacts) { Remove-Item $artifacts -Recurse -Force }
           New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
-          web-ext sign `
-            --source-dir extension/firefox `
-            --api-key $env:WEB_EXT_API_KEY `
-            --api-secret $env:WEB_EXT_API_SECRET `
-            --channel unlisted `
-            --artifacts-dir $artifacts
-          $signed = Get-ChildItem $artifacts -Filter *.xpi | Select-Object -First 1
+          $releaseTag = "${{ steps.bump.outputs.tag }}"
+          $signed = $null
+          for ($attempt = 1; $attempt -le 20; $attempt++) {
+            $manifest = Get-Content "extension/firefox/manifest.json" -Raw | ConvertFrom-Json
+            Write-Host "Signing Firefox add-on version $($manifest.version) (attempt $attempt)"
+            $signOutput = & web-ext sign `
+              --source-dir extension/firefox `
+              --api-key $env:WEB_EXT_API_KEY `
+              --api-secret $env:WEB_EXT_API_SECRET `
+              --channel unlisted `
+              --artifacts-dir $artifacts 2>&1 | Out-String
+            Write-Host $signOutput
+            $signed = Get-ChildItem $artifacts -Filter *.xpi -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($signed) { break }
+            if ($signOutput -match 'already exists') {
+              Write-Host "AMO already has version $($manifest.version) — bumping patch"
+              dart run tool/build_extension.dart --bump-patch --release-tag $releaseTag
+              if ($LASTEXITCODE -ne 0) { throw "Failed to bump add-on version after AMO conflict" }
+              continue
+            }
+            throw "web-ext sign failed without producing an XPI"
+          }
           if (-not $signed) { throw "web-ext sign produced no XPI in $artifacts" }
           Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
           Write-Host "Signed XPI ready: modern_downloader_firefox.xpi ($($signed.Length) bytes)"

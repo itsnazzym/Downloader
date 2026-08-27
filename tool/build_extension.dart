@@ -1,9 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'addon_version.dart';
+
 /// Copies `extension/shared/` into browser-specific packages and writes manifests.
 ///
-/// Usage: `dart run tool/build_extension.dart`
+/// Usage:
+/// `dart run tool/build_extension.dart`
+/// `dart run tool/build_extension.dart --bump-patch --release-tag v1.0.6`
+/// `dart run tool/build_extension.dart --print-next-version`
 Future<void> main(List<String> args) async {
   final root = Directory.current;
   final shared = Directory('${root.path}/extension/shared');
@@ -11,6 +16,40 @@ Future<void> main(List<String> args) async {
     stderr.writeln('Missing extension/shared — run from repo root.');
     exitCode = 1;
     return;
+  }
+
+  final firefoxSrc = File('${shared.path}/manifest.firefox.json');
+  final currentVersion = _readVersion(await firefoxSrc.readAsString());
+
+  if (args.contains('--print-next-version')) {
+    final next = incrementAddonVersion(currentVersion);
+    stdout.writeln(next);
+    agentDebugLog(
+      hypothesisId: 'D',
+      location: 'tool/build_extension.dart:print-next-version',
+      message: 'Computed next AMO add-on version',
+      data: {'current': currentVersion, 'next': next},
+    );
+    return;
+  }
+
+  String? releaseTag;
+  final tagIdx = args.indexOf('--release-tag');
+  if (tagIdx >= 0 && tagIdx + 1 < args.length) {
+    releaseTag = args[tagIdx + 1];
+  }
+
+  var version = currentVersion;
+  if (args.contains('--bump-patch')) {
+    version = incrementAddonVersion(currentVersion);
+    await _writeSharedVersions(shared, version);
+    stdout.writeln('Bumped add-on version $currentVersion → $version');
+    agentDebugLog(
+      hypothesisId: 'D',
+      location: 'tool/build_extension.dart:bump-patch',
+      message: 'Bumped add-on version to avoid AMO conflict',
+      data: {'from': currentVersion, 'to': version, 'releaseTag': releaseTag},
+    );
   }
 
   for (final browser in ['chrome', 'firefox']) {
@@ -86,31 +125,57 @@ Future<void> main(List<String> args) async {
     stdout.writeln('Built extension/$browser');
   }
 
-  final firefoxManifest =
-      jsonDecode(
-            await File('${shared.path}/manifest.firefox.json').readAsString(),
-          )
-          as Map<String, dynamic>;
-  final version = firefoxManifest['version'] as String? ?? '2.1.0';
-  final tag = 'v$version';
+  final tag = (releaseTag != null && releaseTag.isNotEmpty)
+      ? releaseTag
+      : 'v$version';
   final versionFile = File('${root.path}/extension_version.json');
-  await versionFile.writeAsString(
-    const JsonEncoder.withIndent('    ').convert({
-          'addons': {
-            'moderndownloader@extension.addon': {
-              'updates': [
-                {
-                  'version': version,
-                  'update_link':
-                      'https://github.com/Mizaruta/Downloader/releases/download/$tag/modern_downloader_firefox.xpi',
-                },
-              ],
-            },
+  final updateManifest = const JsonEncoder.withIndent('    ').convert({
+    'addons': {
+      'moderndownloader@extension.addon': {
+        'updates': [
+          {
+            'version': version,
+            'update_link':
+                'https://github.com/${_githubRepo()}/releases/download/$tag/modern_downloader_firefox.xpi',
           },
-        }) +
-        '\n',
+        ],
+      },
+    },
+  });
+  await versionFile.writeAsString('$updateManifest\n');
+  stdout.writeln('Updated extension_version.json → $version (tag $tag)');
+  agentDebugLog(
+    hypothesisId: 'D',
+    location: 'tool/build_extension.dart:write-update-manifest',
+    message: 'Wrote Firefox update manifest',
+    data: {'addonVersion': version, 'githubTag': tag},
   );
-  stdout.writeln('Updated extension_version.json → $version');
+}
+
+String _githubRepo() {
+  final fromEnv = Platform.environment['GITHUB_REPOSITORY'];
+  if (fromEnv != null && fromEnv.contains('/')) return fromEnv;
+  return 'itsnazzym/Downloader';
+}
+
+String _readVersion(String source) {
+  final json = jsonDecode(source);
+  if (json is! Map) {
+    throw const FormatException('Manifest is not a JSON object');
+  }
+  final version = json['version'];
+  if (version is! String || version.isEmpty) {
+    throw const FormatException('Manifest is missing version');
+  }
+  return version;
+}
+
+Future<void> _writeSharedVersions(Directory shared, String version) async {
+  for (final name in ['manifest.chrome.json', 'manifest.firefox.json']) {
+    final file = File('${shared.path}/$name');
+    final updated = replaceManifestVersion(await file.readAsString(), version);
+    await file.writeAsString(updated);
+  }
 }
 
 Future<void> _copyDir(Directory src, Directory dest) async {
