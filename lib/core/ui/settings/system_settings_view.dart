@@ -11,6 +11,7 @@ import '../../../services/binary_verifier.dart';
 import '../../services/file_organization_service.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class SystemSettingsView extends ConsumerStatefulWidget {
   const SystemSettingsView({super.key});
@@ -40,7 +41,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
         _aria2cStatus = aria2c;
         _isVerifying = false;
       });
-      AppToast.showSuccess(context, "Dependencies verified");
+      AppToast.showSuccess(context, context.l10n.dependenciesVerified);
     }
   }
 
@@ -49,13 +50,13 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
     final outputFolder = settings.outputFolder;
 
     if (outputFolder.isEmpty) {
-      AppToast.showError(context, "Output folder not configured");
+      AppToast.showError(context, context.l10n.outputFolderNotConfigured);
       return;
     }
 
     setState(() {
       _isOrganizing = true;
-      _organizingStatus = 'Starting organization...';
+      _organizingStatus = context.l10n.startingOrganization;
     });
 
     final service = FileOrganizationService();
@@ -82,20 +83,20 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
         showDialog(
           context: context,
           builder: (c) => AlertDialog(
-            title: const Text("Organization Complete"),
+            title: Text(c.l10n.organizationComplete),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("📁 Files moved: ${result.filesMoved}"),
-                Text("🗑️ Temp files deleted: ${result.filesDeleted}"),
-                Text("🖼️ Thumbnails organized: ${result.thumbnailsMoved}"),
-                Text("📂 Folders created: ${result.foldersCreated}"),
-                Text("🧹 Empty folders deleted: ${result.foldersDeleted}"),
+                Text(c.l10n.filesMoved(result.filesMoved)),
+                Text(c.l10n.filesDeleted(result.filesDeleted)),
+                Text(c.l10n.thumbnailsOrganized(result.thumbnailsMoved)),
+                Text(c.l10n.foldersCreated(result.foldersCreated)),
+                Text(c.l10n.emptyFoldersDeleted(result.foldersDeleted)),
                 if (result.hasErrors) ...[
                   const Gap(8),
                   Text(
-                    "⚠️ ${result.errors.length} errors occurred",
+                    c.l10n.organizationErrors(result.errors.length),
                     style: const TextStyle(color: Colors.orange),
                   ),
                 ],
@@ -104,7 +105,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(c),
-                child: const Text("OK"),
+                child: Text(c.l10n.ok),
               ),
             ],
           ),
@@ -116,19 +117,22 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
           _isOrganizing = false;
           _organizingStatus = '';
         });
-        AppToast.showError(context, "Organization failed: $e");
+        AppToast.showError(context, context.l10n.organizationFailed('$e'));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
         leading: const SizedBox(),
-        backgroundColor: AppColors.background.withValues(alpha: 0.8),
+        backgroundColor: AppColors.of(
+          context,
+        ).background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
         flexibleSpace: ClipRect(
@@ -138,16 +142,16 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
           ),
         ),
         title: Text(
-          "System Settings",
+          l10n.settingsSystem,
           style: AppTypography.h3.copyWith(
-            color: AppColors.textPrimary,
+            color: AppColors.of(context).textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: AppColors.border.withValues(alpha: 0.5),
+            color: AppColors.of(context).border.withValues(alpha: 0.5),
             height: 1,
           ),
         ),
@@ -164,12 +168,12 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        const SectionTitle("System"),
+                        SectionTitle(l10n.settingsSystem),
                         ActionTile(
-                          title: "Check Dependencies",
+                          title: l10n.checkDependencies,
                           subtitle: _isVerifying
-                              ? "Verifying binaries..."
-                              : "Check yt-dlp, ffmpeg & aria2c status",
+                              ? l10n.verifyingBinaries
+                              : l10n.checkDependenciesDesc,
                           icon: Icons.build_circle_outlined,
                           onTap: _isVerifying ? null : _verifyBinaries,
                         ),
@@ -183,12 +187,12 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
                           StatusTile("aria2c", _aria2cStatus!),
 
                         const Gap(AppSpacing.l),
-                        const SectionTitle("Library Management"),
+                        SectionTitle(l10n.libraryManagement),
                         ActionTile(
-                          title: "Organize Library",
+                          title: l10n.organizeLibrary,
                           subtitle: _isOrganizing
                               ? _organizingStatus
-                              : "Sort files by source, move thumbnails to folder, cleanup temp files",
+                              : l10n.organizeLibraryDesc,
                           icon: Icons.folder_special_outlined,
                           onTap: _isOrganizing ? null : _organizeLibrary,
                         ),

@@ -1,27 +1,254 @@
 name: CI
 
+# Tout s'exécute uniquement au push sur main/master.
+# Évite la boucle infinie sur le commit auto chore(release): vX.Y.Z
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+    branches: [main, master]
+
+concurrency:
+  group: push-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_CHANNEL: stable
 
 jobs:
-  build:
-    runs-on: windows-latest
-
+  quality:
+    name: Analyze · Format · Test
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib/ test/ tool/
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test --coverage --reporter=compact
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          retention-days: 7
+          if-no-files-found: ignore
+
+  extension:
+    name: Build extensions
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - run: dart run tool/build_extension.dart
+
+      - run: |
+          test -f extension/chrome/manifest.json
+          test -f extension/firefox/manifest.json
+          grep -q '"manifest_version": 3' extension/chrome/manifest.json
+          grep -q '"manifest_version": 3' extension/firefox/manifest.json
+          grep -q '"update_url"' extension/firefox/manifest.json
+
+  release:
+    name: Bump · Build · Publish
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: windows-latest
+    needs: [quality, extension]
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Bump version (+0.0.1)
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          line=$(grep '^version:' pubspec.yaml)
+          full="${line#version: }"
+          full="${full// /}"
+          name="${full%%+*}"
+          build="${full#*+}"
+          IFS=. read -r major minor patch <<< "$name"
+          patch=$((patch + 1))
+          build=$((build + 1))
+          semver="${major}.${minor}.${patch}"
+          new_version="${semver}+${build}"
+          sed -i "s/^version: .*/version: ${new_version}/" pubspec.yaml
+          echo "semver=${semver}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${semver}" >> "$GITHUB_OUTPUT"
+          echo "build_number=${build}" >> "$GITHUB_OUTPUT"
+          echo "Bumped to ${new_version} (tag v${semver})"
+
+      - name: Commit version bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore(release): ${{ steps.bump.outputs.tag }}"
+
+      - name: Tag release
+        shell: bash
+        run: git tag "${{ steps.bump.outputs.tag }}"
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Build browser extensions
+        run: dart run tool/build_extension.dart
 
-      - name: Run tests
-        run: flutter test
+      - name: Set Firefox update link for release tag
+        shell: pwsh
+        run: |
+          $updateManifest = Get-Content "extension_version.json" -Raw | ConvertFrom-Json
+          $update = $updateManifest.addons.'moderndownloader@extension.addon'.updates[0]
+          $update.update_link = "https://github.com/${{ github.repository }}/releases/download/${{ steps.bump.outputs.tag }}/modern_downloader_firefox.xpi"
+          $updateManifest | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 "extension_version.json"
+
+      - name: Build Windows release
+        run: >
+          flutter build windows --release
+          --build-name=${{ steps.bump.outputs.semver }}
+          --build-number=${{ steps.bump.outputs.build_number }}
+
+      - name: Bundle extensions with app
+        shell: pwsh
+        run: |
+          $release = "build/windows/x64/runner/Release"
+          New-Item -ItemType Directory -Force -Path "$release/extension" | Out-Null
+          Copy-Item -Recurse -Force extension/chrome "$release/extension/chrome"
+          Copy-Item -Recurse -Force extension/firefox "$release/extension/firefox"
+
+      - name: Prepare experimental gobird binary
+        shell: pwsh
+        run: |
+          $releaseBin = "build/windows/x64/runner/Release/bin"
+          New-Item -ItemType Directory -Force -Path $releaseBin | Out-Null
+          & ".\tool\prepare_gobird.ps1" -OutDir $releaseBin -RepoRoot "."
+          if (-not (Test-Path "$releaseBin/gobird.exe")) {
+            throw "gobird.exe missing after prepare_gobird.ps1"
+          }
+          $hash = (Get-FileHash "tool\prepare_gobird.ps1" -Algorithm SHA256).Hash
+          Write-Host "prepare_gobird.ps1 hash: $hash"
+          Copy-Item -Recurse -Force "third_party/gobird" "$releaseBin/third_party/gobird"
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Create portable ZIP
+        shell: pwsh
+        run: |
+          $zip = "ModernDownloader-Windows-Portable.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath $zip -CompressionLevel Optimal
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc /DAppVersion="${{ steps.bump.outputs.tag }}" "installer/setup.iss"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sign Firefox XPI with AMO
+        shell: pwsh
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if (-not $env:WEB_EXT_API_KEY -or -not $env:WEB_EXT_API_SECRET) {
+            throw "Missing GitHub secrets AMO_JWT_ISSUER and AMO_JWT_SECRET. See README → Publication Firefox."
+          }
+          npm install -g web-ext@8
+          $artifacts = "signed-xpi"
+          if (Test-Path $artifacts) { Remove-Item $artifacts -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
+          web-ext sign `
+            --source-dir extension/firefox `
+            --api-key $env:WEB_EXT_API_KEY `
+            --api-secret $env:WEB_EXT_API_SECRET `
+            --channel unlisted `
+            --artifacts-dir $artifacts
+          $signed = Get-ChildItem $artifacts -Filter *.xpi | Select-Object -First 1
+          if (-not $signed) { throw "web-ext sign produced no XPI in $artifacts" }
+          Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
+          Write-Host "Signed XPI ready: modern_downloader_firefox.xpi ($($signed.Length) bytes)"
+
+      - name: Package Chrome ZIP
+        shell: pwsh
+        run: |
+          $zip = "modern_downloader_chrome.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Push-Location extension/chrome
+          Compress-Archive -Path * -DestinationPath "../../$zip" -CompressionLevel Optimal
+          Pop-Location
+          Write-Host "Chrome extension: $zip"
+
+      - name: Generate checksums
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.bump.outputs.tag }}"
+          $files = @(
+            "ModernDownloader-Windows-Portable.zip",
+            "ModernDownloader-Setup-$tag.exe",
+            "modern_downloader_firefox.xpi",
+            "modern_downloader_chrome.zip"
+          )
+          foreach ($f in $files) {
+            if (-not (Test-Path $f)) { throw "Missing artifact: $f" }
+          }
+          $lines = foreach ($f in $files) {
+            $hash = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
+            "$hash  $f"
+          }
+          $lines | Set-Content -Encoding utf8 CHECKSUMS.txt
+
+      - name: Push commit & tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin "HEAD:${{ github.ref_name }}" --tags
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.bump.outputs.tag }}
+          name: ${{ steps.bump.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            ModernDownloader-Windows-Portable.zip
+            ModernDownloader-Setup-${{ steps.bump.outputs.tag }}.exe
+            modern_downloader_firefox.xpi
+            modern_downloader_chrome.zip
+            CHECKSUMS.txt
+            extension_version.json

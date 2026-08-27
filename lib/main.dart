@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:modern_downloader/core/launch/protocol_url_parser.dart';
 import 'core/config/app_config.dart';
 import 'core/platform/platform_info.dart';
 import 'core/providers/settings_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_resolver.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
+import 'package:modern_downloader/core/ui/setup/dependency_setup_overlay.dart';
 
 import 'package:modern_downloader/core/services/single_instance_service.dart';
 import 'package:protocol_handler/protocol_handler.dart';
@@ -18,8 +22,6 @@ import 'package:modern_downloader/core/services/notification_service.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
 import 'package:modern_downloader/features/downloader/data/datasources/startup_cleanup_service.dart';
-import 'package:modern_downloader/core/services/ytdlp_updater_service.dart';
-import 'package:modern_downloader/services/binary_locator.dart';
 import 'dart:io';
 import 'package:media_kit/media_kit.dart';
 
@@ -57,7 +59,9 @@ void main(List<String> args) async {
   }
 
   if (initialUrl != null) {
-    container.read(launchUrlProvider.notifier).state = initialUrl;
+    container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
+      initialUrl,
+    );
   }
 
   if (PlatformInfo.isDesktop) {
@@ -72,6 +76,7 @@ void main(List<String> args) async {
       windowButtonVisibility: false,
     );
 
+    await windowManager.setPreventClose(true);
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
@@ -81,12 +86,6 @@ void main(List<String> args) async {
   // Listen for deep links
   protocolHandler.addListener(_ProtocolListener(container));
 
-  // Auto-update yt-dlp (non-blocking, fire-and-forget)
-  final autoUpdate = prefsInstance.getBool('auto_update_ytdlp') ?? true;
-  if (autoUpdate) {
-    YtDlpUpdaterService(BinaryLocator()).checkForUpdate();
-  }
-
   runApp(
     UncontrolledProviderScope(
       container: container,
@@ -95,20 +94,8 @@ void main(List<String> args) async {
   );
 }
 
-// ... _extractUrlFromUri and _ProtocolListener remain the same ...
 String? _extractUrlFromUri(String uriString) {
-  try {
-    final uri = Uri.parse(uriString);
-    if (uri.queryParameters.containsKey('url')) {
-      return uri.queryParameters['url'];
-    }
-    if (uri.host == 'open' && uri.queryParameters.containsKey('url')) {
-      return uri.queryParameters['url'];
-    }
-  } catch (e) {
-    debugPrint('Error parsing URI: $e');
-  }
-  return null;
+  return ProtocolUrlParser.extractMediaUrl(uriString);
 }
 
 class _ProtocolListener extends ProtocolListener {
@@ -119,7 +106,9 @@ class _ProtocolListener extends ProtocolListener {
   void onProtocolUrlReceived(String url) {
     final extractedUrl = _extractUrlFromUri(url);
     if (extractedUrl != null) {
-      container.read(launchUrlProvider.notifier).state = extractedUrl;
+      container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
+        extractedUrl,
+      );
       windowManager.show();
       windowManager.focus();
     }
@@ -162,10 +151,20 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   }
 
   Future<void> _initTray() async {
-    await trayManager.setIcon('windows/runner/resources/app_icon.ico');
-    // If specific icon is needed, we would need to add it to pubspec assets and use a helper
-    // For now assuming standard windows path or fallback.
-    // If this fails, tray just won't show icon but won't crash app (hopefully).
+    try {
+      await trayManager.setIcon('assets/icons/tray.ico');
+      await trayManager.setContextMenu(
+        Menu(
+          items: [
+            MenuItem(key: 'show_window', label: 'Show'),
+            MenuItem.separator(),
+            MenuItem(key: 'exit_app', label: 'Exit'),
+          ],
+        ),
+      );
+    } catch (e) {
+      debugPrint('Tray init failed: $e');
+    }
   }
 
   void _handleClipboardUrl(String url) {
@@ -176,7 +175,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
     // We can also auto-set the launchUrlProvider if we want the "Add Download" dialog
     // to pick it up immediately when the user clicks "+"
-    ref.read(launchUrlProvider.notifier).state = url;
+    ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(url);
   }
 
   @override
@@ -202,15 +201,36 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   }
 
   @override
+  void onWindowClose() async {
+    final minimizeToTray = ref.read(settingsProvider).minimizeToTray;
+    if (minimizeToTray) {
+      await windowManager.hide();
+      return;
+    }
+    await windowManager.setPreventClose(false);
+    await windowManager.close();
+  }
+
+  @override
   void onTrayIconRightMouseDown() {
     trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) async {
+    if (menuItem.key == 'show_window') {
+      await windowManager.show();
+      await windowManager.focus();
+    } else if (menuItem.key == 'exit_app') {
+      await windowManager.setPreventClose(false);
+      await windowManager.close();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(settingsProvider);
-
     ThemeMode themeMode;
     switch (settings.themeMode) {
       case 'light':
@@ -223,11 +243,24 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
         themeMode = ThemeMode.system;
     }
 
+    final resolved = ThemeResolver.resolve(
+      presetId: settings.themePreset,
+      customAccentArgb: settings.customAccentColor,
+    );
+
+    ref.watch(dependencyBootstrapProvider);
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: AppConfig.appName,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.fromPalette(
+        ThemeResolver.forBrightness(resolved, Brightness.light),
+        Brightness.light,
+      ),
+      darkTheme: AppTheme.fromPalette(
+        ThemeResolver.forBrightness(resolved, Brightness.dark),
+        Brightness.dark,
+      ),
       themeMode: themeMode,
       locale: Locale(settings.locale),
       localizationsDelegates: const [
@@ -238,6 +271,21 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
+      builder: (context, child) {
+        final content = Stack(
+          fit: StackFit.expand,
+          children: [
+            child ?? const SizedBox.shrink(),
+            const DependencySetupOverlay(),
+          ],
+        );
+        // Native video textures inject AX nodes that Flutter's Windows
+        // accessibility bridge cannot reconcile ("will not be in the tree").
+        if (Platform.isWindows) {
+          return ExcludeSemantics(child: content);
+        }
+        return content;
+      },
     );
   }
 }

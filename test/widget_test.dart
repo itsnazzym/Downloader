@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
+import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/ui/app_shell.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
@@ -14,6 +15,8 @@ import 'package:modern_downloader/core/ui/media_player/media_player_provider.dar
 import 'package:modern_downloader/core/providers/settings_provider.dart'
     as settings_util;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:modern_downloader/l10n/app_localizations.dart';
 
 // --- MOCKS ---
 
@@ -153,8 +156,20 @@ void main() {
           mediaPlayerProvider.overrideWith(
             (ref) => MediaPlayerNotifier(testMode: true),
           ),
+          dependencyBootstrapProvider.overrideWith(
+            (ref) => DependencyBootstrapNotifier.ready(),
+          ),
         ],
-        child: MaterialApp.router(routerConfig: router),
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
       ),
     );
 

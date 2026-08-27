@@ -783,6 +783,1260 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Warning'**
   String get warning;
+
+  /// No description provided for @librarySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get librarySection;
+
+  /// No description provided for @sourcesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get sourcesSection;
+
+  /// No description provided for @mainPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get mainPage;
+
+  /// No description provided for @allDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloads'**
+  String get allDownloads;
+
+  /// No description provided for @downloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started'**
+  String get downloadStarted;
+
+  /// No description provided for @videosDownloadingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos downloading'**
+  String videosDownloadingCount(int count);
+
+  /// No description provided for @videoDownloadingSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'1 video downloading'**
+  String get videoDownloadingSingular;
+
+  /// No description provided for @expandDownloadingVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Show downloading videos'**
+  String get expandDownloadingVideos;
+
+  /// No description provided for @collapseDownloadingVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide downloading videos'**
+  String get collapseDownloadingVideos;
+
+  /// No description provided for @moreDownloadingVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String moreDownloadingVideos(int count);
+
+  /// No description provided for @searchDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Search downloads...'**
+  String get searchDownloads;
+
+  /// No description provided for @clearHistoryConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all completed, failed, and canceled downloads? Active downloads will remain.'**
+  String get clearHistoryConfirm;
+
+  /// No description provided for @refreshLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh library'**
+  String get refreshLibrary;
+
+  /// No description provided for @yourListIsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your download list is empty.'**
+  String get yourListIsEmpty;
+
+  /// No description provided for @sortAndView.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort & View'**
+  String get sortAndView;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get sortBy;
+
+  /// No description provided for @sortDateNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Date (newest)'**
+  String get sortDateNewest;
+
+  /// No description provided for @sortDateOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Date (oldest)'**
+  String get sortDateOldest;
+
+  /// No description provided for @sortNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A-Z)'**
+  String get sortNameAsc;
+
+  /// No description provided for @sortSizeLargest.
+  ///
+  /// In en, this message translates to:
+  /// **'Size (largest)'**
+  String get sortSizeLargest;
+
+  /// No description provided for @viewMode.
+  ///
+  /// In en, this message translates to:
+  /// **'View mode'**
+  String get viewMode;
+
+  /// No description provided for @viewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get viewList;
+
+  /// No description provided for @viewDetailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed'**
+  String get viewDetailed;
+
+  /// No description provided for @playlistDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist detected ({count} videos)'**
+  String playlistDetected(int count);
+
+  /// No description provided for @downloadSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selected ({count})'**
+  String downloadSelected(int count);
+
+  /// No description provided for @startedCountDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Started {count} downloads'**
+  String startedCountDownloads(int count);
+
+  /// No description provided for @downloadFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Download folder'**
+  String get downloadFolder;
+
+  /// No description provided for @selectFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select folder...'**
+  String get selectFolder;
+
+  /// No description provided for @organizeBySite.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize by site'**
+  String get organizeBySite;
+
+  /// No description provided for @organizeBySiteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create subfolders like Downloads/YouTube/'**
+  String get organizeBySiteDesc;
+
+  /// No description provided for @formatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get formatLabel;
+
+  /// No description provided for @adultSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Adult sites'**
+  String get adultSites;
+
+  /// No description provided for @adultSitesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable support for age-restricted content'**
+  String get adultSitesDesc;
+
+  /// No description provided for @doNotDisturb.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not disturb'**
+  String get doNotDisturb;
+
+  /// No description provided for @doNotDisturbDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Silence all app and extension notifications'**
+  String get doNotDisturbDesc;
+
+  /// No description provided for @cookiesFromBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Cookies from browser'**
+  String get cookiesFromBrowser;
+
+  /// No description provided for @extensionApiToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Extension API token'**
+  String get extensionApiToken;
+
+  /// No description provided for @localServerPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Local server port'**
+  String get localServerPort;
+
+  /// No description provided for @backupHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup history'**
+  String get backupHistory;
+
+  /// No description provided for @restoreHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore history'**
+  String get restoreHistory;
+
+  /// No description provided for @restoreHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Import downloads from a backup file'**
+  String get restoreHistoryDesc;
+
+  /// No description provided for @cookiesFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Cookies file'**
+  String get cookiesFile;
+
+  /// No description provided for @simultaneousDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Simultaneous downloads'**
+  String get simultaneousDownloads;
+
+  /// No description provided for @simultaneousDownloadsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Max active downloads at once'**
+  String get simultaneousDownloadsDesc;
+
+  /// No description provided for @threadsPerDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Threads per download'**
+  String get threadsPerDownload;
+
+  /// No description provided for @threadsPerDownloadDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Parallel connections (fragments) per file'**
+  String get threadsPerDownloadDesc;
+
+  /// No description provided for @maxSpeedMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Max speed mode'**
+  String get maxSpeedMode;
+
+  /// No description provided for @maxSpeedModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'64 parallel connections, larger buffers, fast remux (no re-encode)'**
+  String get maxSpeedModeDesc;
+
+  /// No description provided for @libraryManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Library management'**
+  String get libraryManagement;
+
+  /// No description provided for @smartOrganization.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart organization'**
+  String get smartOrganization;
+
+  /// No description provided for @smartOrganizationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage auto-sort rules and smart guessing'**
+  String get smartOrganizationDesc;
+
+  /// No description provided for @outputFolderNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Output folder not configured'**
+  String get outputFolderNotConfigured;
+
+  /// No description provided for @pluginsEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugins extend the functionality of Modern Downloader'**
+  String get pluginsEmptyHint;
+
+  /// No description provided for @statusProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get statusProcessing;
+
+  /// No description provided for @statsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your download activity and storage usage'**
+  String get statsSubtitle;
+
+  /// No description provided for @statsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get statsToday;
+
+  /// No description provided for @downloadActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Activity'**
+  String get downloadActivity;
+
+  /// No description provided for @last7DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get last7DaysShort;
+
+  /// No description provided for @sourcesChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get sourcesChartTitle;
+
+  /// No description provided for @sourcesByPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'By platform'**
+  String get sourcesByPlatform;
+
+  /// No description provided for @shortcutsQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get shortcutsQuickActions;
+
+  /// No description provided for @noDownloadHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No download history yet'**
+  String get noDownloadHistory;
+
+  /// No description provided for @noSourceData.
+  ///
+  /// In en, this message translates to:
+  /// **'No source data yet'**
+  String get noSourceData;
+
+  /// No description provided for @chartDownloadsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} downloads\n{bytes}'**
+  String chartDownloadsTooltip(int count, String bytes);
+
+  /// No description provided for @currentAccent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Accent'**
+  String get currentAccent;
+
+  /// No description provided for @dataAndHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & History'**
+  String get dataAndHistory;
+
+  /// No description provided for @exportHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export your download history to a JSON file'**
+  String get exportHistoryDesc;
+
+  /// No description provided for @saveHistoryBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Save History Backup'**
+  String get saveHistoryBackup;
+
+  /// No description provided for @tokenCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Token copied'**
+  String get tokenCopied;
+
+  /// No description provided for @tokenCopiedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Token copied. Paste it in the browser extension.'**
+  String get tokenCopiedHint;
+
+  /// No description provided for @copyToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy token'**
+  String get copyToken;
+
+  /// No description provided for @portSavedRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Port saved. Restart the app to apply.'**
+  String get portSavedRestart;
+
+  /// No description provided for @historyExported.
+  ///
+  /// In en, this message translates to:
+  /// **'History exported successfully'**
+  String get historyExported;
+
+  /// No description provided for @historyRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'History restored successfully'**
+  String get historyRestored;
+
+  /// No description provided for @generatedOnFirstLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated on first launch'**
+  String get generatedOnFirstLaunch;
+
+  /// No description provided for @serverPortRestartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart the app after changing. Current: {port}'**
+  String serverPortRestartHint(int port);
+
+  /// No description provided for @torBypassDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bypass geo-blocks via Tor (127.0.0.1:9050)'**
+  String get torBypassDesc;
+
+  /// No description provided for @selectCookiesFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select cookies.txt'**
+  String get selectCookiesFile;
+
+  /// No description provided for @clearCookies.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cookies'**
+  String get clearCookies;
+
+  /// No description provided for @selectQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Quality'**
+  String get selectQuality;
+
+  /// No description provided for @unknownSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown size'**
+  String get unknownSize;
+
+  /// No description provided for @bestQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Best Quality'**
+  String get bestQuality;
+
+  /// No description provided for @noLogsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No logs available'**
+  String get noLogsAvailable;
+
+  /// No description provided for @dropLinksHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop links or files here'**
+  String get dropLinksHere;
+
+  /// No description provided for @dropLinksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'They will be added to your download queue'**
+  String get dropLinksHint;
+
+  /// No description provided for @retryDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry Download'**
+  String get retryDownload;
+
+  /// No description provided for @restartDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart download'**
+  String get restartDownload;
+
+  /// No description provided for @copyUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy URL'**
+  String get copyUrl;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @urlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get urlLabel;
+
+  /// No description provided for @pleaseEnterUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a URL'**
+  String get pleaseEnterUrl;
+
+  /// No description provided for @enterValidUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid http(s) URL'**
+  String get enterValidUrl;
+
+  /// No description provided for @cookiesNoneDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'None (Default)'**
+  String get cookiesNoneDefault;
+
+  /// No description provided for @failedFetchQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch quality options'**
+  String get failedFetchQuality;
+
+  /// No description provided for @unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// No description provided for @inspectorId.
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get inspectorId;
+
+  /// No description provided for @storageUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Usage'**
+  String get storageUsage;
+
+  /// No description provided for @storageInfoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage info unavailable'**
+  String get storageInfoUnavailable;
+
+  /// No description provided for @storageUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get storageUsed;
+
+  /// No description provided for @storageFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get storageFree;
+
+  /// No description provided for @storageTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {size}'**
+  String storageTotalLabel(String size);
+
+  /// No description provided for @startingOrganization.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting organization...'**
+  String get startingOrganization;
+
+  /// No description provided for @organizationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization failed: {error}'**
+  String organizationFailed(String error);
+
+  /// No description provided for @thumbnailsOrganized.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnails organized: {count}'**
+  String thumbnailsOrganized(int count);
+
+  /// No description provided for @foldersCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders created: {count}'**
+  String foldersCreated(int count);
+
+  /// No description provided for @emptyFoldersDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty folders deleted: {count}'**
+  String emptyFoldersDeleted(int count);
+
+  /// No description provided for @organizationErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} errors occurred'**
+  String organizationErrors(int count);
+
+  /// No description provided for @nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get nameLabel;
+
+  /// No description provided for @editRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Rule'**
+  String get editRule;
+
+  /// No description provided for @newRule.
+  ///
+  /// In en, this message translates to:
+  /// **'New Rule'**
+  String get newRule;
+
+  /// No description provided for @patternKeywordOrRegex.
+  ///
+  /// In en, this message translates to:
+  /// **'Pattern (Keyword or Regex)'**
+  String get patternKeywordOrRegex;
+
+  /// No description provided for @regexpPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'RegExp pattern'**
+  String get regexpPattern;
+
+  /// No description provided for @containsText.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains text'**
+  String get containsText;
+
+  /// No description provided for @isRegex.
+  ///
+  /// In en, this message translates to:
+  /// **'Is Regex'**
+  String get isRegex;
+
+  /// No description provided for @targetSubfolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Subfolder'**
+  String get targetSubfolder;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @downloadModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Model'**
+  String get downloadModel;
+
+  /// No description provided for @selectPopularModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a popular model to pull:'**
+  String get selectPopularModel;
+
+  /// No description provided for @ollamaPullNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: This requires a fast internet connection. Check Ollama logs for progress.'**
+  String get ollamaPullNote;
+
+  /// No description provided for @smartGuessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Guess (AI Curator)'**
+  String get smartGuessTitle;
+
+  /// No description provided for @smartGuessDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically categorize files based on common patterns or Local AI.'**
+  String get smartGuessDesc;
+
+  /// No description provided for @aiMode.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Mode'**
+  String get aiMode;
+
+  /// No description provided for @aiModeOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline (Heuristic - Fast)'**
+  String get aiModeOffline;
+
+  /// No description provided for @aiModeOllama.
+  ///
+  /// In en, this message translates to:
+  /// **'Ollama / LocalAI'**
+  String get aiModeOllama;
+
+  /// No description provided for @ollamaApiUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Ollama API URL'**
+  String get ollamaApiUrl;
+
+  /// No description provided for @modelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Model Name'**
+  String get modelName;
+
+  /// No description provided for @selectOrTypeModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select from list or type manually'**
+  String get selectOrTypeModel;
+
+  /// No description provided for @refreshModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Models'**
+  String get refreshModels;
+
+  /// No description provided for @customRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Rules'**
+  String get customRules;
+
+  /// No description provided for @addRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Rule'**
+  String get addRule;
+
+  /// No description provided for @noRulesDefined.
+  ///
+  /// In en, this message translates to:
+  /// **'No rules defined. Add one using the + button.'**
+  String get noRulesDefined;
+
+  /// No description provided for @organizeExistingFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize Existing Files'**
+  String get organizeExistingFiles;
+
+  /// No description provided for @organizeExistingFilesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a folder and organize files using current rules/AI.'**
+  String get organizeExistingFilesDesc;
+
+  /// No description provided for @ollamaMustRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure Ollama is running (`ollama serve`).'**
+  String get ollamaMustRun;
+
+  /// No description provided for @requestingOllamaPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Requesting Ollama to pull {model}... This may take a while.'**
+  String requestingOllamaPull(String model);
+
+  /// No description provided for @organizationCompleteDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization complete. Scanned {scanned} files, moved {moved}.'**
+  String organizationCompleteDetail(int scanned, int moved);
+
+  /// No description provided for @toolsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get toolsSection;
+
+  /// No description provided for @configurePlugin.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure Plugin'**
+  String get configurePlugin;
+
+  /// No description provided for @pluginError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String pluginError(String error);
+
+  /// No description provided for @setupPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing download tools…'**
+  String get setupPreparing;
+
+  /// No description provided for @setupCheckingTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking installed tools'**
+  String get setupCheckingTools;
+
+  /// No description provided for @setupDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {name}…'**
+  String setupDownloading(String name);
+
+  /// No description provided for @setupExtracting.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting {name}…'**
+  String setupExtracting(String name);
+
+  /// No description provided for @setupVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying {name}…'**
+  String setupVerifying(String name);
+
+  /// No description provided for @setupUpdatingYtDlp.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating yt-dlp…'**
+  String get setupUpdatingYtDlp;
+
+  /// No description provided for @setupReady.
+  ///
+  /// In en, this message translates to:
+  /// **'All tools are ready'**
+  String get setupReady;
+
+  /// No description provided for @setupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not install every tool'**
+  String get setupFailed;
+
+  /// No description provided for @setupRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get setupRetry;
+
+  /// No description provided for @setupContinueAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue anyway'**
+  String get setupContinueAnyway;
+
+  /// No description provided for @setupDownloadPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String setupDownloadPercent(int percent);
+
+  /// No description provided for @previewSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Show setup screen (temporary)'**
+  String get previewSetup;
+
+  /// No description provided for @previewSetupDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the full-screen tools check and install overlay'**
+  String get previewSetupDesc;
+
+  /// No description provided for @pluginsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugins'**
+  String get pluginsSectionTitle;
+
+  /// No description provided for @pluginsSectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app modules such as Auto Rename and Smart Organizer.'**
+  String get pluginsSectionHint;
+
+  /// No description provided for @browserExtensionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser extension'**
+  String get browserExtensionsTitle;
+
+  /// No description provided for @browserExtensionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send links from the browser to the app. One click prepares the extension and opens the browser page.'**
+  String get browserExtensionsHint;
+
+  /// No description provided for @chromeExtensionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chrome / Edge / Brave'**
+  String get chromeExtensionTitle;
+
+  /// No description provided for @chromeExtensionSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Click Install. 2. Turn on Developer mode. 3. Load unpacked, then Ctrl+V to paste the path.'**
+  String get chromeExtensionSteps;
+
+  /// No description provided for @firefoxExtensionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Firefox'**
+  String get firefoxExtensionTitle;
+
+  /// No description provided for @firefoxExtensionSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Install opens the signed XPI from GitHub. If Firefox blocks it, use Manual install (about:debugging).'**
+  String get firefoxExtensionSteps;
+
+  /// No description provided for @installInChrome.
+  ///
+  /// In en, this message translates to:
+  /// **'Install in Chrome'**
+  String get installInChrome;
+
+  /// No description provided for @installInFirefox.
+  ///
+  /// In en, this message translates to:
+  /// **'Install in Firefox'**
+  String get installInFirefox;
+
+  /// No description provided for @downloadExtensionZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Download ZIP'**
+  String get downloadExtensionZip;
+
+  /// No description provided for @firefoxManualInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual install'**
+  String get firefoxManualInstall;
+
+  /// No description provided for @extensionDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing extension…'**
+  String get extensionDownloading;
+
+  /// No description provided for @extensionDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed. Check your connection and try again.'**
+  String get extensionDownloadFailed;
+
+  /// No description provided for @extensionInstallGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Extension installation'**
+  String get extensionInstallGuideTitle;
+
+  /// No description provided for @extensionInstallInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not close this window until the download finishes.'**
+  String get extensionInstallInProgress;
+
+  /// No description provided for @extensionInstallClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get extensionInstallClose;
+
+  /// No description provided for @extensionInstallRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get extensionInstallRetry;
+
+  /// No description provided for @extensionStepDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download extension files'**
+  String get extensionStepDownload;
+
+  /// No description provided for @extensionStepDownloadZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Download ZIP to Downloads'**
+  String get extensionStepDownloadZip;
+
+  /// No description provided for @extensionStepCopyPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy install path to clipboard'**
+  String get extensionStepCopyPath;
+
+  /// No description provided for @extensionStepOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open browser install page'**
+  String get extensionStepOpenBrowser;
+
+  /// No description provided for @extensionStepLaunchFirefox.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch Firefox installer'**
+  String get extensionStepLaunchFirefox;
+
+  /// No description provided for @extensionStepReadyChrome.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready! One-time setup: in Chrome turn on Developer mode, click Load unpacked, then Ctrl+V to paste the path.'**
+  String get extensionStepReadyChrome;
+
+  /// No description provided for @extensionStepReadyZip.
+  ///
+  /// In en, this message translates to:
+  /// **'ZIP saved. Extract it if needed, or use Install in Chrome for automatic setup.'**
+  String get extensionStepReadyZip;
+
+  /// No description provided for @extensionStepReadyFirefox.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready! In about:debugging, click Load Temporary Add-on and select manifest.json (path already copied).'**
+  String get extensionStepReadyFirefox;
+
+  /// No description provided for @extensionStepReadyFirefoxXpi.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready! Confirm the add-on install prompt in Firefox; once accepted, it survives browser restarts. Then paste the API token in the extension popup.'**
+  String get extensionStepReadyFirefoxXpi;
+
+  /// No description provided for @extensionStepFirefoxFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open XPI directly — using manual install page.'**
+  String get extensionStepFirefoxFallback;
+
+  /// No description provided for @extensionStepSkippedBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped — Firefox opened the installer directly.'**
+  String get extensionStepSkippedBrowser;
+
+  /// No description provided for @chromeInstallStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Path copied. In Chrome: Developer mode → Load unpacked → Ctrl+V.'**
+  String get chromeInstallStarted;
+
+  /// No description provided for @firefoxInstallStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Firefox will install the add-on. If blocked, use Manual install.'**
+  String get firefoxInstallStarted;
+
+  /// No description provided for @extensionPathCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Path copied: {path}'**
+  String extensionPathCopied(String path);
+
+  /// No description provided for @extensionInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the browser. Try Download ZIP instead.'**
+  String get extensionInstallFailed;
+
+  /// No description provided for @extractingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting title...'**
+  String get extractingTitle;
+
+  /// No description provided for @extractingSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting source...'**
+  String get extractingSource;
+
+  /// No description provided for @extractingSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting size...'**
+  String get extractingSize;
+
+  /// No description provided for @unknownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown title'**
+  String get unknownTitle;
+
+  /// No description provided for @collapseSidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse sidebar'**
+  String get collapseSidebar;
+
+  /// No description provided for @expandSidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand sidebar'**
+  String get expandSidebar;
+
+  /// No description provided for @collapseInspector.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse inspector'**
+  String get collapseInspector;
+
+  /// No description provided for @expandInspector.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand inspector'**
+  String get expandInspector;
+
+  /// No description provided for @experimentalXFeedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Experimental X Feed'**
+  String get experimentalXFeedSection;
+
+  /// No description provided for @experimentalXFeedGobird.
+  ///
+  /// In en, this message translates to:
+  /// **'Use gobird (experimental)'**
+  String get experimentalXFeedGobird;
+
+  /// No description provided for @experimentalXFeedGobirdDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only home feed via bundled gobird. Off by default. Violates X Terms of Service and may risk account suspension.'**
+  String get experimentalXFeedGobirdDesc;
+
+  /// No description provided for @experimentalXFeedWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: gobird uses unofficial private X APIs. You accept all risk. Local DOM feed remains the default fallback.'**
+  String get experimentalXFeedWarning;
+
+  /// No description provided for @experimentalXFeedConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable experimental gobird?'**
+  String get experimentalXFeedConsentTitle;
+
+  /// No description provided for @experimentalXFeedConsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'gobird uses unofficial X APIs, may break without notice, and can lead to account suspension or ban. Cookies stay on this PC. Continue only if you accept these risks.'**
+  String get experimentalXFeedConsentBody;
+
+  /// No description provided for @experimentalXFeedConsentConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand — enable'**
+  String get experimentalXFeedConsentConfirm;
+
+  /// No description provided for @gobirdBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'gobird browser session'**
+  String get gobirdBrowser;
+
+  /// No description provided for @gobirdBrowserDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser logged into X.com for cookie extraction (Chrome or Firefox)'**
+  String get gobirdBrowserDesc;
+
+  /// No description provided for @gobirdBinaryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'gobird binary'**
+  String get gobirdBinaryStatus;
+
+  /// No description provided for @gobirdBinaryFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Found: {version}'**
+  String gobirdBinaryFound(String version);
+
+  /// No description provided for @gobirdBinaryMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not bundled — experimental engine unavailable'**
+  String get gobirdBinaryMissing;
+
+  /// No description provided for @gobirdDisableNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable gobird now'**
+  String get gobirdDisableNow;
+
+  /// No description provided for @playerPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get playerPrevious;
+
+  /// No description provided for @playerNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get playerNext;
+
+  /// No description provided for @duplicatesSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} duplicates skipped'**
+  String duplicatesSkipped(int count);
 }
 
 class _AppLocalizationsDelegate

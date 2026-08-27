@@ -1,5 +1,6 @@
 import '../enums/download_status.dart';
 import 'download_request.dart';
+import 'package:modern_downloader/core/download/media_source_resolver.dart';
 
 class DownloadItem {
   final String id;
@@ -39,77 +40,8 @@ class DownloadItem {
   final String? filePath;
 
   String get source {
-    try {
-      final uri = Uri.parse(request.url);
-      String textToCheck = uri.host.toLowerCase();
-
-      if (uri.scheme == 'imported') {
-        // Check the path (filename) for keywords since we don't have a domain
-        textToCheck = uri.path.toLowerCase();
-      }
-
-      if (textToCheck.contains('youtube') || textToCheck.contains('youtu.be')) {
-        return 'YouTube';
-      }
-      if (textToCheck.contains('instagram')) {
-        return 'Instagram';
-      }
-
-      // Twitter/X logic
-      if (textToCheck.contains('twitter') ||
-          textToCheck == 'x.com' ||
-          textToCheck.endsWith('.x.com')) {
-        return 'Twitter';
-      }
-
-      if (textToCheck.contains('twitch')) {
-        return 'Twitch';
-      }
-      if (textToCheck.contains('kick') &&
-          !textToCheck.contains('kickstarter')) {
-        return 'Kick';
-      }
-      if (textToCheck.contains('tiktok')) {
-        return 'TikTok';
-      }
-      if (textToCheck.contains('reddit') || textToCheck.contains('redd.it')) {
-        return 'Reddit';
-      }
-      if (textToCheck.contains('facebook') ||
-          textToCheck.contains('fb.com') ||
-          textToCheck.contains('fb.watch')) {
-        return 'Facebook';
-      }
-
-      if (textToCheck.contains('xnxx')) {
-        return 'Xnxx';
-      }
-      if (textToCheck.contains('xhamster')) {
-        return 'Xhamster';
-      }
-
-      if (uri.scheme == 'imported') {
-        return 'Local';
-      }
-
-      // Fallback: extract domain name
-      if (textToCheck.isNotEmpty) {
-        var name = textToCheck.replaceFirst('www.', '');
-        final parts = name.split('.');
-        if (parts.length > 2) {
-          name = parts[parts.length - 2];
-        } else if (parts.length == 2) {
-          name = parts[0];
-        }
-
-        if (name.isNotEmpty) {
-          return name[0].toUpperCase() + name.substring(1);
-        }
-        return name;
-      }
-    } catch (_) {}
-
-    return 'Other';
+    return MediaSourceResolver.resolve(url: request.url, filePath: filePath) ??
+        '';
   }
 
   DownloadItem copyWith({
@@ -120,13 +52,16 @@ class DownloadItem {
     String? speed,
     String? title,
     String? error,
+    bool clearError = false,
     String? downloadedSize,
     String? totalSize,
     String? step,
     String? filePath,
+    bool clearFilePath = false,
     int? sortOrder,
     bool? usesAria2c,
     String? thumbnailUrl, // Added param
+    bool clearThumbnailUrl = false,
   }) {
     return DownloadItem(
       id: id,
@@ -136,14 +71,16 @@ class DownloadItem {
       eta: eta ?? this.eta,
       speed: speed ?? this.speed,
       title: title ?? this.title,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
       downloadedSize: downloadedSize ?? this.downloadedSize,
       totalSize: totalSize ?? this.totalSize,
       step: step ?? this.step,
-      filePath: filePath ?? this.filePath,
+      filePath: clearFilePath ? filePath : (filePath ?? this.filePath),
       sortOrder: sortOrder ?? this.sortOrder,
       usesAria2c: usesAria2c ?? this.usesAria2c,
-      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl, // Added assignment
+      thumbnailUrl: clearThumbnailUrl
+          ? thumbnailUrl
+          : (thumbnailUrl ?? this.thumbnailUrl),
     );
   }
 
@@ -164,6 +101,23 @@ class DownloadItem {
       'sortOrder': sortOrder,
       'usesAria2c': usesAria2c,
       'thumbnailUrl': thumbnailUrl, // Added
+    };
+  }
+
+  /// Sanitized payload for browser-extension PROGRESS broadcasts.
+  /// Intentionally omits cookies, file paths, and full request secrets.
+  Map<String, dynamic> toExtensionProgressJson() {
+    return {
+      'id': id,
+      'title': title,
+      'status': status.index,
+      'progress': progress,
+      'speed': speed,
+      'totalSize': totalSize,
+      'downloadedSize': downloadedSize,
+      'eta': eta,
+      'error': error,
+      'url': request.url,
     };
   }
 

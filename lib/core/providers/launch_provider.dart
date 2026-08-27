@@ -8,6 +8,7 @@ class LaunchData {
   final bool shouldAutoStart;
   final bool isPlaylist;
   final String? cookieBrowser;
+  final String? preferredQuality;
 
   LaunchData({
     required this.url,
@@ -17,11 +18,16 @@ class LaunchData {
     this.shouldAutoStart = false,
     this.isPlaylist = false,
     this.cookieBrowser,
+    this.preferredQuality,
   });
+
+  factory LaunchData.fromUrl(String url, {bool shouldAutoStart = false}) {
+    return LaunchData(url: url, shouldAutoStart: shouldAutoStart);
+  }
 }
 
 /// Holds the data that triggered the app launch or a remote request.
 final launchDataProvider = StateProvider<LaunchData?>((ref) => null);
 
-// Keep this for backward compatibility if needed, or deprecate
+/// Deprecated: all launch paths now write [launchDataProvider].
 final launchUrlProvider = StateProvider<String?>((ref) => null);

@@ -39,36 +39,36 @@ class AppTextField extends StatelessWidget {
           validator: validator,
           autofocus: autofocus,
           style: AppTypography.body,
-          cursorColor: AppColors.primary,
+          cursorColor: AppColors.of(context).primary,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: AppTypography.bodySmall,
             prefixIcon: prefixIcon,
             filled: true,
-            fillColor: AppColors.surface,
+            fillColor: AppColors.of(context).surface,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.m,
               vertical: AppSpacing.s,
             ),
             border: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.borderSubtle),
+              borderSide: BorderSide(color: AppColors.of(context).borderSubtle),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.borderSubtle),
+              borderSide: BorderSide(color: AppColors.of(context).borderSubtle),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide(color: AppColors.of(context).primary),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.error),
+              borderSide: BorderSide(color: AppColors.of(context).error),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: AppRadius.mediumBorder,
-              borderSide: const BorderSide(color: AppColors.error),
+              borderSide: BorderSide(color: AppColors.of(context).error),
             ),
           ),
         ),

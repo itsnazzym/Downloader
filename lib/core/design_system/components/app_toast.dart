@@ -26,9 +26,9 @@ class AppToast {
             vertical: AppSpacing.s,
           ),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.of(context).surface,
             borderRadius: AppRadius.mediumBorder,
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.of(context).border),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.1),
@@ -39,13 +39,17 @@ class AppToast {
           ),
           child: Row(
             children: [
-              Icon(icon, color: iconColor ?? AppColors.primary, size: 20),
+              Icon(
+                icon,
+                color: iconColor ?? AppColors.of(context).primary,
+                size: 20,
+              ),
               const Gap(AppSpacing.s),
               Expanded(
                 child: Text(
                   message,
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textPrimary,
+                    color: AppColors.of(context).textPrimary,
                   ),
                 ),
               ),
@@ -61,7 +65,7 @@ class AppToast {
       context,
       message: message,
       icon: Icons.check_circle,
-      iconColor: AppColors.success,
+      iconColor: AppColors.of(context).success,
     );
   }
 
@@ -70,7 +74,7 @@ class AppToast {
       context,
       message: message,
       icon: Icons.error_outline,
-      iconColor: AppColors.error,
+      iconColor: AppColors.of(context).error,
     );
   }
 
@@ -79,7 +83,7 @@ class AppToast {
       context,
       message: message,
       icon: Icons.info_outline,
-      iconColor: AppColors.primary,
+      iconColor: AppColors.of(context).info,
     );
   }
 }

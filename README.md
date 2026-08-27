@@ -1,156 +1,275 @@
 <div align="center">
 
-<img src="extension/chrome/icons/icon128.png" alt="Logo" width="128" height="128" />
+<img src="extension/chrome/icons/icon128.png" alt="Modern Downloader" width="96" />
 
 # Modern Downloader
 
-**Téléchargeur de médias moderne, rapide et respectueux de la vie privée**  
-*Modern, fast & privacy-focused media downloader*
+**Téléchargeur de médias moderne pour Windows** · *Modern, privacy-first media downloader*
 
-[![Stars](https://img.shields.io/github/stars/Mizaruta/Downloader?style=for-the-badge&logo=github&color=blueviolet)](https://github.com/Mizaruta/Downloader/stargazers)
-[![Release](https://img.shields.io/github/v/release/Mizaruta/Downloader?style=for-the-badge&color=orange)](https://github.com/Mizaruta/Downloader/releases)
-[![License](https://img.shields.io/github/license/Mizaruta/Downloader?style=for-the-badge&color=green)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows-blue?style=for-the-badge&logo=windows)](https://www.microsoft.com/windows)
+<br />
 
-[![Flutter](https://img.shields.io/badge/Built%20with-Flutter-02569B?style=flat-square&logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Language-Dart-0175C2?style=flat-square&logo=dart)](https://dart.dev)
+[![CI](https://github.com/Mizaruta/Downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/Mizaruta/Downloader/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Mizaruta/Downloader?color=orange)](https://github.com/Mizaruta/Downloader/releases)
+[![License](https://img.shields.io/github/license/Mizaruta/Downloader?color=green)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?logo=windows&logoColor=white)](https://github.com/Mizaruta/Downloader/releases)
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+
+[Releases](https://github.com/Mizaruta/Downloader/releases) · [Extensions](#extensions-navigateur--browser-extensions) · [Privacy](extension/privacy.md)
 
 </div>
 
 ---
 
-## 📖 Table of Contents / Table des matières
+## Pourquoi ? / Why?
 
-- [🇫🇷 Français](#-français)
-  - [Présentation](#-présentation)
-  - [Fonctionnalités](#-fonctionnalités)
-  - [Installation](#-installation)
-- [🇬🇧 English](#-english)
-  - [Overview](#-overview)
-  - [Features](#-features)
-  - [Installation](#-installation-1)
-- [🛠️ Tech Stack](#-tech-stack)
-- [🤝 Contributing](#-contributing)
+| | |
+|---|---|
+| **1000+ sites** | Vidéos, audio & galeries via `yt-dlp` + `gallery-dl` |
+| **Rapide** | Multi-thread avec **aria2c**, conversion **FFmpeg** |
+| **Privé** | Tor SOCKS5, cookies locaux, zéro télémétrie |
+| **UI premium** | Glassmorphism, thèmes, lecteur intégré, 60 fps |
+
+> Remplace la ligne de commande par une app de bureau native + extensions Chrome & Firefox.
 
 ---
 
-## 🇫🇷 Français
+## Architecture
 
-### ✨ Présentation
+```mermaid
+flowchart TB
+    subgraph Browser["🌐 Navigateur"]
+        EXT["Extension MV3<br/>Chrome · Firefox"]
+    end
 
-**Modern Downloader** est une application de bureau native conçue avec **Flutter** pour offrir une expérience de téléchargement **premium** sur Windows.
+    subgraph App["🖥️ Modern Downloader · Flutter"]
+        UI["Interface Glass UI"]
+        WS["Serveur local<br/>WebSocket · 127.0.0.1"]
+        REPO["Download Repository<br/>Riverpod"]
+    end
 
-Il remplace les lignes de commande complexes par une interface graphique élégante et fluide, vous permettant de télécharger facilement :
-- 🎥 **Vidéos** (YouTube, Twitch, etc.)
-- 🎵 **Audio** (MP3, AAC)
-- 🖼️ **Galeries d'images** (Pinterest, Twitter, etc.)
+    subgraph Engines["⚙️ Moteurs externes"]
+        YT["yt-dlp"]
+        GD["gallery-dl"]
+        A2["aria2c"]
+        FF["FFmpeg"]
+    end
 
-### ⚡ Fonctionnalités
+    subgraph XFeed["🧪 X Feed optionnel"]
+        GOBIRD["gobird<br/>lecture seule"]
+    end
 
-| Catégorie | Détails |
-|-----------|---------|
-| **🌍 Universel** | Supporte **1000+ sites** via l'intégration de `yt-dlp` et `gallery-dl`. |
-| **🚀 Performance** | Téléchargements ultra-rapides multi-threadés grâce au moteur **aria2c**. |
-| **🛡️ Confidentialité** | Support natif de **Tor (SOCKS5)**, gestion isolée des cookies, zéro télémétrie. |
-| **🎨 Design** | Interface "Glassmorphism" moderne, mode sombre natif, animations fluides (60fps). |
-| **🔧 Outils** | Conversion automatique (FFmpeg), extraction de métadonnées, intégration des sous-titres. |
+    EXT -->|"URL + token"| WS
+    UI --> REPO
+    WS --> REPO
+    WS <-->|"X_FEED_REQUEST / résultats"| GOBIRD
+    REPO --> YT & GD
+    YT & GD --> A2
+    A2 --> FF
+    FF --> DISK[("📁 Downloads")]
 
-### 🚀 Installation
-
-**Prérequis :**
-- Windows 10 ou 11
-- [Flutter SDK](https://docs.flutter.dev/get-started/install/windows) installé
-- [Git](https://git-scm.com/) installé
-
-```bash
-# 1. Cloner le projet
-git clone https://github.com/Mizaruta/Downloader.git
-cd Downloader
-
-# 2. Installer les dépendances
-flutter pub get
-
-# 3. Lancer l'application
-flutter run -d windows
+    style App fill:#1a1a2e,stroke:#6366f1,color:#e2e8f0
+    style Browser fill:#0f172a,stroke:#3b82f6,color:#e2e8f0
+    style Engines fill:#0f172a,stroke:#22c55e,color:#e2e8f0
 ```
 
-> **Note :** Pour générer un exécutable release : `flutter build windows`
+<details>
+<summary><strong>Structure du projet</strong></summary>
 
----
-
-## 🇬🇧 English
-
-### ✨ Overview
-
-**Modern Downloader** is a native desktop application built with **Flutter** to provide a **premium** downloading experience on Windows.
-
-It replaces complex command-line tools with a sleek and smooth GUI, allowing you to easily download:
-- 🎥 **Videos** (YouTube, Twitch, etc.)
-- 🎵 **Audio** (MP3, AAC)
-- 🖼️ **Image Galleries** (Pinterest, Twitter, etc.)
-
-### ⚡ Features
-
-| Category | Details |
-|----------|---------|
-| **🌍 Universal** | Supports **1000+ websites** via integrated `yt-dlp` and `gallery-dl`. |
-| **🚀 Performance** | Ultra-fast multi-threaded downloads powered by the **aria2c** engine. |
-| **🛡️ Privacy** | Native **Tor (SOCKS5)** support, isolated cookie management, zero telemetry. |
-| **🎨 Design** | Modern "Glassmorphism" UI, native dark mode, smooth 60fps animations. |
-| **🔧 Tools** | Automatic conversion (FFmpeg), metadata extraction, subtitle integration. |
-
-### 🚀 Installation
-
-**Requirements:**
-- Windows 10 or 11
-- [Flutter SDK](https://docs.flutter.dev/get-started/install/windows) installed
-- [Git](https://git-scm.com/) installed
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/Mizaruta/Downloader.git
-cd Downloader
-
-# 2. Install dependencies
-flutter pub get
-
-# 3. Run the app
-flutter run -d windows
+```
+lib/
+├── core/           # UI, thème, services (WebSocket, notifications)
+├── features/       # Downloader + X Feed (domain / data / presentation)
+└── l10n/           # FR · EN · AR
+extension/
+├── shared/         # Sources communes MV3
+├── chrome/         # Build Chrome / Edge / Brave
+└── firefox/        # Build Firefox
+third_party/gobird/ # Licence et avertissement d'utilisation
+tool/               # Builds, signature Firefox et préparation gobird
+installer/          # Inno Setup (releases)
 ```
 
-> **Note:** To build a release executable: `flutter build windows`
+</details>
 
 ---
 
-## 🛠️ Tech Stack
+## Démarrage rapide / Quick Start
 
-Everything that makes this project tick:
+### Utilisateur — Télécharger la release
 
-- **Frontend:** [Flutter](https://flutter.dev) (Dart)
-- **State Management:** [Riverpod](https://riverpod.dev)
-- **Navigation:** [GoRouter](https://pub.dev/packages/go_router)
-- **Core Engines:**
-  - `yt-dlp` (Video/Audio extraction)
-  - `gallery-dl` (Image extraction)
-  - `aria2c` (Download acceleration)
-  - `FFmpeg` (Media conversion)
+1. Téléchargez **[ModernDownloader-Windows-Portable.zip](https://github.com/Mizaruta/Downloader/releases/latest)** ou l'installateur `.exe`
+2. Lancez l'app → les dépendances (`yt-dlp`, `FFmpeg`, `aria2c`) s'installent au premier démarrage
+3. *(Optionnel)* Installez l'[extension navigateur](#extensions-navigateur--browser-extensions)
 
-## 🤝 Contributing
+### Développeur — Build from source
 
-Contributions are perfectly welcome! ❤️
+**Prérequis :** Windows 10/11 · [Flutter SDK](https://docs.flutter.dev/get-started/install/windows) stable · Git
 
-1.  **Fork** the repository
-2.  Create your **Feature Branch** (`git checkout -b feature/AmazingFeature`)
-3.  **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4.  **Push** to the branch (`git push origin feature/AmazingFeature`)
-5.  Open a **Pull Request**
+```bash
+git clone https://github.com/Mizaruta/Downloader.git
+cd Downloader
+flutter pub get
+flutter run -d windows          # dev
+flutter build windows --release # release → build/windows/x64/runner/Release/
+```
+
+---
+
+## Extensions navigateur / Browser Extensions
+
+Les extensions **Manifest V3** envoient l'onglet courant à l'application via un
+WebSocket local authentifié sur `127.0.0.1`.
+
+### Build et installation développeur
+
+Depuis la racine du dépôt :
+
+```bash
+dart run tool/build_extension.dart
+```
+
+- **Chrome / Edge / Brave :** ouvrir `chrome://extensions`, activer le mode
+  développeur, puis charger le dossier `extension/chrome/`.
+- **Firefox :** ouvrir `about:debugging` → **Ce Firefox** → **Charger un module
+  complémentaire temporaire…**, puis sélectionner
+  `extension/firefox/manifest.json`.
+- Dans le popup, renseigner le jeton API de l'application, vérifier le port
+  `6969`, puis cliquer sur **Tester la connexion**.
+
+Le module Firefox temporaire disparaît au redémarrage du navigateur. Pour une
+installation persistante, utiliser `modern_downloader_firefox.xpi` depuis
+[Releases](https://github.com/Mizaruta/Downloader/releases).
+
+### Publication Firefox (AMO unlisted, automatique en CI)
+
+Le job **release** de [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+signe `modern_downloader_firefox.xpi` via
+[web-ext](https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/)
+et le publie sur GitHub Releases.
+
+**Secrets GitHub requis** (Settings → Secrets and variables → Actions) :
+
+| Secret | Valeur |
+|--------|--------|
+| `AMO_JWT_ISSUER` | Émetteur du JWT (page [Gérer les clés d'API](https://addons.mozilla.org/developers/addon/api/key/)) |
+| `AMO_JWT_SECRET` | Secret JWT (affiché une seule fois à la création) |
+
+Après ajout des secrets, chaque push sur `main` ou `master` produit un XPI
+**signé Mozilla** (canal unlisted). La première soumission peut exiger une
+validation AMO ; les mises à jour suivantes avec le même `gecko.id` passent en
+général automatiquement.
+
+**Sécurité :** ne commitez jamais le secret JWT. Si une clé a été exposée (capture d'écran, chat), révoquez-la sur AMO et régénérez-en une avant de la mettre dans GitHub Secrets.
+
+---
+
+## Fil X et gobird expérimental
+
+Le panneau **Fil X** collecte les vidéos déjà rendues dans l'onglet X actif.
+La collecte DOM locale reste le comportement par défaut. Les éléments uniques
+restent dans la liste pendant la session (limite de sécurité : 10 000 éléments)
+et le défilement de X reste contrôlé par l'utilisateur.
+
+### Activer gobird sous Windows
+
+gobird est désactivé par défaut. Il utilise les API privées non officielles de
+X et peut entraîner une limitation ou une suspension du compte. L'activation
+est volontaire et nécessite l'acceptation du risque dans **Réglages avancés**.
+Voir [`third_party/gobird/RISK_NOTICE.md`](third_party/gobird/RISK_NOTICE.md).
+
+1. Lancer Modern Downloader.
+2. Dans **Réglages avancés**, activer **Utiliser gobird (expérimental)**.
+3. Laisser **Cookies auto** activé dans le popup de l'extension.
+4. Ouvrir `https://x.com/home` dans le même Firefox ou Chrome et rester
+   connecté.
+5. Ouvrir **Fil X**. Le panneau lance gobird automatiquement ; **Analyser**
+   permet de relancer la requête.
+
+Sur Windows, l'extension envoie un heartbeat local Netscape des cookies X.
+L'application n'extrait que `auth_token` et `ct0`, puis les transmet au
+processus gobird via son environnement. Les cookies ne sont pas inclus dans
+`X_FEED_REQUEST` et ne sont jamais placés dans les arguments de commande.
+Seule la commande de lecture `home` bornée à 100 éléments est autorisée.
+
+Le binaire épinglé est gobird `26.05.13`. Pour le préparer localement :
+
+```powershell
+.\tool\prepare_gobird.ps1 -SkipDownloadIfPresent
+```
+
+Le binaire local `bin/gobird.exe` est volontairement ignoré par Git. La CI le
+télécharge, vérifie son SHA-256 et l'inclut dans les artefacts Windows.
+
+### Sources et fallback
+
+- **gobird expérimental** : la requête distante locale a réussi.
+- **Repli local (gobird a échoué)** : gobird a échoué ; le message du panneau
+  indique la cause.
+- **Pour vous — local** : le panneau utilise la collecte DOM locale.
+
+Le fil d'accueil gobird est plafonné à 100 éléments par requête. La collecte DOM
+ne peut voir que les vidéos rendues par la virtualisation de X.
+
+---
+
+## Stack technique
+
+| Couche | Technologie |
+|--------|-------------|
+| App | Flutter · Dart 3.10+ · Riverpod · GoRouter |
+| Extraction | yt-dlp · gallery-dl |
+| Téléchargement | aria2c |
+| Conversion | FFmpeg |
+| Desktop | window_manager · tray_manager · media_kit |
+| Extension | MV3 · WebSocket localhost |
+
+---
+
+## Scripts utiles
+
+| Commande | Description |
+|----------|-------------|
+| `flutter pub get` | Installer les dépendances |
+| `flutter analyze` | Analyse statique |
+| `flutter test` | Tests unitaires |
+| `flutter build windows --release` | Build release Windows |
+| `dart run tool/build_extension.dart` | Regénérer les extensions |
+| `.\tool\prepare_gobird.ps1 -SkipDownloadIfPresent` | Vérifier et préparer gobird Windows |
+| `.\tool\sign_firefox_xpi.ps1` | Signer le XPI Firefox localement (nécessite `AMO_JWT_*`) |
+
+Les releases sont automatiques à chaque **push** sur `main` ou `master` :
+bump `+0.0.1`, commit `chore(release): vX.Y.Z`, tag et publication (ZIP
+portable, installateur, XPI Firefox, ZIP Chrome).
+
+---
+
+## Hygiène du dépôt
+
+Les sources, tests, scripts et avis de licence sont versionnés. Les sorties
+locales ou générées sont ignorées pour éviter de polluer les commits :
+
+- `build/`, `.dart_tool/`, fichiers IDE, caches, logs et fichiers `.env` ;
+- `bin/` pour les binaires téléchargés comme `gobird.exe` ;
+- `signed-xpi/` et les packages de release locaux (`.zip`, `.exe`, `.xpi`,
+  `.msi` à la racine).
+
+Les dossiers `extension/shared/`, `extension/chrome/` et
+`extension/firefox/` restent disponibles pour le développement et les
+installations temporaires. Après une modification de `extension/shared/`,
+relancer `dart run tool/build_extension.dart`.
+
+---
+
+## Contribuer / Contributing
+
+1. Fork → branche `feature/ma-feature`
+2. `flutter analyze && flutter test`
+3. Pull Request
 
 ---
 
 <div align="center">
 
-**Mizaruta / Downloader** © 2023-2026
-
-[![License](https://img.shields.io/github/license/Mizaruta/Downloader?style=flat-square)](LICENSE)
+**Mizaruta / Downloader** · 2023–2026
 
 </div>

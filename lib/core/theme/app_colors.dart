@@ -1,37 +1,63 @@
 import 'package:flutter/material.dart';
+import 'app_palette.dart';
+import 'theme_presets.dart';
 
+/// Palette colors from [ThemeData.extensions]. Always look up via [of].
 class AppColors {
-  // Prevent instantiation
-  const AppColors._();
+  const AppColors._(this.preset);
 
-  // Backgrounds
-  static const Color background = Color(0xFF111111); // Main app background
-  static const Color surface = Color(0xFF181818); // Sidebar, Cards
-  static const Color surfaceHighlight = Color(0xFF222222); // Hover states
+  final ThemePreset preset;
 
-  // Accents
-  static const Color primary = Color(0xFF6366F1); // Invisible Indigo
-  static const Color primaryVariant = Color(0xFF4F46E5);
-  static const Color accent = Color(0xFFFFFFFF); // Clean White accent
+  static AppColors of(BuildContext context) {
+    return AppColors._(AppPalette.of(context).preset);
+  }
 
-  // Text
-  static const Color textPrimary = Color(
-    0xFFEDEDED,
-  ); // Off-white for better reading
-  static const Color textSecondary = Color(0xFF888888); // Metadata
-  static const Color textDisabled = Color(0xFF444444);
+  Color get background => preset.background;
+  Color get surface => preset.surface;
+  Color get surfaceHighlight => preset.surfaceHighlight;
 
-  // Borders & Dividers
-  static const Color border = Color(0xFF333333);
-  static const Color borderSubtle = Color(0xFF222222);
+  Color get primary => preset.primary;
+  Color get primaryVariant => Color.lerp(preset.primary, Colors.black, 0.15)!;
+  Color get accent => preset.accent;
+  Color get onPrimary => Colors.white;
 
-  // Status
-  static const Color success = Color(0xFF10B981); // Emerald
-  static const Color error = Color(0xFFEF4444); // Red
-  static const Color warning = Color(0xFFF59E0B); // Amber
-  static const Color info = Color(0xFF3B82F6); // Blue
+  Color get textPrimary => preset.textPrimary;
+  Color get textSecondary => preset.textSecondary;
+  Color get textDisabled => preset.textDisabled;
 
-  // Specific UI
-  static const Color inputBackground = Color(0xFF1A1A1A);
-  static const Color overlay = Color(0x66000000); // 40% Black
+  Color get border => preset.border;
+  Color get borderSubtle => preset.borderSubtle;
+
+  Color get success => preset.success;
+  Color get error => preset.error;
+  Color get warning => preset.warning;
+  Color get info => preset.info;
+
+  Color get inputBackground => preset.inputBackground;
+  Color get overlay => const Color(0x66000000);
+
+  bool get isIosChrome => preset.isIosChrome;
+  bool get useMeshBackground => preset.useMeshBackground;
+  bool get useFloatingDock => preset.useFloatingDock;
+
+  Color get glassFill =>
+      Colors.white.withValues(alpha: isIosChrome ? 0.10 : 0.04);
+
+  Color get glassBorder =>
+      Colors.white.withValues(alpha: isIosChrome ? 0.18 : 0.08);
+
+  Color get glassHighlight => Colors.white.withValues(alpha: 0.22);
+
+  List<BoxShadow> get tintedShadow => [
+    BoxShadow(
+      color: background.withValues(alpha: 0.45),
+      blurRadius: isIosChrome ? 24 : 12,
+      offset: const Offset(0, 8),
+    ),
+    BoxShadow(
+      color: primary.withValues(alpha: isIosChrome ? 0.12 : 0.06),
+      blurRadius: 16,
+      offset: const Offset(0, 4),
+    ),
+  ];
 }

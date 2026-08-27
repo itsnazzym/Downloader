@@ -355,4 +355,700 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get warning => 'تحذير';
+
+  @override
+  String get librarySection => 'المكتبة';
+
+  @override
+  String get sourcesSection => 'المصادر';
+
+  @override
+  String get mainPage => 'الرئيسية';
+
+  @override
+  String get allDownloads => 'كل التنزيلات';
+
+  @override
+  String get downloadStarted => 'بدأ التنزيل';
+
+  @override
+  String videosDownloadingCount(int count) {
+    return '$count فيديوهات قيد التنزيل';
+  }
+
+  @override
+  String get videoDownloadingSingular => 'فيديو واحد قيد التنزيل';
+
+  @override
+  String get expandDownloadingVideos => 'إظهار الفيديوهات قيد التنزيل';
+
+  @override
+  String get collapseDownloadingVideos => 'إخفاء الفيديوهات قيد التنزيل';
+
+  @override
+  String moreDownloadingVideos(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get searchDownloads => 'البحث في التنزيلات...';
+
+  @override
+  String get clearHistoryConfirm =>
+      'هل تريد حذف التنزيلات المكتملة والفاشلة والملغاة؟ ستبقى التنزيلات النشطة.';
+
+  @override
+  String get refreshLibrary => 'تحديث المكتبة';
+
+  @override
+  String get yourListIsEmpty => 'قائمة التنزيلات فارغة.';
+
+  @override
+  String get sortAndView => 'الترتيب والعرض';
+
+  @override
+  String get sortBy => 'ترتيب حسب';
+
+  @override
+  String get sortDateNewest => 'التاريخ (الأحدث)';
+
+  @override
+  String get sortDateOldest => 'التاريخ (الأقدم)';
+
+  @override
+  String get sortNameAsc => 'الاسم (أ-ي)';
+
+  @override
+  String get sortSizeLargest => 'الحجم (الأكبر)';
+
+  @override
+  String get viewMode => 'وضع العرض';
+
+  @override
+  String get viewList => 'قائمة';
+
+  @override
+  String get viewDetailed => 'مفصل';
+
+  @override
+  String playlistDetected(int count) {
+    return 'تم اكتشاف قائمة تشغيل ($count فيديو)';
+  }
+
+  @override
+  String downloadSelected(int count) {
+    return 'تنزيل المحدد ($count)';
+  }
+
+  @override
+  String startedCountDownloads(int count) {
+    return 'بدأ $count تنزيلات';
+  }
+
+  @override
+  String get downloadFolder => 'مجلد التنزيل';
+
+  @override
+  String get selectFolder => 'اختر مجلداً...';
+
+  @override
+  String get organizeBySite => 'تنظيم حسب الموقع';
+
+  @override
+  String get organizeBySiteDesc => 'إنشاء مجلدات فرعية مثل Downloads/YouTube/';
+
+  @override
+  String get formatLabel => 'الصيغة';
+
+  @override
+  String get adultSites => 'مواقع للبالغين';
+
+  @override
+  String get adultSitesDesc => 'تفعيل المحتوى المقيد بالعمر';
+
+  @override
+  String get doNotDisturb => 'عدم الإزعاج';
+
+  @override
+  String get doNotDisturbDesc => 'كتم إشعارات التطبيق والإضافة';
+
+  @override
+  String get cookiesFromBrowser => 'ملفات تعريف الارتباط من المتصفح';
+
+  @override
+  String get extensionApiToken => 'رمز API للإضافة';
+
+  @override
+  String get localServerPort => 'منفذ الخادم المحلي';
+
+  @override
+  String get backupHistory => 'نسخ السجل احتياطياً';
+
+  @override
+  String get restoreHistory => 'استعادة السجل';
+
+  @override
+  String get restoreHistoryDesc => 'استيراد التنزيلات من ملف نسخ احتياطي';
+
+  @override
+  String get cookiesFile => 'ملف ملفات تعريف الارتباط';
+
+  @override
+  String get simultaneousDownloads => 'التنزيلات المتزامنة';
+
+  @override
+  String get simultaneousDownloadsDesc => 'الحد الأقصى للتنزيلات النشطة';
+
+  @override
+  String get threadsPerDownload => 'المسارات لكل تنزيل';
+
+  @override
+  String get threadsPerDownloadDesc => 'الاتصالات المتوازية لكل ملف';
+
+  @override
+  String get maxSpeedMode => 'وضع السرعة القصوى';
+
+  @override
+  String get maxSpeedModeDesc => '64 اتصالاً متوازياً، مخازن أكبر، remux سريع';
+
+  @override
+  String get libraryManagement => 'إدارة المكتبة';
+
+  @override
+  String get smartOrganization => 'تنظيم ذكي';
+
+  @override
+  String get smartOrganizationDesc => 'قواعد الفرز التلقائي والتخمين الذكي';
+
+  @override
+  String get outputFolderNotConfigured => 'مجلد الإخراج غير مهيأ';
+
+  @override
+  String get pluginsEmptyHint => 'تضيف الإضافات وظائف إلى Modern Downloader';
+
+  @override
+  String get statusProcessing => 'معالجة';
+
+  @override
+  String get statsSubtitle => 'تتبع نشاط التنزيل واستخدام التخزين';
+
+  @override
+  String get statsToday => 'اليوم';
+
+  @override
+  String get downloadActivity => 'نشاط التنزيل';
+
+  @override
+  String get last7DaysShort => 'آخر 7 أيام';
+
+  @override
+  String get sourcesChartTitle => 'المصادر';
+
+  @override
+  String get sourcesByPlatform => 'حسب المنصة';
+
+  @override
+  String get shortcutsQuickActions => 'إجراءات سريعة';
+
+  @override
+  String get noDownloadHistory => 'لا يوجد سجل تنزيلات بعد';
+
+  @override
+  String get noSourceData => 'لا توجد بيانات مصادر';
+
+  @override
+  String chartDownloadsTooltip(int count, String bytes) {
+    return '$count تنزيلات\n$bytes';
+  }
+
+  @override
+  String get currentAccent => 'اللون الحالي';
+
+  @override
+  String get dataAndHistory => 'البيانات والسجل';
+
+  @override
+  String get exportHistoryDesc => 'تصدير سجل التنزيلات إلى ملف JSON';
+
+  @override
+  String get saveHistoryBackup => 'حفظ نسخة السجل';
+
+  @override
+  String get tokenCopied => 'تم نسخ الرمز';
+
+  @override
+  String get tokenCopiedHint => 'تم نسخ الرمز. الصقه في إضافة المتصفح.';
+
+  @override
+  String get copyToken => 'نسخ الرمز';
+
+  @override
+  String get portSavedRestart => 'تم حفظ المنفذ. أعد تشغيل التطبيق للتطبيق.';
+
+  @override
+  String get historyExported => 'تم تصدير السجل بنجاح';
+
+  @override
+  String get historyRestored => 'تمت استعادة السجل بنجاح';
+
+  @override
+  String get generatedOnFirstLaunch => 'يُنشأ عند أول تشغيل';
+
+  @override
+  String serverPortRestartHint(int port) {
+    return 'أعد تشغيل التطبيق بعد التغيير. الحالي: $port';
+  }
+
+  @override
+  String get torBypassDesc => 'تجاوز الحظر الجغرافي عبر Tor (127.0.0.1:9050)';
+
+  @override
+  String get selectCookiesFile => 'اختر cookies.txt';
+
+  @override
+  String get clearCookies => 'مسح ملفات تعريف الارتباط';
+
+  @override
+  String get selectQuality => 'اختر الجودة';
+
+  @override
+  String get unknownSize => 'حجم غير معروف';
+
+  @override
+  String get bestQuality => 'أفضل جودة';
+
+  @override
+  String get noLogsAvailable => 'لا توجد سجلات';
+
+  @override
+  String get dropLinksHere => 'أسقط الروابط أو الملفات هنا';
+
+  @override
+  String get dropLinksHint => 'ستُضاف إلى قائمة التنزيل';
+
+  @override
+  String get retryDownload => 'إعادة التنزيل';
+
+  @override
+  String get restartDownload => 'إعادة تشغيل التنزيل';
+
+  @override
+  String get copyUrl => 'نسخ الرابط';
+
+  @override
+  String get remove => 'إزالة';
+
+  @override
+  String get urlLabel => 'الرابط';
+
+  @override
+  String get pleaseEnterUrl => 'يرجى إدخال رابط';
+
+  @override
+  String get enterValidUrl => 'أدخل رابط http(s) صالحاً';
+
+  @override
+  String get cookiesNoneDefault => 'بدون (افتراضي)';
+
+  @override
+  String get failedFetchQuality => 'تعذر جلب خيارات الجودة';
+
+  @override
+  String get unknown => 'غير معروف';
+
+  @override
+  String get inspectorId => 'المعرف';
+
+  @override
+  String get storageUsage => 'استخدام التخزين';
+
+  @override
+  String get storageInfoUnavailable => 'معلومات التخزين غير متاحة';
+
+  @override
+  String get storageUsed => 'مستخدم';
+
+  @override
+  String get storageFree => 'متاح';
+
+  @override
+  String storageTotalLabel(String size) {
+    return 'الإجمالي: $size';
+  }
+
+  @override
+  String get startingOrganization => 'بدء التنظيم...';
+
+  @override
+  String organizationFailed(String error) {
+    return 'فشل التنظيم: $error';
+  }
+
+  @override
+  String thumbnailsOrganized(int count) {
+    return 'الصور المصغرة المنظمة: $count';
+  }
+
+  @override
+  String foldersCreated(int count) {
+    return 'المجلدات المنشأة: $count';
+  }
+
+  @override
+  String emptyFoldersDeleted(int count) {
+    return 'المجلدات الفارغة المحذوفة: $count';
+  }
+
+  @override
+  String organizationErrors(int count) {
+    return 'حدثت $count أخطاء';
+  }
+
+  @override
+  String get nameLabel => 'الاسم';
+
+  @override
+  String get editRule => 'تعديل القاعدة';
+
+  @override
+  String get newRule => 'قاعدة جديدة';
+
+  @override
+  String get patternKeywordOrRegex => 'النمط (كلمة أو تعبير نمطي)';
+
+  @override
+  String get regexpPattern => 'نمط RegExp';
+
+  @override
+  String get containsText => 'يحتوي النص';
+
+  @override
+  String get isRegex => 'تعبير نمطي';
+
+  @override
+  String get targetSubfolder => 'المجلد الفرعي الهدف';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get downloadModel => 'تنزيل نموذج';
+
+  @override
+  String get selectPopularModel => 'اختر نموذجاً شائعاً:';
+
+  @override
+  String get ollamaPullNote =>
+      'ملاحظة: يلزم اتصال سريع. راجع سجلات Ollama للمتابعة.';
+
+  @override
+  String get smartGuessTitle => 'تخمين ذكي (الذكاء الاصطناعي)';
+
+  @override
+  String get smartGuessDesc =>
+      'يصنّف الملفات تلقائياً حسب الأنماط أو الذكاء الاصطناعي المحلي.';
+
+  @override
+  String get aiMode => 'وضع الذكاء الاصطناعي';
+
+  @override
+  String get aiModeOffline => 'دون اتصال (سريع)';
+
+  @override
+  String get aiModeOllama => 'Ollama / LocalAI';
+
+  @override
+  String get ollamaApiUrl => 'عنوان API لـ Ollama';
+
+  @override
+  String get modelName => 'اسم النموذج';
+
+  @override
+  String get selectOrTypeModel => 'اختر من القائمة أو اكتب يدوياً';
+
+  @override
+  String get refreshModels => 'تحديث النماذج';
+
+  @override
+  String get customRules => 'قواعد مخصصة';
+
+  @override
+  String get addRule => 'إضافة قاعدة';
+
+  @override
+  String get noRulesDefined => 'لا توجد قواعد. أضف واحدة بزر +.';
+
+  @override
+  String get organizeExistingFiles => 'تنظيم الملفات الحالية';
+
+  @override
+  String get organizeExistingFilesDesc =>
+      'افحص مجلداً ونظّم الملفات بالقواعد أو الذكاء الاصطناعي.';
+
+  @override
+  String get ollamaMustRun => 'تأكد من تشغيل Ollama (`ollama serve`).';
+
+  @override
+  String requestingOllamaPull(String model) {
+    return 'جاري سحب النموذج $model عبر Ollama... قد يستغرق ذلك وقتاً.';
+  }
+
+  @override
+  String organizationCompleteDetail(int scanned, int moved) {
+    return 'اكتمل التنظيم. تم فحص $scanned ملفاً ونقل $moved.';
+  }
+
+  @override
+  String get toolsSection => 'أدوات';
+
+  @override
+  String get configurePlugin => 'إعداد الإضافة';
+
+  @override
+  String pluginError(String error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get setupPreparing => 'جارٍ تجهيز أدوات التنزيل…';
+
+  @override
+  String get setupCheckingTools => 'التحقق من الأدوات المثبتة';
+
+  @override
+  String setupDownloading(String name) {
+    return 'جارٍ تنزيل $name…';
+  }
+
+  @override
+  String setupExtracting(String name) {
+    return 'جارٍ استخراج $name…';
+  }
+
+  @override
+  String setupVerifying(String name) {
+    return 'جارٍ التحقق من $name…';
+  }
+
+  @override
+  String get setupUpdatingYtDlp => 'جارٍ تحديث yt-dlp…';
+
+  @override
+  String get setupReady => 'كل الأدوات جاهزة';
+
+  @override
+  String get setupFailed => 'تعذر تثبيت كل الأدوات';
+
+  @override
+  String get setupRetry => 'إعادة المحاولة';
+
+  @override
+  String get setupContinueAnyway => 'المتابعة على أي حال';
+
+  @override
+  String setupDownloadPercent(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get previewSetup => 'عرض شاشة الإعداد (مؤقت)';
+
+  @override
+  String get previewSetupDesc =>
+      'إعادة تشغيل فحص الأدوات وتثبيتها على كامل الشاشة';
+
+  @override
+  String get pluginsSectionTitle => 'الإضافات';
+
+  @override
+  String get pluginsSectionHint =>
+      'وحدات داخل التطبيق مثل Auto Rename و Smart Organizer.';
+
+  @override
+  String get browserExtensionsTitle => 'إضافة المتصفح';
+
+  @override
+  String get browserExtensionsHint =>
+      'أرسل الروابط من المتصفح إلى التطبيق. نقرة واحدة تجهّز الإضافة وتفتح صفحة المتصفح.';
+
+  @override
+  String get chromeExtensionTitle => 'Chrome / Edge / Brave';
+
+  @override
+  String get chromeExtensionSteps =>
+      '1. انقر تثبيت. 2. فعّل وضع المطوّر. 3. تحميل غير مضغوط ثم Ctrl+V للصق المسار.';
+
+  @override
+  String get firefoxExtensionTitle => 'Firefox';
+
+  @override
+  String get firefoxExtensionSteps =>
+      'التثبيت يفتح XPI من GitHub. إذا منع Firefox ذلك، استخدم التثبيت اليدوي (about:debugging).';
+
+  @override
+  String get installInChrome => 'تثبيت في Chrome';
+
+  @override
+  String get installInFirefox => 'تثبيت في Firefox';
+
+  @override
+  String get downloadExtensionZip => 'تنزيل ZIP';
+
+  @override
+  String get firefoxManualInstall => 'تثبيت يدوي';
+
+  @override
+  String get extensionDownloading => 'جاري تحضير الإضافة…';
+
+  @override
+  String get extensionDownloadFailed =>
+      'فشل التنزيل. تحقق من الاتصال وحاول مجددا.';
+
+  @override
+  String get extensionInstallGuideTitle => 'تثبيت الإضافة';
+
+  @override
+  String get extensionInstallInProgress =>
+      'لا تغلق هذه النافذة قبل انتهاء التنزيل.';
+
+  @override
+  String get extensionInstallClose => 'إغلاق';
+
+  @override
+  String get extensionInstallRetry => 'إعادة المحاولة';
+
+  @override
+  String get extensionStepDownload => 'تنزيل ملفات الإضافة';
+
+  @override
+  String get extensionStepDownloadZip => 'تنزيل ZIP إلى مجلد التنزيلات';
+
+  @override
+  String get extensionStepCopyPath => 'نسخ مسار التثبيت';
+
+  @override
+  String get extensionStepOpenBrowser => 'فتح صفحة التثبيت في المتصفح';
+
+  @override
+  String get extensionStepLaunchFirefox => 'تشغيل مثبت Firefox';
+
+  @override
+  String get extensionStepReadyChrome =>
+      'جاهز! إعداد لمرة واحدة: في Chrome، وضع المطوّر → تحميل غير مضغوط → Ctrl+V.';
+
+  @override
+  String get extensionStepReadyZip =>
+      'تم حفظ ZIP. فكّه إذا لزم، أو استخدم التثبيت في Chrome للإعداد التلقائي.';
+
+  @override
+  String get extensionStepReadyFirefox =>
+      'جاهز! في about:debugging، حمّل manifest.json (المسار منسوخ).';
+
+  @override
+  String get extensionStepReadyFirefoxXpi =>
+      'جاهز! أكّد تثبيت الإضافة في Firefox؛ وبعد قبولها ستبقى بعد إعادة تشغيل المتصفح. ثم الصق رمز API في الإضافة.';
+
+  @override
+  String get extensionStepFirefoxFallback =>
+      'تعذر فتح XPI — فتح صفحة التثبيت اليدوي.';
+
+  @override
+  String get extensionStepSkippedBrowser =>
+      'تم التخطي — Firefox فتح المثبت مباشرة.';
+
+  @override
+  String get chromeInstallStarted =>
+      'تم نسخ المسار. في Chrome: وضع المطوّر → تحميل غير مضغوط → Ctrl+V.';
+
+  @override
+  String get firefoxInstallStarted =>
+      'سيثبت Firefox الإضافة. إذا تم الحظر، استخدم التثبيت اليدوي.';
+
+  @override
+  String extensionPathCopied(String path) {
+    return 'تم نسخ المسار: $path';
+  }
+
+  @override
+  String get extensionInstallFailed => 'تعذر فتح المتصفح. جرّب تنزيل ZIP.';
+
+  @override
+  String get extractingTitle => 'جارٍ استخراج العنوان...';
+
+  @override
+  String get extractingSource => 'جارٍ استخراج المصدر...';
+
+  @override
+  String get extractingSize => 'جارٍ استخراج الحجم...';
+
+  @override
+  String get unknownTitle => 'عنوان غير معروف';
+
+  @override
+  String get collapseSidebar => 'طي الشريط الجانبي';
+
+  @override
+  String get expandSidebar => 'توسيع الشريط الجانبي';
+
+  @override
+  String get collapseInspector => 'طي المفتش';
+
+  @override
+  String get expandInspector => 'توسيع المفتش';
+
+  @override
+  String get experimentalXFeedSection => 'خلاصة X التجريبية';
+
+  @override
+  String get experimentalXFeedGobird => 'استخدام gobird (تجريبي)';
+
+  @override
+  String get experimentalXFeedGobirdDesc =>
+      'خلاصة الصفحة الرئيسية للقراءة فقط عبر gobird المضمّن. معطّل افتراضيًا. يخالف شروط خدمة X وقد يعرّض الحساب للإيقاف.';
+
+  @override
+  String get experimentalXFeedWarning =>
+      'تحذير: يستخدم gobird واجهات X خاصة غير رسمية. أنت تتحمّل كل المخاطر. تبقى خلاصة DOM المحلية هي الاحتياطي الافتراضي.';
+
+  @override
+  String get experimentalXFeedConsentTitle => 'تفعيل gobird التجريبي؟';
+
+  @override
+  String get experimentalXFeedConsentBody =>
+      'يستخدم gobird واجهات X غير رسمية، وقد يتوقف دون إشعار، وقد يؤدي إلى إيقاف أو حظر الحساب. تبقى ملفات تعريف الارتباط على هذا الجهاز. تابع فقط إذا قبلت هذه المخاطر.';
+
+  @override
+  String get experimentalXFeedConsentConfirm => 'أفهم — تفعيل';
+
+  @override
+  String get gobirdBrowser => 'جلسة متصفح gobird';
+
+  @override
+  String get gobirdBrowserDesc =>
+      'المتصفح المسجّل في X.com لاستخراج ملفات تعريف الارتباط (Chrome أو Firefox)';
+
+  @override
+  String get gobirdBinaryStatus => 'ثنائي gobird';
+
+  @override
+  String gobirdBinaryFound(String version) {
+    return 'موجود: $version';
+  }
+
+  @override
+  String get gobirdBinaryMissing => 'غير مضمّن — المحرك التجريبي غير متاح';
+
+  @override
+  String get gobirdDisableNow => 'إيقاف gobird الآن';
+
+  @override
+  String get playerPrevious => 'السابق';
+
+  @override
+  String get playerNext => 'التالي';
+
+  @override
+  String duplicatesSkipped(int count) {
+    return 'تم تخطي $count من العناصر المكررة';
+  }
 }

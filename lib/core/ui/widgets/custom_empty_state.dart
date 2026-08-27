@@ -28,17 +28,19 @@ class CustomEmptyState extends StatelessWidget {
           Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: 0.5),
+                  color: AppColors.of(context).surface.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.border.withValues(alpha: 0.5),
+                    color: AppColors.of(context).border.withValues(alpha: 0.5),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   icon,
                   size: 48,
-                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                  color: AppColors.of(
+                    context,
+                  ).textSecondary.withValues(alpha: 0.5),
                 ),
               )
               .animate()
@@ -47,10 +49,10 @@ class CustomEmptyState extends StatelessWidget {
           const Gap(24),
           Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: AppColors.of(context).textPrimary,
                 ),
                 textAlign: TextAlign.center,
               )
@@ -67,9 +69,9 @@ class CustomEmptyState extends StatelessWidget {
             const Gap(8),
             Text(
               description!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: AppColors.of(context).textSecondary,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -82,8 +84,8 @@ class CustomEmptyState extends StatelessWidget {
               icon: const Icon(Icons.add, size: 18),
               label: Text(actionLabel!),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
+                foregroundColor: AppColors.of(context).primary,
+                side: BorderSide(color: AppColors.of(context).primary),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,

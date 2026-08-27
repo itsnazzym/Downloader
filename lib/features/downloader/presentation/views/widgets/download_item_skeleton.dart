@@ -12,9 +12,9 @@ class DownloadItemSkeleton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.of(context).border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),

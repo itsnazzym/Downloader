@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../theme/theme_presets.dart';
 
 /// App Settings State
 class AppSettings {
@@ -15,6 +16,7 @@ class AppSettings {
   final bool embedSubtitles;
 
   final int concurrentFragments; // Threads per download
+  final bool maxSpeedMode; // Saturate bandwidth: 64 native fragments + remux
 
   // Site-specific settings
   final bool twitterIncludeReplies;
@@ -37,8 +39,14 @@ class AppSettings {
   final bool autoUpdateYtDlp; // Auto-update yt-dlp on startup
   final String locale; // 'en', 'fr', 'ar'
   final String
-  themePreset; // 'midnight', 'ocean', 'sunset', 'forest', 'neon', 'monochrome'
+  themePreset; // 'midnight', 'ios', 'ocean', 'sunset', 'forest', 'neon', 'monochrome'
   final int customAccentColor; // ARGB int for custom accent
+
+  /// Experimental: use bundled gobird for X feed (OFF by default).
+  final bool experimentalXFeedGobirdEnabled;
+
+  /// Browser session gobird should read cookies from (`chrome` | `firefox`).
+  final String gobirdBrowser;
 
   const AppSettings({
     this.themeMode = 'system',
@@ -46,6 +54,7 @@ class AppSettings {
     this.autoStart = true,
     this.maxConcurrent = 3,
     this.concurrentFragments = 16, // Default to 16 threads
+    this.maxSpeedMode = false,
     this.outputFolder = '',
     this.preferredQuality = 'best',
     this.outputFormat = 'mp4', // Default to MP4 for max compatibility
@@ -68,7 +77,9 @@ class AppSettings {
     this.autoUpdateYtDlp = true,
     this.locale = 'en',
     this.themePreset = 'midnight',
-    this.customAccentColor = 0xFF6366F1,
+    this.customAccentColor = 0xFF0D9488,
+    this.experimentalXFeedGobirdEnabled = false,
+    this.gobirdBrowser = 'chrome',
   });
 
   AppSettings copyWith({
@@ -77,6 +88,7 @@ class AppSettings {
     bool? autoStart,
     int? maxConcurrent,
     int? concurrentFragments,
+    bool? maxSpeedMode,
     String? outputFolder,
     String? preferredQuality,
     String? outputFormat,
@@ -100,6 +112,8 @@ class AppSettings {
     String? locale,
     String? themePreset,
     int? customAccentColor,
+    bool? experimentalXFeedGobirdEnabled,
+    String? gobirdBrowser,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -107,6 +121,7 @@ class AppSettings {
       autoStart: autoStart ?? this.autoStart,
       maxConcurrent: maxConcurrent ?? this.maxConcurrent,
       concurrentFragments: concurrentFragments ?? this.concurrentFragments,
+      maxSpeedMode: maxSpeedMode ?? this.maxSpeedMode,
       outputFolder: outputFolder ?? this.outputFolder,
       preferredQuality: preferredQuality ?? this.preferredQuality,
       outputFormat: outputFormat ?? this.outputFormat,
@@ -132,6 +147,9 @@ class AppSettings {
       locale: locale ?? this.locale,
       themePreset: themePreset ?? this.themePreset,
       customAccentColor: customAccentColor ?? this.customAccentColor,
+      experimentalXFeedGobirdEnabled:
+          experimentalXFeedGobirdEnabled ?? this.experimentalXFeedGobirdEnabled,
+      gobirdBrowser: gobirdBrowser ?? this.gobirdBrowser,
     );
   }
 }
@@ -142,6 +160,7 @@ const _kAudioOnly = 'audio_only';
 const _kAutoStart = 'auto_start';
 const _kMaxConcurrent = 'max_concurrent';
 const _kConcurrentFragments = 'concurrent_fragments';
+const _kMaxSpeedMode = 'max_speed_mode';
 const _kOutputFolder = 'output_folder';
 const _kPreferredQuality = 'preferred_quality';
 const _kOutputFormat = 'output_format';
@@ -165,6 +184,8 @@ const _kAutoUpdateYtDlp = 'auto_update_ytdlp';
 const _kLocale = 'locale';
 const _kThemePreset = 'theme_preset';
 const _kCustomAccentColor = 'custom_accent_color';
+const _kExperimentalXFeedGobirdEnabled = 'experimental_x_feed_gobird_enabled';
+const _kGobirdBrowser = 'gobird_browser';
 
 /// Global SharedPreferences instance holder
 SharedPreferences? _prefsInstance;
@@ -195,6 +216,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       autoStart: prefs.getBool(_kAutoStart) ?? true,
       maxConcurrent: prefs.getInt(_kMaxConcurrent) ?? 3,
       concurrentFragments: prefs.getInt(_kConcurrentFragments) ?? 16,
+      maxSpeedMode: prefs.getBool(_kMaxSpeedMode) ?? false,
       outputFolder: prefs.getString(_kOutputFolder) ?? '',
       preferredQuality: prefs.getString(_kPreferredQuality) ?? 'best',
       outputFormat: prefs.getString(_kOutputFormat) ?? 'mp4',
@@ -217,7 +239,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       autoUpdateYtDlp: prefs.getBool(_kAutoUpdateYtDlp) ?? true,
       locale: prefs.getString(_kLocale) ?? 'en',
       themePreset: prefs.getString(_kThemePreset) ?? 'midnight',
-      customAccentColor: prefs.getInt(_kCustomAccentColor) ?? 0xFF6366F1,
+      customAccentColor: prefs.getInt(_kCustomAccentColor) ?? 0xFF0D9488,
+      experimentalXFeedGobirdEnabled:
+          prefs.getBool(_kExperimentalXFeedGobirdEnabled) ?? false,
+      gobirdBrowser: _normalizeGobirdBrowser(
+        prefs.getString(_kGobirdBrowser) ?? 'chrome',
+      ),
     );
     // Ensure token is saved if it was generated
     if (prefs.getString(_kApiToken) == null) {
@@ -248,6 +275,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setConcurrentFragments(int value) {
     state = state.copyWith(concurrentFragments: value);
     prefs.setInt(_kConcurrentFragments, value);
+  }
+
+  void setMaxSpeedMode(bool value) {
+    state = state.copyWith(maxSpeedMode: value);
+    prefs.setBool(_kMaxSpeedMode, value);
+    if (value && state.concurrentFragments < 64) {
+      setConcurrentFragments(64);
+    }
   }
 
   void setOutputFolder(String value) {
@@ -301,6 +336,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   void setCookiesFilePath(String value) {
+    if (state.cookiesFilePath == value) return;
     state = state.copyWith(cookiesFilePath: value);
     prefs.setString(_kCookiesFilePath, value);
   }
@@ -335,6 +371,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     prefs.setString(_kCookieBrowser, value);
   }
 
+  void setServerPort(int value) {
+    state = state.copyWith(serverPort: value);
+    prefs.setInt(_kServerPort, value);
+  }
+
   void setOrganizeBySite(bool value) {
     state = state.copyWith(organizeBySite: value);
     prefs.setBool(_kOrganizeBySite, value);
@@ -351,13 +392,35 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   void setThemePreset(String value) {
-    state = state.copyWith(themePreset: value);
+    final preset = ThemePresets.getById(value);
+    state = state.copyWith(
+      themePreset: value,
+      customAccentColor: preset.primary.toARGB32(),
+    );
     prefs.setString(_kThemePreset, value);
+    prefs.setInt(_kCustomAccentColor, preset.primary.toARGB32());
   }
 
   void setCustomAccentColor(int value) {
     state = state.copyWith(customAccentColor: value);
     prefs.setInt(_kCustomAccentColor, value);
+  }
+
+  void setExperimentalXFeedGobirdEnabled(bool value) {
+    state = state.copyWith(experimentalXFeedGobirdEnabled: value);
+    prefs.setBool(_kExperimentalXFeedGobirdEnabled, value);
+  }
+
+  void setGobirdBrowser(String value) {
+    final normalized = _normalizeGobirdBrowser(value);
+    state = state.copyWith(gobirdBrowser: normalized);
+    prefs.setString(_kGobirdBrowser, normalized);
+  }
+
+  static String _normalizeGobirdBrowser(String value) {
+    final lower = value.trim().toLowerCase();
+    if (lower == 'firefox') return 'firefox';
+    return 'chrome';
   }
 }
 

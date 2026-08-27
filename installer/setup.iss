@@ -28,3 +28,9 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 
 [Run]
 Filename: "{app}\modern_downloader.exe"; Description: "Launch Modern Downloader"; Flags: nowait postinstall skipifsilent
+
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\moderndownloader"; ValueType: string; ValueName: ""; ValueData: "URL:Modern Downloader Protocol"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\moderndownloader"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\moderndownloader\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\modern_downloader.exe,0"
+Root: HKCU; Subkey: "Software\Classes\moderndownloader\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\modern_downloader.exe"" ""%1"""

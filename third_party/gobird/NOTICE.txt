@@ -1,0 +1,8 @@
+Third-party component: gobird
+Upstream: https://github.com/mudrii/gobird
+License: MIT (see LICENSE in this directory)
+Pinned version: 26.05.13
+Windows archive: gobird_26.05.13_windows_amd64.zip
+SHA-256: 7406fc3c1cf2fc70ec53c70782533f73b86ecefd08df3ea15256a90d1f20f925
+
+See RISK_NOTICE.md before enabling the experimental X Feed gobird engine.

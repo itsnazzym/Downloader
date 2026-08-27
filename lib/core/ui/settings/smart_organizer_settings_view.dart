@@ -14,6 +14,7 @@ import '../../design_system/foundation/spacing.dart';
 import '../../plugins/builtin/smart_organizer_plugin.dart';
 import '../../plugins/plugin_manager.dart'; // Added
 import '../settings_view.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class SmartOrganizerSettingsView extends ConsumerStatefulWidget {
   const SmartOrganizerSettingsView({super.key});
@@ -110,34 +111,40 @@ class _SmartOrganizerSettingsViewState
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          backgroundColor: AppColors.surface,
-          title: Text(isEditing ? 'Edit Rule' : 'New Rule'),
+          backgroundColor: AppColors.of(context).surface,
+          title: Text(isEditing ? context.l10n.editRule : context.l10n.newRule),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    labelStyle: TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: AppColors.of(context).textPrimary),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.nameLabel,
+                    labelStyle: TextStyle(
+                      color: AppColors.of(context).textPrimary,
+                    ),
                   ),
                 ),
                 TextField(
                   controller: patternController,
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: AppColors.of(context).textPrimary),
                   decoration: InputDecoration(
-                    labelText: 'Pattern (Keyword or Regex)',
-                    labelStyle: const TextStyle(color: AppColors.textPrimary),
-                    helperText: isRegex ? 'RegExp pattern' : 'Contains text',
-                    helperStyle: const TextStyle(
-                      color: AppColors.textSecondary,
+                    labelText: context.l10n.patternKeywordOrRegex,
+                    labelStyle: TextStyle(
+                      color: AppColors.of(context).textPrimary,
+                    ),
+                    helperText: isRegex
+                        ? context.l10n.regexpPattern
+                        : context.l10n.containsText,
+                    helperStyle: TextStyle(
+                      color: AppColors.of(context).textSecondary,
                     ),
                   ),
                 ),
                 CheckboxListTile(
-                  title: const Text('Is Regex'),
+                  title: Text(context.l10n.isRegex),
                   value: isRegex,
                   onChanged: (v) => setState(() => isRegex = v ?? false),
                 ),
@@ -147,25 +154,31 @@ class _SmartOrganizerSettingsViewState
                     Expanded(
                       child: TextField(
                         controller: targetController,
-                        style: const TextStyle(color: AppColors.textPrimary),
-                        decoration: const InputDecoration(
-                          labelText: 'Target Subfolder',
-                          labelStyle: TextStyle(color: AppColors.textPrimary),
+                        style: TextStyle(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.targetSubfolder,
+                          labelStyle: TextStyle(
+                            color: AppColors.of(context).textPrimary,
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: AppColors.textSecondary,
+                              color: AppColors.of(context).textSecondary,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.primary),
+                            borderSide: BorderSide(
+                              color: AppColors.of(context).primary,
+                            ),
                           ),
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.folder_open,
-                        color: AppColors.textPrimary,
+                        color: AppColors.of(context).textPrimary,
                       ),
                       onPressed: () async {
                         final result = await FilePicker.platform
@@ -178,7 +191,7 @@ class _SmartOrganizerSettingsViewState
                   ],
                 ),
                 CheckboxListTile(
-                  title: const Text('Active'),
+                  title: Text(context.l10n.active),
                   value: active,
                   onChanged: (v) => setState(() => active = v ?? true),
                 ),
@@ -188,7 +201,7 @@ class _SmartOrganizerSettingsViewState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -208,7 +221,7 @@ class _SmartOrganizerSettingsViewState
                 _addOrUpdateRule(newRule);
                 Navigator.pop(context);
               },
-              child: const Text('Save'),
+              child: Text(context.l10n.save),
             ),
           ],
         ),
@@ -242,11 +255,7 @@ class _SmartOrganizerSettingsViewState
     // Basic implementation: fire and forget or simple alert
     // Improving this would require streaming response
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Requesting Ollama to pull $modelName... This may take a while.',
-        ),
-      ),
+      SnackBar(content: Text(context.l10n.requestingOllamaPull(modelName))),
     );
     try {
       final url = _ollamaUrlController.text.trim();
@@ -272,11 +281,11 @@ class _SmartOrganizerSettingsViewState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Download Model'),
+        title: Text(context.l10n.downloadModel),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Select a popular model to pull:'),
+            Text(context.l10n.selectPopularModel),
             const Gap(16),
             Wrap(
               spacing: 8,
@@ -294,8 +303,8 @@ class _SmartOrganizerSettingsViewState
                   .toList(),
             ),
             const Gap(16),
-            const Text(
-              'Note: This requires a fast internet connection. Check Ollama logs for progress.',
+            Text(
+              context.l10n.ollamaPullNote,
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
@@ -303,7 +312,7 @@ class _SmartOrganizerSettingsViewState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(context.l10n.close),
           ),
         ],
       ),
@@ -356,7 +365,7 @@ class _SmartOrganizerSettingsViewState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Organization Complete. Scanned $totalCount files, moved $movedCount.',
+              context.l10n.organizationCompleteDetail(totalCount, movedCount),
             ),
           ),
         );
@@ -367,19 +376,19 @@ class _SmartOrganizerSettingsViewState
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
+      return Scaffold(
+        backgroundColor: AppColors.of(context).background,
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: const Text('Smart Organization'),
-        backgroundColor: AppColors.background,
+        title: Text(context.l10n.smartOrganization),
+        backgroundColor: AppColors.of(context).background,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: AppColors.of(context).textPrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.l),
@@ -391,10 +400,8 @@ class _SmartOrganizerSettingsViewState
               child: Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('Smart Guess (AI Curator)'),
-                    subtitle: const Text(
-                      'Automatically categorize files based on common patterns or Local AI.',
-                    ),
+                    title: Text(context.l10n.smartGuessTitle),
+                    subtitle: Text(context.l10n.smartGuessDesc),
                     value: _smartGuessEnabled,
                     onChanged: (v) async {
                       setState(() => _smartGuessEnabled = v);
@@ -409,19 +416,19 @@ class _SmartOrganizerSettingsViewState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           DropdownButtonFormField<String>(
-                            dropdownColor: AppColors.surface,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
+                            dropdownColor: AppColors.of(context).surface,
+                            style: TextStyle(
+                              color: AppColors.of(context).textPrimary,
                             ),
-                            decoration: const InputDecoration(
-                              labelText: 'AI Mode',
+                            decoration: InputDecoration(
+                              labelText: context.l10n.aiMode,
                               labelStyle: TextStyle(
-                                color: AppColors.textPrimary,
+                                color: AppColors.of(context).textPrimary,
                               ),
                               border: OutlineInputBorder(),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: AppColors.textSecondary,
+                                  color: AppColors.of(context).textSecondary,
                                 ),
                               ),
                               contentPadding: EdgeInsets.symmetric(
@@ -430,22 +437,22 @@ class _SmartOrganizerSettingsViewState
                               ),
                             ),
                             initialValue: _aiMode,
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: 'offline',
                                 child: Text(
-                                  'Offline (Heuristic - Fast)',
+                                  context.l10n.aiModeOffline,
                                   style: TextStyle(
-                                    color: AppColors.textPrimary,
+                                    color: AppColors.of(context).textPrimary,
                                   ),
                                 ),
                               ),
                               DropdownMenuItem(
                                 value: 'ollama',
                                 child: Text(
-                                  'Ollama / LocalAI',
+                                  context.l10n.aiModeOllama,
                                   style: TextStyle(
-                                    color: AppColors.textPrimary,
+                                    color: AppColors.of(context).textPrimary,
                                   ),
                                 ),
                               ),
@@ -461,22 +468,22 @@ class _SmartOrganizerSettingsViewState
                             const Gap(16),
                             TextField(
                               controller: _ollamaUrlController,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
+                              style: TextStyle(
+                                color: AppColors.of(context).textPrimary,
                               ),
-                              decoration: const InputDecoration(
-                                labelText: 'Ollama API URL',
+                              decoration: InputDecoration(
+                                labelText: context.l10n.ollamaApiUrl,
                                 labelStyle: TextStyle(
-                                  color: AppColors.textPrimary,
+                                  color: AppColors.of(context).textPrimary,
                                 ),
                                 hintText: 'http://localhost:11434',
                                 hintStyle: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: AppColors.of(context).textSecondary,
                                 ),
                                 border: OutlineInputBorder(),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                    color: AppColors.textSecondary,
+                                    color: AppColors.of(context).textSecondary,
                                   ),
                                 ),
                               ),
@@ -491,31 +498,39 @@ class _SmartOrganizerSettingsViewState
                                 Expanded(
                                   child: TextField(
                                     controller: _ollamaModelController,
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
+                                    style: TextStyle(
+                                      color: AppColors.of(context).textPrimary,
                                     ),
                                     decoration: InputDecoration(
-                                      labelText: 'Model Name',
-                                      labelStyle: const TextStyle(
-                                        color: AppColors.textPrimary,
+                                      labelText: context.l10n.modelName,
+                                      labelStyle: TextStyle(
+                                        color: AppColors.of(
+                                          context,
+                                        ).textPrimary,
                                       ),
                                       border: const OutlineInputBorder(),
-                                      enabledBorder: const OutlineInputBorder(
+                                      enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: AppColors.textSecondary,
+                                          color: AppColors.of(
+                                            context,
+                                          ).textSecondary,
                                         ),
                                       ),
                                       helperText:
-                                          'Select from list or type manually',
-                                      helperStyle: const TextStyle(
-                                        color: AppColors.textSecondary,
+                                          context.l10n.selectOrTypeModel,
+                                      helperStyle: TextStyle(
+                                        color: AppColors.of(
+                                          context,
+                                        ).textSecondary,
                                       ),
                                       suffixIcon: PopupMenuButton<String>(
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.arrow_drop_down,
-                                          color: AppColors.textPrimary,
+                                          color: AppColors.of(
+                                            context,
+                                          ).textPrimary,
                                         ),
-                                        color: AppColors.surface,
+                                        color: AppColors.of(context).surface,
                                         onSelected: (String value) {
                                           _ollamaModelController.text = value;
                                           _saveSettings();
@@ -528,8 +543,10 @@ class _SmartOrganizerSettingsViewState
                                               value: choice,
                                               child: Text(
                                                 choice,
-                                                style: const TextStyle(
-                                                  color: AppColors.textPrimary,
+                                                style: TextStyle(
+                                                  color: AppColors.of(
+                                                    context,
+                                                  ).textPrimary,
                                                 ),
                                               ),
                                             );
@@ -551,18 +568,18 @@ class _SmartOrganizerSettingsViewState
                                         )
                                       : const Icon(Icons.refresh),
                                   onPressed: _fetchModels,
-                                  tooltip: 'Refresh Models',
+                                  tooltip: context.l10n.refreshModels,
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.download),
                                   onPressed: _showDownloadModelDialog,
-                                  tooltip: 'Download Model',
+                                  tooltip: context.l10n.downloadModel,
                                 ),
                               ],
                             ),
                             const Gap(8),
-                            const Text(
-                              'Make sure Ollama is running (`ollama serve`).',
+                            Text(
+                              context.l10n.ollamaMustRun,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
@@ -580,18 +597,18 @@ class _SmartOrganizerSettingsViewState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SectionTitle('Custom Rules'),
+                SectionTitle(context.l10n.customRules),
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () => _showRuleDialog(),
-                  tooltip: 'Add Rule',
+                  tooltip: context.l10n.addRule,
                 ),
               ],
             ),
             if (_rules.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('No rules defined. Add one using the + button.'),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(context.l10n.noRulesDefined),
               ),
             ..._rules.map(
               (rule) => Card(
@@ -601,7 +618,9 @@ class _SmartOrganizerSettingsViewState
                   subtitle: Text('${rule.pattern} -> ${rule.targetFolder}'),
                   leading: Icon(
                     rule.isRegex ? Icons.code : Icons.text_fields,
-                    color: rule.active ? AppColors.primary : Colors.grey,
+                    color: rule.active
+                        ? AppColors.of(context).primary
+                        : Colors.grey,
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -621,7 +640,10 @@ class _SmartOrganizerSettingsViewState
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: AppColors.error),
+                        icon: Icon(
+                          Icons.delete,
+                          color: AppColors.of(context).error,
+                        ),
                         onPressed: () => _deleteRule(rule.id),
                       ),
                     ],
@@ -631,17 +653,15 @@ class _SmartOrganizerSettingsViewState
               ),
             ),
             const Gap(24),
-            const SectionTitle('Tools'),
+            SectionTitle(context.l10n.toolsSection),
             Card(
               child: ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.drive_file_move,
-                  color: AppColors.primary,
+                  color: AppColors.of(context).primary,
                 ),
-                title: const Text('Organize Existing Files'),
-                subtitle: const Text(
-                  'Scan a folder and organize files using current rules/AI.',
-                ),
+                title: Text(context.l10n.organizeExistingFiles),
+                subtitle: Text(context.l10n.organizeExistingFilesDesc),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _organizeFolder,
               ),

@@ -12,21 +12,25 @@ import '../../design_system/foundation/typography.dart';
 import 'widgets/storage_chart.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class OutputSettingsView extends ConsumerWidget {
   const OutputSettingsView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
         leading: const SizedBox(),
-        backgroundColor: AppColors.background.withValues(alpha: 0.8),
+        backgroundColor: AppColors.of(
+          context,
+        ).background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
         flexibleSpace: ClipRect(
@@ -36,16 +40,16 @@ class OutputSettingsView extends ConsumerWidget {
           ),
         ),
         title: Text(
-          "Output Settings",
+          l10n.settingsOutput,
           style: AppTypography.h3.copyWith(
-            color: AppColors.textPrimary,
+            color: AppColors.of(context).textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: AppColors.border.withValues(alpha: 0.5),
+            color: AppColors.of(context).border.withValues(alpha: 0.5),
             height: 1,
           ),
         ),
@@ -62,13 +66,13 @@ class OutputSettingsView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        const SectionTitle("Output"),
+                        SectionTitle(l10n.settingsOutput),
                         StorageChart(path: settings.outputFolder),
                         const Gap(AppSpacing.l),
                         ActionTile(
-                          title: "Download Folder",
+                          title: l10n.downloadFolder,
                           subtitle: settings.outputFolder.isEmpty
-                              ? "Select folder..."
+                              ? l10n.selectFolder
                               : settings.outputFolder,
                           icon: Icons.folder_open_rounded,
                           onTap: () async {
@@ -80,15 +84,15 @@ class OutputSettingsView extends ConsumerWidget {
                           },
                         ),
                         DropdownTile(
-                          title: "Format",
+                          title: l10n.formatLabel,
                           value: settings.outputFormat,
                           options: const ["mp4", "mkv", "webm"],
                           onChanged: settingsNotifier.setOutputFormat,
                           icon: Icons.video_file,
                         ),
                         SwitchTile(
-                          title: "Organize by Site",
-                          subtitle: "Create subfolders like Downloads/YouTube/",
+                          title: l10n.organizeBySite,
+                          subtitle: l10n.organizeBySiteDesc,
                           value: settings.organizeBySite,
                           onChanged: settingsNotifier.setOrganizeBySite,
                           icon: Icons.folder_copy_rounded,

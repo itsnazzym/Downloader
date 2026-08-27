@@ -9,21 +9,26 @@ import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart'; // Reuse tile widgets
+import '../../setup/dependency_bootstrap_provider.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class GeneralSettingsView extends ConsumerWidget {
   const GeneralSettingsView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
         leading: const SizedBox(), // Hide back button if shown by default
-        backgroundColor: AppColors.background.withValues(alpha: 0.8),
+        backgroundColor: AppColors.of(
+          context,
+        ).background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
         flexibleSpace: ClipRect(
@@ -33,16 +38,16 @@ class GeneralSettingsView extends ConsumerWidget {
           ),
         ),
         title: Text(
-          "General Settings",
+          l10n.settingsGeneral,
           style: AppTypography.h3.copyWith(
-            color: AppColors.textPrimary,
+            color: AppColors.of(context).textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: AppColors.border.withValues(alpha: 0.5),
+            color: AppColors.of(context).border.withValues(alpha: 0.5),
             height: 1,
           ),
         ),
@@ -59,30 +64,40 @@ class GeneralSettingsView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        const SectionTitle("General"),
+                        SectionTitle(l10n.settingsGeneral),
                         ActionTile(
-                          title: "Smart Organization (AI Curator)",
-                          subtitle: "Manage auto-sort rules & smart guessing",
+                          title: l10n.previewSetup,
+                          subtitle: l10n.previewSetupDesc,
+                          icon: Icons.install_desktop_outlined,
+                          onTap: () {
+                            ref
+                                .read(dependencyBootstrapProvider.notifier)
+                                .ensureReady();
+                          },
+                        ),
+                        ActionTile(
+                          title: l10n.smartOrganization,
+                          subtitle: l10n.smartOrganizationDesc,
                           icon: Icons.auto_awesome_motion,
                           onTap: () =>
                               context.push('/settings/smart_organizer'),
                         ),
                         SwitchTile(
-                          title: "Audio Only",
-                          subtitle: "Extract audio only (MP3) from videos",
+                          title: l10n.audioOnly,
+                          subtitle: l10n.audioOnlyDesc,
                           value: settings.audioOnly,
                           onChanged: settingsNotifier.setAudioOnly,
                           icon: Icons.audiotrack,
                         ),
                         SwitchTile(
-                          title: "Auto-Start",
-                          subtitle: "Start downloads immediately when added",
+                          title: l10n.autoStart,
+                          subtitle: l10n.autoStartDesc,
                           value: settings.autoStart,
                           onChanged: settingsNotifier.setAutoStart,
                           icon: Icons.play_arrow_rounded,
                         ),
                         DropdownTile(
-                          title: "Preferred Quality",
+                          title: l10n.preferredQuality,
                           value: settings.preferredQuality,
                           options: const ["best", "manual", "manual+"],
                           onChanged: settingsNotifier.setPreferredQuality,

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Downloader — X Feed</title>
+    <link rel="stylesheet" href="feed_panel.css">
+</head>
+
+<body>
+    <header class="panel-header">
+        <div class="title-row">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 2v20M2 12h20"></path>
+                <circle cx="12" cy="12" r="8"></circle>
+            </svg>
+            <div>
+                <h1 data-i18n="xFeedTitle">X Feed</h1>
+                <p data-i18n="xFeedDescription">Select videos already loaded in your X feed.</p>
+            </div>
+        </div>
+            <span id="source-pill" class="source-pill source-local" data-i18n="xFeedLocalSource">For You — local</span>
+    </header>
+
+    <main class="panel-content">
+        <div class="toolbar">
+            <button type="button" id="analyze-btn" class="primary-btn" data-i18n="analyzeXFeed">
+                Analyze loaded feed
+            </button>
+            <button type="button" id="open-x-btn" class="secondary-btn" data-i18n="openXPage">
+                Open X
+            </button>
+        </div>
+
+        <div class="selection-toolbar" aria-label="Selection controls">
+            <button type="button" id="select-all-btn" class="text-btn" data-i18n="selectAll">
+                Select all
+            </button>
+            <button type="button" id="clear-selection-btn" class="text-btn" data-i18n="clearSelection">
+                Clear
+            </button>
+            <span id="scan-info" class="scan-info" role="status" aria-live="polite"></span>
+        </div>
+
+        <div id="feed-status" class="feed-status" role="status" aria-live="polite">
+            <span data-i18n="xFeedReady">Open X.com, load the feed, then analyze it.</span>
+        </div>
+
+        <div id="feed-list" class="feed-list" aria-live="polite">
+            <div class="empty-state" data-i18n="xFeedNoItems">
+                No loaded video posts found.
+            </div>
+        </div>
+    </main>
+
+    <footer class="panel-footer">
+        <span id="selection-count" class="selection-count">0 selected</span>
+        <button type="button" id="download-selected-btn" class="download-btn" disabled data-i18n="downloadSelected">
+            Download selected
+        </button>
+    </footer>
+
+    <script src="browser_api.js"></script>
+    <script src="feed_panel.js"></script>
+</body>
+
+</html>

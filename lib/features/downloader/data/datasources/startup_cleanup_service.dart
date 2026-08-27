@@ -18,7 +18,7 @@ class StartupCleanupService {
         followLinks: false,
       )) {
         if (entity is File) {
-          if (_shouldDelete(entity.path)) {
+          if (shouldDelete(entity.path)) {
             try {
               await entity.delete();
               deletedCount++;
@@ -41,11 +41,14 @@ class StartupCleanupService {
     }
   }
 
-  static bool _shouldDelete(String path) {
+  /// Resume artifacts (.part/.ytdl/.aria2) must be kept so yt-dlp can continue.
+  static bool shouldDelete(String path) {
     final lower = path.toLowerCase();
-    return lower.endsWith('.part') ||
+    if (lower.endsWith('.part') ||
         lower.endsWith('.ytdl') ||
-        lower.endsWith('.aria2') ||
-        lower.endsWith('.temp');
+        lower.endsWith('.aria2')) {
+      return false;
+    }
+    return lower.endsWith('.temp');
   }
 }

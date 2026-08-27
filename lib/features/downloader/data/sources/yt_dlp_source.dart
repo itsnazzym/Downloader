@@ -6,7 +6,13 @@ import '../../domain/exceptions/yt_dlp_exception.dart';
 import '../../../../../core/logger/logger_service.dart';
 import '../../../../../services/binary_locator.dart';
 import '../../../../../services/process_runner.dart';
-import '../../../../../core/services/title_cleaner_service.dart';
+import '../../../../../core/download/cookie_browser_args.dart';
+import '../../../../../core/download/temp_file_cleanup.dart';
+import '../../../../../core/download/download_file_resolver.dart';
+import '../../../../../core/download/tor_proxy_guard.dart';
+import '../../../../../core/download/yt_dlp_cookie_args.dart';
+import '../../../../../core/download/yt_dlp_progress_parser.dart';
+import '../../../../../core/download/download_status_guard.dart';
 
 class YtDlpSource {
   final BinaryLocator _binaryLocator;
@@ -42,6 +48,9 @@ class YtDlpSource {
   Future<Map<String, dynamic>> fetchMetadata(
     String url, {
     String? cookies,
+    String? cookiesFilePath,
+    String? cookieBrowser,
+    bool useTorProxy = false,
   }) async {
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) throw Exception('yt-dlp binary not found');
@@ -49,24 +58,66 @@ class YtDlpSource {
     // Use verbose flags for clarity and safety
     // --no-warnings is CRITICAL because yt-dlp can print warnings to stdout which breaks jsonDecode
     // --no-playlist ensures we get a single video JSON, preventing multiple JSONs for playlist URLs
-    final args = ['--dump-json', '--no-warnings', '--no-playlist', url];
+    final args = <String>['--dump-json', '--no-warnings', '--no-playlist'];
 
-    if (cookies != null && cookies.isNotEmpty) {
-      args.addAll(['--add-header', 'Cookie:$cookies']);
+    File? tempNetscapeFile;
+    try {
+      var effectiveCookiesPath = cookiesFilePath;
+      if ((effectiveCookiesPath == null || effectiveCookiesPath.isEmpty) &&
+          YtDlpCookieArgs.isNetscapeFormat(cookies)) {
+        tempNetscapeFile = File(
+          '${Directory.systemTemp.path}/md_meta_cookies_${DateTime.now().millisecondsSinceEpoch}.txt',
+        );
+        await tempNetscapeFile.writeAsString(cookies!);
+        effectiveCookiesPath = tempNetscapeFile.path;
+      }
+
+      args.addAll(
+        YtDlpCookieArgs.build(
+          cookiesFilePath: effectiveCookiesPath,
+          rawCookies: cookies,
+          cookieBrowser: cookieBrowser,
+        ),
+      );
+
+      final proxy = await TorProxyGuard.resolveProxyUrl(
+        useTorProxy: useTorProxy,
+      );
+      if (proxy != null) {
+        args.addAll(['--proxy', proxy]);
+      } else if (useTorProxy) {
+        LoggerService.w(
+          'Tor enabled but ${TorProxyGuard.host}:${TorProxyGuard.port} unreachable — metadata without proxy',
+        );
+      }
+
+      args.add(url);
+
+      final result = await _processRunner.run(ytDlp, args);
+      if (result.exitCode != 0) {
+        final stderr = result.stderr.toString();
+        if (DownloadStatusGuard.isNonRetryableProxyError(stderr)) {
+          throw Exception(
+            DownloadStatusGuard.userFacingProxyErrorMessage(stderr),
+          );
+        }
+        throw Exception('Failed to fetch metadata: $stderr');
+      }
+
+      // Sanitize output: sometimes yt-dlp prints empty lines or debug info even with --no-warnings
+      final cleanStdout = result.stdout.toString().trim();
+      if (cleanStdout.isEmpty) {
+        throw Exception('Empty metadata response from yt-dlp');
+      }
+
+      return jsonDecode(cleanStdout) as Map<String, dynamic>;
+    } finally {
+      try {
+        if (tempNetscapeFile != null && await tempNetscapeFile.exists()) {
+          await tempNetscapeFile.delete();
+        }
+      } catch (_) {}
     }
-
-    final result = await _processRunner.run(ytDlp, args);
-    if (result.exitCode != 0) {
-      throw Exception('Failed to fetch metadata: ${result.stderr}');
-    }
-
-    // Sanitize output: sometimes yt-dlp prints empty lines or debug info even with --no-warnings
-    final cleanStdout = result.stdout.toString().trim();
-    if (cleanStdout.isEmpty) {
-      throw Exception('Empty metadata response from yt-dlp');
-    }
-
-    return jsonDecode(cleanStdout) as Map<String, dynamic>;
   }
 
   Future<List<Map<String, dynamic>>> fetchPlaylist(String url) async {
@@ -117,24 +168,25 @@ class YtDlpSource {
     final args = <String>[];
 
     // === SPEED OPTIMIZATION FLAGS ===
-    // Check for aria2c (The nuclear option for speed)
     final aria2cPath = await _binaryLocator.findAria2c();
 
-    // Concurrency logic
-    int concurrentFragments = request.concurrentFragments;
+    final maxSpeedMode = request.maxSpeedMode;
+    final concurrentFragments = maxSpeedMode ? 64 : request.concurrentFragments;
 
-    // Kick.com optimization: If specifically high concurrency (e.g. 64) is requested,
-    // we bypass Aria2c because it's limited to 16 connections.
-    // Also, if Aria2c is missing, we use native native downloader.
-
-    if (concurrentFragments > 16) {
+    // Native multi-fragment downloader scales beyond aria2c's 16-connection cap.
+    if (concurrentFragments >= 16 || maxSpeedMode) {
       LoggerService.i(
-        'High concurrency requested ($concurrentFragments). Using native downloader strategy.',
+        'Native high-speed downloader: $concurrentFragments parallel fragments'
+        '${maxSpeedMode ? ' (max speed mode)' : ''}.',
       );
-      // Native yt-dlp fragmentation
       args.addAll(['--concurrent-fragments', concurrentFragments.toString()]);
-      args.addAll(['--buffer-size', '64M']);
-      // Explicitly disable external downloader args to prevent conflicts
+      args.addAll([
+        '--buffer-size',
+        concurrentFragments >= 32 ? '128M' : '64M',
+      ]);
+      if (concurrentFragments >= 32) {
+        args.addAll(['--http-chunk-size', '10M']);
+      }
     } else if (aria2cPath != null) {
       LoggerService.i(
         'Activating Aria2c engine: $aria2cPath with $concurrentFragments threads',
@@ -147,18 +199,18 @@ class YtDlpSource {
       ]);
     } else {
       LoggerService.i(
-        'Aria2c not found, using native optimized downloader (Low Concurrency).',
+        'Aria2c not found, using native downloader with $concurrentFragments fragments.',
       );
       args.addAll(['--concurrent-fragments', concurrentFragments.toString()]);
       args.addAll(['--buffer-size', '16M']);
     }
 
-    // Skip playlist checks
-    args.add('--no-playlist');
-
-    // Retry on errors (keep .part files for resume capability)
-    args.addAll(['--retries', '10']);
-    args.addAll(['--fragment-retries', '10']);
+    // Skip playlist checks unless Twitter replies were requested
+    final isTwitter =
+        request.url.contains('twitter.com') || request.url.contains('x.com');
+    if (!(isTwitter && request.twitterIncludeReplies)) {
+      args.add('--no-playlist');
+    }
 
     // Output template - Use proper Windows path separators
     String outputPath;
@@ -197,6 +249,12 @@ class YtDlpSource {
 
     args.add('-o');
     args.add(outputPath);
+    // Emit final path after all post-processors (merge/remux/embed).
+    args.add('--print');
+    args.add('after_move:%(filepath)s');
+    // Ensure percent lines are emitted (often on stderr when --print is used).
+    args.add('--progress');
+    args.add('--newline');
     LoggerService.debug('Output path: $outputPath');
 
     // === AUDIO ONLY MODE ===
@@ -230,14 +288,32 @@ class YtDlpSource {
         args.add('bestvideo[height<=$height]+bestaudio/best[height<=$height]');
       }
 
+      final isTwitch = request.url.contains('twitch.tv');
+      if (isTwitch && request.videoFormatId == null) {
+        final twitchHeight = request.twitchQuality.replaceAll(
+          RegExp(r'[^0-9].*'),
+          '',
+        );
+        if (twitchHeight.isNotEmpty) {
+          args.add('-f');
+          args.add(
+            'bestvideo[height<=$twitchHeight]+bestaudio/best[height<=$twitchHeight]',
+          );
+        }
+      }
+
       // === OUTPUT FORMAT (FFmpeg merge/recode) ===
       // --merge-output-format ensures that if video and audio are separate they merge into this
       args.add('--merge-output-format');
       args.add(request.outputFormat); // mp4, mkv, webm
 
-      // --recode-video forces the final file into the requested container even if it's a single format
-      // This is crucial for sites that give files without extensions or incompatible ones.
-      args.add('--recode-video');
+      // --remux-video is much faster than --recode-video (no re-encoding).
+      // In max speed mode, always remux; otherwise recode for max compatibility.
+      if (request.maxSpeedMode) {
+        args.add('--remux-video');
+      } else {
+        args.add('--recode-video');
+      }
       args.add(request.outputFormat);
 
       // For MP4: Re-encode audio to AAC if merging for max compatibility
@@ -266,20 +342,40 @@ class YtDlpSource {
       args.add('srt'); // Convert all subs to srt for better support
     }
 
-    // === BROWSER COOKIES - ALWAYS USE FIREFOX ===
-    // Force Firefox cookies for all downloads to ensure consistency
-    args.addAll(['--cookies-from-browser', 'firefox']);
-    LoggerService.i('Using Firefox cookies for authentication');
+    if (request.url.contains('twitch.tv') && request.twitchDownloadChat) {
+      args.addAll(['--write-subs', '--sub-langs', 'live_chat']);
+    }
 
-    if (request.rawCookies != null && request.rawCookies!.isNotEmpty) {
-      args.addAll(['--add-header', 'Cookie:${request.rawCookies}']);
-      LoggerService.i('Using supplied session cookies');
-    } else if (request.cookiesFilePath != null) {
-      args.addAll(['--cookies', request.cookiesFilePath!]);
+    File? tempNetscapeCookies;
+    var cookiesFilePath = request.cookiesFilePath;
+    if ((cookiesFilePath == null || cookiesFilePath.isEmpty) &&
+        YtDlpCookieArgs.isNetscapeFormat(request.rawCookies)) {
+      tempNetscapeCookies = File(
+        '${Directory.systemTemp.path}/md_dl_cookies_$id.txt',
+      );
+      await tempNetscapeCookies.writeAsString(request.rawCookies!);
+      cookiesFilePath = tempNetscapeCookies.path;
+    }
+
+    final cookieArgs = YtDlpCookieArgs.build(
+      cookiesFilePath: cookiesFilePath,
+      rawCookies: request.rawCookies,
+      cookieBrowser: request.cookieBrowser,
+    );
+    args.addAll(cookieArgs);
+    if (cookieArgs.contains('--cookies')) {
+      LoggerService.i('Using cookies file for authentication');
+    } else if (cookieArgs.contains('--add-header')) {
+      LoggerService.i('Using supplied Cookie header');
+    } else if (cookieArgs.contains('--cookies-from-browser')) {
+      LoggerService.i(
+        'Using ${CookieBrowserArgs.resolve(request.cookieBrowser)} cookies for authentication',
+      );
     }
 
     args.addAll(['--retries', '3']);
     args.addAll(['--fragment-retries', '10']);
+    args.add('--continue');
 
     // === HEADERS FOR PROTECTED SITES ===
     if (request.userAgent != null) {
@@ -288,22 +384,38 @@ class YtDlpSource {
     } else if (_requiresCookies(request.url)) {
       args.addAll([
         '--user-agent',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0  /537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       ]);
       args.addAll(['--referer', request.url]);
       args.add('--no-check-certificates');
     }
 
-    // === TOR PROXY ===
-    if (request.useTorProxy) {
-      const torProxy = 'socks5://127.0.0.1:9050';
+    // === TOR PROXY (skip when 9050 is down) ===
+    final torProxy = await TorProxyGuard.resolveProxyUrl(
+      useTorProxy: request.useTorProxy,
+    );
+    if (torProxy != null) {
       args.add('--proxy');
       args.add(torProxy);
       LoggerService.i('Using Tor Proxy: $torProxy');
+    } else if (request.useTorProxy) {
+      LoggerService.w(
+        'Tor enabled but ${TorProxyGuard.host}:${TorProxyGuard.port} unreachable — downloading without proxy',
+      );
     }
 
-    // URL
-    args.add(request.url);
+    if ((request.forceStreamUrl != null &&
+            request.forceStreamUrl!.contains('stream.kick.com')) ||
+        request.url.contains('kick.com')) {
+      args.addAll(['--add-header', 'Origin:https://kick.com']);
+    }
+
+    // URL — prefer a resolved direct stream (Kick HLS master/variant)
+    final downloadUrl =
+        (request.forceStreamUrl != null && request.forceStreamUrl!.isNotEmpty)
+        ? request.forceStreamUrl!
+        : request.url;
+    args.add(downloadUrl);
 
     LoggerService.i('YtDlpSource: Running: $ytDlp ${args.join(' ')}');
 
@@ -311,7 +423,7 @@ class YtDlpSource {
     final process = await Process.start(
       ytDlp,
       args,
-      runInShell: true,
+      runInShell: false,
       environment: {'PYTHONIOENCODING': 'utf-8'},
     );
     _downloadProcesses[id] = process;
@@ -319,16 +431,35 @@ class YtDlpSource {
     LoggerService.i('Process started with PID: ${process.pid}');
 
     YtDlpException? detectedException;
-    StringBuffer errorBuffer = StringBuffer();
-    StringBuffer outputBuffer = StringBuffer();
+    final errorBuffer = StringBuffer();
+    final outputBuffer = StringBuffer();
 
-    process.stderr.transform(const Utf8Decoder(allowMalformed: true)).listen((
-      data,
-    ) {
-      errorBuffer.write(data);
-      LoggerService.w('yt-dlp stderr: $data');
+    final preferredExt = request.audioOnly
+        ? '.${request.audioFormat}'
+        : '.${request.outputFormat}';
+    final videoIdFromFilename = DownloadFileResolver.extractBracketId(
+      request.customFilename ?? filename,
+    );
+
+    final parser = YtDlpProgressParser(
+      baseFolder: baseFolder,
+      preferredExt: preferredExt,
+    );
+
+    // Merge stdout + stderr line-by-line into one handler (progress often on stderr
+    // when --print after_move is used).
+    final lineController = StreamController<String>();
+    var openStreams = 2;
+
+    void markStreamDone() {
+      openStreams--;
+      if (openStreams <= 0 && !lineController.isClosed) {
+        unawaited(lineController.close());
+      }
+    }
+
+    void detectYtDlpException(String data) {
       if (detectedException != null) return;
-
       final check = data.toLowerCase();
       if (check.contains('video unavailable')) {
         detectedException = VideoUnavailableException(log: data);
@@ -337,286 +468,145 @@ class YtDlpSource {
       } else if (check.contains('geo-restricted')) {
         detectedException = GeoBlockedException(log: data);
       }
-    });
+    }
 
-    // Regex for progress parsing
-    final progressRegex = RegExp(
-      r'\[download\]\s+(\d+\.?\d*)%\s+of\s+~?\s*([~\d\.]+\w+)\s+at\s+([~\d\.]+\w+/s)\s+ETA\s+([\d:]+)',
-    );
-    final hlsProgressRegex = RegExp(
-      r'\[download\]\s+(\d+\.?\d*)%\s+of\s+~?\s*([~\d\.]+\w+)\s+in\s+[\d:]+\s+at\s+([~\d\.]+\w+/s)',
-    );
-
-    final destinationRegex = RegExp(
-      r'\[download\] Destination: .*[/\\](.*?)(?:\.\w+)?$',
-    );
-    final mergerRegex = RegExp(
-      r'\[Merger\] Merging formats into "(.*?)(?:\.\w+)?"',
-    );
-
-    String? extractedTitle;
-    String currentStep = 'Initializing...';
-    String? currentFilePath;
-
-    bool hasProgress = false;
-
-    await for (final line
-        in process.stdout
-            .transform(const Utf8Decoder(allowMalformed: true))
-            .transform(const LineSplitter())) {
-      outputBuffer.writeln(line); // Capture full log
-      LoggerService.debug('yt-dlp: $line');
-
-      if (line.contains('[download]')) {
-        hasProgress = true; // Mark as having progress
-        if (line.contains('Downloading') && line.contains('format')) {
-          currentStep = 'Downloading video...';
-        } else if (line.contains('Destination')) {
-          currentStep = 'Saving file...';
-        }
-      } else if (line.contains('[Merger]')) {
-        currentStep = 'Merging audio/video...';
-      } else if (line.contains('[EmbedThumbnail]')) {
-        currentStep = 'Embedding thumbnail...';
-      }
-
-      if (extractedTitle == null) {
-        var titleMatch = destinationRegex.firstMatch(line);
-        titleMatch ??= mergerRegex.firstMatch(line);
-        if (titleMatch != null) {
-          extractedTitle = titleMatch.group(1);
-          if (extractedTitle != null) {
-            extractedTitle = TitleCleanerService.clean(extractedTitle);
-          }
-          yield DownloadProgressEvent(
-            progress: -1,
-            totalSize: '',
-            speed: '',
-            eta: '',
-            title: extractedTitle,
-            step: currentStep,
-          );
-        }
-      }
-
-      // capture file path from 'Merging formats into' or 'Destination'
-      // Only capture if it looks like a final file (not .part) or if it's a merger result
-      // capture file path from 'Merging formats into' or 'Destination'
-      if (line.contains('[Merger] Merging formats into')) {
-        final match = RegExp(r'Merging formats into "(.*)"').firstMatch(line);
-        if (match != null) {
-          final rawPath = match.group(1)!;
-          // Manual absolute path check for Windows/Linux
-          if (rawPath.contains(':') ||
-              rawPath.startsWith('/') ||
-              rawPath.startsWith('\\')) {
-            currentFilePath = rawPath;
-          } else {
-            currentFilePath = '$baseFolder\\$rawPath';
-          }
-          LoggerService.debug('Detected merged file path: $currentFilePath');
-          yield DownloadProgressEvent(
-            progress: -1,
-            totalSize: '',
-            speed: '',
-            eta: '',
-            title: extractedTitle,
-            step: 'Merging audio/video...',
-            filePath: currentFilePath,
-          );
-        }
-      } else if (line.contains('[download] Destination:')) {
-        final match = RegExp(r'Destination: (.*)$').firstMatch(line);
-        if (match != null) {
-          var rawPath = match.group(1)!;
-
-          // Sanitize: strip temporary extensions if present
-          rawPath = rawPath.replaceAll('.part', '');
-          rawPath = rawPath.replaceAll('.ytdl', '');
-          // Note: we don't strip .fhls or .f because those might be part of the actual desired filename before merger
-          // and we want to know them to show partial previews if possible.
-
-          if (rawPath.contains(':') ||
-              rawPath.startsWith('/') ||
-              rawPath.startsWith('\\')) {
-            currentFilePath = rawPath;
-          } else {
-            currentFilePath = '$baseFolder\\$rawPath';
-          }
-          LoggerService.debug('Detected download file path: $currentFilePath');
-          yield DownloadProgressEvent(
-            progress: -1,
-            totalSize: '',
-            speed: '',
-            eta: '',
-            title: extractedTitle,
-            step: 'Starting download...',
-            filePath: currentFilePath,
-          );
-        }
-      } else if (line.contains('Already downloaded') ||
-          line.contains('has already been downloaded')) {
-        // Handle case where file exists
-        final match = RegExp(r': (.*)$').firstMatch(line);
-        if (match != null) {
-          currentFilePath = match.group(1);
-        }
-        // Yield duplicate event immediately
-        yield DownloadProgressEvent(
-          progress: 1.0,
-          totalSize: '',
-          speed: 'Dupliqué',
-          eta: '',
-          title: extractedTitle,
-          step: 'Déjà téléchargé',
-          filePath: currentFilePath,
-          isDuplicate: true,
-        );
-        // We can stop here or let it finish naturally, but usually yt-dlp exits soon after.
-      }
-
-      // Also check for "Fixup" or "EmbedThumbnail" messages which often indicate final container
-      if (line.contains('[Fixup') || line.contains('[EmbedThumbnail]')) {
-        // Often regex is like: [FixupM4a] Correcting container of "C:\...\file.m4a"
-        // or: [EmbedThumbnail] mutagen: Adding thumbnail to "C:\...\file.mp4"
-        final match = RegExp(r'of "(.*?)"|to "(.*?)"').firstMatch(line);
-        if (match != null) {
-          final detected = match.group(1) ?? match.group(2);
-          if (detected != null) {
-            currentFilePath = detected;
-            LoggerService.debug(
-              'Refined path from post-processor: $currentFilePath',
-            );
-            yield DownloadProgressEvent(
-              progress: -1,
-              totalSize: '',
-              speed: '',
-              eta: '',
-              title: extractedTitle,
-              step: currentStep,
-              filePath: currentFilePath,
-            );
-          }
-        }
-      }
-
-      // Catch-all: If we see an absolute path in quotes that exists on disk and we don't have a final path yet
-      if (currentFilePath == null || currentFilePath.contains('.part')) {
-        final absolutePathMatch = RegExp(
-          r'"([a-zA-Z]:[\\/][^"]+)"',
-        ).firstMatch(line);
-        if (absolutePathMatch != null) {
-          final detected = absolutePathMatch.group(1);
-          if (detected != null &&
-              File(detected).existsSync() &&
-              !detected.endsWith('.part') &&
-              !detected.endsWith('.ytdl')) {
-            currentFilePath = detected;
-            LoggerService.debug(
-              'Caught absolute path from fallback: $currentFilePath',
-            );
-          }
-        }
-      }
-
-      // Parse progress
-      var match = progressRegex.firstMatch(line);
-      if (match != null) {
-        hasProgress = true;
-        final speedStr = match.group(3) ?? '';
-        String displaySpeed = speedStr;
-
-        // Convert to Mbps for display
-        try {
-          // Example: 2.70MiB/s
-          final parts = speedStr.split(RegExp(r'[A-Za-z]'));
-          if (parts.isNotEmpty) {
-            double val = double.tryParse(parts.first) ?? 0.0;
-            if (speedStr.contains('MiB/s')) {
-              val = val * 8.388608; // 1 MiB = 8.38 Mb
-            } else if (speedStr.contains('KiB/s')) {
-              val = val * 0.008192;
+    process.stdout
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .transform(const LineSplitter())
+        .listen(
+          (line) {
+            outputBuffer.writeln(line);
+            LoggerService.debug('yt-dlp: $line');
+            if (!lineController.isClosed) {
+              lineController.add(line);
             }
-            if (val > 80.0) {
-              LoggerService.i(
-                'High Speed Download: ${val.toStringAsFixed(1)} Mbps',
-              );
+          },
+          onDone: markStreamDone,
+          onError: (Object e, StackTrace st) {
+            if (!lineController.isClosed) {
+              lineController.addError(e, st);
             }
-            displaySpeed = '${val.toStringAsFixed(1)} Mbps';
-          }
-        } catch (e) {
-          // ignore parsing error
-        }
-
-        final progress = double.parse(match.group(1)!) / 100;
-        final totalSize = match.group(2) ?? '';
-        final downloadedSize = _calculateDownloadedSize(totalSize, progress);
-
-        yield DownloadProgressEvent(
-          progress: progress,
-          totalSize: totalSize,
-          downloadedSize: downloadedSize,
-          speed: displaySpeed,
-          eta: match.group(4) ?? '',
-          title: extractedTitle,
-          step: currentStep,
-          filePath: currentFilePath,
+            markStreamDone();
+          },
+          cancelOnError: false,
         );
-      } else {
-        match = hlsProgressRegex.firstMatch(line);
-        if (match != null) {
-          hasProgress = true;
-          // Same speed logic for HLS
-          final speedStr = match.group(3) ?? '';
-          // ... conversion logic if needed ...
-          yield DownloadProgressEvent(
-            progress: double.parse(match.group(1)!) / 100,
-            totalSize: match.group(2) ?? '',
-            speed:
-                speedStr, // Keep original for HLS for now to save tokens/time
-            eta: '',
-            title: extractedTitle,
-            step: currentStep,
-            filePath: currentFilePath,
-          );
+
+    process.stderr
+        .transform(const Utf8Decoder(allowMalformed: true))
+        .transform(const LineSplitter())
+        .listen(
+          (line) {
+            errorBuffer.writeln(line);
+            outputBuffer.writeln(line);
+            LoggerService.w('yt-dlp stderr: $line');
+            detectYtDlpException(line);
+            if (!lineController.isClosed) {
+              lineController.add(line);
+            }
+          },
+          onDone: markStreamDone,
+          onError: (Object e, StackTrace st) {
+            if (!lineController.isClosed) {
+              lineController.addError(e, st);
+            }
+            markStreamDone();
+          },
+          cancelOnError: false,
+        );
+
+    await for (final line in lineController.stream) {
+      for (final update in parser.onLine(line)) {
+        if (update.filePath != null) {
+          LoggerService.debug('Detected file path: ${update.filePath}');
         }
+        if (update.speed.contains('Mbps')) {
+          final mbps = double.tryParse(update.speed.split(' ').first);
+          if (mbps != null && mbps > 80.0) {
+            LoggerService.i('High Speed Download: ${update.speed}');
+          }
+        }
+        yield DownloadProgressEvent(
+          progress: update.progress,
+          totalSize: update.totalSize,
+          downloadedSize: update.downloadedSize,
+          speed: update.speed,
+          eta: update.eta,
+          title: update.title,
+          step: update.step,
+          filePath: update.filePath,
+          isDuplicate: update.isDuplicate,
+        );
       }
     }
 
-    final exitCode = await process.exitCode;
-    _downloadProcesses.remove(id);
+    try {
+      final exitCode = await process.exitCode;
+      _downloadProcesses.remove(id);
 
-    LoggerService.i('Process exited with code $exitCode');
+      LoggerService.i('Process exited with code $exitCode');
 
-    if (exitCode != 0) {
-      LoggerService.e('Full Stderr: $errorBuffer'); // Log everything on error
-      if (detectedException != null) throw detectedException!;
-      throw YtDlpException(
-        'yt-dlp exited with code $exitCode. Error: $errorBuffer',
+      if (exitCode != 0) {
+        LoggerService.e('Full Stderr: $errorBuffer');
+        if (detectedException != null) throw detectedException!;
+        final errText = errorBuffer.toString();
+        if (DownloadStatusGuard.isNonRetryableProxyError(errText)) {
+          throw YtDlpException(
+            DownloadStatusGuard.userFacingProxyErrorMessage(errText),
+          );
+        }
+        throw YtDlpException(
+          'yt-dlp exited with code $exitCode. Error: $errorBuffer',
+        );
+      }
+
+      // Prefer after_move print, then resolve against disk (fragments / remux).
+      var currentFilePath = parser.afterMovePath ?? parser.currentFilePath;
+      final resolvedPath = DownloadFileResolver.resolve(
+        candidatePath: currentFilePath,
+        outputFolder: baseFolder,
+        videoId: videoIdFromFilename,
+        preferredExtension: preferredExt,
       );
-    }
+      if (resolvedPath != null) {
+        currentFilePath = resolvedPath;
+        parser.currentFilePath = resolvedPath;
+        LoggerService.debug('Resolved final file path: $currentFilePath');
+      } else if (currentFilePath != null) {
+        LoggerService.w('Could not verify file on disk: $currentFilePath');
+      }
 
-    // Check for silent failure (exit code 0 but no download progress)
-    if (!hasProgress) {
-      LoggerService.w('No progress detected. Output:\n$outputBuffer');
-      throw YtDlpException(
-        'yt-dlp exited successfully but no download progress was detected. Output: $outputBuffer',
+      // Success if we saw download progress OR a non-fragment file exists with size > 0.
+      if (!parser.isSuccessfulExit(
+        outputFolder: baseFolder,
+        videoId: videoIdFromFilename,
+      )) {
+        LoggerService.w('No progress detected. Output:\n$outputBuffer');
+        throw YtDlpException(
+          'yt-dlp exited successfully but no download progress was detected. Output: $outputBuffer',
+        );
+      }
+
+      final diskSize = DownloadFileResolver.formattedFileSize(currentFilePath);
+      yield DownloadProgressEvent(
+        progress: 1.0,
+        totalSize: diskSize ?? '',
+        downloadedSize: diskSize ?? '',
+        speed: 'Terminé',
+        eta: '',
+        title: parser.extractedTitle,
+        step: 'Fini',
+        filePath: currentFilePath,
       );
-    }
-    // Final yields to ensure UI and Repo have the absolute latest state
-    yield DownloadProgressEvent(
-      progress: 1.0,
-      totalSize: '',
-      speed: 'Terminé',
-      eta: '',
-      title: extractedTitle,
-      step: 'Fini',
-      filePath: currentFilePath,
-    );
 
-    // Cleanup temporary files
-    if (currentFilePath != null) {
-      _cleanupTempFiles(currentFilePath);
+      if (currentFilePath != null) {
+        _cleanupTempFiles(currentFilePath);
+      }
+    } finally {
+      try {
+        if (tempNetscapeCookies != null && await tempNetscapeCookies.exists()) {
+          await tempNetscapeCookies.delete();
+        }
+      } catch (_) {}
     }
   }
 
@@ -636,11 +626,7 @@ class YtDlpSource {
           final name = entity.uri.pathSegments.last;
           // Check for common temp extensions and matching filename base
           if (name.contains(filename) &&
-              (name.endsWith('.part') ||
-                  name.endsWith('.ytdl') ||
-                  name.endsWith('.f\\d+') || // fragments like .f134
-                  name.endsWith('.temp') ||
-                  name.endsWith('.aria2'))) {
+              TempFileCleanup.isFragmentOrTemp(name)) {
             try {
               await entity.delete();
               LoggerService.debug('Cleaned up temp file: $name');
@@ -699,33 +685,6 @@ class YtDlpSource {
       }
     } catch (_) {}
     return 'Other';
-  }
-
-  String _calculateDownloadedSize(String totalSizeStr, double progressPercent) {
-    if (totalSizeStr.isEmpty || progressPercent <= 0) return '';
-    if (totalSizeStr.contains('~')) {
-      totalSizeStr = totalSizeStr.replaceAll('~', '');
-    }
-
-    try {
-      // Parse unit
-      final unitRegex = RegExp(r'([A-Za-z]+)');
-      final valueRegex = RegExp(r'([\d\.]+)');
-
-      final unitMatch = unitRegex.firstMatch(totalSizeStr);
-      final valueMatch = valueRegex.firstMatch(totalSizeStr);
-
-      if (unitMatch != null && valueMatch != null) {
-        final unit = unitMatch.group(1)!;
-        final totalVal = double.parse(valueMatch.group(1)!);
-
-        final downloadedVal = totalVal * progressPercent;
-        return '${downloadedVal.toStringAsFixed(2)}$unit';
-      }
-    } catch (e) {
-      // ignore
-    }
-    return '';
   }
 }
 

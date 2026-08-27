@@ -9,6 +9,9 @@ import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
+import 'package:modern_downloader/core/utils/download_url_validator.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:modern_downloader/core/ui/widgets/animated_input_field.dart';
 import 'quality_selection_dialog.dart';
 
 class AddDownloadDialog extends ConsumerStatefulWidget {
@@ -46,9 +49,11 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
   bool _isLoading = false;
 
   Future<void> _submit() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final url = _urlController.text.trim();
-
+    final url = _urlController.text.trim();
+    final formOk = AppColors.of(context).isIosChrome
+        ? DownloadUrlValidator.isValidHttpUrl(url)
+        : (_formKey.currentState?.validate() ?? false);
+    if (formOk) {
       setState(() => _isLoading = true);
 
       // Check for playlist
@@ -119,7 +124,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
             } catch (e) {
               // Fallback to best if metadata fails
               if (mounted) {
-                AppToast.showError(context, "Failed to fetch quality options");
+                AppToast.showError(context, context.l10n.failedFetchQuality);
               }
             }
           }
@@ -139,7 +144,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
               );
 
           if (mounted) {
-            AppToast.showSuccess(context, "Download started");
+            AppToast.showSuccess(context, context.l10n.downloadStarted);
             Navigator.of(context).pop();
           }
         }
@@ -203,7 +208,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: Text("Playlist Detected (${items.length} videos)"),
+              title: Text(context.l10n.playlistDetected(items.length)),
               content: SizedBox(
                 width: double.maxFinite,
                 height: 300,
@@ -219,7 +224,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                               }
                             });
                           },
-                          child: const Text("Select All"),
+                          child: Text(context.l10n.selectAll),
                         ),
                         TextButton(
                           onPressed: () {
@@ -229,7 +234,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                               }
                             });
                           },
-                          child: const Text("Deselect All"),
+                          child: Text(context.l10n.deselectAll),
                         ),
                       ],
                     ),
@@ -239,7 +244,9 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                         itemBuilder: (context, index) {
                           final item = items[index];
                           final title =
-                              item['title'] ?? item['url'] ?? 'Unknown';
+                              item['title'] ??
+                              item['url'] ??
+                              context.l10n.unknown;
                           return CheckboxListTile(
                             value: selected[index],
                             title: Text(
@@ -264,7 +271,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Cancel"),
+                  child: Text(context.l10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -300,11 +307,16 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                         count++;
                       }
                     }
-                    AppToast.showSuccess(context, "Started $count downloads");
+                    AppToast.showSuccess(
+                      context,
+                      context.l10n.startedCountDownloads(count),
+                    );
                     Navigator.of(context).pop();
                   },
                   child: Text(
-                    "Download Selected (${selected.where((e) => e).length})",
+                    context.l10n.downloadSelected(
+                      selected.where((e) => e).length,
+                    ),
                   ),
                 ),
               ],
@@ -317,11 +329,12 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.of(context).surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: AppColors.of(context).border),
       ),
       child: Container(
         width: 400,
@@ -332,56 +345,154 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("New Download", style: AppTypography.h3),
+              Text(l10n.newDownload, style: AppTypography.h3),
               const Gap(AppSpacing.m),
               const Gap(AppSpacing.m),
-              AppTextField(
-                controller: _urlController,
-                hint: "Paste link here...",
-                label: "URL",
-                prefixIcon: const Icon(
-                  Icons.link,
-                  color: AppColors.textSecondary,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a URL';
-                  }
-                  return null;
-                },
-                onSubmitted: (_) => _submit(),
-                autofocus: true,
-              ),
+              AppColors.of(context).isIosChrome
+                  ? AnimatedInputField(
+                      controller: _urlController,
+                      hintText: l10n.pasteUrl,
+                      onSubmitted: (_) => _submit(),
+                    )
+                  : AppTextField(
+                      controller: _urlController,
+                      hint: l10n.pasteUrl,
+                      label: l10n.urlLabel,
+                      prefixIcon: Icon(
+                        Icons.link,
+                        color: AppColors.of(context).textSecondary,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return l10n.pleaseEnterUrl;
+                        }
+                        if (!DownloadUrlValidator.isValidHttpUrl(value)) {
+                          return l10n.enterValidUrl;
+                        }
+                        return null;
+                      },
+                      onSubmitted: (_) => _submit(),
+                      autofocus: true,
+                    ),
               const Gap(AppSpacing.m),
               DropdownButtonFormField<String?>(
-                decoration: const InputDecoration(
-                  labelText: 'Extract Cookies From Browser',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
+                dropdownColor: AppColors.of(context).surface,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.of(context).textPrimary,
+                ),
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: AppColors.of(context).textSecondary,
+                ),
+                decoration: InputDecoration(
+                  labelText: l10n.cookiesFromBrowser,
+                  labelStyle: AppTypography.label.copyWith(
+                    color: AppColors.of(context).textSecondary,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.of(context).surface,
+                  border: OutlineInputBorder(
+                    borderRadius: AppRadius.mediumBorder,
+                    borderSide: BorderSide(color: AppColors.of(context).border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: AppRadius.mediumBorder,
+                    borderSide: BorderSide(color: AppColors.of(context).border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: AppRadius.mediumBorder,
+                    borderSide: BorderSide(
+                      color: AppColors.of(context).primary,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 8,
                   ),
                 ),
                 initialValue: _selectedBrowser,
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('None (Default)')),
+                items: [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(
+                      l10n.cookiesNoneDefault,
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
+                  ),
                   DropdownMenuItem(
                     value: 'chrome',
-                    child: Text('Google Chrome'),
+                    child: Text(
+                      'Google Chrome',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
                   ),
                   DropdownMenuItem(
                     value: 'firefox',
-                    child: Text('Mozilla Firefox'),
+                    child: Text(
+                      'Mozilla Firefox',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
                   ),
-                  DropdownMenuItem(value: 'brave', child: Text('Brave')),
+                  DropdownMenuItem(
+                    value: 'brave',
+                    child: Text(
+                      'Brave',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
+                  ),
                   DropdownMenuItem(
                     value: 'edge',
-                    child: Text('Microsoft Edge'),
+                    child: Text(
+                      'Microsoft Edge',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
                   ),
-                  DropdownMenuItem(value: 'opera', child: Text('Opera')),
-                  DropdownMenuItem(value: 'vivaldi', child: Text('Vivaldi')),
-                  DropdownMenuItem(value: 'safari', child: Text('Safari')),
-                  DropdownMenuItem(value: 'chromium', child: Text('Chromium')),
+                  DropdownMenuItem(
+                    value: 'opera',
+                    child: Text(
+                      'Opera',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'vivaldi',
+                    child: Text(
+                      'Vivaldi',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'safari',
+                    child: Text(
+                      'Safari',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'chromium',
+                    child: Text(
+                      'Chromium',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.of(context).textPrimary,
+                      ),
+                    ),
+                  ),
                 ],
                 onChanged: (val) {
                   setState(() => _selectedBrowser = val);
@@ -395,12 +506,12 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     AppButton.ghost(
-                      label: "Cancel",
+                      label: l10n.cancel,
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     const Gap(AppSpacing.xs),
                     AppButton.primary(
-                      label: "Download",
+                      label: l10n.startDownload,
                       icon: Icons.download,
                       onPressed: _submit,
                     ),

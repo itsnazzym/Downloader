@@ -9,16 +9,25 @@ import '../../domain/enums/download_status.dart';
 import '../../domain/repositories/i_downloader_repository.dart';
 import '../sources/yt_dlp_source.dart';
 import '../sources/gallery_dl_source.dart';
+import '../sources/kick_source.dart';
+import '../sources/kick/kick_hls.dart';
 import '../services/library_scanner_service.dart';
 import '../../../../core/logger/logger_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/duplicate_detector_service.dart';
 import '../../../../core/services/disk_space_service.dart';
+import '../../../../core/services/media_fingerprint_service.dart';
 import '../../../../core/utils/format_utils.dart';
 import '../datasources/persistence_service.dart';
 import '../../../../core/services/title_cleaner_service.dart';
 import '../../../../core/plugins/plugin_manager.dart';
 import '../../../../core/plugins/plugin_interface.dart';
+import '../../../../core/download/download_crash_recovery.dart';
+import '../../../../core/download/download_path_resolver.dart';
+import '../../../../core/download/download_status_guard.dart';
+import '../../../../core/download/temp_file_cleanup.dart';
+import '../../../../core/download/download_file_resolver.dart';
+import '../../../../core/download/extraction_placeholders.dart';
 
 class DownloaderRepositoryImpl implements IDownloaderRepository {
   final YtDlpSource _source;
@@ -26,9 +35,13 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final PersistenceService _persistenceService;
   final LibraryScannerService _libraryScanner;
   final PluginManager _pluginManager;
+  final String Function() _outputFolderGetter;
+  final KickSource _kickSource;
+  final MediaFingerprintService _mediaFingerprintService;
 
   final _controller = StreamController<DownloadItem>.broadcast();
   final _activeDownloads = <String, DownloadItem>{};
+  final _fingerprintedFinalPaths = <String>{};
   Timer? _saveTimer;
 
   DownloaderRepositoryImpl(
@@ -37,31 +50,41 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     this._persistenceService,
     this._libraryScanner,
     this._pluginManager,
-  ) {
+    this._outputFolderGetter, {
+    KickSource? kickSource,
+    MediaFingerprintService? mediaFingerprintService,
+  }) : _kickSource = kickSource ?? KickSource(),
+       _mediaFingerprintService =
+           mediaFingerprintService ??
+           MediaFingerprintService(_persistenceService) {
     _loadInitialData();
   }
 
   Future<void> _loadInitialData() async {
     final loaded = await _persistenceService.loadDownloads();
+    final recovered = DownloadCrashRecovery.recoverList(loaded);
+    final didRecover = recovered.asMap().entries.any(
+      (entry) => entry.value.status != loaded[entry.key].status,
+    );
     List<DownloadItem> initialList = [];
 
-    for (final item in loaded) {
+    for (final item in recovered) {
       if (_activeDownloads.containsKey(item.id)) continue;
-      var status = item.status;
-      if (status == DownloadStatus.downloading ||
-          status == DownloadStatus.extracting) {
-        status = DownloadStatus.paused;
-      }
-      initialList.add(item.copyWith(status: status));
+      initialList.add(item);
     }
 
     // Get the download path for scanning
-    final downloadPath = await _getDownloadPath();
+    final downloadPath = _resolveDownloadPath(initialList);
     if (downloadPath == null) {
       // Just load items without scanning if we can't determine path
       for (final item in initialList) {
         _activeDownloads[item.id] = item;
         _controller.add(item); // Emit to stream
+      }
+      if (didRecover) {
+        await _persistenceService.saveDownloads(
+          _activeDownloads.values.toList(),
+        );
       }
       return;
     }
@@ -77,15 +100,24 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     }
 
     await _scanLibrary(downloadPath);
+    _saveToDisk();
+  }
+
+  String? _resolveDownloadPath([List<DownloadItem>? items]) {
+    final sourceItems = items ?? _activeDownloads.values.toList();
+    return DownloadPathResolver.resolve(
+      settingsOutputFolder: _outputFolderGetter(),
+      itemFolders: sourceItems
+          .map((item) => item.request.outputFolder ?? '')
+          .toList(),
+      userProfile: Platform.isWindows
+          ? Platform.environment['USERPROFILE']
+          : null,
+    );
   }
 
   Future<String?> _getDownloadPath() async {
-    if (Platform.isWindows) {
-      final userProfile = Platform.environment['USERPROFILE'];
-      if (userProfile == null) return null;
-      return '$userProfile\\Videos\\VOILA';
-    }
-    return null;
+    return _resolveDownloadPath();
   }
 
   Future<void> _scanLibrary(String downloadPath) async {
@@ -156,6 +188,8 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       _activeDownloads[item.id] = item;
       _controller.add(item);
     }
+    final keptIds = fixedItems.map((item) => item.id).toSet();
+    _activeDownloads.removeWhere((id, _) => !keptIds.contains(id));
 
     // 4. Scan for new files
     await _scanLibrary(downloadPath);
@@ -186,11 +220,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     LoggerService.i('Starting download: ${request.url}');
 
     DownloadRequest effectiveRequest = request;
-    if (request.url.contains('kick.com')) {
+    if (request.url.contains('kick.com') && !request.maxSpeedMode) {
       effectiveRequest = request.copyWith(concurrentFragments: 64);
     }
 
     String initialTitle = _extractInitialTitle(effectiveRequest.url);
+    if (ExtractionPlaceholders.isGenericTitle(initialTitle)) {
+      initialTitle = '';
+    }
     int nextOrder = 0;
     if (_activeDownloads.isNotEmpty) {
       final maxOrder = _activeDownloads.values
@@ -204,6 +241,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       request: effectiveRequest,
       title: initialTitle,
       sortOrder: nextOrder,
+      status: DownloadStatus.extracting,
     );
     _update(item);
 
@@ -234,6 +272,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               await tempCookiesFile.writeAsString(request.rawCookies!);
               currentRequest = request.copyWith(
                 cookiesFilePath: tempCookiesFile.path,
+                clearRawCookies: true,
               );
             } catch (e) {
               LoggerService.w('Failed to create temp cookies file: $e');
@@ -261,7 +300,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   speed: 'Retry ${retryCount + 1}/$maxRetries...',
                 ),
               );
-              await Future.delayed(Duration(seconds: 5)); // Backoff
+              await Future.delayed(const Duration(seconds: 5));
+              if (!DownloadStatusGuard.shouldRetryAfterError(
+                _activeDownloads[id]?.status,
+              )) {
+                return;
+              }
             } else {
               _update(
                 _activeDownloads[id]!.copyWith(
@@ -273,66 +317,158 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             // 4. Metadata Extraction (Retried if fails)
             String finalTitle = _activeDownloads[id]?.title ?? 'Video';
             String? finalThumbnail = _activeDownloads[id]?.thumbnailUrl;
+            KickResolvedStream? kickStream;
+
+            if (KickPageRef.isKickHost(currentRequest.url) &&
+                (currentRequest.forceStreamUrl == null ||
+                    currentRequest.forceStreamUrl!.isEmpty)) {
+              try {
+                kickStream = await _kickSource.resolve(
+                  currentRequest.url,
+                  cookies: currentRequest.rawCookies,
+                );
+              } catch (e) {
+                LoggerService.w('Kick HLS resolve failed: $e');
+              }
+              if (kickStream != null) {
+                LoggerService.i(
+                  'Kick HLS resolved: ${kickStream.masterPlaylistUrl}',
+                );
+                currentRequest = currentRequest.copyWith(
+                  forceStreamUrl: kickStream.playlistFor(
+                    formatId: currentRequest.videoFormatId,
+                  ),
+                  forceThumbnailUrl: kickStream.thumbnailUrl,
+                );
+                if (kickStream.title != null && kickStream.title!.isNotEmpty) {
+                  finalTitle = TitleCleanerService.clean(kickStream.title!);
+                }
+                finalThumbnail = kickStream.thumbnailUrl ?? finalThumbnail;
+              }
+            }
 
             try {
-              final metadata = await _source.fetchMetadata(
-                currentRequest.url,
-                cookies: currentRequest.rawCookies,
-              );
-              final String? fetchedTitle = metadata['title'];
-              finalThumbnail = metadata['thumbnail'];
-              final String? videoId = metadata['id'];
-
-              // Platform-specific title logic...
-              if (currentRequest.url.contains('twitter.com') ||
-                  currentRequest.url.contains('x.com')) {
-                final String? uploader =
-                    metadata['uploader'] ?? metadata['uploader_id'];
-                if (fetchedTitle == null ||
-                    fetchedTitle.isEmpty ||
-                    fetchedTitle == videoId ||
-                    fetchedTitle.contains('twitter.com')) {
-                  if (uploader != null && videoId != null) {
-                    finalTitle = '$uploader - $videoId';
-                  } else if (videoId != null) {
-                    finalTitle = 'Tweet $videoId';
-                  }
+              if (kickStream != null) {
+                final videoId = kickStream.videoId;
+                _update(
+                  _activeDownloads[id]!.copyWith(
+                    title: finalTitle,
+                    thumbnailUrl: finalThumbnail,
+                  ),
+                );
+                if (videoId != null && videoId.isNotEmpty) {
+                  final cleanId = videoId.replaceAll(
+                    RegExp(r'[<>:"/\\|?*]'),
+                    '',
+                  );
+                  final stem = TitleCleanerService.filenameStem(finalTitle);
+                  currentRequest = currentRequest.copyWith(
+                    customFilename: '$stem [$cleanId].%(ext)s',
+                  );
                 } else {
+                  final urlHash = currentRequest.url.hashCode.toRadixString(36);
+                  final stem = TitleCleanerService.filenameStem(finalTitle);
+                  currentRequest = currentRequest.copyWith(
+                    customFilename: '$stem [$urlHash].%(ext)s',
+                  );
+                }
+              } else {
+                final metadata = await _source.fetchMetadata(
+                  currentRequest.url,
+                  cookies: currentRequest.rawCookies,
+                  cookiesFilePath: currentRequest.cookiesFilePath,
+                  cookieBrowser: currentRequest.cookieBrowser,
+                  useTorProxy: currentRequest.useTorProxy,
+                );
+                final String? fetchedTitle = metadata['title'];
+                finalThumbnail = metadata['thumbnail'];
+                final String? videoId = metadata['id'];
+
+                // Platform-specific title logic...
+                if (currentRequest.url.contains('twitter.com') ||
+                    currentRequest.url.contains('x.com')) {
+                  final String? uploader =
+                      metadata['uploader'] ?? metadata['uploader_id'];
+                  final titleIsUseless =
+                      fetchedTitle == null ||
+                      fetchedTitle.isEmpty ||
+                      fetchedTitle == videoId ||
+                      fetchedTitle.contains('twitter.com') ||
+                      TitleCleanerService.isUrlOnlyTitle(fetchedTitle);
+                  if (titleIsUseless) {
+                    if (uploader != null && videoId != null) {
+                      finalTitle = '$uploader - $videoId';
+                    } else if (videoId != null) {
+                      finalTitle = 'Tweet $videoId';
+                    } else {
+                      finalTitle = fetchedTitle ?? 'Twitter Video';
+                    }
+                  } else {
+                    finalTitle = fetchedTitle;
+                  }
+                } else if (fetchedTitle != null &&
+                    fetchedTitle.isNotEmpty &&
+                    fetchedTitle != 'null' &&
+                    fetchedTitle != videoId) {
                   finalTitle = fetchedTitle;
                 }
-              } else if (fetchedTitle != null &&
-                  fetchedTitle.isNotEmpty &&
-                  fetchedTitle != 'null' &&
-                  fetchedTitle != videoId) {
-                finalTitle = fetchedTitle;
-              }
 
-              finalTitle = TitleCleanerService.clean(finalTitle);
-              _update(
-                _activeDownloads[id]!.copyWith(
-                  title: finalTitle,
-                  thumbnailUrl: finalThumbnail,
-                ),
-              );
+                // URL-only titles on any platform → derive from URL / id
+                if (TitleCleanerService.isUrlOnlyTitle(finalTitle)) {
+                  if (videoId != null && videoId.isNotEmpty) {
+                    finalTitle = 'Video $videoId';
+                  } else {
+                    finalTitle = TitleCleanerService.deriveTitleFromUrl(
+                      currentRequest.url,
+                    );
+                  }
+                }
 
-              // Build filename with unique ID to prevent false duplicates
-              // e.g. "My Video [abc123].mp4" instead of "My Video.mp4"
-              if (videoId != null && videoId.isNotEmpty) {
-                final cleanId = videoId.replaceAll(RegExp(r'[<>:"/\\|?*]'), '');
-                currentRequest = currentRequest.copyWith(
-                  customFilename: '$finalTitle [$cleanId].%(ext)s',
+                finalTitle = TitleCleanerService.clean(finalTitle);
+                // Guard: clean() can empty a URL-only title
+                if (finalTitle.isEmpty) {
+                  finalTitle = videoId != null && videoId.isNotEmpty
+                      ? 'Video $videoId'
+                      : TitleCleanerService.deriveTitleFromUrl(
+                          currentRequest.url,
+                        );
+                }
+                _update(
+                  _activeDownloads[id]!.copyWith(
+                    title: finalTitle,
+                    thumbnailUrl: finalThumbnail,
+                  ),
                 );
-              } else {
-                // No ID available — derive a short hash from the URL as unique suffix
-                final urlHash = currentRequest.url.hashCode.toRadixString(36);
-                currentRequest = currentRequest.copyWith(
-                  customFilename: '$finalTitle [$urlHash].%(ext)s',
-                );
+
+                // Build filename with unique ID to prevent false duplicates
+                // e.g. "My Video [abc123].mp4" instead of "My Video.mp4"
+                if (videoId != null && videoId.isNotEmpty) {
+                  final cleanId = videoId.replaceAll(
+                    RegExp(r'[<>:"/\\|?*]'),
+                    '',
+                  );
+                  final stem = TitleCleanerService.filenameStem(finalTitle);
+                  currentRequest = currentRequest.copyWith(
+                    customFilename: '$stem [$cleanId].%(ext)s',
+                  );
+                } else {
+                  // No ID available — derive a short hash from the URL as unique suffix
+                  final urlHash = currentRequest.url.hashCode.toRadixString(36);
+                  final stem = TitleCleanerService.filenameStem(finalTitle);
+                  currentRequest = currentRequest.copyWith(
+                    customFilename: '$stem [$urlHash].%(ext)s',
+                  );
+                }
               }
             } catch (e) {
               LoggerService.w(
                 'Metadata extraction failed (retry possible): $e',
               );
+              if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
+                throw Exception(
+                  DownloadStatusGuard.userFacingProxyErrorMessage(e),
+                );
+              }
               // If metadata fails, we still try to download with derived title as fallback or retry
               if (retryCount < maxRetries - 1) {
                 retryCount++;
@@ -356,6 +492,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             );
 
             await for (final progress in _source.download(id, currentRequest)) {
+              if (!DownloadStatusGuard.shouldRetryAfterError(
+                _activeDownloads[id]?.status,
+              )) {
+                return;
+              }
               if (progress.isDuplicate) {
                 _update(
                   _activeDownloads[id]!.copyWith(
@@ -370,6 +511,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 return;
               }
 
+              final step = progress.step;
+              final isProcessing =
+                  step.toLowerCase().contains('merg') ||
+                  step.toLowerCase().contains('ffmpeg') ||
+                  step.toLowerCase().contains('recode');
               _update(
                 _activeDownloads[id]!.copyWith(
                   progress: progress.progress >= 0
@@ -377,9 +523,16 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                       : _activeDownloads[id]!.progress,
                   eta: progress.eta,
                   speed: progress.speed,
-                  totalSize: progress.totalSize,
-                  downloadedSize: progress.downloadedSize,
+                  totalSize: progress.totalSize.isNotEmpty
+                      ? progress.totalSize
+                      : _activeDownloads[id]!.totalSize,
+                  downloadedSize: progress.downloadedSize.isNotEmpty
+                      ? progress.downloadedSize
+                      : _activeDownloads[id]!.downloadedSize,
                   step: progress.step,
+                  status: isProcessing
+                      ? DownloadStatus.processing
+                      : DownloadStatus.downloading,
                   title: _shouldUpdateTitle(
                     _activeDownloads[id]!.title,
                     progress.title,
@@ -391,15 +544,15 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
             // 6. Success
             _update(
-              _activeDownloads[id]!.copyWith(
-                status: DownloadStatus.completed,
-                progress: 1.0,
+              _withCompletedFileSize(
+                _activeDownloads[id]!.copyWith(
+                  status: DownloadStatus.completed,
+                  progress: 1.0,
+                  speed: 'Terminé',
+                  clearError: true,
+                ),
               ),
             );
-            NotificationService().showDownloadComplete(
-              _activeDownloads[id]!.title ?? 'Download Complete',
-            );
-
             // 7. Plugin Processing
             try {
               final pluginResult = await _pluginManager.onDownloadComplete(
@@ -415,11 +568,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
               if (pluginResult != null) {
                 _update(
-                  _activeDownloads[id]!.copyWith(
-                    filePath:
-                        pluginResult.newFilePath ??
-                        _activeDownloads[id]!.filePath,
-                    title: pluginResult.newTitle ?? _activeDownloads[id]!.title,
+                  _withCompletedFileSize(
+                    _activeDownloads[id]!.copyWith(
+                      filePath:
+                          pluginResult.newFilePath ??
+                          _activeDownloads[id]!.filePath,
+                      title:
+                          pluginResult.newTitle ?? _activeDownloads[id]!.title,
+                    ),
                   ),
                 );
               }
@@ -427,11 +583,28 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               LoggerService.e('Plugin processing failed', pluginError);
             }
 
+            final isDuplicate = await _deduplicateFinalFile(id);
+            if (!isDuplicate &&
+                _activeDownloads[id]?.status == DownloadStatus.completed) {
+              NotificationService().showDownloadComplete(
+                _activeDownloads[id]!.title ?? 'Download Complete',
+              );
+            }
+
             // Note: stats recording is handled by the provider layer
             return;
           } catch (e) {
-            // Rethrow if it's a fatal non-retryable error (like Disk Space)
             if (e.toString().contains('Low Disk Space')) rethrow;
+            if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
+              throw Exception(
+                DownloadStatusGuard.userFacingProxyErrorMessage(e),
+              );
+            }
+            if (!DownloadStatusGuard.shouldRetryAfterError(
+              _activeDownloads[id]?.status,
+            )) {
+              return;
+            }
 
             retryCount++;
             LoggerService.e('Download try $retryCount failed: $e');
@@ -440,6 +613,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         }
       } catch (e, st) {
         LoggerService.e('Download $id FATAL ERROR', e, st);
+        if (!DownloadStatusGuard.shouldRetryAfterError(
+          _activeDownloads[id]?.status,
+        )) {
+          return;
+        }
         if (GalleryDlSource.shouldUseFallback(request.url)) {
           try {
             await _tryGalleryDlFallback(id, request);
@@ -451,12 +629,16 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         _update(
           _activeDownloads[id]!.copyWith(
             status: DownloadStatus.failed,
-            error: e.toString(),
+            error: DownloadStatusGuard.isNonRetryableProxyError(e)
+                ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
+                : e.toString(),
           ),
         );
         NotificationService().showDownloadFailed(
           _activeDownloads[id]?.title ?? 'Download Failed',
-          e.toString(),
+          DownloadStatusGuard.isNonRetryableProxyError(e)
+              ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
+              : e.toString(),
         );
       } finally {
         if (tempCookiesFile?.existsSync() ?? false) {
@@ -473,12 +655,18 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     await for (final progress in _galleryDlSource.download(id, request)) {
       if (progress.isComplete) {
         _update(
-          _activeDownloads[id]!.copyWith(
-            status: DownloadStatus.completed,
-            progress: 1.0,
-            title: progress.title ?? _activeDownloads[id]?.title ?? 'Unknown',
+          _withCompletedFileSize(
+            _activeDownloads[id]!.copyWith(
+              status: DownloadStatus.completed,
+              progress: 1.0,
+              speed: 'Terminé',
+              clearError: true,
+              title: progress.title ?? _activeDownloads[id]?.title ?? 'Unknown',
+              filePath: progress.filePath ?? _activeDownloads[id]?.filePath,
+            ),
           ),
         );
+        await _deduplicateFinalFile(id);
       } else {
         _update(
           _activeDownloads[id]!.copyWith(
@@ -496,6 +684,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   @override
   Future<void> pauseDownload(String id) async {
     await _source.cancel(id);
+    await _galleryDlSource.cancel(id);
     if (_activeDownloads.containsKey(id)) {
       _update(
         _activeDownloads[id]!.copyWith(
@@ -509,6 +698,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   @override
   Future<void> cancelDownload(String id) async {
     await _source.cancel(id);
+    await _galleryDlSource.cancel(id);
     if (_activeDownloads.containsKey(id)) {
       _update(
         _activeDownloads[id]!.copyWith(
@@ -562,11 +752,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             if (entity is File) {
               final name = entity.uri.pathSegments.last;
               if (name.contains(filename) &&
-                  (name.endsWith('.part') ||
-                      name.endsWith('.ytdl') ||
-                      name.endsWith('.aria2') ||
-                      name.contains('.f') ||
-                      name.endsWith('.temp'))) {
+                  TempFileCleanup.isFragmentOrTemp(name)) {
                 try {
                   await entity.delete();
                   LoggerService.debug('Cleaned up temp file: $name');
@@ -607,9 +793,15 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
   @override
   Future<void> resumeDownload(String id) async {
-    if (_activeDownloads.containsKey(id)) {
-      _startDownloadProcess(id, _activeDownloads[id]!.request);
+    final current = _activeDownloads[id];
+    if (current == null) return;
+    if (current.status == DownloadStatus.downloading ||
+        current.status == DownloadStatus.extracting ||
+        current.status == DownloadStatus.processing) {
+      return;
     }
+    _update(current.copyWith(status: DownloadStatus.extracting, error: null));
+    _startDownloadProcess(id, current.request);
   }
 
   void _update(DownloadItem item) {
@@ -630,6 +822,18 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     String url, {
     String? cookies,
   }) async {
+    if (KickPageRef.isKickHost(url)) {
+      try {
+        final resolved = await _kickSource.resolve(url, cookies: cookies);
+        if (resolved != null) {
+          return resolved.toYtDlpMetadata();
+        }
+      } catch (e) {
+        LoggerService.w(
+          'Kick metadata resolve failed, falling back to yt-dlp: $e',
+        );
+      }
+    }
     return _source.fetchMetadata(url, cookies: cookies);
   }
 
@@ -660,15 +864,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
   String _shouldUpdateTitle(String? current, String? proposed) {
     if (proposed == null || proposed.isEmpty) return current ?? 'Video';
-    if (current == null ||
-        current.isEmpty ||
-        current == 'Video' ||
-        current.startsWith('Video ')) {
+    if (ExtractionPlaceholders.isGenericTitle(current)) {
       return proposed;
     }
     // If the proposed title contains technical suffixes and current doesn't, keep current
     if (proposed.contains('.fhls') || proposed.contains('.f\\d+')) {
-      if (!current.contains('.fhls') && !current.contains('.f\\d+')) {
+      if (!current!.contains('.fhls') && !current.contains('.f\\d+')) {
         return current;
       }
     }
@@ -732,6 +933,70 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
     if (changed) {
       _saveToDisk();
+    }
+  }
+
+  /// Prefer the real on-disk length once a download is finished.
+  DownloadItem _withCompletedFileSize(DownloadItem item) {
+    final size = DownloadFileResolver.formattedFileSize(item.filePath);
+    if (size == null) return item;
+    return item.copyWith(totalSize: size, downloadedSize: size);
+  }
+
+  /// Removes only a newly-created file after its exact SHA-256 match is
+  /// confirmed against a still-valid indexed original.
+  Future<bool> _deduplicateFinalFile(String id) async {
+    final item = _activeDownloads[id];
+    final filePath = item?.filePath;
+    if (item == null || filePath == null || filePath.isEmpty) {
+      return false;
+    }
+
+    final file = File(filePath);
+    try {
+      if (!await file.exists()) {
+        LoggerService.w(
+          'Skipping fingerprint: final file is unavailable: $filePath',
+        );
+        return false;
+      }
+      final normalizedPath = file.absolute.path;
+      if (!_fingerprintedFinalPaths.add(normalizedPath)) {
+        return false;
+      }
+
+      final duplicate = await _mediaFingerprintService.findDuplicateOrRegister(
+        filePath,
+      );
+      if (duplicate == null) {
+        return false;
+      }
+
+      // Hashing confirmed the duplicate. Do not update the status unless the
+      // verified newly-created file was actually deleted.
+      if (!await file.exists()) {
+        return false;
+      }
+      await file.delete();
+      _update(
+        item.copyWith(
+          status: DownloadStatus.duplicate,
+          progress: 1.0,
+          speed: 'Doublon',
+          clearError: true,
+        ),
+      );
+      LoggerService.i(
+        'Removed exact duplicate $filePath; kept ${duplicate.originalPath}',
+      );
+      return true;
+    } catch (error, stackTrace) {
+      LoggerService.e(
+        'Post-download fingerprint failed; keeping file $filePath',
+        error,
+        stackTrace,
+      );
+      return false;
     }
   }
 }

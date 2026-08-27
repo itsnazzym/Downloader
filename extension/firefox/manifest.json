@@ -1,50 +1,112 @@
 {
-    "manifest_version": 2,
-    "name": "Modern Downloader",
-    "version": "2.0.0",
-    "description": "Send links directly to Modern Downloader app.",
+    "manifest_version": 3,
+    "name": "__MSG_extName__",
+    "short_name": "__MSG_extShortName__",
+    "version": "2.1.0",
+    "default_locale": "en",
+    "description": "__MSG_extDescription__",
+    "homepage_url": "https://github.com/Mizaruta/Downloader",
     "permissions": [
         "activeTab",
         "cookies",
+        "contextMenus",
         "storage",
-        "<all_urls>",
-        "webRequest",
-        "http://127.0.0.1:6969/",
-        "ws://127.0.0.1:6969/",
-        "contextMenus"
+        "alarms"
     ],
-    "content_security_policy": "script-src 'self'; object-src 'self'; connect-src 'self' ws://127.0.0.1:6969 http://127.0.0.1:6969 http://localhost:6969 ws://localhost:6969;",
+    "optional_host_permissions": [
+        "*://*.pornhub.com/*"
+    ],
+    "host_permissions": [
+        "*://*.youtube.com/*",
+        "*://youtu.be/*",
+        "*://*.instagram.com/*",
+        "*://twitter.com/*",
+        "*://*.twitter.com/*",
+        "*://x.com/*",
+        "*://*.x.com/*",
+        "*://*.tiktok.com/*",
+        "*://*.twitch.tv/*",
+        "*://kick.com/*",
+        "*://*.kick.com/*",
+        "*://*.facebook.com/*",
+        "*://*.fb.watch/*"
+    ],
     "content_scripts": [
         {
             "matches": [
-                "<all_urls>"
+                "*://*.youtube.com/*",
+                "*://youtu.be/*",
+                "*://*.instagram.com/*",
+                "*://twitter.com/*",
+                "*://*.twitter.com/*",
+                "*://x.com/*",
+                "*://*.x.com/*",
+                "*://*.tiktok.com/*",
+                "*://*.twitch.tv/*",
+                "*://kick.com/*",
+                "*://*.kick.com/*",
+                "*://*.facebook.com/*",
+                "*://*.fb.watch/*"
             ],
             "js": [
                 "content.js"
-            ]
+            ],
+            "run_at": "document_idle",
+            "all_frames": false
         }
     ],
-    "browser_action": {
+    "action": {
         "default_popup": "popup.html",
+        "default_title": "__MSG_extName__",
         "default_icon": {
             "16": "icons/icon16.png",
+            "32": "icons/icon32.png",
             "48": "icons/icon48.png",
             "128": "icons/icon128.png"
         }
     },
+    "sidebar_action": {
+        "default_title": "X Feed — Modern Downloader",
+        "default_panel": "feed_panel.html"
+    },
     "background": {
         "scripts": [
+            "browser_api.js",
             "background.js"
         ]
     },
+    "commands": {
+        "send-current-tab": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+D",
+                "mac": "Command+Shift+D"
+            },
+            "description": "__MSG_sendTab__"
+        }
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https://pbs.twimg.com https://video.twimg.com; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:*;"
+    },
     "browser_specific_settings": {
         "gecko": {
-            "id": "moderndownloader@extension.addon"
+            "id": "moderndownloader@extension.addon",
+            "update_url": "https://github.com/Mizaruta/Downloader/releases/latest/download/extension_version.json",
+            "strict_min_version": "140.0",
+            "data_collection_permissions": {
+                "required": [
+                    "none"
+                ]
+            }
+        },
+        "gecko_android": {
+            "strict_min_version": "142.0"
         }
     },
     "icons": {
         "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
         "48": "icons/icon48.png",
+        "96": "icons/icon96.png",
         "128": "icons/icon128.png"
     }
 }

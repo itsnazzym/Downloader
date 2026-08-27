@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
 import '../logger/logger_service.dart';
+import 'library_stats_builder.dart';
+import '../../features/downloader/domain/entities/download_item.dart';
 
 /// Tracks download statistics over time.
 class DownloadStats {
@@ -182,6 +184,12 @@ class DownloadStatsNotifier extends StateNotifier<DownloadStats> {
       lastUpdated: DateTime.now(),
     );
 
+    _save();
+  }
+
+  /// Replace incremental event counts with a snapshot of the real library.
+  void rebuildFromLibrary(List<DownloadItem> items) {
+    state = LibraryStatsBuilder.fromItems(items);
     _save();
   }
 

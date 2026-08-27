@@ -1,15 +1,29 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# ── OS ──────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+*.class
+
+# ── IDE / Editors ───────────────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
 .atom/
 .buildlog/
-.history
+.history/
 .svn/
 
-# Flutter/Dart/Pub
+# ── AI / local tooling ──────────────────────────────────────────────
+.cursor/
+.firecrawl/
+
+# ── Flutter / Dart ──────────────────────────────────────────────────
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -17,47 +31,77 @@
 .pub-cache/
 .pub/
 /build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+migrate_working_dir/
 
-# Android
-android/gradle/wrapper/gradle-wrapper.properties
-android/local.properties
-android/**/generated/
-android/**/gradle-wrapper.jar
-android/.gradle
-android/captures/
-android/gradlew
-android/gradlew.bat
+# Symbolication & obfuscation
+app.*.symbols
+app.*.map.json
+*.pyc
+*.pyo
+*.pyd
 
-# iOS
-ios/Flutter/App.framework
-ios/Flutter/Flutter.framework
-ios/Flutter/Generated.xcconfig
-ios/Flutter/app.flx
-ios/Flutter/app.zip
-ios/Flutter/flutter_assets/
-ios/ServiceDefinitions.json
-ios/Runner/GeneratedPluginRegistrant.*
+# ── Android (local & generated) ─────────────────────────────────────
+**/android/local.properties
+**/.gradle/
+**/android/captures/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/**/GeneratedPluginRegistrant.java
+**/android/**/generated/
 
-# Windows
-windows/flutter/ephemeral/
-windows/flutter/generated_plugin_registrant.cc
-windows/flutter/generated_plugin_registrant.h
-windows/runner/resources/*_plugin_registrant.cc
+# ── iOS / macOS (generated) ─────────────────────────────────────────
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/ephemeral/
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/macos/Flutter/ephemeral/
+**/macos/Runner/Configs/AppInfo.xcconfig
 
-# Visual Studio / IDEs
-.idea/
-.vscode/launch.json
-*.iml
-*.ipr
-*.iws
+# ── Windows (generated) ─────────────────────────────────────────────
+**/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.*
+**/windows/runner/resources/*_plugin_registrant.cc
 
-# Extension - Explicitly INCLUDED (No exclusion rules for .zip/.xpi)
-# We want modern_downloader.zip to be tracked by Git.
+# ── Linux (generated) ───────────────────────────────────────────────
+**/linux/flutter/ephemeral/
 
-# Exceptions (Files we DEFINITELY want to track)
+# ── Secrets & env ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Release artifacts (CI produces these) ───────────────────────────
+/ModernDownloader*.zip
+/ModernDownloader*.exe
+/*.zip
+/*.exe
+/*.xpi
+/*.msi
+/bin/
+/signed-xpi/
+
+# ── Logs & temp ─────────────────────────────────────────────────────
+*.log
+*.bak
+*.orig
+*.rej
+*.tmp
+*.amo-upload-uuid
+coverage/
+analysis_output.txt
+README.bak.md
+devtools_options.yaml
+
+# ── Tracked exceptions ──────────────────────────────────────────────
 !extension_version.json
 !extension/firefox/
-
-bin/*.exe
-
-bin/*.zip
+!extension/chrome/
+!installer/

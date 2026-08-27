@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/theme/ios_theme.dart';
 
 class BlurContainer extends StatelessWidget {
@@ -22,19 +23,29 @@ class BlurContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If interactive, use proper touch feedback container
+    final colors = AppColors.of(context);
+    final reduce = MediaQuery.of(context).disableAnimations;
+
     Widget content = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-        child: Container(
-          padding: padding,
-          decoration: IOSTheme.glassDecoration(
-            radius: borderRadius,
-            color: color ?? const Color(0x1F252525), // Dark glass base
+      child: Stack(
+        children: [
+          if (!reduce)
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          Container(
+            padding: padding,
+            decoration: IOSTheme.glassDecorationFor(
+              context,
+              radius: borderRadius,
+            ).copyWith(color: color ?? colors.glassFill),
+            child: child,
           ),
-          child: child,
-        ),
+        ],
       ),
     );
 

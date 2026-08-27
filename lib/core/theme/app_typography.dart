@@ -1,58 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'app_colors.dart';
+import 'theme_presets.dart';
 
 class AppTypography {
   const AppTypography._();
 
-  static TextTheme get textTheme {
-    return GoogleFonts.interTextTheme().copyWith(
-      // H1 - Page Titles
-      displayLarge: GoogleFonts.inter(
-        fontSize: 24,
+  static TextStyle _ui({
+    required double fontSize,
+    required FontWeight fontWeight,
+    required Color color,
+    double? letterSpacing,
+    double height = 1.4,
+  }) {
+    return GoogleFonts.outfit(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      letterSpacing: letterSpacing,
+      height: height,
+    );
+  }
+
+  static TextTheme textThemeFor(ThemePreset palette) {
+    final ios = palette.isIosChrome;
+    return GoogleFonts.outfitTextTheme().copyWith(
+      displayLarge: _ui(
+        fontSize: ios ? 28 : 24,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.5,
-        color: AppColors.textPrimary,
+        letterSpacing: -0.6,
+        color: palette.textPrimary,
         height: 1.2,
       ),
-      // H2 - Section Headers
-      titleSmall: GoogleFonts.inter(
+      titleSmall: _ui(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
-        color: AppColors.textSecondary,
+        letterSpacing: ios ? 0.2 : 0.4,
+        color: palette.textSecondary,
         height: 1.4,
       ),
-      // Body - Default Text
-      bodyMedium: GoogleFonts.inter(
-        fontSize: 14,
+      bodyMedium: _ui(
+        fontSize: ios ? 15 : 14,
         fontWeight: FontWeight.w400,
-        color: AppColors.textPrimary,
+        color: palette.textPrimary,
         height: 1.5,
       ),
-      // Body Small - Secondary Text
-      bodySmall: GoogleFonts.inter(
+      bodySmall: _ui(
         fontSize: 13,
         fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
+        color: palette.textSecondary,
         height: 1.4,
       ),
-      // Buttons / Labels
-      labelMedium: GoogleFonts.inter(
+      labelMedium: _ui(
         fontSize: 13,
         fontWeight: FontWeight.w500,
-        color: AppColors.textPrimary,
+        color: palette.textPrimary,
         height: 1.0,
       ),
     );
   }
 
-  // Mono style for logs/paths
-  static TextStyle get mono {
+  static TextStyle monoFor(ThemePreset palette) {
     return GoogleFonts.jetBrainsMono(
       fontSize: 12,
       fontWeight: FontWeight.w400,
-      color: AppColors.textSecondary,
+      color: palette.textSecondary,
+      fontFeatures: const [FontFeature.tabularFigures()],
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'active_download_hud.dart';
 import 'toast_service.dart';
 
 class ToastOverlay extends ConsumerWidget {
@@ -15,22 +16,32 @@ class ToastOverlay extends ConsumerWidget {
     return Positioned(
       bottom: 24,
       right: 24,
-      width: 360,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: toasts.map((toast) {
-          return Padding(
-            key: ValueKey(toast.id),
-            padding: const EdgeInsets.only(top: 8),
-            child: _ToastCard(
-              toast: toast,
-              onDismiss: () {
-                ref.read(toastProvider.notifier).dismiss(toast.id);
-              },
-            ),
-          );
-        }).toList(),
+      child: Align(
+        alignment: Alignment.bottomRight,
+        widthFactor: 1,
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const ActiveDownloadHud(),
+              ...toasts.map((toast) {
+                return Padding(
+                  key: ValueKey(toast.id),
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _ToastCard(
+                    toast: toast,
+                    onDismiss: () {
+                      ref.read(toastProvider.notifier).dismiss(toast.id);
+                    },
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -49,19 +60,19 @@ class _ToastCard extends StatelessWidget {
 
     switch (toast.type) {
       case ToastType.success:
-        color = AppColors.success;
+        color = AppColors.of(context).success;
         icon = Icons.check_circle_rounded;
         break;
       case ToastType.error:
-        color = AppColors.error;
+        color = AppColors.of(context).error;
         icon = Icons.error_rounded;
         break;
       case ToastType.warning:
-        color = AppColors.warning;
+        color = AppColors.of(context).warning;
         icon = Icons.warning_rounded;
         break;
       case ToastType.info:
-        color = AppColors.info;
+        color = AppColors.of(context).info;
         icon = Icons.info_rounded;
         break;
     }
@@ -80,7 +91,9 @@ class _ToastCard extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.8),
+                      color: AppColors.of(
+                        context,
+                      ).surface.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: color.withValues(alpha: 0.3),
@@ -117,8 +130,8 @@ class _ToastCard extends StatelessWidget {
                             children: [
                               Text(
                                 toast.title,
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
+                                style: TextStyle(
+                                  color: AppColors.of(context).textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
@@ -127,8 +140,8 @@ class _ToastCard extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   toast.description!,
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
+                                  style: TextStyle(
+                                    color: AppColors.of(context).textSecondary,
                                     fontSize: 12,
                                   ),
                                   maxLines: 2,
@@ -141,9 +154,9 @@ class _ToastCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         IconButton(
                           onPressed: onDismiss,
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.close_rounded,
-                            color: AppColors.textSecondary,
+                            color: AppColors.of(context).textDisabled,
                             size: 18,
                           ),
                           constraints: const BoxConstraints(),

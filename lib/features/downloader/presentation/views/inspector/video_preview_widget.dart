@@ -28,6 +28,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   bool _isHovering = false;
   bool _isMuted = true;
   bool _isInitialized = false;
+  bool _hasError = false;
   DateTime? _lastSeekTime;
   bool _isDragging = false;
 
@@ -39,7 +40,15 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
 
   Future<void> _initializeController() async {
     final file = File(widget.filePath);
-    if (!await file.exists()) return;
+    if (!await file.exists()) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _isInitialized = false;
+        });
+      }
+      return;
+    }
 
     try {
       _controller = WinVideoPlayerController.file(file);
@@ -49,10 +58,17 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       if (mounted) {
         setState(() {
           _isInitialized = true;
+          _hasError = false;
         });
       }
     } catch (e) {
       debugPrint("Error initializing win_video_player: $e");
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _isInitialized = false;
+        });
+      }
     }
   }
 
@@ -67,7 +83,9 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.filePath != widget.filePath) {
       _isInitialized = false;
+      _hasError = false;
       _controller?.dispose();
+      _controller = null;
       _initializeController();
     }
   }
@@ -80,39 +98,102 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     });
   }
 
+  Widget _buildThumbnailBackground(BuildContext context) {
+    final url = widget.thumbnailUrl;
+    if (url == null) return const SizedBox();
+
+    final isNetwork = url.startsWith('http://') || url.startsWith('https://');
+    if (isNetwork) {
+      return Image.network(
+        url,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+      );
+    }
+
+    String decodedPath = url;
+    try {
+      decodedPath = Uri.decodeFull(url);
+    } catch (_) {}
+    final file = File(decodedPath);
+    if (!file.existsSync()) return const SizedBox();
+    return Image.file(
+      file,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => const SizedBox(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_hasError) {
+      return Container(
+        height: 220,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.of(context).border),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Opacity(opacity: 0.4, child: _buildThumbnailBackground(context)),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.movie_creation_outlined,
+                  size: 48,
+                  color: AppColors.of(context).textSecondary,
+                ),
+                const Gap(8),
+                Text(
+                  'Preview unavailable',
+                  style: TextStyle(
+                    color: AppColors.of(context).textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                if (widget.onFullscreen != null) ...[
+                  const Gap(12),
+                  TextButton.icon(
+                    onPressed: widget.onFullscreen,
+                    icon: const Icon(Icons.fullscreen_rounded, size: 18),
+                    label: const Text('Open fullscreen'),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     if (!_isInitialized || _controller == null) {
       return Container(
         height: 220,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: AppColors.of(context).surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.of(context).border),
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
             if (widget.thumbnailUrl != null)
-              Opacity(
-                opacity: 0.3,
-                child: Image.network(
-                  widget.thumbnailUrl!,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.movie_creation_outlined,
-                    size: 48,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            const Center(
+              Opacity(opacity: 0.3, child: _buildThumbnailBackground(context)),
+            Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                valueColor: AlwaysStoppedAnimation(
+                  AppColors.of(context).primary,
+                ),
               ),
             ),
           ],
@@ -138,10 +219,10 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border, width: 1.5),
+          border: Border.all(color: AppColors.of(context).primary, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: AppColors.of(context).primary.withValues(alpha: 0.1),
               blurRadius: 20,
               spreadRadius: 2,
             ),
@@ -153,23 +234,18 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
           children: [
             // Thumbnail / Background when not playing
             if (widget.thumbnailUrl != null && !_isHovering)
-              Positioned.fill(
-                child: Image.network(
-                  widget.thumbnailUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const SizedBox(),
-                ),
-              ),
+              Positioned.fill(child: _buildThumbnailBackground(context)),
 
-            // Native Windows Player
-            SizedBox.expand(
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: _controller!.value.size.width,
-                  height: _controller!.value.size.height,
-                  child: WinVideoPlayer(_controller!),
+            // Native Windows Player — excluded from semantics to avoid AXTree errors
+            ExcludeSemantics(
+              child: SizedBox.expand(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: _controller!.value.size.width,
+                    height: _controller!.value.size.height,
+                    child: WinVideoPlayer(_controller!),
+                  ),
                 ),
               ),
             ),
@@ -232,13 +308,14 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                                   widthFactor: progress.clamp(0.0, 1.0),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: AppColors.primary,
+                                      color: AppColors.of(context).primary,
                                       borderRadius: BorderRadius.circular(3),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.primary.withValues(
-                                            alpha: _isDragging ? 0.8 : 0.5,
-                                          ),
+                                          color: AppColors.of(context).primary
+                                              .withValues(
+                                                alpha: _isDragging ? 0.8 : 0.5,
+                                              ),
                                           blurRadius: _isDragging ? 8 : 4,
                                         ),
                                       ],

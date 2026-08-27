@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/providers/launch_provider.dart';
@@ -9,8 +11,12 @@ import 'package:modern_downloader/core/services/hotkey_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_view.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/ui/widgets/toast/custom_toast.dart';
-import 'package:modern_downloader/core/ui/widgets/toast/toast_service.dart';
 import 'package:modern_downloader/core/ui/widgets/drag_drop_overlay.dart';
+import 'package:modern_downloader/core/ui/widgets/floating_nav_dock.dart';
+import 'package:modern_downloader/core/ui/widgets/mesh_gradient_background.dart';
+import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
+import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
+import 'package:modern_downloader/core/ui/widgets/resizable_width_pane.dart';
 import 'sidebar/sidebar.dart';
 
 class AppShell extends ConsumerWidget {
@@ -20,57 +26,103 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Listen for deep link launches (Global)
     ref.listen<LaunchData?>(launchDataProvider, (previous, next) {
-      if (next != null) {
+      if (next != null && !ref.read(dependencyBootstrapProvider).blocksUi) {
         _handleLaunchData(context, ref, next);
       }
     });
 
-    // Check for initial URL (Cold Start)
+    ref.listen<DependencyBootstrapState>(dependencyBootstrapProvider, (
+      previous,
+      next,
+    ) {
+      if (previous?.isReady != true && next.isReady) {
+        final pending = ref.read(launchDataProvider);
+        if (pending != null) {
+          _handleLaunchData(context, ref, pending);
+        }
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
+      if (ref.read(dependencyBootstrapProvider).blocksUi) return;
       final initialData = ref.read(launchDataProvider);
       if (initialData != null) {
         _handleLaunchData(context, ref, initialData);
       }
     });
 
-    return HotkeyHandler(
-      child: DragDropOverlay(
-        child: Stack(
+    final colors = AppColors.of(context);
+    final location = GoRouterState.of(context).uri.path;
+    final showDock = colors.useFloatingDock;
+    final mesh = colors.useMeshBackground;
+    final layout = ref.watch(paneLayoutProvider);
+    final resizing = ref.watch(paneResizeActiveProvider);
+
+    Widget chrome = Scaffold(
+      backgroundColor: mesh ? Colors.transparent : colors.background,
+      body: MouseRegion(
+        cursor: resizing ? SystemMouseCursors.resizeColumn : MouseCursor.defer,
+        child: Column(
           children: [
-            Scaffold(
-              backgroundColor: AppColors.background,
-              body: Column(
+            const AppTitleBar(),
+            Expanded(
+              child: Row(
                 children: [
-                  // Windows Title Bar (Draggable)
-                  const AppTitleBar(),
-
-                  // Main Content
+                  ResizableWidthPane(
+                    width: layout.visibleSidebarWidth,
+                    minWidth: PaneLayout.sidebarRail,
+                    maxWidth: PaneLayout.sidebarMax,
+                    resizeFrom: PaneResizeFrom.trailing,
+                    onWidthChanged: (width) {
+                      ref
+                          .read(paneLayoutProvider.notifier)
+                          .setSidebarWidth(width);
+                    },
+                    onDragActive: (active) {
+                      ref.read(paneResizeActiveProvider.notifier).state =
+                          active;
+                    },
+                    onResizeEnd: () {
+                      ref.read(paneResizeActiveProvider.notifier).state = false;
+                      ref.read(paneLayoutProvider.notifier).commitSidebarDrag();
+                      ref.read(paneLayoutProvider.notifier).persist();
+                    },
+                    onToggleCollapse: () {
+                      ref
+                          .read(paneLayoutProvider.notifier)
+                          .toggleSidebarCollapsed();
+                      ref.read(paneLayoutProvider.notifier).persist();
+                    },
+                    child: const AppSidebar(),
+                  ),
                   Expanded(
-                    child: Row(
-                      children: [
-                        // Sidebar
-                        const SizedBox(width: 250, child: AppSidebar()),
-
-                        // Vertical Divider
-                        Container(width: 1, color: AppColors.border),
-
-                        // Content
-                        Expanded(child: child),
-                      ],
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: showDock ? 72 : 0),
+                      child: child,
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
 
-            // Media Player Overlay
-            if (ref.watch(mediaPlayerProvider).isOpen)
+    if (mesh) {
+      chrome = MeshGradientBackground(child: chrome);
+    }
+
+    return HotkeyHandler(
+      child: DragDropOverlay(
+        child: Stack(
+          children: [
+            chrome,
+            if (showDock) FloatingNavDock(currentLocation: location),
+            if (ref.watch(mediaPlayerProvider.select((s) => s.isOpen)))
               const Positioned.fill(child: MediaPlayerView()),
-
-            // Toast Notifications
             const ToastOverlay(),
           ],
         ),
@@ -91,15 +143,8 @@ class AppShell extends ConsumerWidget {
             rawCookies: data.cookies,
             userAgent: data.userAgent,
             cookieBrowser: data.cookieBrowser,
-          );
-
-      // Show Toast
-      ref
-          .read(toastProvider.notifier)
-          .show(
-            title: "Download Started",
-            description: "Source: ${data.url}",
-            type: ToastType.success,
+            audioOnly: data.isAudioOnly ? true : null,
+            preferredQuality: data.preferredQuality,
           );
       return;
     }
@@ -121,62 +166,65 @@ class AppTitleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      color: AppColors.background,
-      child: Row(
-        children: [
-          // Draggable Area (Takes remaining space)
-          Expanded(
-            child: DragToMoveArea(
-              child: Container(
-                color: Colors.transparent, // Hit test target
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: const Text(
-                  "", // Title could go here
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
+    final colors = AppColors.of(context);
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          height: 32,
+          color: colors.background.withValues(alpha: 0.78),
+          child: Row(
+            children: [
+              Expanded(
+                child: DragToMoveArea(
+                  child: Container(
+                    color: Colors.transparent,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: const Text(
+                      '',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Row(
+                  children: [
+                    _WindowButton(
+                      color: const Color(0xFFFFBD2E),
+                      onTap: () {
+                        windowManager.minimize();
+                      },
+                      icon: Icons.minimize,
+                    ),
+                    const SizedBox(width: 8),
+                    _WindowButton(
+                      color: const Color(0xFF28C940),
+                      onTap: () async {
+                        if (await windowManager.isMaximized()) {
+                          windowManager.unmaximize();
+                        } else {
+                          windowManager.maximize();
+                        }
+                      },
+                      icon: Icons.crop_square,
+                    ),
+                    const SizedBox(width: 8),
+                    _WindowButton(
+                      color: const Color(0xFFFF5F57),
+                      onTap: () {
+                        windowManager.close();
+                      },
+                      icon: Icons.close,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-
-          // Window Controls (Non-draggable, Top-Right)
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Row(
-              children: [
-                _WindowButton(
-                  color: const Color(0xFFFFBD2E), // Yellow (Min)
-                  onTap: () {
-                    windowManager.minimize();
-                  },
-                  icon: Icons.minimize,
-                ),
-                const SizedBox(width: 8),
-                _WindowButton(
-                  color: const Color(0xFF28C940), // Green (Max)
-                  onTap: () async {
-                    if (await windowManager.isMaximized()) {
-                      windowManager.unmaximize();
-                    } else {
-                      windowManager.maximize();
-                    }
-                  },
-                  icon: Icons.crop_square,
-                ),
-                const SizedBox(width: 8),
-                _WindowButton(
-                  color: const Color(0xFFFF5F57), // Red (Close)
-                  onTap: () {
-                    windowManager.close();
-                  },
-                  icon: Icons.close,
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

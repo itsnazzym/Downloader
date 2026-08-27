@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:uuid/uuid.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:modern_downloader/core/download/download_file_resolver.dart';
+import 'package:modern_downloader/core/download/media_source_resolver.dart';
+import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
@@ -51,7 +54,7 @@ class LibraryScannerService {
           // File found - mark as completed if it was failed or paused
           if (fixedItem.status == DownloadStatus.failed ||
               fixedItem.status == DownloadStatus.paused) {
-            fixedItem = fixedItem.copyWith(status: DownloadStatus.completed);
+            fixedItem = _promoteToCompletedIfValid(fixedItem) ?? fixedItem;
           }
         } else {
           if (fixedItem.status == DownloadStatus.completed) {
@@ -66,7 +69,31 @@ class LibraryScannerService {
         // File path exists and file is present - ensure status is completed
         if (fixedItem.status == DownloadStatus.paused ||
             fixedItem.status == DownloadStatus.failed) {
-          fixedItem = fixedItem.copyWith(status: DownloadStatus.completed);
+          fixedItem = _promoteToCompletedIfValid(fixedItem) ?? fixedItem;
+        }
+      }
+
+      // Clear COMPLETED + Retry 3/3 ghost state when the file is valid.
+      if (fixedItem.status == DownloadStatus.completed &&
+          _hasStaleRetryState(fixedItem)) {
+        final promoted = _promoteToCompletedIfValid(fixedItem);
+        if (promoted != null) {
+          fixedItem = promoted;
+        }
+      }
+
+      // yt-dlp often never emits "% of 10.00MiB" (Twitter HLS / after_move).
+      // Backfill totalSize from the real file so the grid does not show
+      // "Unknown Size" for completed downloads already on disk.
+      if (fixedItem.totalSize.isEmpty) {
+        final diskSize = DownloadFileResolver.formattedFileSize(
+          fixedItem.filePath,
+        );
+        if (diskSize != null) {
+          fixedItem = fixedItem.copyWith(
+            totalSize: diskSize,
+            downloadedSize: diskSize,
+          );
         }
       }
 
@@ -84,7 +111,7 @@ class LibraryScannerService {
 
           if (!File(decodedPath).existsSync()) {
             // Thumbnail file is missing - clear it so we can regenerate
-            fixedItem = fixedItem.copyWith(thumbnailUrl: null);
+            fixedItem = fixedItem.copyWith(clearThumbnailUrl: true);
           }
         }
 
@@ -105,25 +132,50 @@ class LibraryScannerService {
         }
       }
 
-      // 3. Fix source if it's "Other" or "Local" and we have a file path
-      if (fixedItem.filePath != null &&
-          (fixedItem.source == 'Other' || fixedItem.source == 'Local')) {
-        final detectedSource = _detectSource(
-          null, // No URL to extract from for existing items
-          fixedItem.filePath!,
-          basePath,
+      // 3. Infer origin from folder / URL — never invent "Local".
+      if (fixedItem.filePath != null) {
+        final detected = MediaSourceResolver.resolve(
+          url: fixedItem.request.url,
+          filePath: fixedItem.filePath,
         );
-
-        // Create synthetic URL for proper source detection
-        if (detectedSource != 'local') {
-          final newUrl = 'https://$detectedSource.detected/imported';
-          fixedItem = fixedItem.copyWith(request: DownloadRequest(url: newUrl));
+        if (detected != null &&
+            MediaSourceResolver.fromUrlString(fixedItem.request.url) == null) {
+          final slug = detected.toLowerCase();
+          fixedItem = fixedItem.copyWith(
+            request: DownloadRequest(url: 'https://$slug.detected/imported'),
+          );
         }
       }
 
       fixedItems.add(fixedItem);
     }
-    return fixedItems;
+
+    // Two items can end up on the same file (loose title match, then
+    // scanForNewFiles imports the real file). Rebind losers, drop ghosts.
+    var result = _rebindSharedFiles(fixedItems);
+    result = _rebindSharedFiles(result);
+    return _ensureThumbnails(result);
+  }
+
+  Future<List<DownloadItem>> _ensureThumbnails(List<DownloadItem> items) async {
+    final out = <DownloadItem>[];
+    for (var item in items) {
+      final path = item.filePath;
+      if (path != null &&
+          File(path).existsSync() &&
+          (item.thumbnailUrl == null ||
+              (!item.thumbnailUrl!.startsWith('http') &&
+                  !File(item.thumbnailUrl!).existsSync()))) {
+        final thumb =
+            _findSidecarThumbnail(path) ??
+            await _thumbnailService.generateThumbnail(path);
+        if (thumb != null) {
+          item = item.copyWith(thumbnailUrl: thumb);
+        }
+      }
+      out.add(item);
+    }
+    return out;
   }
 
   /// Scans the download directory recursively for new files not in the list
@@ -143,11 +195,26 @@ class LibraryScannerService {
           .where((i) => i.filePath != null)
           .map((i) => i.filePath!.toLowerCase())
           .toSet();
+      final knownIds = <String>{};
+      for (final item in knownItems) {
+        final fromPath = DownloadFileResolver.extractBracketId(item.filePath);
+        final fromTitle = DownloadFileResolver.extractBracketId(item.title);
+        if (fromPath != null && fromPath.isNotEmpty) {
+          knownIds.add(fromPath.toLowerCase());
+        }
+        if (fromTitle != null && fromTitle.isNotEmpty) {
+          knownIds.add(fromTitle.toLowerCase());
+        }
+      }
 
       // Scan recursively
       await for (final entity in dir.list(recursive: true)) {
         if (entity is File) {
           if (knownPaths.contains(entity.path.toLowerCase())) continue;
+          final fileId = DownloadFileResolver.extractBracketId(entity.path);
+          if (fileId != null && knownIds.contains(fileId.toLowerCase())) {
+            continue;
+          }
           if (_isVideo(entity.path)) {
             LoggerService.i('LibraryScanner: Found new video ${entity.path}');
 
@@ -158,23 +225,27 @@ class LibraryScannerService {
               metadata?.title ?? filename,
             );
 
-            // Detect source from metadata URL or folder structure
-            final source = _detectSource(
-              metadata?.sourceUrl,
-              entity.path,
-              downloadPath,
+            final detected = MediaSourceResolver.resolve(
+              url: metadata?.sourceUrl,
+              filePath: entity.path,
             );
-
+            final requestUrl =
+                metadata?.sourceUrl ??
+                (detected != null
+                    ? 'https://${detected.toLowerCase()}.detected/imported'
+                    : 'https://unknown.invalid/imported');
+            final diskSize = DownloadFileResolver.formattedFileSize(
+              entity.path,
+            );
             final newItem = DownloadItem(
               id: id,
-              // Use a synthetic URL with the source domain for proper detection
-              request: DownloadRequest(
-                url: metadata?.sourceUrl ?? 'https://$source.detected/imported',
-              ),
+              request: DownloadRequest(url: requestUrl),
               title: cleanTitle,
               status: DownloadStatus.completed,
               progress: 1.0,
               filePath: entity.path,
+              totalSize: diskSize ?? '',
+              downloadedSize: diskSize ?? '',
               sortOrder: 9999,
               thumbnailUrl: _findSidecarThumbnail(entity.path),
             );
@@ -186,70 +257,6 @@ class LibraryScannerService {
       LoggerService.e('LibraryScanner: Error scanning for new files', e);
     }
     return newItems;
-  }
-
-  /// Detects the source of a video from metadata URL or folder structure
-  String _detectSource(String? sourceUrl, String filePath, String basePath) {
-    // 1. Try to extract from source URL (most accurate)
-    if (sourceUrl != null && sourceUrl.isNotEmpty) {
-      try {
-        final uri = Uri.parse(sourceUrl);
-        final host = uri.host.toLowerCase();
-        if (host.contains('youtube') || host.contains('youtu.be')) {
-          return 'youtube';
-        }
-        if (host.contains('twitter') || host == 'x.com') return 'twitter';
-        if (host.contains('instagram')) return 'instagram';
-        if (host.contains('tiktok')) return 'tiktok';
-        if (host.contains('twitch')) return 'twitch';
-        if (host.contains('kick')) return 'kick';
-        if (host.contains('reddit') || host.contains('redd.it')) {
-          return 'reddit';
-        }
-        if (host.contains('pornhub')) return 'pornhub';
-        if (host.contains('xvideos')) return 'xvideos';
-        if (host.contains('xhamster')) return 'xhamster';
-        if (host.contains('xnxx')) return 'xnxx';
-      } catch (_) {}
-    }
-
-    // 3. Try to extract from parent folder name
-    final relativePath = filePath
-        .replaceFirst(basePath, '')
-        .replaceAll('\\', '/');
-    final parts = relativePath.split('/').where((p) => p.isNotEmpty).toList();
-
-    if (parts.length > 1) {
-      // First part of relative path is the subfolder (e.g., "Twitter", "YouTube")
-      final folder = parts.first.toLowerCase();
-      if (_isKnownSource(folder)) {
-        return folder;
-      }
-    }
-
-    return 'local';
-  }
-
-  /// Checks if a folder name matches a known source
-  bool _isKnownSource(String folder) {
-    const knownSources = [
-      'twitter',
-      'youtube',
-      'instagram',
-      'tiktok',
-      'twitch',
-      'kick',
-      'reddit',
-      'facebook',
-      'xnxx',
-      'xhamster',
-      'pornhub',
-      'xvideos',
-      'vimeo',
-      'dailymotion',
-      'soundcloud',
-    ];
-    return knownSources.contains(folder);
   }
 
   /// Builds a cache of all video files in the given path (recursive)
@@ -279,8 +286,36 @@ class LibraryScannerService {
   }
 
   /// Finds a file matching the item's title using normalized comparison
-  String? _findFileFor(DownloadItem item) {
-    if (item.title == null || _videoFileCache == null) return null;
+  String? _findFileFor(
+    DownloadItem item, {
+    Set<String> excludePaths = const {},
+  }) {
+    if (_videoFileCache == null) return null;
+
+    bool isCandidate(File file) {
+      if (DownloadFileResolver.isFragmentPath(file.path)) return false;
+      return !excludePaths.contains(file.path.toLowerCase());
+    }
+
+    // 1. Prefer bracket video id from previous path or title (most reliable)
+    final idFromPath = DownloadFileResolver.extractBracketId(item.filePath);
+    final idFromTitle = DownloadFileResolver.extractBracketId(item.title);
+    final videoId = idFromPath ?? idFromTitle;
+    if (videoId != null && videoId.isNotEmpty) {
+      final needle = videoId.toLowerCase();
+      for (final file in _videoFileCache!) {
+        if (!isCandidate(file)) continue;
+        final filename = file.uri.pathSegments.isNotEmpty
+            ? file.uri.pathSegments.last
+            : file.path.split(RegExp(r'[/\\]')).last;
+        final lower = filename.toLowerCase();
+        if (lower.contains('[$needle]')) {
+          return file.path;
+        }
+      }
+    }
+
+    if (item.title == null) return null;
 
     final normalizedTitle = _normalize(item.title!);
     if (normalizedTitle.isEmpty) return null;
@@ -291,6 +326,7 @@ class LibraryScannerService {
       final normalizedOldFilename = _normalize(oldFilename);
 
       for (final file in _videoFileCache!) {
+        if (!isCandidate(file)) continue;
         final filename = file.uri.pathSegments.last;
         final normalizedFilename = _normalize(filename);
 
@@ -300,54 +336,174 @@ class LibraryScannerService {
       }
     }
 
-    // Try title-based matching
+    // Best title match — never take the first weak overlap (e.g. "Hijab").
+    String? bestPath;
+    var bestScore = 0.0;
     for (final file in _videoFileCache!) {
+      if (!isCandidate(file)) continue;
       final filename = file.uri.pathSegments.last;
-      final normalizedFilename = _normalize(filename);
-
-      // Check if title is substantially contained in filename or vice versa
-      if (_fuzzyMatch(normalizedTitle, normalizedFilename)) {
-        return file.path;
+      final score = _fileMatchScore(normalizedTitle, _normalize(filename));
+      if (score > bestScore) {
+        bestScore = score;
+        bestPath = file.path;
       }
+    }
+    if (bestPath != null && bestScore >= 0.4) {
+      return bestPath;
     }
 
     return null;
   }
 
-  /// Normalizes a string for comparison (removes special chars, lowercase)
+  /// When several library rows point at the same file, keep the best owner
+  /// and reattach or drop the others.
+  List<DownloadItem> _rebindSharedFiles(List<DownloadItem> items) {
+    final byPath = <String, List<int>>{};
+    for (var i = 0; i < items.length; i++) {
+      final path = items[i].filePath;
+      if (path == null || path.isEmpty) continue;
+      byPath.putIfAbsent(path.toLowerCase(), () => []).add(i);
+    }
+
+    final result = List<DownloadItem>.from(items);
+    final dropIds = <String>{};
+
+    for (final indexes in byPath.values) {
+      if (indexes.length < 2) continue;
+      final path = result[indexes.first].filePath!;
+      var bestIndex = indexes.first;
+      for (final i in indexes.skip(1)) {
+        if (_preferItemForPath(path, result[i], result[bestIndex]) ==
+            result[i]) {
+          bestIndex = i;
+        }
+      }
+
+      final exclude = {path.toLowerCase()};
+      for (final i in indexes) {
+        if (i == bestIndex) continue;
+        final loser = result[i];
+        final found = _findFileFor(
+          loser.copyWith(clearFilePath: true),
+          excludePaths: exclude,
+        );
+        if (found != null) {
+          final diskSize = DownloadFileResolver.formattedFileSize(found);
+          result[i] = loser.copyWith(
+            filePath: found,
+            clearThumbnailUrl: true,
+            thumbnailUrl: _findSidecarThumbnail(found),
+            totalSize: diskSize ?? loser.totalSize,
+            downloadedSize: diskSize ?? loser.downloadedSize,
+          );
+          exclude.add(found.toLowerCase());
+        } else if (_isImported(loser)) {
+          dropIds.add(loser.id);
+        } else {
+          result[i] = loser.copyWith(
+            clearFilePath: true,
+            status: DownloadStatus.failed,
+            error: 'File missing from disk',
+          );
+        }
+      }
+    }
+
+    if (dropIds.isEmpty) return result;
+    return result.where((item) => !dropIds.contains(item.id)).toList();
+  }
+
+  DownloadItem _preferItemForPath(String path, DownloadItem a, DownloadItem b) {
+    final importedA = _isImported(a);
+    final importedB = _isImported(b);
+    if (importedA != importedB) {
+      return importedA ? b : a;
+    }
+    final filename = path.split(RegExp(r'[/\\]')).last;
+    final fileNorm = _normalize(filename);
+    final scoreA = _fileMatchScore(_normalize(a.title ?? ''), fileNorm);
+    final scoreB = _fileMatchScore(_normalize(b.title ?? ''), fileNorm);
+    if ((scoreA - scoreB).abs() > 0.05) {
+      return scoreA > scoreB ? a : b;
+    }
+    final titleA = a.title ?? '';
+    final titleB = b.title ?? '';
+    return titleA.length >= titleB.length ? a : b;
+  }
+
+  bool _isImported(DownloadItem item) {
+    final url = item.request.url.toLowerCase();
+    return url.contains('.detected/') || url.contains('/imported');
+  }
+
+  /// Normalizes a string for comparison (keeps unicode letters, lowercase)
   String _normalize(String input) {
     // Remove file extensions
     var s = input.replaceAll(
       RegExp(r'\.(mp4|mkv|webm|mov|avi)$', caseSensitive: false),
       '',
     );
-    // Remove URLs
-    s = s.replaceAll(RegExp(r'https?[^\s]*'), '');
-    // Remove special chars, keep only alphanumeric and spaces
-    s = s.replaceAll(RegExp(r'[^\w\s]'), ' ');
+    // Remove URLs (raw and collapsed httpst.co forms)
+    s = s.replaceAll(RegExp(r'https?[^\s]*', caseSensitive: false), '');
+    s = s.replaceAll(
+      RegExp(r'https?t\.co[A-Za-z0-9]+', caseSensitive: false),
+      '',
+    );
+    // Keep unicode letters/numbers and spaces; drop other punctuation
+    s = s.replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ');
     // Collapse whitespace
     s = s.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase();
     return s;
   }
 
-  /// Fuzzy matching - checks if significant words overlap
-  bool _fuzzyMatch(String a, String b) {
-    if (a.isEmpty || b.isEmpty) return false;
+  /// Jaccard + stem score. A single shared word (e.g. "hijab") must not win.
+  double _fileMatchScore(String titleNorm, String filenameNorm) {
+    if (titleNorm.isEmpty || filenameNorm.isEmpty) return 0;
 
-    // Split into words
-    final wordsA = a.split(' ').where((w) => w.length > 2).toSet();
-    final wordsB = b.split(' ').where((w) => w.length > 2).toSet();
+    final fileStem = filenameNorm
+        .replaceAll(RegExp(r'\b\d{8,}\b'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (fileStem == titleNorm) return 1.0;
+    if (fileStem.startsWith(titleNorm) || titleNorm.startsWith(fileStem)) {
+      final shorter = fileStem.length < titleNorm.length
+          ? fileStem.length
+          : titleNorm.length;
+      final longer = fileStem.length > titleNorm.length
+          ? fileStem.length
+          : titleNorm.length;
+      if (shorter >= 3 && longer > 0 && shorter / longer >= 0.5) {
+        return 0.9;
+      }
+    }
 
-    if (wordsA.isEmpty || wordsB.isEmpty) return false;
+    final wordsA = _significantWords(titleNorm);
+    final wordsB = _significantWords(fileStem);
+    if (wordsA.isEmpty || wordsB.isEmpty) return 0;
+    final intersection = wordsA.intersection(wordsB).length;
+    final union = wordsA.union(wordsB).length;
+    if (union == 0) return 0;
+    return intersection / union;
+  }
 
-    // Count matching words
-    final matches = wordsA.intersection(wordsB).length;
-    final minWords = wordsA.length < wordsB.length
-        ? wordsA.length
-        : wordsB.length;
+  Set<String> _significantWords(String normalized) {
+    return normalized
+        .split(' ')
+        .where((w) => w.isNotEmpty && (w.length > 2 || _isCjkHeavy(w)))
+        .toSet();
+  }
 
-    // Require at least 50% word overlap
-    return matches >= (minWords * 0.5).ceil() && matches >= 1;
+  /// True when most characters are CJK (Japanese/Chinese/Korean).
+  bool _isCjkHeavy(String word) {
+    if (word.isEmpty) return false;
+    final cjk = RegExp(
+      r'[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]',
+    );
+    var count = 0;
+    for (final rune in word.runes) {
+      if (cjk.hasMatch(String.fromCharCode(rune))) count++;
+    }
+    return count >= (word.runes.length / 2).ceil();
   }
 
   String? _findSidecarThumbnail(String videoPath) {
@@ -372,5 +528,38 @@ class LibraryScannerService {
         ext.endsWith('.webm') ||
         ext.endsWith('.mov') ||
         ext.endsWith('.avi');
+  }
+
+  bool _hasStaleRetryState(DownloadItem item) {
+    if (item.error != null && item.error!.isNotEmpty) return true;
+    if (item.speed.toLowerCase().contains('retry')) return true;
+    if (item.progress < 0.99) return true;
+    return false;
+  }
+
+  /// Promote failed/paused → completed only when the file is a non-fragment
+  /// with length &gt; 0. Clears stale error / Retry speed / 0% progress.
+  DownloadItem? _promoteToCompletedIfValid(DownloadItem item) {
+    final path = item.filePath;
+    if (path == null || path.isEmpty) return null;
+    if (DownloadFileResolver.isFragmentPath(path)) return null;
+
+    try {
+      final file = File(path);
+      if (!file.existsSync()) return null;
+      final bytes = file.lengthSync();
+      if (bytes <= 0) return null;
+      final size = FormatUtils.formatBytes(bytes);
+      return item.copyWith(
+        status: DownloadStatus.completed,
+        progress: 1.0,
+        speed: 'Terminé',
+        totalSize: size,
+        downloadedSize: size,
+        clearError: true,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }

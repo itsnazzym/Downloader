@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/theme/palette.dart';
+import 'package:modern_downloader/core/theme/app_colors.dart';
 
-/// A beautiful animated background with floating color orbs
+/// Ambient mesh used by the iOS chrome. Orbs follow the active primary.
 class MeshGradientBackground extends StatefulWidget {
   final Widget? child;
   const MeshGradientBackground({super.key, this.child});
@@ -22,17 +22,17 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
     super.initState();
     _controller1 = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 10),
     )..repeat(reverse: true);
 
     _controller2 = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 14),
     )..repeat(reverse: true);
 
     _controller3 = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 15),
+      duration: const Duration(seconds: 18),
     )..repeat(reverse: true);
   }
 
@@ -46,37 +46,30 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final reduce = MediaQuery.of(context).disableAnimations;
+
+    if (reduce) {
+      return Container(color: colors.background, child: widget.child);
+    }
+
     return Container(
-      color: Palette.backgroundDeep,
+      color: colors.background,
       child: Stack(
         children: [
-          // Orb 1 - Blue/Cyan (top-right)
           AnimatedBuilder(
             animation: _controller1,
             builder: (context, child) {
               return Positioned(
                 top: -100 + (50 * math.sin(_controller1.value * math.pi)),
                 right: -50 + (30 * math.cos(_controller1.value * math.pi)),
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Palette.neonBlue.withValues(alpha: 0.3),
-                        Palette.neonCyan.withValues(alpha: 0.1),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
-                    ),
-                  ),
+                child: _Orb(
+                  size: 400,
+                  color: colors.primary.withValues(alpha: 0.22),
                 ),
               );
             },
           ),
-
-          // Orb 2 - Purple/Pink (bottom-left)
           AnimatedBuilder(
             animation: _controller2,
             builder: (context, child) {
@@ -84,26 +77,13 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
                 bottom:
                     -150 + (80 * math.sin(_controller2.value * math.pi * 1.5)),
                 left: -100 + (60 * math.cos(_controller2.value * math.pi)),
-                child: Container(
-                  width: 500,
-                  height: 500,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Palette.neonPurple.withValues(alpha: 0.25),
-                        Palette.neonPink.withValues(alpha: 0.1),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.4, 1.0],
-                    ),
-                  ),
+                child: _Orb(
+                  size: 480,
+                  color: colors.info.withValues(alpha: 0.16),
                 ),
               );
             },
           ),
-
-          // Orb 3 - Cyan (center-right)
           AnimatedBuilder(
             animation: _controller3,
             builder: (context, child) {
@@ -111,43 +91,34 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
                 top: 200 + (100 * math.sin(_controller3.value * math.pi * 0.8)),
                 right:
                     -200 + (50 * math.cos(_controller3.value * math.pi * 1.2)),
-                child: Container(
-                  width: 350,
-                  height: 350,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Palette.neonCyan.withValues(alpha: 0.2),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 1.0],
-                    ),
-                  ),
+                child: _Orb(
+                  size: 320,
+                  color: colors.primary.withValues(alpha: 0.10),
                 ),
               );
             },
           ),
-
-          // Noise/grain overlay for texture
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Palette.backgroundDeep.withValues(alpha: 0.3),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Content
           if (widget.child != null) widget.child!,
         ],
+      ),
+    );
+  }
+}
+
+class _Orb extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _Orb({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0.0)]),
       ),
     );
   }

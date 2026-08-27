@@ -1,15 +1,14 @@
 body {
-    width: 320px;
-    height: 480px;
+    width: 340px;
+    height: 520px;
     background-color: #1E1E24;
     color: #FFF;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Helvetica, sans-serif;
     margin: 0;
     display: flex;
     flex-direction: column;
 }
 
-/* Header */
 .header {
     background-color: #2B2B36;
     padding: 12px 16px;
@@ -28,7 +27,17 @@ body {
     color: #EEE;
 }
 
-/* Status Dot */
+.status-cluster {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-text {
+    font-size: 11px;
+    color: #AAA;
+}
+
 .status-dot {
     width: 8px;
     height: 8px;
@@ -47,11 +56,50 @@ body {
     box-shadow: 0 0 6px #F44336;
 }
 
-/* Content */
 .content {
     flex: 1;
     overflow-y: auto;
     padding: 16px;
+}
+
+.cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.cta-btn {
+    flex: 1;
+    background: #6C5DD3;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cta-btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+    outline: 2px solid #8B7CF7;
+    outline-offset: 2px;
+}
+
+.cta-btn.secondary {
+    background: #383842;
+}
+
+#open-feed-btn {
+    flex-basis: 100%;
+}
+
+.cta-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .section-title {
@@ -76,7 +124,6 @@ body {
     margin-top: 40px;
 }
 
-/* Download Item Card */
 .download-item {
     background-color: #2B2B36;
     border-radius: 8px;
@@ -85,12 +132,6 @@ body {
     flex-direction: column;
     gap: 6px;
     border: 1px solid transparent;
-    transition: all 0.2s;
-}
-
-.download-item:hover {
-    border-color: #444;
-    transform: translateY(-1px);
 }
 
 .item-row {
@@ -134,7 +175,6 @@ body {
     color: #888;
 }
 
-/* Footer Settings */
 .footer-settings {
     background-color: #25252E;
     border-top: 1px solid #333;
@@ -143,14 +183,20 @@ body {
 
 .settings-row {
     display: flex;
-    gap: 12px;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
 }
 
 .setting-item {
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+.setting-item.grow {
+    flex: 1;
+    min-width: 120px;
 }
 
 .setting-item label {
@@ -164,7 +210,6 @@ body {
     flex-direction: row;
     align-items: center;
     padding-top: 14px;
-    /* Align with input */
     gap: 6px;
 }
 
@@ -175,20 +220,56 @@ body {
     cursor: pointer;
 }
 
-#port-input {
-    width: 60px;
+#port-input,
+#token-input,
+#browser-select,
+#btn-position,
+#btn-size {
     background-color: #383842;
     border: 1px solid #444;
     color: #FFF;
     padding: 6px;
     border-radius: 4px;
     font-size: 12px;
+}
+
+#port-input {
+    width: 64px;
     text-align: center;
 }
 
-#port-input:focus {
-    outline: none;
-    border-color: #6C5DD3;
+#token-input {
+    width: 100%;
+}
+
+#browser-select {
+    width: 110px;
+}
+
+.appearance {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #AAA;
+}
+
+.appearance summary {
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.appearance-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.inline-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: none;
+    color: #CCC;
 }
 
 .connection-msg {
@@ -199,7 +280,6 @@ body {
     font-style: italic;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
 }
@@ -211,8 +291,4 @@ body {
 ::-webkit-scrollbar-thumb {
     background: #444;
     border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
 }

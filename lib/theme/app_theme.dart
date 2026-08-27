@@ -1,36 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'ios_theme.dart';
+import 'package:modern_downloader/core/theme/app_theme.dart' as core;
+import 'package:modern_downloader/core/theme/theme_presets.dart';
 
+/// Facade over the live design system. Selecting the iOS preset in
+/// Appearance is what actually switches chrome; this keeps the old
+/// `theme/app_theme.dart` import path working.
 class AppTheme {
-  static ThemeData get darkTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: IOSTheme.background,
-      primaryColor: IOSTheme.systemBlue,
-      canvasColor: IOSTheme.secondaryBackground,
+  static ThemeData get darkTheme =>
+      core.AppTheme.fromPalette(ThemePresets.ios, Brightness.dark);
 
-      // Text
-      fontFamily: GoogleFonts.inter().fontFamily,
-      textTheme: IOSTheme.textTheme,
-
-      // Color Scheme for M3 widgets
-      colorScheme: const ColorScheme.dark(
-        primary: IOSTheme.systemBlue,
-        secondary: IOSTheme.systemBlue,
-        surface: IOSTheme.secondaryBackground,
-        error: IOSTheme.systemRed,
-        onSurface: IOSTheme.label,
-      ),
-
-      // Transitions
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.windows: ZoomPageTransitionsBuilder(),
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-        },
-      ),
-    );
-  }
+  static ThemeData get lightTheme =>
+      core.AppTheme.fromPalette(ThemePresets.ios, Brightness.light);
 }

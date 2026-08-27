@@ -73,14 +73,20 @@ class MetadataExtractorService {
         // yt-dlp often stores source in 'comment' or 'purl' or 'PURL' or 'description'
         if (tags['comment'] != null &&
             tags['comment'].toString().startsWith('http')) {
-          sourceUrl = tags['comment'];
+          sourceUrl = tags['comment'].toString();
         } else if (tags['description'] != null &&
             tags['description'].toString().startsWith('http')) {
-          sourceUrl = tags['description']; // Rare but possible
+          sourceUrl = tags['description'].toString();
         } else if (tags['purl'] != null) {
-          sourceUrl = tags['purl'];
+          sourceUrl = tags['purl'].toString();
         } else if (tags['PURL'] != null) {
-          sourceUrl = tags['PURL'];
+          sourceUrl = tags['PURL'].toString();
+        } else if (tags['url'] != null &&
+            tags['url'].toString().startsWith('http')) {
+          sourceUrl = tags['url'].toString();
+        } else if (tags['artist'] != null &&
+            tags['artist'].toString().startsWith('http')) {
+          sourceUrl = tags['artist'].toString();
         }
       }
 

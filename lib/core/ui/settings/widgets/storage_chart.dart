@@ -6,6 +6,7 @@ import '../../../design_system/foundation/colors.dart';
 import '../../../design_system/foundation/spacing.dart';
 import '../../../design_system/foundation/typography.dart';
 import 'dart:math';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class StorageChart extends StatefulWidget {
   final String path;
@@ -100,9 +101,9 @@ class _StorageChartState extends State<StorageChart> {
       return Container(
         height: 100,
         alignment: Alignment.center,
-        child: const Text(
-          "Storage info unavailable",
-          style: TextStyle(color: AppColors.textSecondary),
+        child: Text(
+          context.l10n.storageInfoUnavailable,
+          style: TextStyle(color: AppColors.of(context).textSecondary),
         ),
       );
     }
@@ -116,9 +117,11 @@ class _StorageChartState extends State<StorageChart> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.l),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: AppColors.of(context).border.withValues(alpha: 0.5),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -134,12 +137,15 @@ class _StorageChartState extends State<StorageChart> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Storage Usage",
+                context.l10n.storageUsage,
                 style: AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
               ),
               IconButton(
                 onPressed: _loadStorageInfo,
-                icon: const Icon(Icons.refresh, color: AppColors.textSecondary),
+                icon: Icon(
+                  Icons.refresh,
+                  color: AppColors.of(context).textSecondary,
+                ),
               ),
             ],
           ),
@@ -172,7 +178,7 @@ class _StorageChartState extends State<StorageChart> {
                       centerSpaceRadius: 40, // Donut style
                       sections: [
                         PieChartSectionData(
-                          color: AppColors.primary,
+                          color: AppColors.of(context).primary,
                           value: usedSpace,
                           title: '$usedPercentage%',
                           radius: _touchedIndex == 0 ? 60 : 50,
@@ -183,7 +189,7 @@ class _StorageChartState extends State<StorageChart> {
                           ),
                         ),
                         PieChartSectionData(
-                          color: AppColors.success.withValues(
+                          color: AppColors.of(context).success.withValues(
                             alpha: 0.8,
                           ), // Using green/success flavor for Free space to look positive
                           value: _freeSpace!,
@@ -208,25 +214,33 @@ class _StorageChartState extends State<StorageChart> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _Indicator(
-                      color: AppColors.primary,
-                      text: 'Used',
+                      color: AppColors.of(context).primary,
+                      text: context.l10n.storageUsed,
                       size: _formatBytes(usedSpace),
                       isSquare: false,
                     ),
                     const Gap(AppSpacing.s),
                     _Indicator(
-                      color: AppColors.success.withValues(alpha: 0.8),
-                      text: 'Free',
+                      color: AppColors.of(
+                        context,
+                      ).success.withValues(alpha: 0.8),
+                      text: context.l10n.storageFree,
                       size: _formatBytes(_freeSpace!),
                       isSquare: false,
                     ),
                     const Gap(AppSpacing.m),
-                    Divider(color: AppColors.border.withValues(alpha: 0.3)),
+                    Divider(
+                      color: AppColors.of(
+                        context,
+                      ).border.withValues(alpha: 0.3),
+                    ),
                     const Gap(AppSpacing.s),
                     Text(
-                      "Total: ${_formatBytes(_totalSpace!)}",
+                      context.l10n.storageTotalLabel(
+                        _formatBytes(_totalSpace!),
+                      ),
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.of(context).textSecondary,
                       ),
                     ),
                   ],
@@ -271,18 +285,18 @@ class _Indicator extends StatelessWidget {
             children: [
               Text(
                 text,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
+                  color: AppColors.of(context).textPrimary,
                 ),
               ),
               Text(
                 size,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: AppColors.of(context).textSecondary,
                 ),
               ),
             ],

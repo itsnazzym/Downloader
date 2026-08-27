@@ -22,6 +22,8 @@ class ToastMessage {
 class ToastNotifier extends StateNotifier<List<ToastMessage>> {
   ToastNotifier() : super([]);
 
+  static const int maxVisibleToasts = 3;
+
   void show({
     required String title,
     String? description,
@@ -37,7 +39,12 @@ class ToastNotifier extends StateNotifier<List<ToastMessage>> {
       duration: duration,
     );
 
-    state = [...state, toast];
+    final next = [...state, toast];
+    if (next.length > maxVisibleToasts) {
+      state = next.sublist(next.length - maxVisibleToasts);
+    } else {
+      state = next;
+    }
 
     // Auto-dismiss
     Future.delayed(duration, () => dismiss(id));

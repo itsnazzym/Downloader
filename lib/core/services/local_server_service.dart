@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,10 @@ import 'package:modern_downloader/features/downloader/domain/entities/download_i
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import '../logger/logger_service.dart';
 import '../services/notification_service.dart';
+import '../security/local_server_auth.dart';
+import '../../features/x_feed/gobird_x_feed_service.dart';
+import '../../features/x_feed/x_feed_ws_contract.dart';
+import '../../services/binary_locator.dart';
 
 final localServerServiceProvider = Provider<LocalServerService>((ref) {
   return LocalServerService(ref);
@@ -18,14 +23,19 @@ class LocalServerService {
   final Ref _ref;
   HttpServer? _server;
   final List<WebSocket> _clients = [];
+  final GobirdXFeedService _gobirdFeedService;
 
-  LocalServerService(this._ref);
+  /// HELLO must arrive within this window or the socket is closed.
+  static const Duration helloTimeout = Duration(seconds: 2);
+
+  LocalServerService(this._ref, {GobirdXFeedService? gobirdFeedService})
+    : _gobirdFeedService =
+          gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator());
 
   Future<void> start() async {
     final settings = _ref.read(settingsProvider);
     final port = settings.serverPort;
 
-    // Listen to repository updates to broadcast progress
     _ref.listen<IDownloaderRepository>(downloaderRepositoryProvider, (
       previous,
       next,
@@ -33,16 +43,14 @@ class LocalServerService {
       // Monitor the stream manually since the provider returns the Repo instance
     });
 
-    // Better: We need to listen to the *stream* exposed by the repository
     final repo = _ref.read(downloaderRepositoryProvider);
     repo.downloadUpdateStream.listen(_broadcastProgress);
 
     try {
-      // Revert to 127.0.0.1 to check if Firewall was blocking 0.0.0.0
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
       LoggerService.i('''
 ==================================================
-🚀 Local Server running on http://localhost:$port
+🚀 Local Server running on http://127.0.0.1:$port
 🔌 WebSocket Mode: ENABLED (Zero-Config)
 ✅ Ready for Extension Connection
 ==================================================
@@ -66,7 +74,6 @@ class LocalServerService {
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
-    // 1. WebSocket Upgrade Key
     if (WebSocketTransformer.isUpgradeRequest(request)) {
       try {
         final socket = await WebSocketTransformer.upgrade(request);
@@ -76,9 +83,6 @@ class LocalServerService {
       }
       return;
     }
-
-    // 2. Fallback / Status for HTTP (Legacy/Health check)
-    request.response.headers.add('Access-Control-Allow-Origin', '*');
 
     if (request.uri.path == '/status') {
       request.response.write(
@@ -90,12 +94,40 @@ class LocalServerService {
     await request.response.close();
   }
 
+  bool _isAuthorized(String? token) {
+    final expected = _ref.read(settingsProvider).apiToken;
+    return LocalServerAuth.isAuthorized(
+      expectedToken: expected,
+      providedToken: token,
+    );
+  }
+
+  void _acceptClient(WebSocket socket) {
+    if (_clients.contains(socket)) return;
+    _clients.add(socket);
+    NotificationService().showExtensionConnected();
+  }
+
   void _handleWebSocket(WebSocket socket, HttpRequest request) {
     LoggerService.i(
       '🔌 Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}',
     );
-    NotificationService().showExtensionConnected();
-    _clients.add(socket);
+
+    // Token must arrive via HELLO message body — never from the URL query.
+    var authorized = false;
+    Timer? helloTimer;
+
+    helloTimer = Timer(helloTimeout, () {
+      if (!authorized) {
+        LoggerService.w('WebSocket closed: HELLO auth timeout');
+        try {
+          socket.add(
+            jsonEncode({'type': 'AUTH_FAILED', 'reason': 'hello_timeout'}),
+          );
+        } catch (_) {}
+        socket.close();
+      }
+    });
 
     socket.listen(
       (message) {
@@ -103,18 +135,44 @@ class LocalServerService {
           final data = jsonDecode(message) as Map<String, dynamic>;
           final type = data['type'] as String?;
 
+          if (type == 'HELLO') {
+            final messageToken = LocalServerAuth.tokenFromMessage(data);
+            authorized = _isAuthorized(messageToken);
+            LoggerService.i('👋 Extension Hello received');
+            if (authorized) {
+              helloTimer?.cancel();
+              _acceptClient(socket);
+              socket.add(jsonEncode({'type': 'HELLO_OK'}));
+            } else {
+              helloTimer?.cancel();
+              socket.add(jsonEncode({'type': 'AUTH_FAILED'}));
+              socket.close();
+            }
+            return;
+          }
+
+          // Refuse every other message until HELLO succeeds.
+          if (!authorized) {
+            socket.add(
+              jsonEncode({
+                'type': 'AUTH_FAILED',
+                'reason': 'not_authenticated',
+              }),
+            );
+            return;
+          }
+
           if (type == 'PING') {
             socket.add(jsonEncode({'type': 'PONG'}));
             return;
           }
 
-          if (type == 'HELLO') {
-            LoggerService.i('👋 Extension Hello received');
-            return;
-          }
-
           if (type == 'DEBUG') {
-            LoggerService.i('🐛 EXT DEBUG: ${data['message']}');
+            // Never echo secrets; message body is extension-controlled text only.
+            final debugMsg = data['message'];
+            if (debugMsg is String) {
+              LoggerService.i('🐛 EXT DEBUG: $debugMsg');
+            }
             return;
           }
 
@@ -125,16 +183,20 @@ class LocalServerService {
             );
           } else if (type == 'HEARTBEAT_COOKIES') {
             _handleHeartbeatCookies(data);
+          } else if (type == XFeedWsContract.requestType) {
+            unawaited(_handleXFeedRequest(socket, data));
           }
         } catch (e) {
           LoggerService.e('Error parsing WS message', e);
         }
       },
       onDone: () {
+        helloTimer?.cancel();
         LoggerService.i('🔌 Extension Disconnected');
         _clients.remove(socket);
       },
       onError: (e) {
+        helloTimer?.cancel();
         LoggerService.e('WebSocket Error', e);
         _clients.remove(socket);
       },
@@ -144,13 +206,11 @@ class LocalServerService {
   void _broadcastProgress(DownloadItem item) {
     if (_clients.isEmpty) return;
 
-    // We only send significant updates or summarize
-    // Ideally we should send a list of active downloads, but sending individual updates is easier for now
-    // The extension will simply upsert this item in its list
+    final payload = jsonEncode({
+      'type': 'PROGRESS',
+      'data': item.toExtensionProgressJson(),
+    });
 
-    final payload = jsonEncode({'type': 'PROGRESS', 'data': item.toJson()});
-
-    // Broadcast to all
     for (final client in _clients) {
       if (client.readyState == WebSocket.open) {
         client.add(payload);
@@ -158,36 +218,137 @@ class LocalServerService {
     }
   }
 
+  Future<void> _handleXFeedRequest(
+    WebSocket socket,
+    Map<String, dynamic> data,
+  ) async {
+    final requestId = XFeedWsContract.requestIdFrom(data);
+
+    void reply(Map<String, dynamic> payload) {
+      if (socket.readyState != WebSocket.open) return;
+      final body = <String, dynamic>{
+        'type': XFeedWsContract.resultType,
+        if (requestId != null) 'requestId': requestId,
+        ...payload,
+      };
+      try {
+        socket.add(jsonEncode(body));
+      } catch (e) {
+        LoggerService.w('Failed to send X_FEED_RESULT: $e');
+      }
+    }
+
+    try {
+      // Cookie smuggling is never accepted on this channel.
+      if (XFeedWsContract.containsCookieFields(data)) {
+        reply({
+          'ok': false,
+          'source': 'gobird',
+          'errorCode': 'cookies_forbidden',
+          'error': 'Cookies must not be sent with X_FEED_REQUEST',
+          'items': <Object>[],
+        });
+        return;
+      }
+
+      final settings = _ref.read(settingsProvider);
+      if (!settings.experimentalXFeedGobirdEnabled) {
+        LoggerService.i('X_FEED_REQUEST rejected: gobird disabled in settings');
+        reply({
+          'ok': false,
+          'source': 'gobird',
+          'errorCode': 'disabled',
+          'error': 'Experimental gobird X feed is disabled',
+          'items': <Object>[],
+        });
+        return;
+      }
+
+      final count = XFeedWsContract.normalizeCount(
+        data['count'] ?? data['maxItems'],
+      );
+      LoggerService.i(
+        'X_FEED_REQUEST: gobird home count=$count browser=${settings.gobirdBrowser}',
+      );
+      final result = await _gobirdFeedService.fetchHomeFeed(
+        browser: settings.gobirdBrowser,
+        count: count,
+        probeContentLength: false,
+        cookiesFilePath: settings.cookiesFilePath,
+      );
+      if (!result.ok) {
+        LoggerService.w(
+          'X_FEED_RESULT failure: ${result.errorCode} — ${result.error}',
+        );
+      } else {
+        LoggerService.i(
+          'X_FEED_RESULT ok: ${result.items.length} video items (gobird)',
+        );
+      }
+      reply(result.toJson());
+    } catch (e, st) {
+      LoggerService.e('X_FEED_REQUEST failed', e, st);
+      reply({
+        'ok': false,
+        'source': 'gobird',
+        'errorCode': 'unknown',
+        'error': e.toString(),
+        'items': <Object>[],
+      });
+    }
+  }
+
   Future<void> _handleHeartbeatCookies(Map<String, dynamic> data) async {
-    // Save cookies to a central file for general usage
-    // This allows the app to use these cookies even if the link didn't come from the extension
     try {
       final domain = data['domain'] as String?;
       final cookies = data['cookies'] as String?;
-      if (cookies != null && domain != null) {
-        // VALIDATION: yt-dlp --cookies requires Netscape format (7 tab-separated columns)
-        // If we receive a simple "key=value; ..." header string, we must NOT save it as a .txt file passed to --cookies.
-        // Doing so causes yt-dlp to error out and fail downloads.
-        if (!cookies.contains('\t') && cookies.contains('=')) {
-          LoggerService.w(
-            '❤️ Heartbeat: Received cookies for $domain in Header format (not Netscape). Ignoring to prevent yt-dlp errors.',
-          );
-          return;
-        }
+      if (cookies == null || domain == null || domain.isEmpty) return;
 
-        final appDir = Directory.systemTemp; // Or specialized cache dir
-        final cookieFile = File('${appDir.path}/heartbeat_cookies.txt');
-        await cookieFile.writeAsString(cookies);
-        LoggerService.i('❤️ Heartbeat: Updated cookies for $domain');
-
-        // Update settings to point to this file
-        _ref
-            .read(settingsProvider.notifier)
-            .setCookiesFilePath(cookieFile.path);
+      if (!cookies.contains('\t') && cookies.contains('=')) {
+        LoggerService.w(
+          '❤️ Heartbeat: Received cookies for $domain in Header format (not Netscape). Ignoring to prevent yt-dlp errors.',
+        );
+        return;
       }
+
+      final safeName = LocalServerAuth.sanitizeDomainForFilename(domain);
+      final appDir = Directory.systemTemp;
+      final cookieFile = File('${appDir.path}/heartbeat_cookies_$safeName.txt');
+      await cookieFile.writeAsString(cookies);
+      LoggerService.i(
+        '❤️ Heartbeat: Updated cookies for $domain → ${cookieFile.path}',
+      );
+      // Do not overwrite settings.cookiesFilePath — keep per-domain heartbeat files
+      // and resolve the right one at download start via heartbeatCookiePathForUrl.
     } catch (e) {
       LoggerService.e('Failed to handle heartbeat cookies', e);
     }
+  }
+
+  /// Resolve the heartbeat cookie file for a URL hostname, if present.
+  static Future<String?> heartbeatCookiePathForUrl(String url) async {
+    try {
+      final host = Uri.parse(url).host;
+      if (host.isEmpty) return null;
+      final appDir = Directory.systemTemp;
+      await for (final entity in appDir.list()) {
+        if (entity is! File) continue;
+        final name = entity.uri.pathSegments.isNotEmpty
+            ? entity.uri.pathSegments.last
+            : entity.path;
+        if (!name.startsWith('heartbeat_cookies_') || !name.endsWith('.txt')) {
+          continue;
+        }
+        final domainPart = name.substring(
+          'heartbeat_cookies_'.length,
+          name.length - '.txt'.length,
+        );
+        if (LocalServerAuth.hostMatchesDomain(host, domainPart)) {
+          return entity.path;
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   void _processDownloadPayload(Map<String, dynamic> data) {
@@ -195,47 +356,49 @@ class LocalServerService {
     final cookies = data['cookies'] as String?;
     final userAgent = data['userAgent'] as String?;
 
-    // New Param Support
     final isAudioOnly = data['isAudioOnly'] as bool?;
     final isPlaylist = data['isPlaylist'] as bool?;
     final cookieBrowser = data['cookieBrowser'] as String?;
+    final preferredQuality = data['preferredQuality'] as String?;
 
-    if (url != null) {
-      LoggerService.i('📥 Received download request: $url');
-      if (cookies != null) {
-        LoggerService.debug('With Cookies: ${cookies.length} chars');
-      }
+    if (url == null || url.isEmpty) return;
 
-      if (isPlaylist == true) {
-        LoggerService.i('Playlist Mode Detected');
-      }
-
-      if (userAgent != null) {
-        LoggerService.debug('With UA: $userAgent');
-      }
-
-      if (isAudioOnly == true) {
-        _ref.read(settingsProvider.notifier).setAudioOnly(true);
-      }
-
-      // SIMPLIFIED MODE: Ignore extension cookies/UA as per user request
-      // The app will use its internal settings or cookies file
-      // UPDATE: Pass cookieBrowser if provided by extension
-      _ref.read(launchDataProvider.notifier).state = LaunchData(
-        url: url,
-        cookies: null, // Force null
-        userAgent: null, // Force null
-        isAudioOnly: isAudioOnly ?? false,
-        shouldAutoStart: true, // Extensions want instant start
-        isPlaylist: isPlaylist ?? false,
-        cookieBrowser: cookieBrowser,
-      );
-
-      // Bring window to front
-      windowManager.show();
-      windowManager.focus();
-
-      NotificationService().showClipboardDetected(url);
+    // Only accept http(s) download targets from the extension.
+    final uri = Uri.tryParse(url);
+    if (uri == null ||
+        (uri.scheme != 'http' && uri.scheme != 'https') ||
+        uri.host.isEmpty) {
+      LoggerService.w('Rejected non-http(s) download URL from extension');
+      return;
     }
+
+    LoggerService.i('📥 Received download request: $url');
+    if (cookies != null) {
+      LoggerService.debug('With Cookies: ${cookies.length} chars');
+    }
+
+    if (isPlaylist == true) {
+      LoggerService.i('Playlist Mode Detected');
+    }
+
+    if (userAgent != null) {
+      LoggerService.debug('With UA length: ${userAgent.length}');
+    }
+
+    _ref.read(launchDataProvider.notifier).state = LaunchData(
+      url: url,
+      cookies: cookies,
+      userAgent: userAgent,
+      isAudioOnly: isAudioOnly ?? false,
+      shouldAutoStart: true,
+      isPlaylist: isPlaylist ?? false,
+      cookieBrowser: cookieBrowser,
+      preferredQuality: preferredQuality,
+    );
+
+    windowManager.show();
+    windowManager.focus();
+
+    NotificationService().showClipboardDetected(url);
   }
 }

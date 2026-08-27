@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+import '../launch/protocol_url_parser.dart';
 import '../providers/launch_provider.dart';
 
 class SingleInstanceService {
@@ -56,18 +57,11 @@ class SingleInstanceService {
       );
 
       if (protocolUrl.isNotEmpty) {
-        // Extract URL and update provider
-        final uri = Uri.parse(protocolUrl);
-        String? finalUrl;
-        if (uri.queryParameters.containsKey('url')) {
-          finalUrl = uri.queryParameters['url'];
-        } else if (uri.host == 'open' &&
-            uri.queryParameters.containsKey('url')) {
-          finalUrl = uri.queryParameters['url'];
-        }
+        final finalUrl = ProtocolUrlParser.extractMediaUrl(protocolUrl);
 
         if (finalUrl != null) {
-          container.read(launchUrlProvider.notifier).state = finalUrl;
+          container.read(launchDataProvider.notifier).state =
+              LaunchData.fromUrl(finalUrl);
 
           // Re-focus original window
           try {

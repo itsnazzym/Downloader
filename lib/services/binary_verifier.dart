@@ -23,6 +23,19 @@ class BinaryVerifier {
     return _checkBinary(path, ['--version']);
   }
 
+  /// Checks optional experimental gobird binary (not required at startup).
+  static Future<BinaryStatus> checkGobird() async {
+    final path = await _locator.findGobird();
+    if (path == null) {
+      return BinaryStatus(
+        isInstalled: false,
+        version: null,
+        error: 'gobird not found',
+      );
+    }
+    return _checkBinary(path, ['--version']);
+  }
+
   static Future<BinaryStatus> _checkBinary(
     String path,
     List<String> args,

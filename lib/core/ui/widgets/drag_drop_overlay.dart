@@ -5,6 +5,7 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class DragDropOverlay extends ConsumerStatefulWidget {
   final Widget child;
@@ -40,32 +41,32 @@ class _DragDropOverlayState extends ConsumerState<DragDropOverlay> {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    color: AppColors.background.withValues(alpha: 0.8),
+                    color: AppColors.of(context).overlay.withValues(alpha: 0.8),
                     alignment: Alignment.center,
                     child:
                         Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.cloud_upload_outlined,
                                   size: 80,
-                                  color: AppColors.primary,
+                                  color: AppColors.of(context).primary,
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
-                                  "Drop links or files here",
+                                Text(
+                                  context.l10n.dropLinksHere,
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
+                                    color: AppColors.of(context).textPrimary,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
-                                  "They will be added to your download queue",
+                                Text(
+                                  context.l10n.dropLinksHint,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: AppColors.textSecondary,
+                                    color: AppColors.of(context).textSecondary,
                                   ),
                                 ),
                               ],

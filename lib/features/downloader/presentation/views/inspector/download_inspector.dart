@@ -2,6 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/design_system/components/status_badge.dart';
+import 'package:modern_downloader/core/download/download_file_resolver.dart';
+import 'package:modern_downloader/core/download/extraction_placeholders.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
@@ -21,6 +25,7 @@ class DownloadInspector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     // Find the item
     final downloadsAsync = ref.watch(downloadListProvider);
     final downloads = downloadsAsync.valueOrNull ?? [];
@@ -34,7 +39,7 @@ class DownloadInspector extends ConsumerWidget {
     );
 
     if (item.id == 'deleted') {
-      return const Center(child: Text("Select a download"));
+      return Center(child: Text(l10n.selectDownload));
     }
 
     return Animate(
@@ -51,11 +56,13 @@ class DownloadInspector extends ConsumerWidget {
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             alignment: Alignment.centerLeft,
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.border)),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: AppColors.of(context).border),
+              ),
             ),
             child: Text(
-              "Inspector",
+              l10n.inspector,
               style: Theme.of(context).textTheme.titleSmall,
             ),
           ),
@@ -73,8 +80,23 @@ class DownloadInspector extends ConsumerWidget {
                   // Preview
                   // Preview
                   (() {
-                    final validPath = _getValidVideoPath(item.filePath);
-                    if (validPath != null && _isVideo(validPath)) {
+                    final validPath = DownloadFileResolver.resolvePlayablePath(
+                      item.filePath,
+                      title: item.title,
+                    );
+                    if (validPath != null &&
+                        DownloadFileResolver.isMediaPath(validPath) &&
+                        !DownloadFileResolver.isAudioPath(validPath)) {
+                      // Unmount the native inspector player while fullscreen
+                      // so it cannot steal the D3D/MF device (black first frame).
+                      final fullscreenOpen = ref.watch(
+                        mediaPlayerProvider.select((s) => s.isOpen),
+                      );
+                      if (fullscreenOpen) {
+                        return _FullscreenPlayingPlaceholder(
+                          thumbnailUrl: item.thumbnailUrl,
+                        );
+                      }
                       return VideoPreviewWidget(
                         filePath: validPath,
                         thumbnailUrl: item.thumbnailUrl,
@@ -87,7 +109,7 @@ class DownloadInspector extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: AppColors.of(context).border),
                       ),
                       child: Stack(
                         alignment: Alignment.center,
@@ -95,17 +117,15 @@ class DownloadInspector extends ConsumerWidget {
                           if (item.thumbnailUrl != null)
                             Opacity(
                               opacity: 0.5,
-                              child: Image.network(
+                              child: _buildThumbnail(
                                 item.thumbnailUrl!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
+                                context,
                               ),
                             ),
-                          const Icon(
+                          Icon(
                             Icons.movie_creation_outlined,
                             size: 48,
-                            color: AppColors.textSecondary,
+                            color: AppColors.of(context).textSecondary,
                           ),
                           if (validPath != null)
                             Material(
@@ -116,9 +136,9 @@ class DownloadInspector extends ConsumerWidget {
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.8,
-                                    ),
+                                    color: AppColors.of(
+                                      context,
+                                    ).primary.withValues(alpha: 0.8),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -138,43 +158,55 @@ class DownloadInspector extends ConsumerWidget {
 
                   // Metadata
                   _InfoRow(
-                    label: "Title",
-                    value: TitleCleanerService.clean(item.title ?? "Unknown"),
+                    label: l10n.title,
+                    value:
+                        item.status == DownloadStatus.extracting &&
+                            ExtractionPlaceholders.isGenericTitle(item.title)
+                        ? l10n.extractingTitle
+                        : TitleCleanerService.clean(item.title ?? l10n.unknown),
                   ),
                   _InfoRow(
-                    label: "Status",
-                    value: item.status.toString().split('.').last,
+                    label: l10n.status,
+                    value: downloadStatusLabel(context, item.status),
                   ),
                   _InfoRow(
-                    label: "Progress",
+                    label: l10n.progress,
                     value: "${(item.progress * 100).toStringAsFixed(1)}%",
                   ),
-                  _InfoRow(label: "ID", value: item.id, isMono: true),
+                  _InfoRow(
+                    label: l10n.inspectorId,
+                    value: item.id,
+                    isMono: true,
+                  ),
 
                   if (item.error != null) ...[
                     const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.1),
+                        color: AppColors.of(
+                          context,
+                        ).error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.3),
+                          color: AppColors.of(
+                            context,
+                          ).error.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
-                            color: AppColors.error,
+                            color: AppColors.of(context).error,
                             size: 20,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               item.error!,
-                              style: const TextStyle(
-                                color: AppColors.error,
+                              style: TextStyle(
+                                color: AppColors.of(context).error,
                                 fontSize: 13,
                               ),
                             ),
@@ -190,7 +222,20 @@ class DownloadInspector extends ConsumerWidget {
                   Row(
                     children: [
                       if (item.status == DownloadStatus.downloading ||
-                          item.status == DownloadStatus.extracting)
+                          item.status == DownloadStatus.extracting ||
+                          item.status == DownloadStatus.processing) ...[
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              ref
+                                  .read(downloadListProvider.notifier)
+                                  .pauseDownload(item.id);
+                            },
+                            icon: const Icon(Icons.pause, size: 18),
+                            label: Text(l10n.pause),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
@@ -199,22 +244,42 @@ class DownloadInspector extends ConsumerWidget {
                                   .cancelDownload(item.id);
                             },
                             icon: const Icon(Icons.cancel_outlined, size: 18),
-                            label: const Text("Cancel"),
+                            label: Text(l10n.cancel),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.error,
-                              side: const BorderSide(color: AppColors.error),
+                              foregroundColor: AppColors.of(context).error,
+                              side: BorderSide(
+                                color: AppColors.of(context).error,
+                              ),
                             ),
                           ),
                         ),
-
-                      if (item.status == DownloadStatus.downloading ||
-                          item.status == DownloadStatus.extracting)
                         const SizedBox(width: 12),
+                      ],
 
-                      // Retry button for failed/canceled/paused downloads
+                      if (item.status == DownloadStatus.paused) ...[
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              ref
+                                  .read(downloadListProvider.notifier)
+                                  .resumeDownload(item.id);
+                            },
+                            icon: const Icon(Icons.play_arrow, size: 18),
+                            label: Text(l10n.resume),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.of(context).primary,
+                              side: BorderSide(
+                                color: AppColors.of(context).primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+
                       if (item.status == DownloadStatus.failed ||
                           item.status == DownloadStatus.canceled ||
-                          item.status == DownloadStatus.paused)
+                          item.status == DownloadStatus.completed)
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
@@ -222,18 +287,27 @@ class DownloadInspector extends ConsumerWidget {
                                   .read(downloadListProvider.notifier)
                                   .retryDownload(item);
                             },
-                            icon: const Icon(Icons.refresh, size: 18),
-                            label: const Text("Retry"),
+                            icon: const Icon(
+                              Icons.restart_alt_rounded,
+                              size: 18,
+                            ),
+                            label: Text(
+                              item.status == DownloadStatus.completed
+                                  ? l10n.restartDownload
+                                  : l10n.retry,
+                            ),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
+                              foregroundColor: AppColors.of(context).primary,
+                              side: BorderSide(
+                                color: AppColors.of(context).primary,
+                              ),
                             ),
                           ),
                         ),
 
                       if (item.status == DownloadStatus.failed ||
                           item.status == DownloadStatus.canceled ||
-                          item.status == DownloadStatus.paused)
+                          item.status == DownloadStatus.completed)
                         const SizedBox(width: 12),
 
                       Expanded(
@@ -248,10 +322,12 @@ class DownloadInspector extends ConsumerWidget {
                             // It's handled below.
                           },
                           icon: const Icon(Icons.delete_outline, size: 18),
-                          label: const Text("Delete"),
+                          label: Text(l10n.delete),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary,
-                            side: const BorderSide(color: AppColors.border),
+                            foregroundColor: AppColors.of(context).textPrimary,
+                            side: BorderSide(
+                              color: AppColors.of(context).border,
+                            ),
                           ),
                         ),
                       ),
@@ -261,7 +337,10 @@ class DownloadInspector extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // Logs
-                  Text("Logs", style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    l10n.logs,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 8),
                   Container(
                     height: 200,
@@ -270,9 +349,9 @@ class DownloadInspector extends ConsumerWidget {
                       0,
                     ), // LogViewer handles padding
                     decoration: BoxDecoration(
-                      color: AppColors.background,
+                      color: AppColors.of(context).background,
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: AppColors.of(context).border),
                     ),
                     child: LogViewer(
                       logs: [
@@ -280,9 +359,12 @@ class DownloadInspector extends ConsumerWidget {
                         if (item.status != DownloadStatus.queued)
                           "Download started...",
                         if (item.step.isNotEmpty) "[STEP] ${item.step}",
-                        if (item.speed.isNotEmpty) "[SPEED] ${item.speed}",
+                        if (item.speed.isNotEmpty &&
+                            !item.speed.toLowerCase().contains('retry'))
+                          "[SPEED] ${item.speed}",
                         if (item.error != null) "[ERROR] ${item.error}",
-                        if (item.status == DownloadStatus.completed)
+                        if (item.status == DownloadStatus.completed &&
+                            item.error == null)
                           "Download completed successfully.",
                         if (item.status == DownloadStatus.canceled)
                           "Download canceled.",
@@ -308,59 +390,90 @@ class DownloadInspector extends ConsumerWidget {
 
   /// Open media files in the built-in player, others in Explorer
   void _openMediaFile(WidgetRef ref, String path) {
-    if (_isMedia(path)) {
+    if (DownloadFileResolver.isMediaPath(path)) {
       ref.read(mediaPlayerProvider.notifier).openFile(path);
     } else {
       _openFile(path);
     }
   }
 
-  bool _isMedia(String path) {
-    final ext = path.toLowerCase();
-    return _isVideo(ext) || _isAudio(ext);
-  }
-
-  bool _isAudio(String path) {
-    final ext = path.toLowerCase();
-    return ext.endsWith('.mp3') ||
-        ext.endsWith('.aac') ||
-        ext.endsWith('.opus') ||
-        ext.endsWith('.m4a') ||
-        ext.endsWith('.ogg') ||
-        ext.endsWith('.flac') ||
-        ext.endsWith('.wav') ||
-        ext.endsWith('.wma');
-  }
-
-  bool _isVideo(String path) {
-    final ext = path.toLowerCase();
-    return ext.endsWith('.mp4') ||
-        ext.endsWith('.mkv') ||
-        ext.endsWith('.webm') ||
-        ext.endsWith('.mov') ||
-        ext.endsWith('.avi') ||
-        ext.endsWith('.flv') ||
-        ext.endsWith('.m4v') ||
-        ext.endsWith('.3gp') ||
-        ext.contains('.fhls') || // Handle HLS fragments
-        ext.contains('.f\\d+') || // Fragment fragments
-        ext.endsWith('.part'); // Allow previewing partial files if supported
-  }
-
-  String? _getValidVideoPath(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (File(path).existsSync()) return path;
-
-    // Fallback: Check common extensions if not present
-    final extensions = ['.mp4', '.mkv', '.webm', '.mov'];
-    for (final ext in extensions) {
-      if (!path.toLowerCase().endsWith(ext)) {
-        final newPath = '$path$ext';
-        if (File(newPath).existsSync()) return newPath;
-      }
+  Widget _buildThumbnail(String url, BuildContext context) {
+    final isNetwork = url.startsWith('http://') || url.startsWith('https://');
+    if (isNetwork) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+      );
     }
 
-    return null;
+    String decodedPath = url;
+    try {
+      decodedPath = Uri.decodeFull(url);
+    } catch (_) {}
+
+    final file = File(decodedPath);
+    if (file.existsSync()) {
+      return Image.file(
+        file,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+      );
+    }
+    return const SizedBox();
+  }
+}
+
+class _FullscreenPlayingPlaceholder extends StatelessWidget {
+  final String? thumbnailUrl;
+
+  const _FullscreenPlayingPlaceholder({this.thumbnailUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.of(context).border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (thumbnailUrl != null)
+            Opacity(
+              opacity: 0.35,
+              child: thumbnailUrl!.startsWith('http')
+                  ? Image.network(
+                      thumbnailUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox(),
+                    )
+                  : (File(thumbnailUrl!).existsSync()
+                        ? Image.file(
+                            File(thumbnailUrl!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const SizedBox(),
+                          )
+                        : const SizedBox()),
+            ),
+          const Center(
+            child: Icon(
+              Icons.play_circle_fill_rounded,
+              color: Colors.white54,
+              size: 48,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -384,9 +497,9 @@ class _InfoRow extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: AppColors.textSecondary,
+              color: AppColors.of(context).textSecondary,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
@@ -395,7 +508,7 @@ class _InfoRow extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: AppColors.of(context).textPrimary,
               fontSize: 13,
               fontFamily: isMono ? 'JetBrains Mono' : null,
             ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/theme/ios_theme.dart';
-import 'package:modern_downloader/theme/palette.dart';
+import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
+import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class FloatingNavDock extends StatelessWidget {
   final String currentLocation;
@@ -10,71 +12,127 @@ class FloatingNavDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(left: 20),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-        decoration: IOSTheme.glassDecoration(
-          radius: 32,
-          color: Palette.glassBlack,
-          borderColor: Palette.borderWhite,
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    final reduce = MediaQuery.of(context).disableAnimations;
+
+    final dock = Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 18),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.glassFill,
+            borderRadius: AppRadius.fullBorder,
+            border: Border.all(color: colors.glassBorder),
+            boxShadow: colors.tintedShadow,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _DockItem(
+                  icon: Icons.download_rounded,
+                  label: l10n.mainPage,
+                  selected: currentLocation == '/',
+                  onTap: () => context.go('/'),
+                ),
+                const SizedBox(width: 6),
+                _DockItem(
+                  icon: Icons.add_rounded,
+                  label: l10n.newDownload,
+                  selected: false,
+                  emphasized: true,
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const AddDownloadDialog(),
+                    );
+                  },
+                ),
+                const SizedBox(width: 6),
+                _DockItem(
+                  icon: Icons.settings_rounded,
+                  label: l10n.settings,
+                  selected: currentLocation.startsWith('/settings'),
+                  onTap: () => context.go('/settings/general'),
+                ),
+              ],
+            ),
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildNavItem(
-              context,
-              icon: Icons.download_rounded,
-              label: 'Home',
-              path: '/',
-              isSelected: currentLocation == '/',
-            ),
-            const SizedBox(height: 20),
-            _buildNavItem(
-              context,
-              icon: Icons.settings_rounded,
-              label: 'Settings',
-              path: '/settings',
-              isSelected: currentLocation == '/settings',
-            ),
-          ],
-        ).animate().fadeIn(delay: 500.ms).slideX(begin: -0.2),
       ),
     );
-  }
 
-  Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String path,
-    required bool isSelected,
-  }) {
-    return InkWell(
-      onTap: () => context.go(path),
-      borderRadius: BorderRadius.circular(20),
-      child: AnimatedContainer(
-        duration: 200.ms,
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: isSelected ? Palette.neonBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected
-                  ? Palette.neonBlue.withValues(alpha: 0.4)
-                  : Colors.transparent,
-              blurRadius: isSelected ? 12 : 0,
-              offset: const Offset(0, 4),
+    if (reduce) return dock;
+    return dock.animate().fadeIn(duration: 280.ms).slideY(begin: 0.16, end: 0);
+  }
+}
+
+class _DockItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool emphasized;
+  final VoidCallback onTap;
+
+  const _DockItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.emphasized = false,
+  });
+
+  @override
+  State<_DockItem> createState() => _DockItemState();
+}
+
+class _DockItemState extends State<_DockItem> {
+  bool _hovering = false;
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final reduce = MediaQuery.of(context).disableAnimations;
+    final bg = widget.emphasized
+        ? colors.primary
+        : (widget.selected
+              ? colors.primary.withValues(alpha: 0.22)
+              : (_hovering
+                    ? colors.surfaceHighlight.withValues(alpha: 0.6)
+                    : Colors.transparent));
+    final iconColor = widget.emphasized
+        ? colors.onPrimary
+        : (widget.selected ? colors.primary : colors.textSecondary);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: reduce ? 1 : (_pressed ? 0.96 : (_hovering ? 1.06 : 1)),
+          duration: const Duration(milliseconds: 140),
+          child: Tooltip(
+            message: widget.label,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(widget.icon, color: iconColor, size: 22),
             ),
-          ],
-        ),
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.white : Palette.textSecondary,
-          size: 24,
+          ),
         ),
       ),
     );

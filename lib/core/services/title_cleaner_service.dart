@@ -11,6 +11,29 @@ class TitleCleanerService {
     unicode: true,
   );
 
+  /// Full URLs and common short-link forms that must be stripped *before*
+  /// removing Windows-illegal characters (`:` `/`), otherwise
+  /// `https://t.co/abc` collapses into `httpst.coabc`.
+  static final RegExp _urlPattern = RegExp(
+    r'https?://[^\s<>"]+'
+    r'|www\.[^\s<>"]+'
+    r'|t\.co/[A-Za-z0-9]+'
+    r'|x\.com/[^\s<>"]+'
+    r'|twitter\.com/[^\s<>"]+',
+    caseSensitive: false,
+  );
+
+  /// Already-collapsed short links after a prior bad sanitize, e.g. `httpst.coCSJb`.
+  static final RegExp _collapsedUrlPattern = RegExp(
+    r'https?t\.co[A-Za-z0-9]+'
+    r'|https?x\.com[A-Za-z0-9/_-]+'
+    r'|https?twitter\.com[A-Za-z0-9/_-]+',
+    caseSensitive: false,
+  );
+
+  /// Max length for the human-readable stem (id suffix kept separately).
+  static const int maxStemLength = 100;
+
   static String clean(String title) {
     String cleaned = title;
 
@@ -19,6 +42,10 @@ class TitleCleanerService {
 
     // Remove Spam patterns
     cleaned = cleaned.replaceAll(_spamPatterns, '');
+
+    // Strip URLs BEFORE removing `:` and `/` (critical for t.co titles)
+    cleaned = cleaned.replaceAll(_urlPattern, ' ');
+    cleaned = cleaned.replaceAll(_collapsedUrlPattern, ' ');
 
     // Remove pipes and other separators often used in YouTube titles
     cleaned = cleaned.replaceAll('|', '-');
@@ -36,15 +63,14 @@ class TitleCleanerService {
     // Matches patterns like [abc123], [dQw4w9WgXcQ], [1234567890], [z8f3k]
     cleaned = cleaned.replaceAll(RegExp(r'\s*\[[a-zA-Z0-9_-]+\]\s*$'), '');
 
-    // Collapse multiple spaces
+    // Collapse multiple spaces / leftover hyphens from URL-only titles
     cleaned = cleaned.replaceAll(RegExp(r'\s+'), ' ');
-
-    // Trim
+    cleaned = cleaned.replaceAll(RegExp(r'^[-_.\s]+|[-_.\s]+$'), '');
     cleaned = cleaned.trim();
 
-    // Truncate to avoid path length issues in Windows (260 char limit total, let's keep filename < 200)
-    if (cleaned.length > 200) {
-      cleaned = '${cleaned.substring(0, 197)}...';
+    // Truncate stem to avoid path length issues (keep room for [id].ext)
+    if (cleaned.length > maxStemLength) {
+      cleaned = '${cleaned.substring(0, maxStemLength - 3)}...';
     }
 
     if (cleaned != title) {
@@ -52,6 +78,45 @@ class TitleCleanerService {
     }
 
     return cleaned;
+  }
+
+  /// True when the title is empty or only a (possibly collapsed) URL / punctuation.
+  static bool isUrlOnlyTitle(String? title) {
+    if (title == null) return true;
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return true;
+    if (RegExp(r'^[-_.\s]+$').hasMatch(trimmed)) return true;
+
+    // Raw URL
+    if (_urlPattern.hasMatch(trimmed)) {
+      final withoutUrls = trimmed
+          .replaceAll(_urlPattern, '')
+          .replaceAll(RegExp(r'[-_.\s]+'), '')
+          .trim();
+      if (withoutUrls.isEmpty) return true;
+    }
+
+    // Collapsed form produced by old sanitizer: `- httpst.coCSJbBJRpXf`
+    if (_collapsedUrlPattern.hasMatch(trimmed)) {
+      final without = trimmed
+          .replaceAll(_collapsedUrlPattern, '')
+          .replaceAll(RegExp(r'[-_.\s]+'), '')
+          .trim();
+      if (without.isEmpty) return true;
+    }
+
+    // After clean(), URL-only becomes empty
+    final cleaned = clean(trimmed);
+    return cleaned.isEmpty;
+  }
+
+  /// Build a filesystem-safe filename stem, truncated for MAX_PATH.
+  static String filenameStem(String title, {int maxLength = maxStemLength}) {
+    var stem = clean(title);
+    if (stem.length > maxLength) {
+      stem = '${stem.substring(0, maxLength - 3)}...';
+    }
+    return stem;
   }
 
   static String deriveTitleFromUrl(String url) {
@@ -69,9 +134,6 @@ class TitleCleanerService {
 
         // Replace hyphens/underscores with spaces
         lastSegment = lastSegment.replaceAll(RegExp(r'[-_]'), ' ');
-
-        // If segment looks like an ID (alphanumeric, no spaces, > 8 chars), usually not a good title
-        // But if it has spaces now, it might be okay.
 
         // Filter out obviously bad titles (just numbers)
         if (RegExp(r'^\d+$').hasMatch(lastSegment)) {

@@ -24,6 +24,7 @@ class DownloadRequest {
   // Proxy settings
   final bool useTorProxy;
   final int concurrentFragments;
+  final bool maxSpeedMode;
 
   final String? cookieBrowser;
   final bool organizeBySite;
@@ -49,6 +50,7 @@ class DownloadRequest {
     this.cookiesFilePath,
     this.useTorProxy = false,
     this.concurrentFragments = 16,
+    this.maxSpeedMode = false,
     this.videoFormatId,
     this.forceStreamUrl,
     this.forceThumbnailUrl,
@@ -74,10 +76,12 @@ class DownloadRequest {
     String? cookiesFilePath,
     bool? useTorProxy,
     int? concurrentFragments,
+    bool? maxSpeedMode,
     String? videoFormatId,
     String? forceStreamUrl,
     String? forceThumbnailUrl, // Added param
     String? rawCookies,
+    bool clearRawCookies = false,
     String? cookieBrowser,
     bool? organizeBySite,
     String? userAgent,
@@ -99,10 +103,11 @@ class DownloadRequest {
       cookiesFilePath: cookiesFilePath ?? this.cookiesFilePath,
       useTorProxy: useTorProxy ?? this.useTorProxy,
       concurrentFragments: concurrentFragments ?? this.concurrentFragments,
+      maxSpeedMode: maxSpeedMode ?? this.maxSpeedMode,
       videoFormatId: videoFormatId ?? this.videoFormatId,
       forceStreamUrl: forceStreamUrl ?? this.forceStreamUrl,
       forceThumbnailUrl: forceThumbnailUrl ?? this.forceThumbnailUrl, // Added
-      rawCookies: rawCookies ?? this.rawCookies,
+      rawCookies: clearRawCookies ? null : (rawCookies ?? this.rawCookies),
       cookieBrowser: cookieBrowser ?? this.cookieBrowser,
       organizeBySite: organizeBySite ?? this.organizeBySite,
       userAgent: userAgent ?? this.userAgent,
@@ -126,6 +131,7 @@ class DownloadRequest {
       'cookiesFilePath': cookiesFilePath,
       'useTorProxy': useTorProxy,
       'concurrentFragments': concurrentFragments,
+      'maxSpeedMode': maxSpeedMode,
       'videoFormatId': videoFormatId,
       'forceStreamUrl': forceStreamUrl,
       'forceThumbnailUrl': forceThumbnailUrl, // Added
@@ -153,6 +159,7 @@ class DownloadRequest {
       cookiesFilePath: json['cookiesFilePath'] as String?,
       useTorProxy: json['useTorProxy'] as bool? ?? false,
       concurrentFragments: json['concurrentFragments'] as int? ?? 16,
+      maxSpeedMode: json['maxSpeedMode'] as bool? ?? false,
       videoFormatId: json['videoFormatId'] as String?,
       forceStreamUrl: json['forceStreamUrl'] as String?,
       forceThumbnailUrl: json['forceThumbnailUrl'] as String?, // Added

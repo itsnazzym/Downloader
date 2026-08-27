@@ -23,6 +23,22 @@ class FormatUtils {
     return '${d.inSeconds}s';
   }
 
+  /// Parses a human-readable size ("12.3 MB", "10.00MiB") back to bytes.
+  static int parseBytes(String input) {
+    final match = RegExp(
+      r'([\d.,]+)\s*([KMGT]I?B|B)\b',
+      caseSensitive: false,
+    ).firstMatch(input.trim());
+    if (match == null) return 0;
+    final n = double.tryParse(match.group(1)!.replaceAll(',', '.')) ?? 0;
+    if (n <= 0) return 0;
+    final unit = match.group(2)!.toUpperCase().replaceAll('I', '');
+    const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    final i = suffixes.indexOf(unit);
+    if (i <= 0) return n.round();
+    return (n * pow(1024, i)).round();
+  }
+
   /// Formats a large number with K/M suffixes (e.g., 1500 → "1.5K").
   static String formatCount(int count) {
     if (count >= 1000000) {

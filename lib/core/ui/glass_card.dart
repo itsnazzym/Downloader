@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/theme/ios_theme.dart';
+import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
 
+/// Frosted panel used by the iOS chrome (and any caller that wants glass).
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -17,34 +19,34 @@ class GlassCard extends StatelessWidget {
     this.onTap,
     this.color,
     this.border,
-    this.blur = 20.0,
+    this.blur = 22.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    final card = Container(
-      decoration: BoxDecoration(
-        color: color ?? IOSTheme.secondaryBackground.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
-        border:
-            border ??
-            Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    final colors = AppColors.of(context);
+    final radius = AppRadius.panelOf(context);
+    final reduceTransparency = MediaQuery.of(context).disableAnimations;
+
+    Widget card = ClipRRect(
+      borderRadius: radius,
+      child: BackdropFilter(
+        filter: reduceTransparency
+            ? ImageFilter.blur(sigmaX: 0, sigmaY: 0)
+            : ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+        child: Container(
+          padding: padding ?? const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color ?? colors.glassFill,
+            borderRadius: radius,
+            border: border ?? Border.all(color: colors.glassBorder, width: 1),
+            boxShadow: colors.tintedShadow,
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(16),
-            child: child,
+          foregroundDecoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(color: colors.glassHighlight, width: 0.8),
           ),
+          child: child,
         ),
       ),
     );

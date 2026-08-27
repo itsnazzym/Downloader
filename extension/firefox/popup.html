@@ -11,40 +11,93 @@
 <body>
     <div class="header">
         <div class="title-row">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            <span>Modern Downloader</span>
+            <span data-i18n="extName">Modern Downloader</span>
         </div>
-        <!-- Status Indicator Icon Only -->
-        <div id="status-indicator" class="status-dot disconnected" title="Disconnected"></div>
+        <div class="status-cluster" role="status" aria-live="polite">
+            <div id="status-indicator" class="status-dot disconnected" title="Disconnected"></div>
+            <span id="status-text" class="status-text">Disconnected</span>
+        </div>
     </div>
 
     <div class="content">
-        <div class="section-title">Recent Downloads</div>
-        <div id="downloads-list" class="downloads-list">
-            <!-- Items injected by JS -->
-            <div class="empty-state">No active downloads</div>
+        <div class="cta-row">
+            <button type="button" id="send-tab-btn" class="cta-btn" data-i18n="sendTab">Send this tab</button>
+            <button type="button" id="test-connection-btn" class="cta-btn secondary" data-i18n="testConnection">Test connection</button>
+            <button type="button" id="open-feed-btn" class="cta-btn secondary" data-i18n="xFeed">X Feed</button>
+        </div>
+
+        <div class="section-title" data-i18n="recentDownloads">Recent Downloads</div>
+        <div id="downloads-list" class="downloads-list" aria-live="polite">
+            <div class="empty-state" data-i18n="noDownloads">No active downloads</div>
         </div>
     </div>
 
-    <!-- Consolidated Footer with Settings -->
     <div class="footer-settings">
         <div class="settings-row">
             <div class="setting-item">
-                <label for="port-input">Port</label>
-                <input type="number" id="port-input" value="6969" placeholder="6969">
+                <label for="browser-select" data-i18n="browser">Browser</label>
+                <select id="browser-select">
+                    <option value="auto">Auto (Default)</option>
+                    <option value="firefox">Firefox (Force)</option>
+                    <option value="brave">Brave</option>
+                    <option value="chrome">Chrome</option>
+                    <option value="edge">Edge</option>
+                    <option value="opera">Opera</option>
+                    <option value="vivaldi">Vivaldi</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="port-input" data-i18n="port">Port</label>
+                <input type="number" id="port-input" value="6969" min="1024" max="65535" placeholder="6969">
+            </div>
+            <div class="setting-item grow">
+                <label for="token-input" data-i18n="token">Token</label>
+                <input type="password" id="token-input" placeholder="From app settings" autocomplete="off">
             </div>
             <div class="setting-item checkbox-item">
                 <input type="checkbox" id="cookies-toggle" checked>
-                <label for="cookies-toggle">Auto-Cookies</label>
+                <label for="cookies-toggle" data-i18n="autoCookies">Auto-Cookies</label>
+            </div>
+            <div class="setting-item checkbox-item">
+                <input type="checkbox" id="adult-toggle">
+                <label for="adult-toggle" data-i18n="adultSites">Adult sites</label>
             </div>
         </div>
-        <div id="connection-msg" class="connection-msg">Offline</div>
+
+        <details class="appearance">
+            <summary data-i18n="appearance">Appearance</summary>
+            <div class="appearance-row">
+                <label for="btn-color">Color</label>
+                <input type="color" id="btn-color" value="#6C5DD3">
+                <label for="btn-position">Position</label>
+                <select id="btn-position">
+                    <option value="top-right">Top right</option>
+                    <option value="top-left">Top left</option>
+                    <option value="bottom-right">Bottom right</option>
+                    <option value="bottom-left">Bottom left</option>
+                </select>
+                <label for="btn-size">Size</label>
+                <select id="btn-size">
+                    <option value="small">Small</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="large">Large</option>
+                </select>
+                <label class="inline-check">
+                    <input type="checkbox" id="quality-toggle" checked>
+                    Quality menu
+                </label>
+            </div>
+        </details>
+
+        <div id="connection-msg" class="connection-msg" aria-live="polite">Offline</div>
     </div>
 
+    <script src="browser_api.js"></script>
     <script src="popup.js"></script>
 </body>
 

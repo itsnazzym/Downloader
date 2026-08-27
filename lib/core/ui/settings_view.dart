@@ -10,6 +10,7 @@ import '../design_system/foundation/typography.dart';
 import '../design_system/components/app_toast.dart';
 import '../../services/binary_verifier.dart';
 import '../providers/settings_provider.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -26,14 +27,17 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
       extendBodyBehindAppBar: true, // For glass effect if we wanted
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        backgroundColor: AppColors.background.withValues(alpha: 0.8),
+        backgroundColor: AppColors.of(
+          context,
+        ).background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
         flexibleSpace: ClipRect(
@@ -43,20 +47,20 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ),
         ),
         title: Text(
-          "Settings",
+          l10n.settings,
           style: AppTypography.h3.copyWith(
-            color: AppColors.textPrimary,
+            color: AppColors.of(context).textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: AppColors.border.withValues(alpha: 0.5),
+            color: AppColors.of(context).border.withValues(alpha: 0.5),
             height: 1,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.of(context).textPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
@@ -70,23 +74,23 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        const SectionTitle("General"),
+                        SectionTitle(l10n.settingsGeneral),
                         SwitchTile(
-                          title: "Audio Only",
-                          subtitle: "Extract audio only (MP3) from videos",
+                          title: l10n.audioOnly,
+                          subtitle: l10n.audioOnlyDesc,
                           value: settings.audioOnly,
                           onChanged: settingsNotifier.setAudioOnly,
                           icon: Icons.audiotrack,
                         ),
                         SwitchTile(
-                          title: "Auto-Start",
-                          subtitle: "Start downloads immediately when added",
+                          title: l10n.autoStart,
+                          subtitle: l10n.autoStartDesc,
                           value: settings.autoStart,
                           onChanged: settingsNotifier.setAutoStart,
                           icon: Icons.play_arrow_rounded,
                         ),
                         DropdownTile(
-                          title: "Preferred Quality",
+                          title: l10n.preferredQuality,
                           value: settings.preferredQuality,
                           options: const ["best", "manual", "manual+"],
                           onChanged: settingsNotifier.setPreferredQuality,
@@ -94,11 +98,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
 
                         const Gap(AppSpacing.xl),
-                        const SectionTitle("Output"),
+                        SectionTitle(l10n.settingsOutput),
                         ActionTile(
-                          title: "Download Folder",
+                          title: l10n.downloadFolder,
                           subtitle: settings.outputFolder.isEmpty
-                              ? "Select folder..."
+                              ? l10n.selectFolder
                               : settings.outputFolder,
                           icon: Icons.folder_open_rounded,
                           onTap: () async {
@@ -110,53 +114,53 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           },
                         ),
                         DropdownTile(
-                          title: "Format",
+                          title: l10n.formatLabel,
                           value: settings.outputFormat,
                           options: const ["mp4", "mkv", "webm"],
                           onChanged: settingsNotifier.setOutputFormat,
                           icon: Icons.video_file,
                         ),
                         SwitchTile(
-                          title: "Organize by Site",
-                          subtitle: "Create subfolders like Downloads/YouTube/",
+                          title: l10n.organizeBySite,
+                          subtitle: l10n.organizeBySiteDesc,
                           value: settings.organizeBySite,
                           onChanged: settingsNotifier.setOrganizeBySite,
                           icon: Icons.folder_copy_rounded,
                         ),
 
                         const Gap(AppSpacing.xl),
-                        const SectionTitle("Advanced"),
+                        SectionTitle(l10n.settingsAdvanced),
                         SwitchTile(
-                          title: "Adult Sites",
-                          subtitle: "Enable support for age-restricted content",
+                          title: l10n.adultSites,
+                          subtitle: l10n.adultSitesDesc,
                           value: settings.adultSitesEnabled,
                           onChanged: settingsNotifier.setAdultSitesEnabled,
                           icon: Icons.lock_open,
                         ),
                         SwitchTile(
-                          title: "Clipboard Monitor",
-                          subtitle: "Auto-detect links copied to clipboard",
+                          title: l10n.clipboardMonitor,
+                          subtitle: l10n.clipboardMonitorDesc,
                           value: settings.clipboardMonitorEnabled,
                           onChanged:
                               settingsNotifier.setClipboardMonitorEnabled,
                           icon: Icons.paste_rounded,
                         ),
                         SwitchTile(
-                          title: "Minimize to Tray",
-                          subtitle: "Keep running in background when closed",
+                          title: l10n.minimizeToTray,
+                          subtitle: l10n.minimizeToTrayDesc,
                           value: settings.minimizeToTray,
                           onChanged: settingsNotifier.setMinimizeToTray,
                           icon: Icons.arrow_downward_rounded,
                         ),
                         SwitchTile(
-                          title: "Do Not Disturb",
-                          subtitle: "Silence all app & extension notifications",
+                          title: l10n.doNotDisturb,
+                          subtitle: l10n.doNotDisturbDesc,
                           value: settings.doNotDisturb,
                           onChanged: settingsNotifier.setDoNotDisturb,
                           icon: Icons.notifications_off_outlined,
                         ),
                         DropdownTile(
-                          title: "Cookies from Browser",
+                          title: l10n.cookiesFromBrowser,
                           value: settings.cookieBrowser,
                           options: const [
                             "firefox",
@@ -171,15 +175,14 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
                         if (settings.adultSitesEnabled) ...[
                           SwitchTile(
-                            title: "Use Tor Proxy",
-                            subtitle:
-                                "Bypass geo-blocks via Tor (127.0.0.1:9050)",
+                            title: l10n.useProxy,
+                            subtitle: l10n.useProxyDesc,
                             value: settings.useTorProxy,
                             onChanged: settingsNotifier.setUseTorProxy,
                             icon: Icons.security,
                           ),
                           ActionTile(
-                            title: "Cookies File",
+                            title: l10n.cookiesFile,
                             subtitle: settings.cookiesFilePath.isEmpty
                                 ? "Select cookies.txt"
                                 : settings.cookiesFilePath,
@@ -195,9 +198,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                             },
                             trailing: settings.cookiesFilePath.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.delete_outline,
-                                      color: AppColors.error,
+                                      color: AppColors.of(context).error,
                                     ),
                                     onPressed: settingsNotifier.clearCookies,
                                     tooltip: "Clear cookies",
@@ -207,10 +210,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ],
 
                         const Gap(AppSpacing.xl),
-                        const SectionTitle("Performance"),
+                        SectionTitle(l10n.settingsPerformance),
                         SliderTile(
-                          title: "Simultaneous Downloads",
-                          subtitle: "Max active downloads at once",
+                          title: l10n.simultaneousDownloads,
+                          subtitle: l10n.simultaneousDownloadsDesc,
                           value: settings.maxConcurrent.toDouble().clamp(
                             1.0,
                             60.0,
@@ -223,8 +226,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           icon: Icons.layers_outlined,
                         ),
                         SliderTile(
-                          title: "Threads per Download",
-                          subtitle: "Parallel connections (fragments) per file",
+                          title: l10n.threadsPerDownload,
+                          subtitle: l10n.threadsPerDownloadDesc,
                           value: settings.concurrentFragments.toDouble().clamp(
                             1.0,
                             64.0,
@@ -238,12 +241,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
 
                         const Gap(AppSpacing.xl),
-                        const SectionTitle("System"),
+                        SectionTitle(l10n.settingsSystem),
                         ActionTile(
-                          title: "Check Dependencies",
+                          title: l10n.checkDependencies,
                           subtitle: _isVerifying
-                              ? "Verifying binaries..."
-                              : "Check yt-dlp, ffmpeg & aria2c status",
+                              ? l10n.verifyingBinaries
+                              : l10n.checkDependenciesDesc,
                           icon: Icons.build_circle_outlined,
                           onTap: _isVerifying ? null : _verifyBinaries,
                         ),
@@ -279,7 +282,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         _aria2cStatus = aria2c;
         _isVerifying = false;
       });
-      AppToast.showSuccess(context, "Dependencies verified");
+      AppToast.showSuccess(context, context.l10n.dependenciesVerified);
     }
   }
 }
@@ -340,16 +343,16 @@ class SliderTile extends StatelessWidget {
         bottom: 8,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border.withAlpha(128)),
+        border: Border.all(color: AppColors.of(context).border.withAlpha(128)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primary, size: 24),
+              Icon(icon, color: AppColors.of(context).primary, size: 24),
               const Gap(AppSpacing.m),
               Expanded(
                 child: Column(
@@ -365,7 +368,7 @@ class SliderTile extends StatelessWidget {
                     Text(
                       subtitle,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.of(context).textSecondary,
                       ),
                     ),
                   ],
@@ -377,17 +380,17 @@ class SliderTile extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: AppColors.of(context).background,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: AppColors.border.withValues(alpha: 0.5),
+                    color: AppColors.of(context).border.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Text(
                   value.toInt().toString(),
                   style: AppTypography.mono.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: AppColors.of(context).primary,
                   ),
                 ),
               ),
@@ -399,10 +402,12 @@ class SliderTile extends StatelessWidget {
               trackHeight: 4,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-              activeTrackColor: AppColors.primary,
-              inactiveTrackColor: AppColors.surfaceHighlight,
+              activeTrackColor: AppColors.of(context).primary,
+              inactiveTrackColor: AppColors.of(context).surfaceHighlight,
               thumbColor: Colors.white,
-              overlayColor: AppColors.primary.withValues(alpha: 0.1),
+              overlayColor: AppColors.of(
+                context,
+              ).primary.withValues(alpha: 0.1),
             ),
             child: Slider(
               value: value,
@@ -440,13 +445,13 @@ class SwitchTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
       padding: const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border.withAlpha(128)),
+        border: Border.all(color: AppColors.of(context).border.withAlpha(128)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 24),
+          Icon(icon, color: AppColors.of(context).primary, size: 24),
           const Gap(AppSpacing.m),
           Expanded(
             child: Column(
@@ -462,7 +467,7 @@ class SwitchTile extends StatelessWidget {
                 Text(
                   subtitle,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary,
+                    color: AppColors.of(context).textSecondary,
                   ),
                 ),
               ],
@@ -471,10 +476,10 @@ class SwitchTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeTrackColor: AppColors.primary,
+            activeTrackColor: AppColors.of(context).primary,
             activeThumbColor: Colors.white,
-            inactiveThumbColor: AppColors.textDisabled,
-            inactiveTrackColor: AppColors.surfaceHighlight,
+            inactiveThumbColor: AppColors.of(context).textDisabled,
+            inactiveTrackColor: AppColors.of(context).surfaceHighlight,
           ),
         ],
       ),
@@ -507,13 +512,15 @@ class DropdownTile extends StatelessWidget {
         vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: AppColors.of(context).border.withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textSecondary, size: 24),
+          Icon(icon, color: AppColors.of(context).textSecondary, size: 24),
           const Gap(AppSpacing.m),
           Expanded(
             child: Text(
@@ -524,18 +531,18 @@ class DropdownTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.of(context).background,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.of(context).border),
             ),
             child: DropdownButton<String>(
               value: value,
               underline: const SizedBox(),
-              dropdownColor: AppColors.surface,
+              dropdownColor: AppColors.of(context).surface,
               style: AppTypography.body,
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_drop_down,
-                color: AppColors.textSecondary,
+                color: AppColors.of(context).textSecondary,
               ),
               items: options
                   .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -570,24 +577,28 @@ class ActionTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.m),
       child: Material(
-        color: AppColors.surface,
+        color: AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
 
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          hoverColor: AppColors.primary.withValues(alpha: 0.05),
+          hoverColor: AppColors.of(context).primary.withValues(alpha: 0.05),
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color: AppColors.border.withValues(alpha: 0.5),
+                color: AppColors.of(context).border.withValues(alpha: 0.5),
               ),
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.all(AppSpacing.m),
             child: Row(
               children: [
-                Icon(icon, color: AppColors.textSecondary, size: 24),
+                Icon(
+                  icon,
+                  color: AppColors.of(context).textSecondary,
+                  size: 24,
+                ),
                 const Gap(AppSpacing.m),
                 Expanded(
                   child: Column(
@@ -603,7 +614,7 @@ class ActionTile extends StatelessWidget {
                       Text(
                         subtitle,
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.of(context).textSecondary,
                           overflow: TextOverflow.ellipsis,
                         ),
                         maxLines: 1,
@@ -614,9 +625,9 @@ class ActionTile extends StatelessWidget {
                 if (trailing != null)
                   trailing!
                 else
-                  const Icon(
+                  Icon(
                     Icons.chevron_right,
-                    color: AppColors.textDisabled,
+                    color: AppColors.of(context).textDisabled,
                     size: 20,
                   ),
               ],
@@ -640,12 +651,12 @@ class StatusTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
       padding: const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: status.isInstalled
-              ? AppColors.success.withValues(alpha: 0.3)
-              : AppColors.error.withValues(alpha: 0.3),
+              ? AppColors.of(context).success.withValues(alpha: 0.3)
+              : AppColors.of(context).error.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -654,7 +665,9 @@ class StatusTile extends StatelessWidget {
             status.isInstalled
                 ? Icons.check_circle_rounded
                 : Icons.error_rounded,
-            color: status.isInstalled ? AppColors.success : AppColors.error,
+            color: status.isInstalled
+                ? AppColors.of(context).success
+                : AppColors.of(context).error,
             size: 20,
           ),
           const Gap(12),
@@ -671,8 +684,8 @@ class StatusTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: status.isInstalled
-                    ? AppColors.success.withValues(alpha: 0.1)
-                    : AppColors.error.withValues(alpha: 0.1),
+                    ? AppColors.of(context).success.withValues(alpha: 0.1)
+                    : AppColors.of(context).error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -682,8 +695,8 @@ class StatusTile extends StatelessWidget {
                 style: AppTypography.mono.copyWith(
                   fontSize: 12,
                   color: status.isInstalled
-                      ? AppColors.success
-                      : AppColors.error,
+                      ? AppColors.of(context).success
+                      : AppColors.of(context).error,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class LogViewer extends StatelessWidget {
   final List<String> logs;
@@ -11,9 +12,9 @@ class LogViewer extends StatelessWidget {
     if (logs.isEmpty) {
       return Center(
         child: Text(
-          "No logs available",
+          context.l10n.noLogsAvailable,
           style: TextStyle(
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            color: AppColors.of(context).textSecondary.withValues(alpha: 0.5),
             fontSize: 12,
           ),
         ),
@@ -29,10 +30,10 @@ class LogViewer extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 4),
           child: Text(
             log,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'JetBrains Mono',
               fontSize: 11,
-              color: AppColors.textSecondary,
+              color: AppColors.of(context).textPrimary,
               height: 1.2,
             ),
           ),

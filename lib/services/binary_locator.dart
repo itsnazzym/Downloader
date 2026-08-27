@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import '../core/logger/logger_service.dart';
 
 class BinaryLocator {
@@ -6,6 +8,7 @@ class BinaryLocator {
   static const String ffmpegName = 'ffmpeg';
   static const String ffprobeName = 'ffprobe';
   static const String galleryDlName = 'gallery-dl';
+  static const String gobirdName = 'gobird';
 
   // Custom paths can be set from settings
   String? _customGalleryDlPath;
@@ -29,6 +32,64 @@ class BinaryLocator {
 
   Future<String?> findAria2c() async {
     return _findBinary('aria2c');
+  }
+
+  /// Optional experimental gobird binary (Windows). Missing is not an error.
+  Future<String?> findGobird() async {
+    return _findBinary(gobirdName, softMissing: true);
+  }
+
+  /// Copies a discovered gobird.exe into the persistent app bin folder when needed.
+  Future<String?> ensureGobirdStaged() async {
+    final existing = await findGobird();
+    if (existing != null && existing.isNotEmpty) {
+      try {
+        final appBin = await resolveAppBinDirectory();
+        final dest = p.join(appBin.path, executableFileName(gobirdName));
+        if (p.equals(existing, dest)) return existing;
+        if (!await File(dest).exists()) {
+          await File(existing).copy(dest);
+          LoggerService.i('Staged gobird into app bin: $dest');
+          return dest;
+        }
+        return dest;
+      } catch (e) {
+        LoggerService.w('Could not stage gobird into app bin: $e');
+        return existing;
+      }
+    }
+    return null;
+  }
+
+  static Directory? _appBinCache;
+
+  /// Persistent `bin` folder next to app data (survives debug rebuilds).
+  static Future<Directory> resolveAppBinDirectory() async {
+    if (_appBinCache != null) return _appBinCache!;
+    try {
+      final support = await getApplicationSupportDirectory();
+      final dir = Directory(p.join(support.path, 'bin'));
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      _appBinCache = dir;
+      return dir;
+    } catch (e) {
+      LoggerService.w('Falling back to local bin directory: $e');
+      final fallback = Directory(p.join(Directory.current.path, 'bin'));
+      if (!await fallback.exists()) {
+        await fallback.create(recursive: true);
+      }
+      _appBinCache = fallback;
+      return fallback;
+    }
+  }
+
+  static String executableFileName(String binaryName) {
+    if (Platform.isWindows && !binaryName.toLowerCase().endsWith('.exe')) {
+      return '$binaryName.exe';
+    }
+    return binaryName;
   }
 
   /// Find gallery-dl executable
@@ -95,24 +156,48 @@ class BinaryLocator {
     return null;
   }
 
-  Future<String?> _findBinary(String binaryName) async {
-    final versionArg = binaryName.contains('ffmpeg') ? '-version' : '--version';
+  Future<String?> _findBinary(
+    String binaryName, {
+    bool softMissing = false,
+  }) async {
+    final versionArg =
+        binaryName.contains('ffmpeg') || binaryName.contains('ffprobe')
+        ? '-version'
+        : '--version';
 
-    // 0. FORCE Check local bin folder first
-    final binaryWithExt = binaryName.endsWith('.exe')
-        ? binaryName
-        : '$binaryName.exe';
+    final binaryWithExt = executableFileName(binaryName);
 
-    // Check multiple potential 'bin' locations relative to execution
+    try {
+      final appBin = await resolveAppBinDirectory();
+      final appPath = p.join(appBin.path, binaryWithExt);
+      if (await File(appPath).exists() &&
+          await _verifyBinary(appPath, versionArg)) {
+        LoggerService.i('Using app binary: $appPath');
+        return appPath;
+      }
+    } catch (e) {
+      LoggerService.w('App bin lookup failed for $binaryName: $e');
+    }
+
     final potentialPaths = [
-      '${Directory.current.path}\\bin\\$binaryWithExt',
-      '${File(Platform.resolvedExecutable).parent.path}\\bin\\$binaryWithExt',
-      '${File(Platform.resolvedExecutable).parent.path}\\data\\flutter_assets\\bin\\$binaryWithExt',
+      p.join(Directory.current.path, 'bin', binaryWithExt),
+      p.join(
+        File(Platform.resolvedExecutable).parent.path,
+        'bin',
+        binaryWithExt,
+      ),
+      p.join(
+        File(Platform.resolvedExecutable).parent.path,
+        'data',
+        'flutter_assets',
+        'bin',
+        binaryWithExt,
+      ),
     ];
 
     for (final path in potentialPaths) {
-      if (await File(path).exists()) {
-        LoggerService.i('Forcing usage of local binary: $path');
+      if (await File(path).exists() && await _verifyBinary(path, versionArg)) {
+        LoggerService.i('Using local binary: $path');
         return path;
       }
     }
@@ -151,7 +236,11 @@ class BinaryLocator {
       LoggerService.w('Could not locate $binaryName via where: $e');
     }
 
-    LoggerService.e('$binaryName not found or all locations are invalid');
+    if (softMissing) {
+      LoggerService.w('$binaryName not found (optional)');
+    } else {
+      LoggerService.e('$binaryName not found or all locations are invalid');
+    }
     return null;
   }
 

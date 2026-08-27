@@ -3,6 +3,31 @@ import '../foundation/colors.dart';
 import '../foundation/spacing.dart';
 import '../foundation/typography.dart';
 import '../../../../features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
+
+String downloadStatusLabel(BuildContext context, DownloadStatus status) {
+  final l10n = context.l10n;
+  switch (status) {
+    case DownloadStatus.queued:
+      return l10n.statusQueued;
+    case DownloadStatus.downloading:
+      return l10n.statusDownloading;
+    case DownloadStatus.processing:
+      return l10n.statusProcessing;
+    case DownloadStatus.completed:
+      return l10n.statusCompleted;
+    case DownloadStatus.failed:
+      return l10n.statusFailed;
+    case DownloadStatus.canceled:
+      return l10n.statusCanceled;
+    case DownloadStatus.extracting:
+      return l10n.statusExtracting;
+    case DownloadStatus.paused:
+      return l10n.statusPaused;
+    case DownloadStatus.duplicate:
+      return l10n.statusDuplicate;
+  }
+}
 
 class StatusBadge extends StatelessWidget {
   final DownloadStatus status;
@@ -12,7 +37,8 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (Color color, String label) = _getStatusStyle(status);
+    final Color color = _statusColor(context, status);
+    final String label = downloadStatusLabel(context, status);
 
     return Tooltip(
       message: error ?? label,
@@ -24,7 +50,7 @@ class StatusBadge extends StatelessWidget {
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Text(
-          label.toUpperCase(),
+          label,
           style: AppTypography.caption.copyWith(
             color: color,
             fontWeight: FontWeight.bold,
@@ -35,26 +61,26 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
-  (Color, String) _getStatusStyle(DownloadStatus status) {
+  Color _statusColor(BuildContext context, DownloadStatus status) {
     switch (status) {
       case DownloadStatus.queued:
-        return (AppColors.info, 'QUEUED');
+        return AppColors.of(context).textSecondary;
       case DownloadStatus.downloading:
-        return (AppColors.primary, 'DOWNLOADING');
+        return AppColors.of(context).primary;
       case DownloadStatus.processing:
-        return (AppColors.warning, 'PROCESSING');
+        return AppColors.of(context).info;
       case DownloadStatus.completed:
-        return (AppColors.success, 'COMPLETED');
+        return AppColors.of(context).success;
       case DownloadStatus.failed:
-        return (AppColors.error, 'FAILED');
+        return AppColors.of(context).error;
       case DownloadStatus.canceled:
-        return (AppColors.textSecondary, 'CANCELED');
+        return AppColors.of(context).textDisabled;
       case DownloadStatus.extracting:
-        return (AppColors.warning, 'EXTRACTING');
+        return AppColors.of(context).info;
       case DownloadStatus.paused:
-        return (AppColors.textSecondary, 'PAUSED');
+        return AppColors.of(context).warning;
       case DownloadStatus.duplicate:
-        return (AppColors.textSecondary, 'DOUBLON');
+        return AppColors.of(context).warning;
     }
   }
 }

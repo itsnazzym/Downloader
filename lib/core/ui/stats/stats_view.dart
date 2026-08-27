@@ -10,6 +10,7 @@ import '../../design_system/foundation/typography.dart';
 import '../../services/download_stats_service.dart';
 import '../../services/disk_space_service.dart';
 import '../../utils/format_utils.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class StatsView extends ConsumerStatefulWidget {
   const StatsView({super.key});
@@ -37,9 +38,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
   @override
   Widget build(BuildContext context) {
     final stats = ref.watch(downloadStatsProvider);
+    final l10n = context.l10n;
 
     return Container(
-      color: AppColors.background,
+      color: AppColors.of(context).background,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
@@ -47,17 +49,17 @@ class _StatsViewState extends ConsumerState<StatsView> {
           children: [
             // Header
             Text(
-              'Statistics',
+              l10n.statistics,
               style: AppTypography.h2.copyWith(
-                color: AppColors.textPrimary,
+                color: AppColors.of(context).textPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ).animate().fadeIn(duration: 300.ms).slideX(begin: -0.05),
             const Gap(AppSpacing.xxs),
             Text(
-              'Track your download activity and storage usage',
+              l10n.statsSubtitle,
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: AppColors.of(context).textSecondary,
               ),
             ).animate().fadeIn(duration: 300.ms, delay: 100.ms),
 
@@ -69,9 +71,9 @@ class _StatsViewState extends ConsumerState<StatsView> {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.download_rounded,
-                    label: 'Total Downloads',
+                    label: l10n.totalDownloads,
                     value: stats.totalDownloads.toString(),
-                    color: AppColors.primary,
+                    color: AppColors.of(context).primary,
                     delay: 0,
                   ),
                 ),
@@ -79,9 +81,9 @@ class _StatsViewState extends ConsumerState<StatsView> {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.today_rounded,
-                    label: 'Today',
+                    label: l10n.statsToday,
                     value: stats.downloadsToday.toString(),
-                    color: AppColors.info,
+                    color: AppColors.of(context).info,
                     delay: 100,
                   ),
                 ),
@@ -89,9 +91,9 @@ class _StatsViewState extends ConsumerState<StatsView> {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.data_usage_rounded,
-                    label: 'Total Data',
+                    label: l10n.totalData,
                     value: FormatUtils.formatBytes(stats.totalBytesDownloaded),
-                    color: AppColors.success,
+                    color: AppColors.of(context).success,
                     delay: 200,
                   ),
                 ),
@@ -99,15 +101,15 @@ class _StatsViewState extends ConsumerState<StatsView> {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.storage_rounded,
-                    label: 'Free Space',
+                    label: l10n.freeSpace,
                     value: _freeSpace != null
                         ? FormatUtils.formatBytes(_freeSpace!)
                         : '...',
                     color:
                         _freeSpace != null &&
                             _freeSpace! < DiskSpaceService.minRequiredBytes
-                        ? AppColors.error
-                        : AppColors.warning,
+                        ? AppColors.of(context).error
+                        : AppColors.of(context).success,
                     delay: 300,
                   ),
                 ),
@@ -124,8 +126,8 @@ class _StatsViewState extends ConsumerState<StatsView> {
                 Expanded(
                   flex: 2,
                   child: _GlassPanel(
-                    title: 'Download Activity',
-                    subtitle: 'Last 7 days',
+                    title: l10n.downloadActivity,
+                    subtitle: l10n.last7DaysShort,
                     delay: 400,
                     child: SizedBox(
                       height: 200,
@@ -138,8 +140,8 @@ class _StatsViewState extends ConsumerState<StatsView> {
                 Expanded(
                   flex: 1,
                   child: _GlassPanel(
-                    title: 'Sources',
-                    subtitle: 'By platform',
+                    title: l10n.sourcesChartTitle,
+                    subtitle: l10n.sourcesByPlatform,
                     delay: 500,
                     child: SizedBox(
                       height: 200,
@@ -154,17 +156,20 @@ class _StatsViewState extends ConsumerState<StatsView> {
 
             // Keyboard shortcuts reference
             _GlassPanel(
-              title: 'Keyboard Shortcuts',
-              subtitle: 'Quick actions',
+              title: l10n.keyboardShortcuts,
+              subtitle: l10n.shortcutsQuickActions,
               delay: 600,
               child: Wrap(
                 spacing: AppSpacing.m,
                 runSpacing: AppSpacing.s,
-                children: const [
-                  _ShortcutChip(keys: 'Ctrl+N', label: 'New Download'),
-                  _ShortcutChip(keys: 'Ctrl+,', label: 'Settings'),
-                  _ShortcutChip(keys: 'Ctrl+D', label: 'Dashboard'),
-                  _ShortcutChip(keys: 'Esc', label: 'Minimize'),
+                children: [
+                  _ShortcutChip(
+                    keys: 'Ctrl+N',
+                    label: l10n.newDownloadShortcut,
+                  ),
+                  _ShortcutChip(keys: 'Ctrl+,', label: l10n.settingsShortcut),
+                  _ShortcutChip(keys: 'Ctrl+D', label: l10n.dashboardShortcut),
+                  _ShortcutChip(keys: 'Esc', label: l10n.minimizeShortcut),
                 ],
               ),
             ),
@@ -180,9 +185,9 @@ class _StatsViewState extends ConsumerState<StatsView> {
     if (history.isEmpty) {
       return Center(
         child: Text(
-          'No download history yet',
+          context.l10n.noDownloadHistory,
           style: AppTypography.bodySmall.copyWith(
-            color: AppColors.textDisabled,
+            color: AppColors.of(context).textSecondary,
           ),
         ),
       );
@@ -196,19 +201,26 @@ class _StatsViewState extends ConsumerState<StatsView> {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY:
-            (last7.map((d) => d.downloads).reduce((a, b) => a > b ? a : b) *
-                    1.3)
-                .toDouble(),
+        maxY: (() {
+          final peak = last7
+              .map((d) => d.downloads)
+              .fold<int>(0, (a, b) => a > b ? a : b);
+          return (peak < 1 ? 1 : peak) * 1.3;
+        })(),
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (group) => AppColors.surface,
+            getTooltipColor: (group) => AppColors.of(context).surface,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final day = last7[group.x.toInt()];
               return BarTooltipItem(
-                '${day.downloads} downloads\n${FormatUtils.formatBytes(day.bytes)}',
-                AppTypography.caption.copyWith(color: AppColors.textPrimary),
+                context.l10n.chartDownloadsTooltip(
+                  day.downloads,
+                  FormatUtils.formatBytes(day.bytes),
+                ),
+                AppTypography.caption.copyWith(
+                  color: AppColors.of(context).textPrimary,
+                ),
               );
             },
           ),
@@ -227,7 +239,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                   return Text(
                     '${parts[2]}/${parts[1]}',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textDisabled,
+                      color: AppColors.of(context).textSecondary,
                       fontSize: 9,
                     ),
                   );
@@ -254,8 +266,11 @@ class _StatsViewState extends ConsumerState<StatsView> {
             barRods: [
               BarChartRodData(
                 toY: last7[i].downloads.toDouble(),
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.info],
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.of(context).primary,
+                    AppColors.of(context).primaryVariant,
+                  ],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                 ),
@@ -273,14 +288,21 @@ class _StatsViewState extends ConsumerState<StatsView> {
   }
 
   Widget _buildSourceChart(DownloadStats stats) {
-    final sources = stats.downloadsBySource;
+    final sources = Map<String, int>.from(stats.downloadsBySource)
+      ..removeWhere(
+        (key, value) =>
+            value <= 0 ||
+            key.isEmpty ||
+            key.toLowerCase() == 'local' ||
+            key.toLowerCase() == 'other',
+      );
 
     if (sources.isEmpty) {
       return Center(
         child: Text(
-          'No source data yet',
+          context.l10n.noSourceData,
           style: AppTypography.bodySmall.copyWith(
-            color: AppColors.textDisabled,
+            color: AppColors.of(context).textSecondary,
           ),
         ),
       );
@@ -292,11 +314,11 @@ class _StatsViewState extends ConsumerState<StatsView> {
     final top = sorted.take(5).toList();
 
     final colors = [
-      AppColors.primary,
-      AppColors.info,
-      AppColors.success,
-      AppColors.warning,
-      AppColors.error,
+      AppColors.of(context).primary,
+      AppColors.of(context).info,
+      AppColors.of(context).success,
+      AppColors.of(context).warning,
+      AppColors.of(context).error,
     ];
 
     return Column(
@@ -338,7 +360,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                   child: Text(
                     top[i].key,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.of(context).textSecondary,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -346,7 +368,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                 Text(
                   '${top[i].value}',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textPrimary,
+                    color: AppColors.of(context).textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -385,9 +407,9 @@ class _StatCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.m),
               decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.7),
+                color: AppColors.of(context).surface.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.of(context).border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,7 +431,7 @@ class _StatCard extends StatelessWidget {
                   Text(
                     value,
                     style: AppTypography.h3.copyWith(
-                      color: AppColors.textPrimary,
+                      color: AppColors.of(context).textPrimary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -417,7 +439,7 @@ class _StatCard extends StatelessWidget {
                   Text(
                     label,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.of(context).textSecondary,
                     ),
                   ),
                 ],
@@ -456,9 +478,9 @@ class _GlassPanel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.l),
               decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.7),
+                color: AppColors.of(context).surface.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.of(context).border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,7 +488,7 @@ class _GlassPanel extends StatelessWidget {
                   Text(
                     title,
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textPrimary,
+                      color: AppColors.of(context).textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -474,7 +496,7 @@ class _GlassPanel extends StatelessWidget {
                   Text(
                     subtitle,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textDisabled,
+                      color: AppColors.of(context).textSecondary,
                     ),
                   ),
                   const Gap(AppSpacing.m),
@@ -504,9 +526,9 @@ class _ShortcutChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHighlight.withValues(alpha: 0.5),
+        color: AppColors.of(context).surfaceHighlight.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.of(context).border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -514,14 +536,14 @@ class _ShortcutChip extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.of(context).background,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.of(context).border),
             ),
             child: Text(
               keys,
               style: AppTypography.caption.copyWith(
-                color: AppColors.primary,
+                color: AppColors.of(context).textPrimary,
                 fontWeight: FontWeight.w600,
                 fontSize: 11,
               ),
@@ -531,7 +553,7 @@ class _ShortcutChip extends StatelessWidget {
           Text(
             label,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
+              color: AppColors.of(context).textSecondary,
             ),
           ),
         ],

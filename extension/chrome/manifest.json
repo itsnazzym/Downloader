@@ -1,42 +1,97 @@
 {
     "manifest_version": 3,
-    "name": "Modern Downloader",
-    "version": "2.0.0",
-    "description": "Send links directly to Modern Downloader app.",
+    "name": "__MSG_extName__",
+    "short_name": "__MSG_extShortName__",
+    "version": "2.1.0",
+    "default_locale": "en",
+    "description": "__MSG_extDescription__",
+    "minimum_chrome_version": "116",
+    "homepage_url": "https://github.com/Mizaruta/Downloader",
+    "author": "Modern Downloader",
     "permissions": [
         "activeTab",
-        "scripting",
         "cookies",
         "contextMenus",
-        "storage"
+        "storage",
+        "alarms",
+        "offscreen",
+        "sidePanel"
+    ],
+    "optional_host_permissions": [
+        "*://*.pornhub.com/*"
+    ],
+    "host_permissions": [
+        "*://*.youtube.com/*",
+        "*://youtu.be/*",
+        "*://*.instagram.com/*",
+        "*://twitter.com/*",
+        "*://*.twitter.com/*",
+        "*://x.com/*",
+        "*://*.x.com/*",
+        "*://*.tiktok.com/*",
+        "*://*.twitch.tv/*",
+        "*://kick.com/*",
+        "*://*.kick.com/*",
+        "*://*.facebook.com/*",
+        "*://*.fb.watch/*"
     ],
     "content_scripts": [
         {
             "matches": [
-                "<all_urls>"
+                "*://*.youtube.com/*",
+                "*://youtu.be/*",
+                "*://*.instagram.com/*",
+                "*://twitter.com/*",
+                "*://*.twitter.com/*",
+                "*://x.com/*",
+                "*://*.x.com/*",
+                "*://*.tiktok.com/*",
+                "*://*.twitch.tv/*",
+                "*://kick.com/*",
+                "*://*.kick.com/*",
+                "*://*.facebook.com/*",
+                "*://*.fb.watch/*"
             ],
             "js": [
                 "content.js"
-            ]
+            ],
+            "run_at": "document_idle",
+            "all_frames": false
         }
     ],
     "action": {
         "default_popup": "popup.html",
+        "default_title": "__MSG_extName__",
         "default_icon": {
             "16": "icons/icon16.png",
+            "32": "icons/icon32.png",
             "48": "icons/icon48.png",
             "128": "icons/icon128.png"
         }
     },
+    "side_panel": {
+        "default_path": "feed_panel.html"
+    },
     "background": {
         "service_worker": "background.js"
     },
+    "commands": {
+        "send-current-tab": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+D",
+                "mac": "Command+Shift+D"
+            },
+            "description": "__MSG_sendTab__"
+        }
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https://pbs.twimg.com https://video.twimg.com; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:*;"
+    },
     "icons": {
         "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
         "48": "icons/icon48.png",
+        "96": "icons/icon96.png",
         "128": "icons/icon128.png"
-    },
-    "host_permissions": [
-        "*://*/*"
-    ]
+    }
 }

@@ -4,6 +4,7 @@ import 'package:modern_downloader/core/design_system/components/app_button.dart'
 import 'package:modern_downloader/core/design_system/foundation/colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class QualitySelectionDialog extends StatelessWidget {
   final Map<String, dynamic> metadata;
@@ -17,6 +18,7 @@ class QualitySelectionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final formats = (metadata['formats'] as List? ?? [])
         .map((f) => Map<String, dynamic>.from(f as Map))
         .where((f) => f['vcodec'] != 'none') // Filter for video formats
@@ -30,10 +32,10 @@ class QualitySelectionDialog extends StatelessWidget {
     });
 
     return Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.of(context).surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: AppColors.of(context).border),
       ),
       child: Container(
         width: 500,
@@ -44,11 +46,11 @@ class QualitySelectionDialog extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.high_quality, color: AppColors.primary),
+                Icon(Icons.high_quality, color: AppColors.of(context).primary),
                 const Gap(AppSpacing.m),
                 Expanded(
                   child: Text(
-                    "Select Quality",
+                    l10n.selectQuality,
                     style: AppTypography.h3,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -59,7 +61,7 @@ class QualitySelectionDialog extends StatelessWidget {
             Text(
               title,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondary,
+                color: AppColors.of(context).textSecondary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -68,17 +70,17 @@ class QualitySelectionDialog extends StatelessWidget {
             Flexible(
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.background.withValues(alpha: 0.5),
+                  color: AppColors.of(context).surface.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.border.withValues(alpha: 0.5),
+                    color: AppColors.of(context).border.withValues(alpha: 0.5),
                   ),
                 ),
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: formats.length,
                   separatorBuilder: (context, index) =>
-                      const Divider(height: 1, color: AppColors.border),
+                      Divider(height: 1, color: AppColors.of(context).border),
                   itemBuilder: (context, index) {
                     final f = formats[index];
                     final formatId = f['format_id'] as String;
@@ -90,7 +92,7 @@ class QualitySelectionDialog extends StatelessWidget {
                         f['filesize'] as int? ?? f['filesize_approx'] as int?;
                     final sizeStr = size != null
                         ? _formatSize(size)
-                        : "Unknown size";
+                        : l10n.unknownSize;
                     final isBest = index == 0;
 
                     return ListTile(
@@ -103,13 +105,17 @@ class QualitySelectionDialog extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isBest
-                              ? AppColors.primary.withValues(alpha: 0.1)
+                              ? AppColors.of(
+                                  context,
+                                ).primary.withValues(alpha: 0.1)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: isBest
-                                ? AppColors.primary.withValues(alpha: 0.3)
-                                : AppColors.border,
+                                ? AppColors.of(
+                                    context,
+                                  ).primary.withValues(alpha: 0.3)
+                                : AppColors.of(context).border,
                           ),
                         ),
                         child: Text(
@@ -118,8 +124,8 @@ class QualitySelectionDialog extends StatelessWidget {
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: isBest
-                                ? AppColors.primary
-                                : AppColors.textSecondary,
+                                ? AppColors.of(context).primary
+                                : AppColors.of(context).textSecondary,
                           ),
                         ),
                       ),
@@ -132,13 +138,13 @@ class QualitySelectionDialog extends StatelessWidget {
                       subtitle: Text(
                         sizeStr,
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.of(context).textSecondary,
                         ),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.chevron_right,
                         size: 20,
-                        color: AppColors.textDisabled,
+                        color: AppColors.of(context).textDisabled,
                       ),
                     );
                   },
@@ -150,12 +156,12 @@ class QualitySelectionDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 AppButton.ghost(
-                  label: "Cancel",
+                  label: l10n.cancel,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 const Gap(AppSpacing.s),
                 AppButton.primary(
-                  label: "Best Quality",
+                  label: l10n.bestQuality,
                   onPressed: () => Navigator.of(context).pop('best'),
                 ),
               ],

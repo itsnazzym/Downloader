@@ -13,7 +13,7 @@ class ProcessRunner {
       executable,
       arguments,
       workingDirectory: workingDirectory,
-      runInShell: true, // Use shell to resolve PATH
+      runInShell: false,
     );
   }
 
@@ -21,13 +21,16 @@ class ProcessRunner {
     String executable,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
   }) async {
     LoggerService.debug('Running process: $executable ${arguments.join(' ')}');
     final result = await Process.run(
       executable,
       arguments,
       workingDirectory: workingDirectory,
-      runInShell: true,
+      runInShell: false,
+      environment: environment,
+      includeParentEnvironment: true,
       stdoutEncoding: null, // Get raw bytes
       stderrEncoding: null, // Get raw bytes
     );

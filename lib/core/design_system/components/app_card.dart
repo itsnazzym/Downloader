@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../ui/glass_card.dart';
 import '../foundation/colors.dart';
 import '../foundation/spacing.dart';
 
@@ -11,12 +12,21 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    if (colors.isIosChrome) {
+      return GlassCard(
+        padding: padding ?? const EdgeInsets.all(AppSpacing.m),
+        onTap: onTap,
+        child: child,
+      );
+    }
+
     final content = Container(
       padding: padding ?? const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.mediumBorder,
-        border: Border.all(color: AppColors.borderSubtle),
+        color: colors.surface,
+        borderRadius: AppRadius.panelOf(context),
+        border: Border.all(color: colors.border),
       ),
       child: child,
     );
@@ -24,7 +34,7 @@ class AppCard extends StatelessWidget {
     if (onTap != null) {
       return InkWell(
         onTap: onTap,
-        borderRadius: AppRadius.mediumBorder,
+        borderRadius: AppRadius.panelOf(context),
         child: content,
       );
     }

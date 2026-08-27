@@ -8,6 +8,8 @@ import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
 import '../../theme/theme_presets.dart';
 import '../settings_view.dart';
+import '../widgets/glass_setting_section.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class AppearanceSettingsView extends ConsumerStatefulWidget {
   const AppearanceSettingsView({super.key});
@@ -21,15 +23,18 @@ class _AppearanceSettingsViewState
     extends ConsumerState<AppearanceSettingsView> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: ds.AppColors.background,
+      backgroundColor: ds.AppColors.of(context).background,
       appBar: AppBar(
         leading: const SizedBox(),
-        backgroundColor: ds.AppColors.background.withValues(alpha: 0.8),
+        backgroundColor: ds.AppColors.of(
+          context,
+        ).background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
         flexibleSpace: ClipRect(
@@ -39,16 +44,16 @@ class _AppearanceSettingsViewState
           ),
         ),
         title: Text(
-          "Appearance",
+          l10n.appearance,
           style: AppTypography.h3.copyWith(
-            color: ds.AppColors.textPrimary,
+            color: ds.AppColors.of(context).textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: ds.AppColors.border.withValues(alpha: 0.5),
+            color: ds.AppColors.of(context).border.withValues(alpha: 0.5),
             height: 1,
           ),
         ),
@@ -65,9 +70,9 @@ class _AppearanceSettingsViewState
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        const SectionTitle("Theme Mode"),
+                        SectionTitle(l10n.theme),
                         DropdownTile(
-                          title: "Theme",
+                          title: l10n.theme,
                           value: settings.themeMode,
                           options: const ["system", "dark", "light"],
                           onChanged: settingsNotifier.setThemeMode,
@@ -75,17 +80,32 @@ class _AppearanceSettingsViewState
                         ),
 
                         const SizedBox(height: AppSpacing.l),
-                        const SectionTitle("Theme Preset"),
-                        const SizedBox(height: AppSpacing.s),
 
                         // Preset Grid
-                        _ThemePresetGrid(
-                          selected: settings.themePreset,
-                          onSelect: (id) => settingsNotifier.setThemePreset(id),
-                        ),
+                        ds.AppColors.of(context).isIosChrome
+                            ? GlassSettingSection(
+                                title: l10n.theme,
+                                icon: Icons.palette_outlined,
+                                iconColor: ds.AppColors.of(context).primary,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: _ThemePresetGrid(
+                                      selected: settings.themePreset,
+                                      onSelect: (id) =>
+                                          settingsNotifier.setThemePreset(id),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : _ThemePresetGrid(
+                                selected: settings.themePreset,
+                                onSelect: (id) =>
+                                    settingsNotifier.setThemePreset(id),
+                              ),
 
                         const SizedBox(height: AppSpacing.l),
-                        const SectionTitle("Accent Color"),
+                        SectionTitle(l10n.accentColor),
                         const SizedBox(height: AppSpacing.s),
 
                         // Color Picker
@@ -99,9 +119,9 @@ class _AppearanceSettingsViewState
                         ),
 
                         const SizedBox(height: AppSpacing.l),
-                        const SectionTitle("Language"),
+                        SectionTitle(l10n.language),
                         DropdownTile(
-                          title: "Language",
+                          title: l10n.language,
                           value: settings.locale,
                           options: const ["en", "fr", "ar"],
                           onChanged: settingsNotifier.setLocale,
@@ -142,7 +162,9 @@ class _ThemePresetGrid extends StatelessWidget {
               color: preset.background,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? preset.primary : ds.AppColors.border,
+                color: isSelected
+                    ? preset.primary
+                    : ds.AppColors.of(context).border,
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: isSelected
@@ -221,18 +243,18 @@ class _AccentColorPicker extends StatelessWidget {
   });
 
   static const _presetColors = [
-    Color(0xFF6366F1), // Indigo
-    Color(0xFF0EA5E9), // Sky Blue
+    Color(0xFF0D9488), // Teal
+    Color(0xFF0A84FF), // iOS Blue
+    Color(0xFF0EA5E9), // Sky
     Color(0xFF22C55E), // Green
     Color(0xFFF97316), // Orange
     Color(0xFFEF4444), // Red
-    Color(0xFFE040FB), // Pink
-    Color(0xFF8B5CF6), // Violet
-    Color(0xFF14B8A6), // Teal
+    Color(0xFFC026D3), // Fuchsia
+    Color(0xFF6366F1), // Indigo
     Color(0xFFEAB308), // Yellow
     Color(0xFFF43F5E), // Rose
     Color(0xFF06B6D4), // Cyan
-    Color(0xFFEC4899), // Fuchsia
+    Color(0xFFEC4899), // Pink
   ];
 
   @override
@@ -240,9 +262,9 @@ class _AccentColorPicker extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ds.AppColors.surface,
+        color: ds.AppColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ds.AppColors.border),
+        border: Border.all(color: ds.AppColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,9 +291,9 @@ class _AccentColorPicker extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Current Accent",
+                    context.l10n.currentAccent,
                     style: AppTypography.label.copyWith(
-                      color: ds.AppColors.textPrimary,
+                      color: ds.AppColors.of(context).textPrimary,
                     ),
                   ),
                   Text(

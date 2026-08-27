@@ -9,19 +9,25 @@ import '../../../../../core/design_system/foundation/colors.dart';
 import '../../../../../core/design_system/foundation/spacing.dart';
 import '../../../../../core/design_system/foundation/typography.dart';
 import '../../../../../core/design_system/components/app_card.dart';
+import '../../widgets/download_card.dart';
+import '../../widgets/download_item_context_menu.dart';
 
 import '../../../../../core/design_system/components/status_badge.dart';
+import '../../../../../core/download/download_file_resolver.dart';
+import '../../../../../core/download/extraction_placeholders.dart';
 import '../../../domain/entities/download_item.dart';
 import '../../../domain/enums/download_status.dart';
 import '../../providers/filtered_downloads_provider.dart';
 import '../../providers/downloader_provider.dart';
 import 'download_item_skeleton.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class DownloadList extends ConsumerWidget {
   const DownloadList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final searchQuery = ref.watch(downloadSearchQueryProvider);
     final statusFilter = ref.watch(downloadStatusFilterProvider);
     final isReorderEnabled =
@@ -43,16 +49,24 @@ class DownloadList extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: AppColors.of(context).error,
+            ),
             const Gap(AppSpacing.m),
             Text(
-              "Error loading downloads",
-              style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+              l10n.error,
+              style: AppTypography.body.copyWith(
+                color: AppColors.of(context).textPrimary,
+              ),
             ),
             const Gap(AppSpacing.s),
             Text(
               error.toString(),
-              style: AppTypography.caption.copyWith(color: AppColors.error),
+              style: AppTypography.caption.copyWith(
+                color: AppColors.of(context).error,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -60,9 +74,11 @@ class DownloadList extends ConsumerWidget {
       ),
       data: (downloads) {
         if (downloads.isEmpty) {
-          return const CustomEmptyState(
-            title: "No downloads found",
-            description: "Your download list is empty.",
+          final isFiltered =
+              searchQuery.isNotEmpty ||
+              statusFilter != DownloadStatusFilter.all;
+          return CustomEmptyState(
+            title: isFiltered ? l10n.noResults : l10n.yourListIsEmpty,
             icon: Icons.inbox_outlined,
           );
         }
@@ -80,17 +96,22 @@ class DownloadList extends ConsumerWidget {
             itemBuilder: (context, index) {
               final item = downloads[index];
               final isSelected = item.id == selectedId;
-              return _DownloadItemGridCard(
+              return DownloadItemContextMenu(
                 item: item,
-                isSelected: isSelected,
-                onTap: () {
-                  ref.read(selectedDownloadIdProvider.notifier).state = item.id;
-                },
-                onRetry: () =>
-                    ref.read(downloadListProvider.notifier).retryDownload(item),
-                onCancel: () => ref
-                    .read(downloadListProvider.notifier)
-                    .deleteDownload(item.id),
+                child: _DownloadItemGridCard(
+                  item: item,
+                  isSelected: isSelected,
+                  onTap: () {
+                    ref.read(selectedDownloadIdProvider.notifier).state =
+                        item.id;
+                  },
+                  onRetry: () => ref
+                      .read(downloadListProvider.notifier)
+                      .retryDownload(item),
+                  onCancel: () => ref
+                      .read(downloadListProvider.notifier)
+                      .deleteDownload(item.id),
+                ),
               );
             },
           );
@@ -104,17 +125,11 @@ class DownloadList extends ConsumerWidget {
             itemBuilder: (context, index) {
               final item = downloads[index];
               final isSelected = item.id == selectedId;
-              return _DownloadItemCard(
+              return _adaptiveDownloadRow(
+                context: context,
+                ref: ref,
                 item: item,
                 isSelected: isSelected,
-                onTap: () {
-                  ref.read(selectedDownloadIdProvider.notifier).state = item.id;
-                },
-                onRetry: () =>
-                    ref.read(downloadListProvider.notifier).retryDownload(item),
-                onCancel: () => ref
-                    .read(downloadListProvider.notifier)
-                    .deleteDownload(item.id),
               );
             },
           );
@@ -151,17 +166,11 @@ class DownloadList extends ConsumerWidget {
             return Container(
               key: ValueKey(item.id),
               margin: const EdgeInsets.only(bottom: AppSpacing.s),
-              child: _DownloadItemCard(
+              child: _adaptiveDownloadRow(
+                context: context,
+                ref: ref,
                 item: item,
                 isSelected: isSelected,
-                onTap: () {
-                  ref.read(selectedDownloadIdProvider.notifier).state = item.id;
-                },
-                onRetry: () =>
-                    ref.read(downloadListProvider.notifier).retryDownload(item),
-                onCancel: () => ref
-                    .read(downloadListProvider.notifier)
-                    .deleteDownload(item.id),
               ),
             );
           },
@@ -169,6 +178,49 @@ class DownloadList extends ConsumerWidget {
       },
     );
   }
+}
+
+Widget _adaptiveDownloadRow({
+  required BuildContext context,
+  required WidgetRef ref,
+  required DownloadItem item,
+  required bool isSelected,
+}) {
+  void onTap() {
+    ref.read(selectedDownloadIdProvider.notifier).state = item.id;
+  }
+
+  void onRetry() {
+    ref.read(downloadListProvider.notifier).retryDownload(item);
+  }
+
+  void onCancel() {
+    ref.read(downloadListProvider.notifier).deleteDownload(item.id);
+  }
+
+  if (AppColors.of(context).isIosChrome) {
+    return DownloadItemContextMenu(
+      item: item,
+      child: DownloadCard(
+        item: item,
+        isSelected: isSelected,
+        onTap: onTap,
+        onRetry: onRetry,
+        onCancel: onCancel,
+      ),
+    );
+  }
+
+  return DownloadItemContextMenu(
+    item: item,
+    child: _DownloadItemCard(
+      item: item,
+      isSelected: isSelected,
+      onTap: onTap,
+      onRetry: onRetry,
+      onCancel: onCancel,
+    ),
+  );
 }
 
 class _DownloadItemGridCard extends StatefulWidget {
@@ -217,7 +269,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                 Expanded(
                   flex: 3,
                   child: Container(
-                    color: AppColors.background,
+                    color: AppColors.of(context).background,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -228,11 +280,25 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                               widget.item.thumbnailUrl!,
                             ),
                           )
+                        else if (ExtractionPlaceholders.showThumbnailSpinner(
+                          status: widget.item.status,
+                          thumbnailUrl: widget.item.thumbnailUrl,
+                        ))
+                          Center(
+                            child: SizedBox(
+                              width: 36,
+                              height: 36,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: AppColors.of(context).primary,
+                              ),
+                            ),
+                          )
                         else
-                          const Center(
+                          Center(
                             child: Icon(
                               Icons.movie_outlined,
-                              color: AppColors.textSecondary,
+                              color: AppColors.of(context).textSecondary,
                               size: 48,
                             ),
                           ),
@@ -258,7 +324,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                   ? widget.item.progress
                                   : null,
                               backgroundColor: Colors.transparent,
-                              color: AppColors.primary,
+                              color: AppColors.of(context).primary,
                               minHeight: 4,
                             ),
                           ),
@@ -276,13 +342,13 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.item.title ?? "Unknown Title",
+                          _extractionTitle(context, widget.item),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: AppTypography.label.copyWith(
                             color: widget.isSelected
-                                ? AppColors.primary
-                                : AppColors.textPrimary,
+                                ? AppColors.of(context).primary
+                                : AppColors.of(context).textPrimary,
                           ),
                         ),
                         const Spacer(),
@@ -294,7 +360,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    widget.item.source,
+                                    _extractionSource(context, widget.item),
                                     style: AppTypography.mono.copyWith(
                                       fontSize: 10,
                                     ),
@@ -304,32 +370,31 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                     isDownloading &&
                                             widget.item.speed.isNotEmpty
                                         ? widget.item.speed
-                                        : (widget.item.totalSize.isNotEmpty
-                                              ? widget.item.totalSize
-                                              : "Unknown Size"),
+                                        : _extractionSize(context, widget.item),
                                     style: AppTypography.caption,
                                   ),
                                 ],
                               ),
                             ),
                             if (widget.item.status == DownloadStatus.failed ||
-                                widget.item.status == DownloadStatus.canceled)
+                                widget.item.status == DownloadStatus.canceled ||
+                                widget.item.status == DownloadStatus.completed)
                               Row(
                                 children: [
                                   IconButton(
                                     onPressed: widget.onRetry,
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.refresh,
                                       size: 16,
-                                      color: AppColors.primary,
+                                      color: AppColors.of(context).primary,
                                     ),
                                   ),
                                   IconButton(
                                     onPressed: widget.onCancel,
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.close,
                                       size: 16,
-                                      color: AppColors.error,
+                                      color: AppColors.of(context).error,
                                     ),
                                   ),
                                 ],
@@ -358,8 +423,11 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
       return Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => const Center(
-          child: Icon(Icons.movie_outlined, color: AppColors.textSecondary),
+        errorBuilder: (context, _, _) => Center(
+          child: Icon(
+            Icons.movie_outlined,
+            color: AppColors.of(context).textSecondary,
+          ),
         ),
       );
     }
@@ -376,15 +444,21 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
       return Image.file(
         file,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => const Center(
-          child: Icon(Icons.movie_outlined, color: AppColors.textSecondary),
+        errorBuilder: (context, _, _) => Center(
+          child: Icon(
+            Icons.movie_outlined,
+            color: AppColors.of(context).textSecondary,
+          ),
         ),
       );
     }
 
     // File doesn't exist - show placeholder
-    return const Center(
-      child: Icon(Icons.movie_outlined, color: AppColors.textSecondary),
+    return Center(
+      child: Icon(
+        Icons.movie_outlined,
+        color: AppColors.of(context).textSecondary,
+      ),
     );
   }
 }
@@ -433,9 +507,9 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.background,
+                    color: AppColors.of(context).background,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.of(context).border),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: widget.item.thumbnailUrl != null
@@ -445,11 +519,25 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                             widget.item.thumbnailUrl!,
                           ),
                         )
-                      : const Icon(
-                          Icons.movie_outlined,
-                          color: AppColors.textSecondary,
-                          size: 24,
-                        ),
+                      : (ExtractionPlaceholders.showThumbnailSpinner(
+                              status: widget.item.status,
+                              thumbnailUrl: widget.item.thumbnailUrl,
+                            )
+                            ? Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.of(context).primary,
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                Icons.movie_outlined,
+                                color: AppColors.of(context).textSecondary,
+                                size: 24,
+                              )),
                 ),
                 const Gap(AppSpacing.m),
 
@@ -463,16 +551,13 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                         children: [
                           Expanded(
                             child: Text(
-                              (widget.item.title == null ||
-                                      widget.item.title!.isEmpty)
-                                  ? "Unknown Title"
-                                  : widget.item.title!,
+                              _extractionTitle(context, widget.item),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.label.copyWith(
                                 color: widget.isSelected
-                                    ? AppColors.primary
-                                    : AppColors.textPrimary,
+                                    ? AppColors.of(context).primary
+                                    : AppColors.of(context).textPrimary,
                                 fontSize: 14,
                               ),
                             ),
@@ -497,8 +582,8 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                             value: widget.item.progress > 0
                                 ? widget.item.progress
                                 : null,
-                            backgroundColor: AppColors.background,
-                            color: AppColors.primary,
+                            backgroundColor: AppColors.of(context).background,
+                            color: AppColors.of(context).primary,
                             minHeight: 4,
                           ),
                         ),
@@ -509,7 +594,7 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                             Text(
                               "${(widget.item.progress * 100).toStringAsFixed(1)}%",
                               style: AppTypography.mono.copyWith(
-                                color: AppColors.primary,
+                                color: AppColors.of(context).primary,
                               ),
                             ),
                             const Gap(8),
@@ -536,25 +621,26 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
 
                 // Action Buttons
                 if (widget.item.status == DownloadStatus.failed ||
-                    widget.item.status == DownloadStatus.canceled) ...[
+                    widget.item.status == DownloadStatus.canceled ||
+                    widget.item.status == DownloadStatus.completed) ...[
                   const Gap(AppSpacing.s),
                   IconButton(
                     onPressed: widget.onRetry,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.refresh_rounded,
-                      color: AppColors.primary,
+                      color: AppColors.of(context).primary,
                     ),
-                    tooltip: "Retry Download",
+                    tooltip: context.l10n.retryDownload,
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(8),
                   ),
                   IconButton(
                     onPressed: widget.onCancel,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline_rounded,
-                      color: AppColors.error,
+                      color: AppColors.of(context).error,
                     ),
-                    tooltip: "Remove",
+                    tooltip: context.l10n.remove,
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(8),
                   ),
@@ -573,13 +659,18 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
     // Source
     parts.add(widget.item.source);
 
-    // Size logic
-    if (widget.item.totalSize.isNotEmpty) {
+    // Size logic — fall back to on-disk length when yt-dlp never reported it.
+    final sizeLabel = DownloadFileResolver.displaySize(
+      storedTotalSize: widget.item.totalSize,
+      filePath: widget.item.filePath,
+      unknownLabel: '',
+    );
+    if (sizeLabel.isNotEmpty) {
       if (widget.item.downloadedSize.isNotEmpty &&
           widget.item.status == DownloadStatus.downloading) {
-        parts.add("${widget.item.downloadedSize} / ${widget.item.totalSize}");
+        parts.add("${widget.item.downloadedSize} / $sizeLabel");
       } else {
-        parts.add(widget.item.totalSize);
+        parts.add(sizeLabel);
       }
     } else if (widget.item.downloadedSize.isNotEmpty) {
       parts.add(widget.item.downloadedSize);
@@ -612,13 +703,13 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
         fit: BoxFit.cover,
         width: 48,
         height: 48,
-        errorWidget: (_, _, _) => const Icon(
+        errorWidget: (context, _, _) => Icon(
           Icons.movie_outlined,
-          color: AppColors.textSecondary,
+          color: AppColors.of(context).textSecondary,
           size: 24,
         ),
-        placeholder: (_, _) => Container(
-          color: AppColors.background,
+        placeholder: (context, _) => Container(
+          color: AppColors.of(context).background,
           child: const Center(
             child: SizedBox(
               width: 16,
@@ -645,19 +736,55 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
         fit: BoxFit.cover,
         width: 48,
         height: 48,
-        errorBuilder: (_, _, _) => const Icon(
+        errorBuilder: (context, _, _) => Icon(
           Icons.movie_outlined,
-          color: AppColors.textSecondary,
+          color: AppColors.of(context).textSecondary,
           size: 24,
         ),
       );
     }
 
     // File doesn't exist - show placeholder
-    return const Icon(
+    return Icon(
       Icons.movie_outlined,
-      color: AppColors.textSecondary,
+      color: AppColors.of(context).textSecondary,
       size: 24,
     );
   }
+}
+
+String _extractionTitle(BuildContext context, DownloadItem item) {
+  final l10n = context.l10n;
+  if (item.status == DownloadStatus.extracting &&
+      ExtractionPlaceholders.isGenericTitle(item.title)) {
+    return l10n.extractingTitle;
+  }
+  if (item.title == null || item.title!.trim().isEmpty) {
+    return l10n.unknownTitle;
+  }
+  return item.title!;
+}
+
+String _extractionSource(BuildContext context, DownloadItem item) {
+  if (ExtractionPlaceholders.showExtractingSource(
+    status: item.status,
+    source: item.source,
+  )) {
+    return context.l10n.extractingSource;
+  }
+  return item.source;
+}
+
+String _extractionSize(BuildContext context, DownloadItem item) {
+  if (ExtractionPlaceholders.showExtractingSize(
+    status: item.status,
+    totalSize: item.totalSize,
+  )) {
+    return context.l10n.extractingSize;
+  }
+  return DownloadFileResolver.displaySize(
+    storedTotalSize: item.totalSize,
+    filePath: item.filePath,
+    unknownLabel: context.l10n.unknownSize,
+  );
 }

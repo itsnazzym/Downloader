@@ -1,15 +1,18 @@
 Windows Registry Editor Version 5.00
 
-[HKEY_CLASSES_ROOT\moderndownloader]
+; Dev-only template. Prefer tools/register_protocol.ps1 which points at the
+; locally built Debug executable. The installer registers HKCU classes.
+
+[HKEY_CURRENT_USER\Software\Classes\moderndownloader]
 @="URL:Modern Downloader Protocol"
 "URL Protocol"=""
 
-[HKEY_CLASSES_ROOT\moderndownloader\DefaultIcon]
-@="\"C:\\Users\\entre\\Documents\\Projets\\Downloader_Old\\build\\windows\\x64\\runner\\Debug\\modern_downloader.exe\",0"
+[HKEY_CURRENT_USER\Software\Classes\moderndownloader\DefaultIcon]
+@="modern_downloader.exe,0"
 
-[HKEY_CLASSES_ROOT\moderndownloader\shell]
+[HKEY_CURRENT_USER\Software\Classes\moderndownloader\shell]
 
-[HKEY_CLASSES_ROOT\moderndownloader\shell\open]
+[HKEY_CURRENT_USER\Software\Classes\moderndownloader\shell\open]
 
-[HKEY_CLASSES_ROOT\moderndownloader\shell\open\command]
-@="\"C:\\Users\\entre\\Documents\\Projets\\Downloader_Old\\build\\windows\\x64\\runner\\Debug\\modern_downloader.exe\" \"%1\""
+[HKEY_CURRENT_USER\Software\Classes\moderndownloader\shell\open\command]
+@="\"modern_downloader.exe\" \"%1\""

@@ -16,14 +16,14 @@ class AppSkeleton extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.of(context).surfaceHighlight,
             borderRadius: borderRadius ?? AppRadius.mediumBorder,
           ),
         )
         .animate(onPlay: (controller) => controller.repeat())
         .shimmer(
           duration: 1200.ms,
-          color: AppColors.border.withValues(alpha: 0.3),
+          color: AppColors.of(context).textDisabled.withValues(alpha: 0.3),
         );
   }
 }

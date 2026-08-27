@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../domain/entities/download_request.dart';
 import '../../../../../core/logger/logger_service.dart';
 import '../../../../../services/binary_locator.dart';
+import '../../../../../core/download/cookie_browser_args.dart';
 
 /// Source for downloading via gallery-dl CLI
 /// Used as fallback when yt-dlp fails for certain sites
@@ -72,11 +73,9 @@ class GalleryDlSource {
       '-o', 'filename={title|description|tweet_id|id|filename}.{extension}',
     ];
 
-    // === BROWSER COOKIES FOR ALL SITES ===
-    // Always extract cookies from Firefox for maximum compatibility
-    args.addAll(['--cookies-from-browser', 'firefox']);
+    args.addAll(CookieBrowserArgs.ytDlpArgs(request.cookieBrowser));
     LoggerService.i(
-      'GalleryDlSource: Using Firefox cookies for authentication',
+      'GalleryDlSource: Using ${CookieBrowserArgs.resolve(request.cookieBrowser)} cookies',
     );
 
     // The URL to download (must be last)
@@ -87,12 +86,21 @@ class GalleryDlSource {
     );
 
     try {
-      final process = await Process.start(galleryDlPath, args);
+      final process = await Process.start(
+        galleryDlPath,
+        args,
+        runInShell: false,
+      );
       _activeProcesses[id] = process;
 
       int downloadedCount = 0;
       String currentFile = '';
       String? extractedTitle;
+      String? lastFilePath;
+
+      process.stderr.transform(utf8.decoder).listen((data) {
+        LoggerService.w('gallery-dl stderr: $data');
+      });
 
       // Listen to stdout for progress
       await for (final data in process.stdout.transform(utf8.decoder)) {
@@ -116,7 +124,8 @@ class GalleryDlSource {
           } else if (line.contains('\\') || line.contains('/')) {
             // This looks like a file path - extract the title from it
             downloadedCount++;
-            final fileName = _extractFileNameFromPath(line.trim());
+            lastFilePath = line.trim();
+            final fileName = _extractFileNameFromPath(lastFilePath);
             if (fileName != null && fileName.isNotEmpty) {
               extractedTitle = fileName;
               LoggerService.debug('Extracted title from file: $extractedTitle');
@@ -126,15 +135,11 @@ class GalleryDlSource {
               downloadedCount: downloadedCount,
               isComplete: false,
               title: extractedTitle,
+              filePath: lastFilePath,
             );
           }
         }
       }
-
-      // Listen to stderr for errors
-      process.stderr.transform(utf8.decoder).listen((data) {
-        LoggerService.w('gallery-dl stderr: $data');
-      });
 
       // Wait for completion
       final exitCode = await process.exitCode;
@@ -147,6 +152,7 @@ class GalleryDlSource {
           downloadedCount: downloadedCount,
           isComplete: true,
           title: extractedTitle,
+          filePath: lastFilePath,
         );
       } else {
         throw Exception('gallery-dl exited with code $exitCode');
@@ -191,11 +197,13 @@ class GalleryDlProgressEvent {
   final int downloadedCount;
   final bool isComplete;
   final String? title;
+  final String? filePath;
 
   GalleryDlProgressEvent({
     required this.status,
     required this.downloadedCount,
     required this.isComplete,
     this.title,
+    this.filePath,
   });
 }
