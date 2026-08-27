@@ -8,7 +8,11 @@ import 'theme_resolver.dart';
 class AppTheme {
   const AppTheme._();
 
-  static ThemeData fromPalette(ThemePreset palette, Brightness brightness) {
+  static ThemeData fromPalette(
+    ThemePreset palette,
+    Brightness brightness, {
+    bool useGoogleFonts = true,
+  }) {
     final isDark = brightness == Brightness.dark;
     final fieldRadius = palette.isIosChrome ? 14.0 : 8.0;
     return ThemeData(
@@ -27,8 +31,11 @@ class AppTheme {
         error: palette.error,
         onError: Colors.white,
       ),
-      textTheme: AppTypography.textThemeFor(palette),
-      fontFamily: GoogleFonts.outfit().fontFamily,
+      textTheme: AppTypography.textThemeFor(
+        palette,
+        useGoogleFonts: useGoogleFonts,
+      ),
+      fontFamily: useGoogleFonts ? GoogleFonts.outfit().fontFamily : null,
       dividerTheme: DividerThemeData(
         color: palette.border,
         thickness: 1,

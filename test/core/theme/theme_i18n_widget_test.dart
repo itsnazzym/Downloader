@@ -33,7 +33,11 @@ void main() {
     final ocean = ThemePresets.ocean;
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.fromPalette(ocean, Brightness.dark),
+        theme: AppTheme.fromPalette(
+          ocean,
+          Brightness.dark,
+          useGoogleFonts: false,
+        ),
         home: Builder(
           builder: (context) {
             final colors = AppColors.of(context);

@@ -78,7 +78,11 @@ void main() {
   group('AppTheme.fromPalette', () {
     test('applies palette colors to ThemeData', () {
       TestWidgetsFlutterBinding.ensureInitialized();
-      final theme = AppTheme.fromPalette(ThemePresets.ocean, Brightness.dark);
+      final theme = AppTheme.fromPalette(
+        ThemePresets.ocean,
+        Brightness.dark,
+        useGoogleFonts: false,
+      );
       expect(theme.colorScheme.primary, ThemePresets.ocean.primary);
       expect(theme.scaffoldBackgroundColor, ThemePresets.ocean.background);
       expect(theme.brightness, Brightness.dark);

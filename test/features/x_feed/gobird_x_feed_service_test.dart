@@ -289,23 +289,29 @@ void main() {
       },
     );
 
-    test('skips broken Windows browser fallback when cookies are missing', () async {
-      var ranProcess = false;
-      final service = GobirdXFeedService(
-        locator: _FakeLocator('gobird.exe'),
-        resolveCredentials: (_) async => null,
-        useBrowserCookieFallback: false,
-        runProcess: (exe, args) async {
-          ranProcess = true;
-          return ProcessResult(1, 0, '[]', '');
-        },
-      );
+    test(
+      'skips broken Windows browser fallback when cookies are missing',
+      () async {
+        var ranProcess = false;
+        final service = GobirdXFeedService(
+          locator: _FakeLocator('gobird.exe'),
+          resolveCredentials: (_) async => null,
+          useBrowserCookieFallback: false,
+          runProcess: (exe, args) async {
+            ranProcess = true;
+            return ProcessResult(1, 0, '[]', '');
+          },
+        );
 
-      final result = await service.fetchHomeFeed(browser: 'firefox', count: 10);
-      expect(ranProcess, isFalse);
-      expect(result.ok, isFalse);
-      expect(result.errorCode, 'auth');
-    });
+        final result = await service.fetchHomeFeed(
+          browser: 'firefox',
+          count: 10,
+        );
+        expect(ranProcess, isFalse);
+        expect(result.ok, isFalse);
+        expect(result.errorCode, 'auth');
+      },
+    );
   });
 
   group('XFeedWsContract', () {
