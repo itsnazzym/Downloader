@@ -10,6 +10,7 @@ class BlurContainer extends StatelessWidget {
   final Color? color;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onPressed;
+  final bool useBlur;
 
   const BlurContainer({
     super.key,
@@ -19,6 +20,7 @@ class BlurContainer extends StatelessWidget {
     this.color,
     this.padding = const EdgeInsets.all(16),
     this.onPressed,
+    this.useBlur = true,
   });
 
   @override
@@ -30,7 +32,7 @@ class BlurContainer extends StatelessWidget {
       borderRadius: BorderRadius.circular(borderRadius),
       child: Stack(
         children: [
-          if (!reduce)
+          if (!reduce && useBlur)
             Positioned.fill(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),

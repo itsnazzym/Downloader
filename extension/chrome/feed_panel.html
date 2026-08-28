@@ -33,6 +33,12 @@
             </button>
         </div>
 
+        <div class="display-toolbar">
+            <label for="display-limit-slider" data-i18n="xFeedDisplayLimit">Show</label>
+            <input type="range" id="display-limit-slider" class="display-slider" min="1" max="10000" step="1" value="10000">
+            <span id="display-limit-value" class="display-limit-value">0</span>
+        </div>
+
         <div class="selection-toolbar" aria-label="Selection controls">
             <button type="button" id="select-all-btn" class="text-btn" data-i18n="selectAll">
                 Select all
@@ -40,6 +46,8 @@
             <button type="button" id="clear-selection-btn" class="text-btn" data-i18n="clearSelection">
                 Clear
             </button>
+            <label for="select-count-input" class="select-count-label" data-i18n="xFeedSelectCountLabel">Select</label>
+            <input type="text" id="select-count-input" class="select-count-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" spellcheck="false">
             <span id="scan-info" class="scan-info" role="status" aria-live="polite"></span>
         </div>
 

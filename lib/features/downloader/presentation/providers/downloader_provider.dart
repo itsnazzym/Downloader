@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/providers/settings_provider.dart';
+import '../../../../core/setup/dependency_bootstrap_provider.dart';
 import '../../../../core/download/yt_dlp_cookie_args.dart';
+import '../../../../core/download/x_download_url.dart';
 import '../../../../core/services/local_server_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../x_feed/x_media_identity.dart';
 import '../../domain/entities/download_item.dart';
 import '../../domain/entities/download_request.dart';
@@ -20,6 +23,10 @@ import 'package:modern_downloader/services/service_providers.dart';
 import '../../../../core/services/download_stats_service.dart';
 import '../../../../core/plugins/plugin_manager.dart';
 import '../../../../core/logger/logger_service.dart';
+import '../../../../core/download/async_serializer.dart';
+import '../../../../core/download/extension_download_batcher.dart';
+import '../../../../core/download/fragment_budget.dart';
+import '../../../../core/download/progress_throttle.dart';
 
 // Data Layer Providers
 final ytDlpSourceProvider = Provider<YtDlpSource>((ref) {
@@ -47,6 +54,28 @@ final kickSourceProvider = Provider<KickSource>((ref) {
 });
 
 final downloaderRepositoryProvider = Provider<IDownloaderRepository>((ref) {
+  final libraryScanGate = Completer<void>();
+  void completeIfUnblocked(DependencyBootstrapState state) {
+    if (!state.blocksUi && !libraryScanGate.isCompleted) {
+      libraryScanGate.complete();
+    }
+  }
+
+  try {
+    completeIfUnblocked(ref.read(dependencyBootstrapProvider));
+    ref.listen<DependencyBootstrapState>(dependencyBootstrapProvider, (
+      previous,
+      next,
+    ) {
+      completeIfUnblocked(next);
+    });
+  } catch (e) {
+    LoggerService.w('Waiting for setup before library scan failed: $e');
+    if (!libraryScanGate.isCompleted) {
+      libraryScanGate.complete();
+    }
+  }
+
   return DownloaderRepositoryImpl(
     ref.read(ytDlpSourceProvider),
     ref.read(galleryDlSourceProvider),
@@ -55,6 +84,7 @@ final downloaderRepositoryProvider = Provider<IDownloaderRepository>((ref) {
     ref.read(pluginManagerProvider.notifier),
     () => ref.read(settingsProvider).outputFolder,
     kickSource: ref.read(kickSourceProvider),
+    waitForLibraryScan: () => libraryScanGate.future,
   );
 });
 
@@ -75,6 +105,8 @@ class DownloadListNotifier
   final List<DownloadRequest> _queue = [];
   final List<String> _resumeIds = [];
   bool _isProcessingQueue = false;
+  bool _processQueueAgain = false;
+  final AsyncSerializer _queueOps = AsyncSerializer();
 
   DownloadListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
@@ -135,21 +167,13 @@ class DownloadListNotifier
       // Queue the update
       _pendingUpdates[item.id] = item;
 
-      // If terminal state or imperative update, flush immediately
-      if (item.status == DownloadStatus.completed ||
-          item.status == DownloadStatus.failed ||
-          item.status == DownloadStatus.canceled ||
-          item.status == DownloadStatus.duplicate ||
-          item.status == DownloadStatus.paused ||
-          item.status == DownloadStatus.queued) {
+      // Terminal / queued / paused: flush immediately
+      if (isImmediateFlushStatus(item.status)) {
         _flushUpdates();
       } else {
         // For progress updates (downloading/extracting), throttle
         if (_throttleTimer == null || !_throttleTimer!.isActive) {
-          _throttleTimer = Timer(
-            const Duration(milliseconds: 50),
-            _flushUpdates,
-          );
+          _throttleTimer = Timer(kProgressThrottleInterval, _flushUpdates);
         }
       }
     });
@@ -207,19 +231,15 @@ class DownloadListNotifier
       });
 
       state = AsyncValue.data(newState);
-      _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(newState);
 
       // Process queue if any slot freed up
       // We check if any of the updates were terminal
       final hasTerminal = updates.values.any(
-        (i) =>
-            i.status == DownloadStatus.completed ||
-            i.status == DownloadStatus.failed ||
-            i.status == DownloadStatus.canceled ||
-            i.status == DownloadStatus.duplicate,
+        (i) => isStatsRebuildStatus(i.status),
       );
 
       if (hasTerminal) {
+        _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(newState);
         _processQueue();
       }
     });
@@ -251,9 +271,21 @@ class DownloadListNotifier
     bool? audioOnly,
     String? preferredQuality,
   }) async {
+    final resolvedUrl = XDownloadUrl.resolveForDownload(url);
+    if (resolvedUrl == null) {
+      LoggerService.w(
+        'Rejected X CDN download without a tweet permalink: $url',
+      );
+      NotificationService().showError(
+        'Need tweet link',
+        'Paste the tweet link (x.com/.../status/...), not the video file.',
+      );
+      return;
+    }
+
     final settings = _ref.read(settingsProvider);
     final heartbeatCookies = await LocalServerService.heartbeatCookiePathForUrl(
-      url,
+      resolvedUrl,
     );
     final explicitOrGlobal =
         (cookiesFilePath != null && cookiesFilePath.trim().isNotEmpty)
@@ -267,7 +299,7 @@ class DownloadListNotifier
     );
 
     final request = DownloadRequest(
-      url: url,
+      url: resolvedUrl,
       outputFolder: settings.outputFolder.isNotEmpty
           ? settings.outputFolder
           : null,
@@ -291,67 +323,109 @@ class DownloadListNotifier
       userAgent: userAgent,
     );
 
-    if (_isDuplicateRequest(request)) {
-      _markDuplicate(request);
-      return;
-    }
+    await _queueOps.run(() async {
+      if (_isDuplicateRequest(request)) {
+        _markDuplicate(request);
+        return;
+      }
 
-    _queue.add(request);
-    await _persistQueue();
-    await _processQueue();
+      _queue.add(request);
+      await _persistQueue();
+      await _processQueue();
+    });
   }
 
-  Future<void> startDownloadsBatch(List<String> urls) async {
-    final settings = _ref.read(settingsProvider);
-    final batchKeys = <String>{};
-    var skippedDuplicates = 0;
+  Future<void> startDownloadsBatch(List<String> urls) {
+    return startExtensionDownloads([
+      for (final url in urls) ExtensionDownloadIngest(url: url),
+    ]);
+  }
 
-    for (final url in urls) {
-      final heartbeatCookies =
-          await LocalServerService.heartbeatCookiePathForUrl(url);
-      final resolvedCookiesPath = YtDlpCookieArgs.resolveCookiesFilePath(
-        urlSpecificPath: heartbeatCookies,
-        globalPath: settings.cookiesFilePath,
-      );
+  Future<void> startExtensionDownloads(
+    List<ExtensionDownloadIngest> items,
+  ) async {
+    if (items.isEmpty) return;
+    await _queueOps.run(() async {
+      final settings = _ref.read(settingsProvider);
+      final batchKeys = <String>{};
+      final cookiePathByHost = <String, String?>{};
+      var skippedDuplicates = 0;
+      var queued = 0;
 
-      final request = DownloadRequest(
-        url: url,
-        outputFolder: settings.outputFolder.isNotEmpty
-            ? settings.outputFolder
-            : null,
-        audioOnly: settings.audioOnly,
-        preferredQuality: settings.preferredQuality,
-        outputFormat: settings.outputFormat,
-        audioFormat: settings.audioFormat,
-        embedThumbnail: settings.embedThumbnail,
-        embedSubtitles: settings.embedSubtitles,
-        twitterIncludeReplies: settings.twitterIncludeReplies,
-        twitchDownloadChat: settings.twitchDownloadChat,
-        twitchQuality: settings.twitchQuality,
-        cookiesFilePath: resolvedCookiesPath,
-        useTorProxy: settings.useTorProxy,
-        concurrentFragments: settings.concurrentFragments,
-        maxSpeedMode: settings.maxSpeedMode,
-        cookieBrowser: settings.cookieBrowser,
-        organizeBySite: settings.organizeBySite,
-      );
-      final mediaKey = XMediaIdentity.mediaKey(request.url);
-      if (_isDuplicateRequest(request, batchKeys: batchKeys)) {
-        skippedDuplicates++;
-        _markDuplicate(request);
-        continue;
+      for (final item in items) {
+        final resolvedUrl = XDownloadUrl.resolveForDownload(item.url);
+        if (resolvedUrl == null) {
+          LoggerService.w(
+            'Rejected X CDN download without a tweet permalink: ${item.url}',
+          );
+          continue;
+        }
+        String? heartbeatCookies;
+        try {
+          final host = Uri.parse(resolvedUrl).host;
+          if (cookiePathByHost.containsKey(host)) {
+            heartbeatCookies = cookiePathByHost[host];
+          } else {
+            heartbeatCookies =
+                await LocalServerService.heartbeatCookiePathForUrl(resolvedUrl);
+            cookiePathByHost[host] = heartbeatCookies;
+          }
+        } catch (e) {
+          LoggerService.w('Heartbeat cookie lookup failed: $e');
+          heartbeatCookies = await LocalServerService.heartbeatCookiePathForUrl(
+            resolvedUrl,
+          );
+        }
+        final resolvedCookiesPath = YtDlpCookieArgs.resolveCookiesFilePath(
+          urlSpecificPath: heartbeatCookies,
+          globalPath: settings.cookiesFilePath,
+        );
+
+        final request = DownloadRequest(
+          url: resolvedUrl,
+          outputFolder: settings.outputFolder.isNotEmpty
+              ? settings.outputFolder
+              : null,
+          audioOnly: item.isAudioOnly ? true : settings.audioOnly,
+          preferredQuality: item.preferredQuality ?? settings.preferredQuality,
+          outputFormat: settings.outputFormat,
+          audioFormat: settings.audioFormat,
+          embedThumbnail: settings.embedThumbnail,
+          embedSubtitles: settings.embedSubtitles,
+          twitterIncludeReplies: settings.twitterIncludeReplies,
+          twitchDownloadChat: settings.twitchDownloadChat,
+          twitchQuality: settings.twitchQuality,
+          cookiesFilePath: resolvedCookiesPath,
+          useTorProxy: settings.useTorProxy,
+          concurrentFragments: settings.concurrentFragments,
+          maxSpeedMode: settings.maxSpeedMode,
+          rawCookies: item.cookies,
+          cookieBrowser: item.cookieBrowser ?? settings.cookieBrowser,
+          organizeBySite: settings.organizeBySite,
+          userAgent: item.userAgent,
+        );
+        final mediaKey = XMediaIdentity.mediaKey(request.url);
+        if (_isDuplicateRequest(request, batchKeys: batchKeys)) {
+          skippedDuplicates++;
+          _markDuplicate(request);
+          continue;
+        }
+        if (mediaKey != null) {
+          batchKeys.add(mediaKey);
+        }
+        _queue.add(request);
+        queued++;
       }
-      if (mediaKey != null) {
-        batchKeys.add(mediaKey);
-      }
-      _queue.add(request);
-    }
 
-    if (skippedDuplicates > 0) {
-      _showDuplicateBatchSummary(skippedDuplicates);
-    }
-    await _persistQueue();
-    await _processQueue();
+      if (skippedDuplicates > 0) {
+        _showDuplicateBatchSummary(skippedDuplicates);
+      }
+      if (queued == 0) {
+        return;
+      }
+      await _persistQueue();
+      await _processQueue();
+    });
   }
 
   Future<void> deleteDownload(String id) async {
@@ -391,9 +465,11 @@ class DownloadListNotifier
 
   Future<void> retryDownload(DownloadItem item) async {
     await deleteDownload(item.id);
-    _queue.add(item.request);
-    await _persistQueue();
-    await _processQueue();
+    await _queueOps.run(() async {
+      _queue.add(item.request);
+      await _persistQueue();
+      await _processQueue();
+    });
   }
 
   Future<void> clearHistory() async {
@@ -411,25 +487,38 @@ class DownloadListNotifier
   }
 
   Future<void> _processQueue() async {
-    if (_isProcessingQueue) return;
+    if (_isProcessingQueue) {
+      _processQueueAgain = true;
+      return;
+    }
     _isProcessingQueue = true;
 
     try {
-      while (_queue.isNotEmpty || _resumeIds.isNotEmpty) {
-        final currentList = state.valueOrNull ?? [];
-        final activeCount = currentList
-            .where(
-              (i) =>
-                  i.status == DownloadStatus.downloading ||
-                  i.status == DownloadStatus.extracting ||
-                  i.status == DownloadStatus.processing,
-            )
-            .length;
+      do {
+        _processQueueAgain = false;
+        while (_queue.isNotEmpty || _resumeIds.isNotEmpty) {
+          final currentList = state.valueOrNull ?? [];
+          final activeCount = currentList
+              .where(
+                (i) =>
+                    i.status == DownloadStatus.downloading ||
+                    i.status == DownloadStatus.extracting ||
+                    i.status == DownloadStatus.processing,
+              )
+              .length;
 
-        final settings = _ref.read(settingsProvider);
-        final maxConcurrent = settings.maxConcurrent;
+          final settings = _ref.read(settingsProvider);
+          final maxConcurrent = settings.maxConcurrent;
+          final pendingCount = _resumeIds.length + _queue.length;
+          if (computeStartableCount(
+                activeCount: activeCount,
+                maxConcurrent: maxConcurrent,
+                pendingCount: pendingCount,
+              ) <
+              1) {
+            break;
+          }
 
-        if (activeCount < maxConcurrent) {
           if (_resumeIds.isNotEmpty) {
             final id = _resumeIds.removeAt(0);
             await _repository.resumeDownload(id);
@@ -440,10 +529,8 @@ class DownloadListNotifier
             await _repository.startDownload(nextRequest);
             refreshList();
           }
-        } else {
-          break;
         }
-      }
+      } while (_processQueueAgain);
     } finally {
       _isProcessingQueue = false;
     }
@@ -550,3 +637,20 @@ final downloadListProvider =
         );
       },
     );
+
+/// Per-id item so progress ticks rebuild only the row that changed.
+final downloadItemByIdProvider = Provider.family<DownloadItem?, String>((
+  ref,
+  id,
+) {
+  return ref.watch(
+    downloadListProvider.select((async) {
+      final items = async.valueOrNull;
+      if (items == null) return null;
+      for (final item in items) {
+        if (item.id == id) return item;
+      }
+      return null;
+    }),
+  );
+});

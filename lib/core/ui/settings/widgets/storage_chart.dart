@@ -434,6 +434,19 @@ class _FolderDetails extends StatelessWidget {
   final FolderSizeSnapshot snapshot;
   final int usedBytes;
 
+  /// Keep flex in a small int range. Raw byte counts (tens of GB) make
+  /// [Expanded] children lay out at 0 width.
+  static int _typeBarFlex(
+    int bytes,
+    List<({Color color, int bytes, String label})> positive,
+  ) {
+    final typeTotal = positive.fold<int>(0, (sum, t) => sum + t.bytes);
+    if (typeTotal <= 0) {
+      return 1;
+    }
+    return max(1, (bytes * 1000) ~/ typeTotal);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
@@ -471,10 +484,11 @@ class _FolderDetails extends StatelessWidget {
               child: positive.isEmpty
                   ? ColoredBox(color: colors.border)
                   : Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         for (final t in positive)
                           Expanded(
-                            flex: t.bytes,
+                            flex: _typeBarFlex(t.bytes, positive),
                             child: ColoredBox(color: t.color),
                           ),
                       ],

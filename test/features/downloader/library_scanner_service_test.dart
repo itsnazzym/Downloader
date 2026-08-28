@@ -252,5 +252,162 @@ void main() {
         expect(fixed.first.filePath, real.path);
       },
     );
+
+    test(
+      'drops failed ghost that duplicates a completed row for the same tweet',
+      () async {
+        final real = File(
+          '${dir.path}${Platform.pathSeparator}'
+          'interracial bunnies - Being a good girl for daddy [2092727271098621952].mp4',
+        );
+        await real.writeAsBytes([1, 2, 3, 4]);
+
+        const url = 'https://x.com/bbc_breeds/status/2092727515949551766';
+        final completed = DownloadItem(
+          id: 'completed-twin',
+          request: const DownloadRequest(url: url),
+          title: 'interracial bunnies - Being a good girl for daddy',
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          filePath: real.path,
+        );
+        final ghost = DownloadItem(
+          id: 'failed-ghost',
+          request: const DownloadRequest(url: url),
+          title: 'interracial bunnies - Being a good girl for daddy',
+          status: DownloadStatus.failed,
+          progress: 1.0,
+          error: 'File missing from disk',
+          filePath: null,
+        );
+
+        final fixed = await scanner.scanAndFix([ghost, completed], dir.path);
+        expect(fixed, hasLength(1));
+        expect(fixed.first.id, 'completed-twin');
+        expect(fixed.first.status, DownloadStatus.completed);
+        expect(fixed.first.filePath, real.path);
+        expect(fixed.first.error, isNull);
+      },
+    );
+
+    test(
+      'does not mark a different-url row missing when it shares a file',
+      () async {
+        final real = File(
+          '${dir.path}${Platform.pathSeparator}shared [111].mp4',
+        );
+        await real.writeAsBytes([1, 2, 3, 4]);
+
+        final owner = DownloadItem(
+          id: 'owner',
+          request: const DownloadRequest(url: 'https://x.com/a/status/111'),
+          title: 'shared clip title uniqueaaa',
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          filePath: real.path,
+        );
+        final other = DownloadItem(
+          id: 'other',
+          request: const DownloadRequest(url: 'https://x.com/b/status/222'),
+          title: 'shared clip title uniqueaaa',
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          filePath: real.path,
+        );
+
+        final fixed = await scanner.scanAndFix([owner, other], dir.path);
+        expect(fixed, hasLength(2));
+        expect(
+          fixed.every((item) => item.status == DownloadStatus.completed),
+          isTrue,
+        );
+        expect(
+          fixed.every((item) => item.error != 'File missing from disk'),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'rebuilds cache so a later scan recovers a file added after first scan',
+      () async {
+        final item = DownloadItem(
+          id: 'late-file',
+          request: const DownloadRequest(url: 'https://x.com/a/status/10'),
+          title: 'interracial bunnies - Being a good girl for daddy',
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          filePath:
+              '${dir.path}${Platform.pathSeparator}'
+              'interracial bunnies - Being a good girl for daddy.mp4',
+        );
+
+        final first = await scanner.scanAndFix([item], dir.path);
+        expect(first.first.status, DownloadStatus.failed);
+        expect(first.first.error, 'File missing from disk');
+
+        final real = File(item.filePath!);
+        await real.writeAsBytes([1, 2, 3, 4]);
+
+        final second = await scanner.scanAndFix(first, dir.path);
+        expect(second.first.status, DownloadStatus.completed);
+        expect(second.first.error, isNull);
+        expect(second.first.filePath, real.path);
+      },
+    );
+
+    test(
+      'recovers remuxed .mp4 when stored path still points at .webm',
+      () async {
+        final mp4 = File(
+          '${dir.path}${Platform.pathSeparator}clip [webm1].mp4',
+        );
+        await mp4.writeAsBytes([1, 2, 3, 4]);
+
+        final item = DownloadItem(
+          id: 'ext-swap',
+          request: const DownloadRequest(url: 'https://x.com/a/status/11'),
+          title: 'clip',
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          filePath: '${dir.path}${Platform.pathSeparator}clip [webm1].webm',
+        );
+
+        final fixed = await scanner.scanAndFix([item], dir.path);
+        expect(fixed.first.status, DownloadStatus.completed);
+        expect(fixed.first.error, isNull);
+        expect(fixed.first.filePath, mp4.path);
+      },
+    );
+
+    test(
+      'recovers file moved into a site subfolder when stored path is the parent',
+      () async {
+        final siteDir = Directory(
+          '${dir.path}${Platform.pathSeparator}Pornhub',
+        )..createSync();
+        final real = File(
+          '${siteDir.path}${Platform.pathSeparator}'
+          'interracial bunnies - Being a good girl for daddy [ph1].mp4',
+        );
+        await real.writeAsBytes([1, 2, 3, 4]);
+
+        final item = DownloadItem(
+          id: 'subfolder',
+          request: const DownloadRequest(url: 'https://example.com/v/1'),
+          title: 'interracial bunnies - Being a good girl for daddy',
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          filePath:
+              '${dir.path}${Platform.pathSeparator}'
+              'interracial bunnies - Being a good girl for daddy [ph1].mp4',
+        );
+
+        final fixed = await scanner.scanAndFix([item], dir.path);
+        expect(fixed.first.status, DownloadStatus.completed);
+        expect(fixed.first.error, isNull);
+        expect(fixed.first.filePath, real.path);
+      },
+    );
   });
 }

@@ -25,4 +25,30 @@ void main() {
       expect(DownloadUrlValidator.isValidHttpUrl('https://'), isFalse);
     });
   });
+
+  group('DownloadUrlValidator.isAcceptableDownloadUrl', () {
+    test('accepts a tweet permalink and YouTube', () {
+      expect(
+        DownloadUrlValidator.isAcceptableDownloadUrl(
+          'https://x.com/alice/status/1112223334445556667',
+        ),
+        isTrue,
+      );
+      expect(
+        DownloadUrlValidator.isAcceptableDownloadUrl(
+          'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ),
+        isTrue,
+      );
+    });
+
+    test('rejects an X CDN media URL', () {
+      expect(
+        DownloadUrlValidator.isAcceptableDownloadUrl(
+          'https://video.twimg.com/amplify_video/2078792104579330048/vid/avc1/640x476/OsNdAqqNEyleFpEm.mp4?tag=14',
+        ),
+        isFalse,
+      );
+    });
+  });
 }

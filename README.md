@@ -189,7 +189,7 @@ Sur Windows, l'extension envoie un heartbeat local Netscape des cookies X.
 L'application n'extrait que `auth_token` et `ct0`, puis les transmet au
 processus gobird via son environnement. Les cookies ne sont pas inclus dans
 `X_FEED_REQUEST` et ne sont jamais placés dans les arguments de commande.
-Seule la commande de lecture `home` bornée à 100 éléments est autorisée.
+Seule la commande de lecture `home` bornée à 10000 tweets (500 pages max) est autorisée.
 
 Le binaire épinglé est gobird `26.05.13`. Pour le préparer localement :
 
@@ -207,8 +207,13 @@ télécharge, vérifie son SHA-256 et l'inclut dans les artefacts Windows.
   indique la cause.
 - **Pour vous — local** : le panneau utilise la collecte DOM locale.
 
-Le fil d'accueil gobird est plafonné à 100 éléments par requête. La collecte DOM
-ne peut voir que les vidéos rendues par la virtualisation de X.
+Le fil d'accueil gobird demande jusqu'à 10000 tweets par requête (`--count`,
+`--max-pages 500`) et conserve au plus 10000 vidéos. Le panneau de l'extension
+limite l'affichage via un curseur et peut sélectionner les N premières
+vidéos dans l'ordre affiché. Quand gobird réussit, le
+panneau fusionne l'instantané avec la collecte DOM en temps réel, qui reste
+active. La collecte DOM ne peut voir que les vidéos rendues par la
+virtualisation de X.
 
 ---
 

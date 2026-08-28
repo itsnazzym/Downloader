@@ -39,7 +39,8 @@ button {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+.display-slider:focus-visible {
     outline: 2px solid #9B91FF;
     outline-offset: 2px;
 }
@@ -156,12 +157,117 @@ button:disabled {
     cursor: not-allowed;
 }
 
-.selection-toolbar {
-    min-height: 32px;
+.display-toolbar {
     margin-top: 12px;
     display: flex;
     align-items: center;
+    gap: 10px;
+}
+
+.display-toolbar label,
+.select-count-label {
+    flex: 0 0 auto;
+    color: var(--panel-muted);
+    font-size: 11px;
+    line-height: 14px;
+    white-space: nowrap;
+}
+
+.display-slider {
+    flex: 1;
+    min-width: 0;
+    height: 18px;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.display-slider:disabled {
+    cursor: not-allowed;
+}
+
+.display-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--panel-border);
+}
+
+.display-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -5px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--panel-accent);
+    box-shadow: 0 0 0 2px rgba(108, 93, 211, 0.28);
+}
+
+.display-slider:hover:not(:disabled)::-webkit-slider-thumb {
+    background: var(--panel-accent-hover);
+}
+
+.display-slider::-moz-range-track {
+    height: 6px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--panel-border);
+}
+
+.display-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--panel-accent);
+    box-shadow: 0 0 0 2px rgba(108, 93, 211, 0.28);
+}
+
+.display-slider:hover:not(:disabled)::-moz-range-thumb {
+    background: var(--panel-accent-hover);
+}
+
+.display-limit-value {
+    flex: 0 0 auto;
+    min-width: 3.25em;
+    color: var(--panel-text);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    text-align: right;
+}
+
+.selection-toolbar {
+    min-height: 32px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 4px;
+}
+
+.select-count-input {
+    width: 68px;
+    height: 26px;
+    margin: 0;
+    padding: 4px 7px;
+    border: 1px solid var(--panel-border);
+    border-radius: 5px;
+    background: #17171C;
+    color: var(--panel-text);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.select-count-input::placeholder {
+    color: #666672;
+}
+
+.select-count-input:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .text-btn {

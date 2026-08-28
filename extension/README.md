@@ -28,6 +28,7 @@ user-controlled; the panel does not scroll the page for you.
 **Optional experimental source:** when the desktop app has *Use gobird (experimental)*
 enabled (Advanced settings, consent required), the panel first asks the app for a
 bounded read-only home feed via authenticated WebSocket (`X_FEED_REQUEST`).
+Live DOM collection stays on and merges with that snapshot.
 Cookies are **not** sent on that channel. On Windows, the extension refreshes a
 local Netscape cookie heartbeat and the desktop app supplies only `auth_token` and `ct0` to gobird
 through its child-process environment (never command-line arguments). If gobird

@@ -119,7 +119,7 @@ class DownloadFileResolver {
     final matches = <File>[];
 
     try {
-      for (final entity in dir.listSync(recursive: false)) {
+      for (final entity in dir.listSync(recursive: true)) {
         if (entity is! File) continue;
         final name = entity.uri.pathSegments.isNotEmpty
             ? entity.uri.pathSegments.last
@@ -236,6 +236,9 @@ class DownloadFileResolver {
     return r'\\?\' + absolute.replaceAll('/', r'\');
   }
 
+  /// True when [path] exists, including Windows long-path prefix fallback.
+  static bool existsOnDisk(String path) => _defaultExists(path);
+
   static bool _defaultExists(String path) {
     try {
       if (File(path).existsSync()) return true;
@@ -307,8 +310,9 @@ class DownloadFileResolver {
   static String? formattedFileSize(String? path) {
     if (path == null || path.trim().isEmpty) return null;
     try {
-      final file = File(normalizePath(path));
-      if (!file.existsSync()) return null;
+      final normalized = normalizePath(path);
+      if (!_defaultExists(normalized)) return null;
+      final file = File(normalized);
       final bytes = file.lengthSync();
       if (bytes <= 0) return null;
       return FormatUtils.formatBytes(bytes);

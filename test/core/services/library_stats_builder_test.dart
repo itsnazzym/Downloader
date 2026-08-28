@@ -18,6 +18,22 @@ void main() {
         'Twitter',
       );
       expect(
+        MediaSourceResolver.fromUrlString(
+          'https://video.twimg.com/tweet_video/Wayxcx6DISTAPf95.mp4',
+        ),
+        'Twitter',
+      );
+      expect(
+        MediaSourceResolver.fromUrlString(
+          'https://pbs.twimg.com/media/photo.jpg',
+        ),
+        'Twitter',
+      );
+      expect(
+        MediaSourceResolver.fromUrlString('https://pscp.tv/w/abc'),
+        'Twitter',
+      );
+      expect(
         MediaSourceResolver.fromUrlString('https://www.youtube.com/watch?v=a'),
         'YouTube',
       );

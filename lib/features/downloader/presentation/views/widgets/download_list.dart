@@ -30,14 +30,15 @@ class DownloadList extends ConsumerWidget {
     final l10n = context.l10n;
     final searchQuery = ref.watch(downloadSearchQueryProvider);
     final statusFilter = ref.watch(downloadStatusFilterProvider);
-    final isReorderEnabled =
-        searchQuery.isEmpty && statusFilter == DownloadStatusFilter.all;
-
-    final downloadsAsync = ref.watch(filteredDownloadsProvider);
-    final selectedId = ref.watch(selectedDownloadIdProvider);
+    final listPhase = ref.watch(filteredDownloadListPhaseProvider);
+    final idList = ref.watch(filteredDownloadIdListProvider);
     final viewMode = ref.watch(downloadViewModeProvider);
+    final isReorderEnabled =
+        searchQuery.isEmpty &&
+        statusFilter == DownloadStatusFilter.all &&
+        idList.ids.length <= 50;
 
-    return downloadsAsync.when(
+    return listPhase.when(
       loading: () => ListView.separated(
         padding: const EdgeInsets.all(AppSpacing.m),
         itemCount: 5,
@@ -72,8 +73,8 @@ class DownloadList extends ConsumerWidget {
           ],
         ),
       ),
-      data: (downloads) {
-        if (downloads.isEmpty) {
+      data: (count) {
+        if (count == 0) {
           final isFiltered =
               searchQuery.isNotEmpty ||
               statusFilter != DownloadStatusFilter.all;
@@ -82,6 +83,8 @@ class DownloadList extends ConsumerWidget {
             icon: Icons.inbox_outlined,
           );
         }
+
+        final ids = idList.ids;
 
         if (viewMode == DownloadViewMode.detailed) {
           return GridView.builder(
@@ -92,26 +95,13 @@ class DownloadList extends ConsumerWidget {
               crossAxisSpacing: AppSpacing.m,
               mainAxisSpacing: AppSpacing.m,
             ),
-            itemCount: downloads.length,
+            itemCount: ids.length,
             itemBuilder: (context, index) {
-              final item = downloads[index];
-              final isSelected = item.id == selectedId;
-              return DownloadItemContextMenu(
-                item: item,
-                child: _DownloadItemGridCard(
-                  item: item,
-                  isSelected: isSelected,
-                  onTap: () {
-                    ref.read(selectedDownloadIdProvider.notifier).state =
-                        item.id;
-                  },
-                  onRetry: () => ref
-                      .read(downloadListProvider.notifier)
-                      .retryDownload(item),
-                  onCancel: () => ref
-                      .read(downloadListProvider.notifier)
-                      .deleteDownload(item.id),
-                ),
+              final id = ids[index];
+              return _DownloadRowHost(
+                key: ValueKey(id),
+                id: id,
+                useGridCard: true,
               );
             },
           );
@@ -120,24 +110,18 @@ class DownloadList extends ConsumerWidget {
         if (!isReorderEnabled) {
           return ListView.separated(
             padding: const EdgeInsets.all(AppSpacing.m),
-            itemCount: downloads.length,
+            itemCount: ids.length,
             separatorBuilder: (ctx, i) => const Gap(AppSpacing.s),
             itemBuilder: (context, index) {
-              final item = downloads[index];
-              final isSelected = item.id == selectedId;
-              return _adaptiveDownloadRow(
-                context: context,
-                ref: ref,
-                item: item,
-                isSelected: isSelected,
-              );
+              final id = ids[index];
+              return _DownloadRowHost(key: ValueKey(id), id: id);
             },
           );
         }
 
         return ReorderableListView.builder(
           padding: const EdgeInsets.all(AppSpacing.m),
-          itemCount: downloads.length,
+          itemCount: ids.length,
           proxyDecorator: (widget, index, animation) {
             return AnimatedBuilder(
               animation: animation,
@@ -160,22 +144,74 @@ class DownloadList extends ConsumerWidget {
             ref.read(downloadListProvider.notifier).reorder(oldIndex, newIndex);
           },
           itemBuilder: (context, index) {
-            final item = downloads[index];
-            final isSelected = item.id == selectedId;
+            final id = ids[index];
 
             return Container(
-              key: ValueKey(item.id),
+              key: ValueKey(id),
               margin: const EdgeInsets.only(bottom: AppSpacing.s),
-              child: _adaptiveDownloadRow(
-                context: context,
-                ref: ref,
-                item: item,
-                isSelected: isSelected,
-              ),
+              child: _DownloadRowHost(id: id),
             );
           },
         );
       },
+    );
+  }
+}
+
+class _DownloadRowHost extends ConsumerWidget {
+  const _DownloadRowHost({
+    super.key,
+    required this.id,
+    this.useGridCard = false,
+  });
+
+  final String id;
+  final bool useGridCard;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final item = ref.watch(downloadItemByIdProvider(id));
+    if (item == null) {
+      return const SizedBox.shrink();
+    }
+    final isSelected = ref.watch(
+      selectedDownloadIdProvider.select((selected) => selected == id),
+    );
+
+    void onTap() {
+      ref.read(selectedDownloadIdProvider.notifier).state = item.id;
+    }
+
+    void onRetry() {
+      ref.read(downloadListProvider.notifier).retryDownload(item);
+    }
+
+    void onCancel() {
+      ref.read(downloadListProvider.notifier).deleteDownload(item.id);
+    }
+
+    if (useGridCard) {
+      return RepaintBoundary(
+        child: DownloadItemContextMenu(
+          item: item,
+          child: _DownloadItemGridCard(
+            item: item,
+            isSelected: isSelected,
+            onTap: onTap,
+            onRetry: onRetry,
+            onCancel: onCancel,
+          ),
+        ),
+      );
+    }
+
+    return RepaintBoundary(
+      child: _adaptiveDownloadRow(
+        context: context,
+        ref: ref,
+        item: item,
+        isSelected: isSelected,
+      ),
     );
   }
 }

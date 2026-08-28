@@ -204,4 +204,45 @@ void main() {
     expect(find.text('Folder'), findsOneWidget);
     expect(find.text('0 B'), findsWidgets);
   });
+
+  testWidgets('type bar stays visible when folder types are multi-gigabyte', (
+    tester,
+  ) async {
+    const gig = 22 * 1024 * 1024 * 1024;
+    await tester.pumpWidget(
+      wrapChart(
+        StorageChart(
+          path: r'C:\dl',
+          folderSizeService: serviceFor(
+            snap(
+              totalBytes: gig,
+              fileCount: 758,
+              videoBytes: gig - 1024 * 1024 * 1024,
+              audioBytes: 512 * 1024 * 1024,
+              otherBytes: 512 * 1024 * 1024,
+              topSubfolders: const [
+                FolderSizeEntry(name: 'Twitter', bytes: 19),
+              ],
+            ),
+          ),
+          loadDisk: (path) async => const DiskChartData(
+            totalBytes: 500 * 1024 * 1024 * 1024,
+            freeBytes: 2 * 1024 * 1024 * 1024,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('storage-folder-details')), findsOneWidget);
+    expect(find.text('758 files'), findsOneWidget);
+    final infoBar = find.byWidgetPredicate(
+      (widget) =>
+          widget is ColoredBox && widget.color == ThemePresets.midnight.info,
+    );
+    expect(infoBar, findsOneWidget);
+    expect(tester.getSize(infoBar).width, greaterThan(40));
+    expect(tester.getSize(infoBar).height, 8);
+  });
 }

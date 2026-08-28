@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
@@ -68,95 +66,86 @@ class ActiveDownloadHud extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Align(
-        alignment: Alignment.bottomRight,
-        widthFactor: 1,
-        heightFactor: 1,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 360),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: colors.surface.withValues(alpha: 0.88),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colors.success.withValues(alpha: 0.35),
+      child: Material(
+        key: const Key('active-download-hud'),
+        color: colors.surface.withValues(alpha: 0.94),
+        elevation: 8,
+        shadowColor: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.success.withValues(alpha: 0.35)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                InkWell(
+                  onTap: () {
+                    ref.read(activeDownloadHudExpandedProvider.notifier).state =
+                        !expanded;
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.downloading_rounded,
+                          color: colors.success,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Tooltip(
+                          message: expanded
+                              ? l10n.collapseDownloadingVideos
+                              : l10n.expandDownloadingVideos,
+                          child: Icon(
+                            expanded
+                                ? Icons.keyboard_arrow_up_rounded
+                                : Icons.keyboard_arrow_down_rounded,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                if (duplicatesSkipped > 0 && active.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.duplicatesSkipped(duplicatesSkipped),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: colors.textSecondary, fontSize: 12),
                   ),
                 ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      ref
-                              .read(activeDownloadHudExpandedProvider.notifier)
-                              .state =
-                          !expanded;
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.downloading_rounded,
-                            color: colors.success,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Text(
-                              title,
-                              style: TextStyle(
-                                color: colors.textPrimary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          Tooltip(
-                            message: expanded
-                                ? l10n.collapseDownloadingVideos
-                                : l10n.expandDownloadingVideos,
-                            child: Icon(
-                              expanded
-                                  ? Icons.keyboard_arrow_up_rounded
-                                  : Icons.keyboard_arrow_down_rounded,
-                              color: colors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
+                if (expanded && active.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 168),
+                    child: SingleChildScrollView(
+                      child: _ExpandedCircles(items: active, colors: colors),
                     ),
                   ),
-                  if (duplicatesSkipped > 0 && active.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.duplicatesSkipped(duplicatesSkipped),
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                  if (expanded && active.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    _ExpandedCircles(items: active, colors: colors),
-                  ],
                 ],
-              ),
+              ],
             ),
           ),
         ),

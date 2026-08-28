@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player_win/video_player_win.dart';
@@ -31,50 +32,120 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   bool _hasError = false;
   DateTime? _lastSeekTime;
   bool _isDragging = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeController();
-  }
+  int _initToken = 0;
 
   Future<void> _initializeController() async {
+    final token = ++_initToken;
     final file = File(widget.filePath);
-    if (!await file.exists()) {
-      if (mounted) {
+    try {
+      if (!await file.exists()) {
+        if (!mounted || token != _initToken || !_isHovering) return;
         setState(() {
           _hasError = true;
           _isInitialized = false;
         });
+        return;
       }
+    } catch (e) {
+      debugPrint("Error checking video file: $e");
+      if (!mounted || token != _initToken || !_isHovering) return;
+      setState(() {
+        _hasError = true;
+        _isInitialized = false;
+      });
       return;
     }
 
+    WinVideoPlayerController? controller;
     try {
-      _controller = WinVideoPlayerController.file(file);
-      await _controller!.initialize();
-      await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-      await _controller!.setLooping(true);
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-          _hasError = false;
-        });
+      controller = WinVideoPlayerController.file(file);
+      await controller.initialize();
+      if (!mounted || token != _initToken || !_isHovering) {
+        await _disposeController(controller);
+        return;
+      }
+      await controller.setVolume(_isMuted ? 0.0 : 1.0);
+      await controller.setLooping(true);
+      if (!mounted || token != _initToken || !_isHovering) {
+        await _disposeController(controller);
+        return;
+      }
+      _controller = controller;
+      setState(() {
+        _isInitialized = true;
+        _hasError = false;
+      });
+      try {
+        await controller.play();
+      } catch (e) {
+        debugPrint("Error playing win_video_player: $e");
       }
     } catch (e) {
       debugPrint("Error initializing win_video_player: $e");
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _isInitialized = false;
-        });
-      }
+      await _disposeController(controller);
+      if (!mounted || token != _initToken || !_isHovering) return;
+      setState(() {
+        _hasError = true;
+        _isInitialized = false;
+        _controller = null;
+      });
     }
+  }
+
+  Future<void> _disposeController(WinVideoPlayerController? controller) async {
+    if (controller == null) return;
+    try {
+      await controller.dispose();
+    } catch (e) {
+      debugPrint("Error disposing win_video_player: $e");
+    }
+  }
+
+  void _unmountPlayer({bool notify = true}) {
+    _initToken++;
+    final controller = _controller;
+    _controller = null;
+    _isInitialized = false;
+    _isDragging = false;
+    if (controller != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_disposeController(controller));
+      });
+    }
+    if (notify && mounted) setState(() {});
+  }
+
+  void _onHoverEnter() {
+    if (_isHovering) return;
+    setState(() {
+      _isHovering = true;
+      _hasError = false;
+    });
+    if (_controller != null && _isInitialized) {
+      try {
+        _controller!.setVolume(_isMuted ? 0.0 : 1.0);
+        _controller!.play();
+      } catch (e) {
+        debugPrint("Error playing win_video_player: $e");
+      }
+      return;
+    }
+    unawaited(_initializeController());
+  }
+
+  void _onHoverExit() {
+    if (!_isHovering && _controller == null) return;
+    _isHovering = false;
+    _hasError = false;
+    _unmountPlayer();
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _initToken++;
+    final controller = _controller;
+    _controller = null;
+    unawaited(_disposeController(controller));
     super.dispose();
   }
 
@@ -82,11 +153,11 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   void didUpdateWidget(VideoPreviewWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.filePath != widget.filePath) {
-      _isInitialized = false;
       _hasError = false;
-      _controller?.dispose();
-      _controller = null;
-      _initializeController();
+      _unmountPlayer(notify: false);
+      if (_isHovering) {
+        unawaited(_initializeController());
+      }
     }
   }
 
@@ -128,129 +199,105 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_hasError) {
-      return Container(
-        height: 220,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.of(context).border),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Opacity(opacity: 0.4, child: _buildThumbnailBackground(context)),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.movie_creation_outlined,
-                  size: 48,
+  Widget _buildErrorPreview(BuildContext context) {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.of(context).border),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Opacity(opacity: 0.4, child: _buildThumbnailBackground(context)),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.movie_creation_outlined,
+                size: 48,
+                color: AppColors.of(context).textSecondary,
+              ),
+              const Gap(8),
+              Text(
+                'Preview unavailable',
+                style: TextStyle(
                   color: AppColors.of(context).textSecondary,
-                ),
-                const Gap(8),
-                Text(
-                  'Preview unavailable',
-                  style: TextStyle(
-                    color: AppColors.of(context).textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-                if (widget.onFullscreen != null) ...[
-                  const Gap(12),
-                  TextButton.icon(
-                    onPressed: widget.onFullscreen,
-                    icon: const Icon(Icons.fullscreen_rounded, size: 18),
-                    label: const Text('Open fullscreen'),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (!_isInitialized || _controller == null) {
-      return Container(
-        height: 220,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.of(context).surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.of(context).border),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (widget.thumbnailUrl != null)
-              Opacity(opacity: 0.3, child: _buildThumbnailBackground(context)),
-            Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(
-                  AppColors.of(context).primary,
+                  fontSize: 12,
                 ),
               ),
-            ),
-          ],
-        ),
-      );
-    }
+              if (widget.onFullscreen != null) ...[
+                const Gap(12),
+                TextButton.icon(
+                  onPressed: widget.onFullscreen,
+                  icon: const Icon(Icons.fullscreen_rounded, size: 18),
+                  label: const Text('Open fullscreen'),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) {
-        setState(() => _isHovering = true);
-        if (_controller != null && _isInitialized) {
-          _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-          _controller!.play();
-        }
-      },
-      onExit: (_) {
-        setState(() => _isHovering = false);
-        _controller?.pause();
-      },
-      child: Container(
-        height: 220,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.of(context).primary, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.of(context).primary.withValues(alpha: 0.1),
-              blurRadius: 20,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Thumbnail / Background when not playing
-            if (widget.thumbnailUrl != null && !_isHovering)
-              Positioned.fill(child: _buildThumbnailBackground(context)),
+      onEnter: (_) => _onHoverEnter(),
+      onExit: (_) => _onHoverExit(),
+      child: _isHovering && _hasError
+          ? _buildErrorPreview(context)
+          : _buildPreview(context),
+    );
+  }
 
-            // Native Windows Player — excluded from semantics to avoid AXTree errors
+  Widget _buildPreview(BuildContext context) {
+    final controller = _controller;
+    final showPlayer = _isHovering && _isInitialized && controller != null;
+
+    return Container(
+      height: 220,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.of(context).primary, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.of(context).primary.withValues(alpha: 0.1),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Thumbnail / Background when not playing
+          if (widget.thumbnailUrl != null && !showPlayer)
+            Positioned.fill(child: _buildThumbnailBackground(context)),
+
+          // Native Windows Player — excluded from semantics to avoid AXTree errors
+          if (showPlayer)
             ExcludeSemantics(
               child: SizedBox.expand(
                 child: FittedBox(
                   fit: BoxFit.contain,
                   child: SizedBox(
-                    width: _controller!.value.size.width,
-                    height: _controller!.value.size.height,
-                    child: WinVideoPlayer(_controller!),
+                    width: controller.value.size.width,
+                    height: controller.value.size.height,
+                    child: WinVideoPlayer(controller),
                   ),
                 ),
               ),
             ),
 
-            // Glassmorphism Overlay (Bottom Scrubber & Mute)
+          // Glassmorphism Overlay (Bottom Scrubber & Mute)
+          if (showPlayer)
             Positioned(
               bottom: 0,
               left: 0,
@@ -268,7 +315,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                     children: [
                       // Ultra-thin scrubber
                       ValueListenableBuilder(
-                        valueListenable: _controller!,
+                        valueListenable: controller,
                         builder: (context, value, child) {
                           final duration = value.duration.inMilliseconds
                               .toDouble();
@@ -332,7 +379,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                         children: [
                           // Time info
                           ValueListenableBuilder(
-                            valueListenable: _controller!,
+                            valueListenable: controller,
                             builder: (context, value, child) {
                               return Text(
                                 _formatDuration(value.position),
@@ -401,22 +448,31 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
               ),
             ),
 
-            // Center Play Icon if not hovering
-            if (!_isHovering)
-              IgnorePointer(
-                child:
-                    Icon(
-                      Icons.play_circle_outline_rounded,
-                      color: Colors.white.withValues(alpha: 0.5),
-                      size: 54,
-                    ).animate().scale(
-                      delay: 100.ms,
-                      duration: 400.ms,
-                      curve: Curves.easeOutBack,
-                    ),
+          if (_isHovering && !_isInitialized)
+            Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(
+                  AppColors.of(context).primary,
+                ),
               ),
-          ],
-        ),
+            ),
+
+          // Center Play Icon if not hovering
+          if (!_isHovering)
+            IgnorePointer(
+              child:
+                  Icon(
+                    Icons.play_circle_outline_rounded,
+                    color: Colors.white.withValues(alpha: 0.5),
+                    size: 54,
+                  ).animate().scale(
+                    delay: 100.ms,
+                    duration: 400.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+            ),
+        ],
       ),
     );
   }

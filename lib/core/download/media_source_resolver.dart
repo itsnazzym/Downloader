@@ -1,3 +1,5 @@
+import 'package:modern_downloader/core/download/x_download_url.dart';
+
 /// Resolves a known media platform from a URL, folder, or file path.
 /// Never returns "Local" / "Other" — unknown origin is [null].
 class MediaSourceResolver {
@@ -64,8 +66,7 @@ class MediaSourceResolver {
         return _labelForToken(folder);
       }
 
-      if (host == 'x.com' || host.endsWith('.x.com')) return 'Twitter';
-      if (host.contains('twitter')) return 'Twitter';
+      if (XDownloadUrl.isXFamilyHost(host)) return 'Twitter';
       if (host.contains('youtu')) return 'YouTube';
       if (host.contains('instagram')) return 'Instagram';
       if (host.contains('tiktok')) return 'TikTok';

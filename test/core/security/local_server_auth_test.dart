@@ -136,7 +136,28 @@ void main() {
       expect(json['url'], contains('youtube.com'));
       expect(json.containsKey('request'), isFalse);
       expect(json.containsKey('filePath'), isFalse);
+      expect(json.containsKey('tweetId'), isFalse);
       expect(json.toString().contains('SECRET_COOKIE_VALUE'), isFalse);
+      expect(json.toString().contains('C:/secret/path.mp4'), isFalse);
+    });
+
+    test('adds tweet and media ids without file paths', () {
+      final item = DownloadItem(
+        id: 'id-x',
+        request: DownloadRequest(
+          url: 'https://x.com/alice/status/1112223334445556667',
+          forceStreamUrl:
+              'https://video.twimg.com/ext_tw_video/1891234567890123456/pu/vid/720x1280/x.mp4',
+        ),
+        status: DownloadStatus.completed,
+        filePath: r'C:\secret\clip.mp4',
+      );
+
+      final json = item.toExtensionProgressJson();
+      expect(json['tweetId'], '1112223334445556667');
+      expect(json['mediaId'], '1891234567890123456');
+      expect(json.containsKey('filePath'), isFalse);
+      expect(json.toString().contains(r'C:\secret'), isFalse);
     });
 
     test('full toJson still retains request for on-disk persistence', () {

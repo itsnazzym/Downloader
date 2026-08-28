@@ -21,7 +21,9 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:modern_downloader/core/services/notification_service.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
+import 'package:modern_downloader/core/download/x_download_url.dart';
 import 'package:modern_downloader/features/downloader/data/datasources/startup_cleanup_service.dart';
+import 'dart:async';
 import 'dart:io';
 import 'package:media_kit/media_kit.dart';
 
@@ -125,29 +127,50 @@ class ModernDownloaderApp extends ConsumerStatefulWidget {
 
 class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
     with WindowListener, TrayListener {
+  bool _postBootstrapStarted = false;
+  ProviderSubscription<DependencyBootstrapState>? _bootstrapSub;
+  bool _windowTickersEnabled = true;
+
+  void _setWindowTickersEnabled(bool enabled) {
+    if (!mounted || _windowTickersEnabled == enabled) return;
+    setState(() => _windowTickersEnabled = enabled);
+  }
+
   @override
   void initState() {
     super.initState();
     windowManager.addListener(this);
     trayManager.addListener(this);
-    _initTray();
 
-    // Start Clipboard Monitor
-    ref.read(clipboardServiceProvider).startMonitoring();
-
-    // Start Local Server for Extension
-    ref.read(localServerServiceProvider).start();
-
-    // Listen to clipboard stream
-    ref.read(clipboardServiceProvider).clipboardStream.listen((url) {
-      _handleClipboardUrl(url);
-    });
-
-    // Cleanup Loop
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settings = ref.read(settingsProvider);
-      StartupCleanupService.cleanup(settings.outputFolder);
+      if (!mounted) return;
+      _bootstrapSub = ref.listenManual<DependencyBootstrapState>(
+        dependencyBootstrapProvider,
+        (previous, next) {
+          if (!next.blocksUi) {
+            _startPostBootstrapWork();
+          }
+        },
+        fireImmediately: true,
+      );
     });
+  }
+
+  void _startPostBootstrapWork() {
+    if (_postBootstrapStarted || !mounted) return;
+    _postBootstrapStarted = true;
+    try {
+      _initTray();
+      ref.read(clipboardServiceProvider).startMonitoring();
+      ref.read(localServerServiceProvider).start();
+      ref.read(clipboardServiceProvider).clipboardStream.listen((url) {
+        _handleClipboardUrl(url);
+      });
+      final settings = ref.read(settingsProvider);
+      unawaited(StartupCleanupService.cleanup(settings.outputFolder));
+    } catch (e) {
+      debugPrint('Post-bootstrap startup failed: $e');
+    }
   }
 
   Future<void> _initTray() async {
@@ -168,18 +191,21 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   }
 
   void _handleClipboardUrl(String url) {
-    // Show Notification with action or just a toast
-    NotificationService().showClipboardDetected(url);
-    // Optionally we could show a dialog if the window is focused
-    // But simply updating the variable or notifying is safer for now.
-
-    // We can also auto-set the launchUrlProvider if we want the "Add Download" dialog
-    // to pick it up immediately when the user clicks "+"
-    ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(url);
+    final resolved = XDownloadUrl.resolveForDownload(url);
+    if (resolved == null) {
+      NotificationService().showError(
+        'Need tweet link',
+        'Paste the tweet link (x.com/.../status/...), not the video file.',
+      );
+      return;
+    }
+    NotificationService().showClipboardDetected(resolved);
+    ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(resolved);
   }
 
   @override
   void dispose() {
+    _bootstrapSub?.close();
     windowManager.removeListener(this);
     trayManager.removeListener(this);
     ref.read(clipboardServiceProvider).stopMonitoring();
@@ -187,7 +213,23 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   }
 
   @override
+  void onWindowFocus() {
+    _setWindowTickersEnabled(true);
+  }
+
+  @override
+  void onWindowBlur() {
+    _setWindowTickersEnabled(false);
+  }
+
+  @override
+  void onWindowRestore() {
+    _setWindowTickersEnabled(true);
+  }
+
+  @override
   void onWindowMinimize() {
+    _setWindowTickersEnabled(false);
     final minimizeToTray = ref.read(settingsProvider).minimizeToTray;
     if (minimizeToTray) {
       windowManager.hide();
@@ -196,6 +238,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
   @override
   void onTrayIconMouseDown() {
+    _setWindowTickersEnabled(true);
     windowManager.show();
     windowManager.focus();
   }
@@ -204,6 +247,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   void onWindowClose() async {
     final minimizeToTray = ref.read(settingsProvider).minimizeToTray;
     if (minimizeToTray) {
+      _setWindowTickersEnabled(false);
       await windowManager.hide();
       return;
     }
@@ -219,6 +263,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   @override
   void onTrayMenuItemClick(MenuItem menuItem) async {
     if (menuItem.key == 'show_window') {
+      _setWindowTickersEnabled(true);
       await windowManager.show();
       await windowManager.focus();
     } else if (menuItem.key == 'exit_app') {
@@ -248,7 +293,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       customAccentArgb: settings.customAccentColor,
     );
 
-    ref.watch(dependencyBootstrapProvider);
+    final bootstrap = ref.watch(dependencyBootstrapProvider);
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
@@ -275,7 +320,10 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
         final content = Stack(
           fit: StackFit.expand,
           children: [
-            child ?? const SizedBox.shrink(),
+            TickerMode(
+              enabled: !bootstrap.blocksUi && _windowTickersEnabled,
+              child: child ?? const SizedBox.shrink(),
+            ),
             const DependencySetupOverlay(),
           ],
         );

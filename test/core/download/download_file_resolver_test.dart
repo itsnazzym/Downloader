@@ -82,6 +82,51 @@ void main() {
       );
       expect(resolved, file.path);
     });
+
+    test('finds file by video id in a nested site subfolder', () {
+      late Directory dir;
+      addTearDown(() {
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
+      });
+
+      dir = Directory.systemTemp.createTempSync('md_resolver_nested_');
+      final nested = Directory(
+        '${dir.path}${Platform.pathSeparator}Pornhub',
+      )..createSync();
+      final file = File(
+        '${nested.path}${Platform.pathSeparator}clip [nested123].mp4',
+      );
+      file.writeAsBytesSync([0, 0, 0]);
+
+      final resolved = DownloadFileResolver.resolve(
+        candidatePath: '${dir.path}${Platform.pathSeparator}clip [nested123].webm',
+        outputFolder: dir.path,
+        videoId: 'nested123',
+        preferredExtension: '.mp4',
+      );
+      expect(resolved, file.path);
+    });
+  });
+
+  group('DownloadFileResolver.existsOnDisk', () {
+    test('returns true for an existing file and false for a missing one', () {
+      late Directory dir;
+      addTearDown(() {
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
+      });
+
+      dir = Directory.systemTemp.createTempSync('md_exists_');
+      final file = File('${dir.path}${Platform.pathSeparator}clip.mp4');
+      file.writeAsBytesSync([1, 2, 3]);
+
+      expect(DownloadFileResolver.existsOnDisk(file.path), isTrue);
+      expect(
+        DownloadFileResolver.existsOnDisk(
+          '${dir.path}${Platform.pathSeparator}missing.mp4',
+        ),
+        isFalse,
+      );
+    });
   });
 
   group('DownloadFileResolver.formattedFileSize', () {

@@ -3,15 +3,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:modern_downloader/core/providers/launch_provider.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:modern_downloader/core/download/extension_download_batcher.dart';
+import 'package:modern_downloader/core/download/progress_throttle.dart';
 import '../logger/logger_service.dart';
+import 'heartbeat_cookie_locator.dart';
 import '../services/notification_service.dart';
 import '../security/local_server_auth.dart';
 import '../../features/x_feed/gobird_x_feed_service.dart';
+import '../../features/x_feed/library_keys_snapshot.dart';
 import '../../features/x_feed/x_feed_ws_contract.dart';
 import '../../services/binary_locator.dart';
 
@@ -24,13 +28,19 @@ class LocalServerService {
   HttpServer? _server;
   final List<WebSocket> _clients = [];
   final GobirdXFeedService _gobirdFeedService;
+  late final ExtensionDownloadBatcher _downloadBatcher;
+  final ProgressBroadcastFilter _progressFilter = ProgressBroadcastFilter();
 
   /// HELLO must arrive within this window or the socket is closed.
   static const Duration helloTimeout = Duration(seconds: 2);
 
   LocalServerService(this._ref, {GobirdXFeedService? gobirdFeedService})
     : _gobirdFeedService =
-          gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator());
+          gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator()) {
+    _downloadBatcher = ExtensionDownloadBatcher(
+      onFlush: _flushExtensionDownloads,
+    );
+  }
 
   Future<void> start() async {
     final settings = _ref.read(settingsProvider);
@@ -65,6 +75,12 @@ class LocalServerService {
   }
 
   Future<void> stop() async {
+    try {
+      _downloadBatcher.flush();
+      _downloadBatcher.dispose();
+    } catch (e) {
+      LoggerService.w('Failed to flush extension download batch: $e');
+    }
     for (final client in _clients) {
       client.close();
     }
@@ -143,6 +159,7 @@ class LocalServerService {
               helloTimer?.cancel();
               _acceptClient(socket);
               socket.add(jsonEncode({'type': 'HELLO_OK'}));
+              _sendLibraryKeys(socket);
             } else {
               helloTimer?.cancel();
               socket.add(jsonEncode({'type': 'AUTH_FAILED'}));
@@ -177,12 +194,24 @@ class LocalServerService {
           }
 
           if (type == 'DOWNLOAD') {
-            _processDownloadPayload(data);
-            socket.add(
-              jsonEncode({'type': 'ACK', 'message': 'Download received'}),
-            );
+            final error = _processDownloadPayload(data);
+            if (error == null) {
+              socket.add(
+                jsonEncode({
+                  'type': 'ACK',
+                  'ok': true,
+                  'message': 'Download received',
+                }),
+              );
+            } else {
+              socket.add(
+                jsonEncode({'type': 'ACK', 'ok': false, 'error': error}),
+              );
+            }
           } else if (type == 'HEARTBEAT_COOKIES') {
             _handleHeartbeatCookies(data);
+          } else if (type == LibraryKeysSnapshot.requestType) {
+            _sendLibraryKeys(socket);
           } else if (type == XFeedWsContract.requestType) {
             unawaited(_handleXFeedRequest(socket, data));
           }
@@ -203,18 +232,49 @@ class LocalServerService {
     );
   }
 
+  void _sendLibraryKeys(WebSocket socket) {
+    try {
+      if (socket.readyState != WebSocket.open) return;
+      final repo = _ref.read(downloaderRepositoryProvider);
+      final snapshot = LibraryKeysSnapshot.fromDownloads(
+        repo.getCurrentDownloads(),
+      );
+      final payload = snapshot.toJson();
+      if (payload.containsKey('filePath') ||
+          payload.containsKey('cookies') ||
+          payload.containsKey('request')) {
+        LoggerService.w('LIBRARY_KEYS_RESULT rejected: unsanitized fields');
+        return;
+      }
+      socket.add(jsonEncode(payload));
+    } catch (e) {
+      LoggerService.w('Failed to send LIBRARY_KEYS_RESULT: $e');
+    }
+  }
+
   void _broadcastProgress(DownloadItem item) {
     if (_clients.isEmpty) return;
+    if (!_progressFilter.shouldSend(
+      id: item.id,
+      status: item.status,
+      progress: item.progress,
+    )) {
+      return;
+    }
 
-    final payload = jsonEncode({
-      'type': 'PROGRESS',
-      'data': item.toExtensionProgressJson(),
-    });
+    try {
+      final payload = jsonEncode({
+        'type': 'PROGRESS',
+        'data': item.toExtensionProgressJson(),
+      });
 
-    for (final client in _clients) {
-      if (client.readyState == WebSocket.open) {
-        client.add(payload);
+      for (final client in _clients) {
+        if (client.readyState == WebSocket.open) {
+          client.add(payload);
+        }
       }
+    } catch (e) {
+      LoggerService.w('Failed to broadcast progress: $e');
     }
   }
 
@@ -326,32 +386,12 @@ class LocalServerService {
   }
 
   /// Resolve the heartbeat cookie file for a URL hostname, if present.
-  static Future<String?> heartbeatCookiePathForUrl(String url) async {
-    try {
-      final host = Uri.parse(url).host;
-      if (host.isEmpty) return null;
-      final appDir = Directory.systemTemp;
-      await for (final entity in appDir.list()) {
-        if (entity is! File) continue;
-        final name = entity.uri.pathSegments.isNotEmpty
-            ? entity.uri.pathSegments.last
-            : entity.path;
-        if (!name.startsWith('heartbeat_cookies_') || !name.endsWith('.txt')) {
-          continue;
-        }
-        final domainPart = name.substring(
-          'heartbeat_cookies_'.length,
-          name.length - '.txt'.length,
-        );
-        if (LocalServerAuth.hostMatchesDomain(host, domainPart)) {
-          return entity.path;
-        }
-      }
-    } catch (_) {}
-    return null;
+  static Future<String?> heartbeatCookiePathForUrl(String url) {
+    return HeartbeatCookieLocator.pathForUrl(url);
   }
 
-  void _processDownloadPayload(Map<String, dynamic> data) {
+  /// Returns an error code, or null when the download was accepted.
+  String? _processDownloadPayload(Map<String, dynamic> data) {
     final url = data['url'] as String?;
     final cookies = data['cookies'] as String?;
     final userAgent = data['userAgent'] as String?;
@@ -361,7 +401,7 @@ class LocalServerService {
     final cookieBrowser = data['cookieBrowser'] as String?;
     final preferredQuality = data['preferredQuality'] as String?;
 
-    if (url == null || url.isEmpty) return;
+    if (url == null || url.isEmpty) return 'invalid_url';
 
     // Only accept http(s) download targets from the extension.
     final uri = Uri.tryParse(url);
@@ -369,10 +409,34 @@ class LocalServerService {
         (uri.scheme != 'http' && uri.scheme != 'https') ||
         uri.host.isEmpty) {
       LoggerService.w('Rejected non-http(s) download URL from extension');
-      return;
+      return 'invalid_url';
     }
 
-    LoggerService.i('📥 Received download request: $url');
+    late final String downloadUrl;
+    try {
+      final referrerRaw = data['referrer'];
+      final referrer = referrerRaw is String ? referrerRaw : null;
+      final resolved = XDownloadUrl.resolveForDownload(url, referrer);
+      if (resolved == null) {
+        LoggerService.w(
+          'Rejected X CDN download without a tweet permalink: $url',
+        );
+        return 'need_tweet_url';
+      }
+      final canonicalUri = Uri.tryParse(resolved);
+      if (canonicalUri == null ||
+          (canonicalUri.scheme != 'http' && canonicalUri.scheme != 'https') ||
+          canonicalUri.host.isEmpty) {
+        LoggerService.w('Resolved download URL was not http(s)');
+        return 'invalid_url';
+      }
+      downloadUrl = resolved;
+    } catch (e) {
+      LoggerService.w('Failed to resolve download URL: $e');
+      return 'invalid_url';
+    }
+
+    LoggerService.i('📥 Received download request: $downloadUrl');
     if (cookies != null) {
       LoggerService.debug('With Cookies: ${cookies.length} chars');
     }
@@ -385,20 +449,35 @@ class LocalServerService {
       LoggerService.debug('With UA length: ${userAgent.length}');
     }
 
-    _ref.read(launchDataProvider.notifier).state = LaunchData(
-      url: url,
-      cookies: cookies,
-      userAgent: userAgent,
-      isAudioOnly: isAudioOnly ?? false,
-      shouldAutoStart: true,
-      isPlaylist: isPlaylist ?? false,
-      cookieBrowser: cookieBrowser,
-      preferredQuality: preferredQuality,
+    _downloadBatcher.add(
+      ExtensionDownloadIngest(
+        url: downloadUrl,
+        cookies: cookies,
+        userAgent: userAgent,
+        isAudioOnly: isAudioOnly ?? false,
+        isPlaylist: isPlaylist ?? false,
+        cookieBrowser: cookieBrowser,
+        preferredQuality: preferredQuality,
+      ),
     );
+    return null;
+  }
 
-    windowManager.show();
-    windowManager.focus();
-
-    NotificationService().showClipboardDetected(url);
+  void _flushExtensionDownloads(List<ExtensionDownloadIngest> batch) {
+    if (batch.isEmpty) return;
+    try {
+      windowManager.show();
+      windowManager.focus();
+    } catch (e) {
+      LoggerService.w('Failed to show/focus window for extension batch: $e');
+    }
+    try {
+      NotificationService().showLinksQueued(batch.length);
+    } catch (e) {
+      LoggerService.w('Failed to show batch queued notification: $e');
+    }
+    unawaited(
+      _ref.read(downloadListProvider.notifier).startExtensionDownloads(batch),
+    );
   }
 }

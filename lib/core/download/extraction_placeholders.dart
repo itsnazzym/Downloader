@@ -1,3 +1,5 @@
+import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 
 /// Placeholder titles set before yt-dlp metadata arrives.
@@ -13,6 +15,38 @@ class ExtractionPlaceholders {
     'Instagram Video',
     'Video',
   };
+
+  static String titleForUrl(String url) {
+    try {
+      final uri = Uri.parse(url.trim());
+      final host = uri.host.toLowerCase();
+      if (host.isNotEmpty) {
+        if (_hostMatches(host, 'youtube.com') ||
+            _hostMatches(host, 'youtu.be')) {
+          return 'YouTube Video';
+        }
+        if (XDownloadUrl.isXFamilyHost(host)) {
+          return 'Twitter Video';
+        }
+        if (_hostMatches(host, 'twitch.tv')) {
+          return 'Twitch Video';
+        }
+        if (_hostMatches(host, 'tiktok.com')) {
+          return 'TikTok Video';
+        }
+        if (_hostMatches(host, 'kick.com')) {
+          return 'Kick Video';
+        }
+      }
+    } catch (_) {
+      // Fall through to URL-derived title.
+    }
+    return TitleCleanerService.deriveTitleFromUrl(url);
+  }
+
+  static bool _hostMatches(String host, String domain) {
+    return host == domain || host.endsWith('.$domain');
+  }
 
   static bool isGenericTitle(String? title) {
     if (title == null) return true;

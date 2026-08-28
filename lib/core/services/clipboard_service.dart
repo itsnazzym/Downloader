@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logger/logger_service.dart';
@@ -13,35 +14,79 @@ class ClipboardService {
   final Ref _ref;
   Timer? _timer;
   String? _lastContent;
+  bool _started = false;
+  bool _listeningToSettings = false;
 
   final _controller = StreamController<String>.broadcast();
   Stream<String> get clipboardStream => _controller.stream;
 
   ClipboardService(this._ref);
 
+  @visibleForTesting
+  bool get isTimerActive => _timer != null && _timer!.isActive;
+
   void startMonitoring() async {
-    _stopMonitoring(); // Ensure no duplicates
+    _started = true;
+    _ensureSettingsListener();
 
     // Initialize with current content to avoid immediate notification on startup
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    if (data != null && data.text != null) {
-      _lastContent = data.text!.trim();
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      if (data != null && data.text != null) {
+        _lastContent = data.text!.trim();
+      }
+    } catch (_) {
+      // Ignore platform channel errors during bootstrap
     }
 
-    // Poll every 2 seconds
-    _timer = Timer.periodic(
-      const Duration(seconds: 2),
-      (_) => _checkClipboard(),
-    );
-    LoggerService.i('Clipboard monitoring started');
+    if (!_started) return;
+    _syncTimerWithSetting();
   }
 
   void stopMonitoring() {
-    _stopMonitoring();
+    _started = false;
+    _stopTimer();
     LoggerService.i('Clipboard monitoring stopped');
   }
 
-  void _stopMonitoring() {
+  void _ensureSettingsListener() {
+    if (_listeningToSettings) return;
+    _listeningToSettings = true;
+    _ref.listen<bool>(
+      settingsProvider.select((s) => s.clipboardMonitorEnabled),
+      (previous, next) {
+        if (!_started) return;
+        if (previous == next) return;
+        _syncTimerWithSetting();
+      },
+    );
+  }
+
+  void _syncTimerWithSetting() {
+    if (!_started) {
+      _stopTimer();
+      return;
+    }
+
+    final enabled = _ref.read(settingsProvider).clipboardMonitorEnabled;
+    if (enabled) {
+      if (_timer != null && _timer!.isActive) return;
+      _timer = Timer.periodic(
+        const Duration(seconds: 2),
+        (_) => _checkClipboard(),
+      );
+      LoggerService.i('Clipboard monitoring started');
+      return;
+    }
+
+    final wasRunning = _timer != null;
+    _stopTimer();
+    if (wasRunning) {
+      LoggerService.i('Clipboard monitoring stopped');
+    }
+  }
+
+  void _stopTimer() {
     _timer?.cancel();
     _timer = null;
   }

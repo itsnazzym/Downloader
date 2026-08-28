@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
@@ -134,5 +135,47 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
     },
     loading: () => const AsyncValue.loading(),
     error: (e, st) => AsyncValue.error(e, st),
+  );
+});
+
+/// Identity of the visible list. Progress ticks do not change IDs, so widgets
+/// watching this skip rebuilds while per-id providers update the active row.
+@immutable
+class DownloadIdList {
+  const DownloadIdList(this.ids);
+
+  final List<String> ids;
+
+  @override
+  bool operator ==(Object other) {
+    return other is DownloadIdList && listEquals(other.ids, ids);
+  }
+
+  @override
+  int get hashCode => Object.hashAll(ids);
+}
+
+final filteredDownloadIdListProvider = Provider<DownloadIdList>((ref) {
+  return ref.watch(
+    filteredDownloadsProvider.select((async) {
+      final items = async.valueOrNull;
+      if (items == null || items.isEmpty) {
+        return const DownloadIdList([]);
+      }
+      return DownloadIdList([for (final item in items) item.id]);
+    }),
+  );
+});
+
+/// Loading / error / length only — ignores per-item progress mutations.
+final filteredDownloadListPhaseProvider = Provider<AsyncValue<int>>((ref) {
+  return ref.watch(
+    filteredDownloadsProvider.select((async) {
+      return async.when(
+        data: (items) => AsyncValue.data(items.length),
+        loading: () => const AsyncValue<int>.loading(),
+        error: (e, st) => AsyncValue<int>.error(e, st),
+      );
+    }),
   );
 });

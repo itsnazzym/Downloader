@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -9,38 +8,43 @@ import 'toast_service.dart';
 class ToastOverlay extends ConsumerWidget {
   const ToastOverlay({super.key});
 
+  static const double overlayWidth = 320;
+  static const double overlayMaxHeightFraction = 0.42;
+  static const double overlayMinHeight = 96;
+  static const double overlayMaxHeight = 280;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final toasts = ref.watch(toastProvider);
+    final mediaHeight = MediaQuery.sizeOf(context).height;
+    final maxHeight = (mediaHeight * overlayMaxHeightFraction).clamp(
+      overlayMinHeight,
+      overlayMaxHeight,
+    );
 
     return Positioned(
-      bottom: 24,
       right: 24,
-      child: Align(
-        alignment: Alignment.bottomRight,
-        widthFactor: 1,
-        heightFactor: 1,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const ActiveDownloadHud(),
-              ...toasts.map((toast) {
-                return Padding(
-                  key: ValueKey(toast.id),
-                  padding: const EdgeInsets.only(top: 8),
-                  child: _ToastCard(
-                    toast: toast,
-                    onDismiss: () {
-                      ref.read(toastProvider.notifier).dismiss(toast.id);
-                    },
-                  ),
-                );
-              }),
-            ],
-          ),
+      bottom: 24,
+      width: overlayWidth,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const ActiveDownloadHud(),
+            for (final toast in toasts)
+              Padding(
+                key: ValueKey(toast.id),
+                padding: const EdgeInsets.only(top: 8),
+                child: _ToastCard(
+                  toast: toast,
+                  onDismiss: () {
+                    ref.read(toastProvider.notifier).dismiss(toast.id);
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -77,99 +81,91 @@ class _ToastCard extends StatelessWidget {
         break;
     }
 
+    final colors = AppColors.of(context);
+
     return Dismissible(
-      key: ValueKey(toast.id),
-      onDismissed: (_) => onDismiss(),
-      child:
-          ClipRRect(
+          key: ValueKey(toast.id),
+          direction: DismissDirection.endToStart,
+          onDismissed: (_) => onDismiss(),
+          child: Material(
+            color: colors.surface.withValues(alpha: 0.94),
+            elevation: 8,
+            shadowColor: Colors.black.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.of(
-                        context,
-                      ).surface.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: color.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                        BoxShadow(
-                          color: color.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          spreadRadius: -5,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(icon, color: color, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                toast.title,
-                                style: TextStyle(
-                                  color: AppColors.of(context).textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              if (toast.description != null) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  toast.description!,
-                                  style: TextStyle(
-                                    color: AppColors.of(context).textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          onPressed: onDismiss,
-                          icon: Icon(
-                            Icons.close_rounded,
-                            color: AppColors.of(context).textDisabled,
-                            size: 18,
-                          ),
-                          constraints: const BoxConstraints(),
-                          padding: EdgeInsets.zero,
-                        ),
-                      ],
-                    ),
-                  ),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.3),
+                  width: 1,
                 ),
-              )
-              .animate()
-              .fadeIn(duration: 300.ms, curve: Curves.easeOut)
-              .slideY(begin: 0.5, duration: 300.ms, curve: Curves.easeOut),
-    );
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            toast.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          if (toast.description != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              toast.description!,
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: 12,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: onDismiss,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: colors.textDisabled,
+                        size: 18,
+                      ),
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 300.ms, curve: Curves.easeOut)
+        .slideY(begin: 0.5, duration: 300.ms, curve: Curves.easeOut);
   }
 }

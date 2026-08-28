@@ -51,8 +51,16 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
   Future<void> _submit() async {
     final url = _urlController.text.trim();
     final formOk = AppColors.of(context).isIosChrome
-        ? DownloadUrlValidator.isValidHttpUrl(url)
+        ? DownloadUrlValidator.isAcceptableDownloadUrl(url)
         : (_formKey.currentState?.validate() ?? false);
+    if (!formOk) {
+      if (AppColors.of(context).isIosChrome &&
+          DownloadUrlValidator.isValidHttpUrl(url) &&
+          !DownloadUrlValidator.isAcceptableDownloadUrl(url)) {
+        AppToast.showError(context, context.l10n.xCdnUrlRejected);
+      }
+      return;
+    }
     if (formOk) {
       setState(() => _isLoading = true);
 
@@ -368,6 +376,11 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                         }
                         if (!DownloadUrlValidator.isValidHttpUrl(value)) {
                           return l10n.enterValidUrl;
+                        }
+                        if (!DownloadUrlValidator.isAcceptableDownloadUrl(
+                          value,
+                        )) {
+                          return l10n.xCdnUrlRejected;
                         }
                         return null;
                       },

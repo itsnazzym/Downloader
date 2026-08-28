@@ -36,6 +36,12 @@ class NotificationService {
     _show(title: 'Link Detected', body: 'Click to download: $url');
   }
 
+  Future<void> showLinksQueued(int count) async {
+    if (count < 1) return;
+    final noun = count == 1 ? 'link' : 'links';
+    _show(title: 'Links queued', body: '$count $noun queued');
+  }
+
   Future<void> showExtensionConnected() async {
     _show(
       title: 'Extension Connected',

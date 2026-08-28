@@ -4,6 +4,25 @@ import 'package:modern_downloader/features/downloader/domain/enums/download_stat
 
 void main() {
   group('ExtractionPlaceholders', () {
+    test('uses Twitter Video for twimg CDN URLs instead of the media id', () {
+      expect(
+        ExtractionPlaceholders.titleForUrl(
+          'https://video.twimg.com/tweet_video/Wayxcx6DISTAPf95.mp4',
+        ),
+        'Twitter Video',
+      );
+      expect(
+        ExtractionPlaceholders.titleForUrl(
+          'https://pbs.twimg.com/media/photo.jpg',
+        ),
+        'Twitter Video',
+      );
+      expect(
+        ExtractionPlaceholders.titleForUrl('https://pscp.tv/w/abc'),
+        'Twitter Video',
+      );
+    });
+
     test('treats platform stubs and empty titles as generic', () {
       expect(ExtractionPlaceholders.isGenericTitle(null), isTrue);
       expect(ExtractionPlaceholders.isGenericTitle(''), isTrue);

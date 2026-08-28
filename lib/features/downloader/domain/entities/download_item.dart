@@ -1,6 +1,7 @@
 import '../enums/download_status.dart';
 import 'download_request.dart';
 import 'package:modern_downloader/core/download/media_source_resolver.dart';
+import 'package:modern_downloader/core/download/x_download_url.dart';
 
 class DownloadItem {
   final String id;
@@ -107,6 +108,13 @@ class DownloadItem {
   /// Sanitized payload for browser-extension PROGRESS broadcasts.
   /// Intentionally omits cookies, file paths, and full request secrets.
   Map<String, dynamic> toExtensionProgressJson() {
+    final tweetId =
+        XDownloadUrl.tweetIdFrom(request.url) ??
+        XDownloadUrl.tweetIdFrom(request.forceStreamUrl);
+    final mediaId = XDownloadUrl.mediaAssetIdFrom(request.forceStreamUrl) ??
+        XDownloadUrl.mediaAssetIdFrom(request.forceThumbnailUrl) ??
+        XDownloadUrl.mediaAssetIdFrom(thumbnailUrl) ??
+        XDownloadUrl.mediaAssetIdFrom(request.url);
     return {
       'id': id,
       'title': title,
@@ -118,6 +126,8 @@ class DownloadItem {
       'eta': eta,
       'error': error,
       'url': request.url,
+      if (tweetId != null) 'tweetId': tweetId,
+      if (mediaId != null) 'mediaId': mediaId,
     };
   }
 

@@ -12,6 +12,9 @@
   var PROCESSED = new WeakSet();
   var scanScheduled = false;
   var scanTimer = null;
+  var injectedButtons = [];
+  var downloadedTweetIds = Object.create(null);
+  var downloadedMediaIds = Object.create(null);
 
   var VIDEO_PATTERNS = [
     '/watch?v=',
@@ -40,7 +43,13 @@
     var area = (api.storage && api.storage.local) || api.storage.sync;
     if (!area) return;
     area.get(
-      ['btnColor', 'btnPosition', 'btnSize', 'showQualitySelector'],
+      [
+        'btnColor',
+        'btnPosition',
+        'btnSize',
+        'showQualitySelector',
+        'downloadedKeys',
+      ],
       function (items) {
         if (api.runtime.lastError) return;
         if (items.btnColor) SETTINGS.btnColor = items.btnColor;
@@ -49,6 +58,8 @@
         if (typeof items.showQualitySelector === 'boolean') {
           SETTINGS.showQualitySelector = items.showQualitySelector;
         }
+        applyStoredKeys(items.downloadedKeys);
+        refreshInjectedButtons();
       },
     );
   }
@@ -61,6 +72,10 @@
       if (changes.btnSize) SETTINGS.btnSize = changes.btnSize.newValue;
       if (changes.showQualitySelector) {
         SETTINGS.showQualitySelector = changes.showQualitySelector.newValue;
+      }
+      if (changes.downloadedKeys) {
+        applyStoredKeys(changes.downloadedKeys.newValue);
+        refreshInjectedButtons();
       }
     });
   }
@@ -95,33 +110,196 @@
     }
   }
 
-  function findXPostLink(article) {
-    var links = article.querySelectorAll('a[href]');
-    for (var i = 0; i < links.length; i++) {
-      try {
-        var url = new URL(links[i].href, window.location.href);
-        var hostname = url.hostname.toLowerCase();
-        if (
-          hostname !== 'x.com' &&
-          !hostname.endsWith('.x.com') &&
-          hostname !== 'twitter.com' &&
-          !hostname.endsWith('.twitter.com')
-        ) {
-          continue;
-        }
-        var match = url.pathname.match(
-          /^\/(?:[^/]+\/status|i\/(?:web\/)?status)\/(\d+)/,
-        );
-        if (match) {
-          url.search = '';
-          url.hash = '';
-          return { id: match[1], url: url.href };
-        }
-      } catch (e) {
-        /* Ignore malformed links inside the post. */
+  function parseXStatusLink(href) {
+    try {
+      var url = new URL(href, window.location.href);
+      var hostname = url.hostname.toLowerCase();
+      if (
+        hostname !== 'x.com' &&
+        !hostname.endsWith('.x.com') &&
+        hostname !== 'twitter.com' &&
+        !hostname.endsWith('.twitter.com')
+      ) {
+        return null;
       }
+      var match = url.pathname.match(
+        /^\/(?:[^/]+\/status|i\/(?:web\/)?status)\/(\d+)/,
+      );
+      if (!match) return null;
+      url.search = '';
+      url.hash = '';
+      return { id: match[1], url: url.href };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function t(key, fallback) {
+    try {
+      if (api.i18n && api.i18n.getMessage) {
+        var message = api.i18n.getMessage(key);
+        if (message) return message;
+      }
+    } catch (e) {
+      /* Use the built-in fallback when localization is unavailable. */
+    }
+    return fallback;
+  }
+
+  function downloadLabel() {
+    return t('download', 'Download');
+  }
+
+  function downloadedLabel() {
+    return t('downloaded', 'Downloaded');
+  }
+
+  function xTweetIdFromUrl(value) {
+    var parsed = parseXStatusLink(value);
+    return parsed ? parsed.id : null;
+  }
+
+  function xMediaAssetId(value) {
+    if (!value) return null;
+    var match = String(value).match(
+      /\/(?:ext_tw_video(?:_thumb)?|amplify_video(?:_thumb)?|tweet_video(?:_thumb)?)\/(\d{15,20})(?:\/|\.|$)/i,
+    );
+    return match ? match[1] : null;
+  }
+
+  function applyStoredKeys(keys) {
+    downloadedTweetIds = Object.create(null);
+    downloadedMediaIds = Object.create(null);
+    if (!keys || typeof keys !== 'object') return;
+    (keys.tweetIds || []).forEach(function (id) {
+      if (id) downloadedTweetIds[String(id)] = true;
+    });
+    (keys.mediaIds || []).forEach(function (id) {
+      if (id) downloadedMediaIds[String(id)] = true;
+    });
+  }
+
+  function mergeLocalKeys(tweetIds, mediaIds, removedTweetIds) {
+    (tweetIds || []).forEach(function (id) {
+      if (id) downloadedTweetIds[String(id)] = true;
+    });
+    (mediaIds || []).forEach(function (id) {
+      if (id) downloadedMediaIds[String(id)] = true;
+    });
+    (removedTweetIds || []).forEach(function (id) {
+      if (id) delete downloadedTweetIds[String(id)];
+    });
+  }
+
+  function isKnownDownloaded(tweetId, mediaId) {
+    return (!!tweetId && !!downloadedTweetIds[tweetId]) ||
+      (!!mediaId && !!downloadedMediaIds[mediaId]);
+  }
+
+  function findMediaAssetIdNear(container) {
+    if (!container) return null;
+    var video = container.tagName === 'VIDEO'
+      ? container
+      : container.querySelector('video');
+    if (video) {
+      var fromPoster = xMediaAssetId(video.poster);
+      if (fromPoster) return fromPoster;
+      var fromSrc = xMediaAssetId(video.currentSrc || video.src);
+      if (fromSrc) return fromSrc;
+    }
+    var article = findXArticle(container);
+    if (!article) return null;
+    return xMediaAssetId(findXPreviewUrl(article, video));
+  }
+
+  function refreshInjectedButtons() {
+    injectedButtons = injectedButtons.filter(function (entry) {
+      return entry.host && entry.host.isConnected;
+    });
+    injectedButtons.forEach(function (entry) {
+      if (isKnownDownloaded(entry.tweetId, entry.mediaId)) {
+        entry.setDownloaded();
+      } else {
+        entry.setIdle();
+      }
+    });
+  }
+
+  function findXArticle(element) {
+    if (!element) return null;
+    if (element.closest) {
+      var closestArticle = element.closest(
+        'article[data-testid="tweet"], article',
+      );
+      if (closestArticle) return closestArticle;
+    }
+    var curr = element.parentElement;
+    var depth = 0;
+    while (curr && depth < 12) {
+      var testId = curr.getAttribute && curr.getAttribute('data-testid');
+      if (curr.tagName === 'ARTICLE' || testId === 'tweet') return curr;
+      curr = curr.parentElement;
+      depth++;
     }
     return null;
+  }
+
+  function findXPostLink(article) {
+    if (!article) return null;
+    var timeEl = article.querySelector('time');
+    if (timeEl) {
+      var timeAnchor = timeEl.closest ? timeEl.closest('a[href]') : null;
+      if (timeAnchor) {
+        var fromTime = parseXStatusLink(timeAnchor.href);
+        if (fromTime) return fromTime;
+      }
+    }
+    var links = article.querySelectorAll('a[href]');
+    for (var i = 0; i < links.length; i++) {
+      var parsed = parseXStatusLink(links[i].href);
+      if (parsed) return parsed;
+    }
+    return null;
+  }
+
+  function statusPermalinkFromPage() {
+    try {
+      var loc = new URL(window.location.href);
+      var statusMatch = loc.pathname.match(
+        /^\/(?:[^/]+\/status|i\/(?:web\/)?status)\/(\d+)/,
+      );
+      if (!statusMatch) return null;
+      loc.search = '';
+      loc.hash = '';
+      return loc.href;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function resolveXPermalinkFromElement(element, srcUrl) {
+    var article = findXArticle(element);
+    var post = findXPostLink(article);
+    if (post && post.url) return post.url;
+    if (srcUrl) {
+      var videos = document.querySelectorAll('video');
+      for (var i = 0; i < videos.length; i++) {
+        var src = videos[i].currentSrc || videos[i].src || '';
+        if (!src) continue;
+        try {
+          var left = new URL(src, window.location.href);
+          var right = new URL(srcUrl, window.location.href);
+          left.search = '';
+          right.search = '';
+          if (left.href !== right.href) continue;
+        } catch (e) {
+          continue;
+        }
+        var fromVideo = findXPostLink(findXArticle(videos[i]));
+        if (fromVideo && fromVideo.url) return fromVideo.url;
+      }
+    }
+    return statusPermalinkFromPage();
   }
 
   function findXVideoElements(article) {
@@ -313,6 +491,11 @@
   function findPlatformSpecificUrl(element) {
     var pageUrl = window.location.href;
     var hostname = window.location.hostname || '';
+    if (isXPage()) {
+      var permalink = resolveXPermalinkFromElement(element);
+      if (permalink) return permalink;
+      return null;
+    }
     if (hostname.indexOf('kick.com') !== -1) {
       return pageUrl.split('?')[0];
     }
@@ -371,7 +554,7 @@
     return null;
   }
 
-  function sendDownload(targetUrl, opts, onResult) {
+  function sendDownload(targetUrl, opts, extra, onResult) {
     try {
       api.runtime.sendMessage(
         {
@@ -379,6 +562,8 @@
           url: targetUrl,
           pageUrl: window.location.href,
           options: opts || {},
+          tweetId: extra && extra.tweetId ? extra.tweetId : null,
+          mediaId: extra && extra.mediaId ? extra.mediaId : null,
         },
         function (response) {
           if (api.runtime.lastError) {
@@ -393,9 +578,11 @@
     }
   }
 
-  function createButtonUI(targetUrl) {
+  function createButtonUI(targetUrl, tweetId, mediaId) {
     var host = document.createElement('div');
     host.className = 'md-dl-host';
+    if (tweetId) host.dataset.tweetId = tweetId;
+    if (mediaId) host.dataset.mediaId = mediaId;
     Object.assign(host.style, {
       position: 'absolute',
       zIndex: '2147483647',
@@ -422,6 +609,7 @@
       ':host{all:initial}' +
       '.wrap{display:flex;align-items:center;gap:0;pointer-events:auto;font-family:Segoe UI,Helvetica,sans-serif}' +
       'button{border:none;color:#fff;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}' +
+      'button:disabled{cursor:default}' +
       '.main{background:' + SETTINGS.btnColor + ';border-radius:6px 0 0 6px;padding:6px 12px;font-size:13px}' +
       '.main.solo{border-radius:6px}' +
       '.toggle{background:' + SETTINGS.btnColor + ';filter:brightness(0.9);border-radius:0 6px 6px 0;padding:6px 8px;border-left:1px solid rgba(255,255,255,.2)}' +
@@ -440,12 +628,42 @@
     var btn = document.createElement('button');
     btn.className = 'main' + (SETTINGS.showQualitySelector ? '' : ' solo');
     btn.type = 'button';
-    btn.textContent = 'Download';
+    btn.textContent = downloadLabel();
     wrap.appendChild(btn);
 
     var selectedQuality = 'best';
     var toggle = null;
     var menu = null;
+    var markedDownloaded = false;
+
+    function setDownloaded() {
+      markedDownloaded = true;
+      btn.textContent = downloadedLabel();
+      btn.disabled = true;
+      btn.classList.add('ok');
+      btn.classList.remove('err');
+      if (toggle) {
+        toggle.disabled = true;
+        toggle.classList.add('ok');
+        toggle.classList.remove('err');
+      }
+      if (menu) menu.classList.remove('open');
+    }
+
+    function setIdle() {
+      if (isKnownDownloaded(tweetId, mediaId)) {
+        setDownloaded();
+        return;
+      }
+      markedDownloaded = false;
+      btn.textContent = downloadLabel();
+      btn.disabled = false;
+      btn.classList.remove('ok', 'err');
+      if (toggle) {
+        toggle.disabled = false;
+        toggle.classList.remove('ok', 'err');
+      }
+    }
 
     if (SETTINGS.showQualitySelector) {
       toggle = document.createElement('button');
@@ -470,6 +688,7 @@
         item.textContent = opt.label;
         item.addEventListener('click', function (e) {
           e.stopPropagation();
+          if (markedDownloaded) return;
           selectedQuality = opt.val;
           btn.textContent = opt.val === 'audio' ? 'Audio' : opt.label;
           menu.classList.remove('open');
@@ -480,6 +699,7 @@
       toggle.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
+        if (markedDownloaded) return;
         menu.classList.toggle('open');
       });
     }
@@ -487,35 +707,42 @@
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
+      if (markedDownloaded) return;
       var opts = {};
       if (selectedQuality === 'audio') opts.isAudioOnly = true;
       else if (selectedQuality !== 'best') opts.preferredQuality = selectedQuality;
 
-      var original = btn.textContent;
       btn.textContent = '…';
       btn.disabled = true;
 
-      sendDownload(targetUrl, opts, function (result) {
-        btn.disabled = false;
+      sendDownload(targetUrl, opts, { tweetId: tweetId, mediaId: mediaId }, function (result) {
         if (result && result.ok) {
-          btn.textContent = 'Sent!';
-          btn.classList.add('ok');
-          if (toggle) toggle.classList.add('ok');
-        } else {
-          var err = (result && result.error) || 'failed';
-          btn.textContent = err === 'app_offline' ? 'Offline' : 'Failed';
-          btn.classList.add('err');
-          if (toggle) toggle.classList.add('err');
+          if (tweetId) downloadedTweetIds[tweetId] = true;
+          if (mediaId) downloadedMediaIds[mediaId] = true;
+          setDownloaded();
+          return;
         }
+        var err = (result && result.error) || 'failed';
+        btn.textContent = err === 'app_offline'
+          ? 'Offline'
+          : err === 'need_tweet_url'
+            ? 'Need tweet'
+            : 'Failed';
+        btn.classList.add('err');
+        if (toggle) toggle.classList.add('err');
         setTimeout(function () {
-          btn.textContent = original;
-          btn.classList.remove('ok', 'err');
-          if (toggle) toggle.classList.remove('ok', 'err');
+          if (!markedDownloaded) setIdle();
         }, 2000);
       });
     });
 
-    return host;
+    return {
+      host: host,
+      tweetId: tweetId,
+      mediaId: mediaId,
+      setDownloaded: setDownloaded,
+      setIdle: setIdle,
+    };
   }
 
   function ensureRelative(container) {
@@ -548,9 +775,15 @@
   function injectButton(container, targetUrl) {
     if (!container || PROCESSED.has(container)) return;
     ensureRelative(container);
-    var ui = createButtonUI(targetUrl);
-    container.appendChild(ui);
+    var tweetId = xTweetIdFromUrl(targetUrl);
+    var mediaId = findMediaAssetIdNear(container);
+    var ui = createButtonUI(targetUrl, tweetId, mediaId);
+    container.appendChild(ui.host);
+    injectedButtons.push(ui);
     PROCESSED.add(container);
+    if (isKnownDownloaded(tweetId, mediaId)) {
+      ui.setDownloaded();
+    }
   }
 
   function scan() {
@@ -604,7 +837,30 @@
 
   if (api.runtime && api.runtime.onMessage) {
     api.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-      if (!message || message.type !== 'MD_EXTRACT_X_FEED') return false;
+      if (!message || typeof message.type !== 'string') return false;
+      if (message.type === 'MD_DOWNLOAD_STATE') {
+        mergeLocalKeys(
+          message.tweetIds,
+          message.mediaIds,
+          message.removedTweetIds,
+        );
+        refreshInjectedButtons();
+        sendResponse({ ok: true });
+        return false;
+      }
+      if (message.type === 'MD_RESOLVE_X_PERMALINK') {
+        try {
+          var url = resolveXPermalinkFromElement(
+            document.activeElement,
+            message.srcUrl,
+          );
+          sendResponse({ ok: !!url, url: url || null });
+        } catch (e) {
+          sendResponse({ ok: false, error: 'resolve_failed' });
+        }
+        return false;
+      }
+      if (message.type !== 'MD_EXTRACT_X_FEED') return false;
       try {
         var result = extractXFeed(message.maxItems);
         if (result && result.ok === true && Array.isArray(result.items)) {

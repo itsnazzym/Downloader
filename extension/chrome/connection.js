@@ -111,6 +111,11 @@
   var activeDownloadCount = 0;
   var adultSitesEnabled = false;
   var nextRequestId = 1;
+  var DOWNLOADED_KEYS_CAP = 4000;
+  var DOWNLOAD_STATUS_COMPLETED = 4;
+  var DOWNLOAD_STATUS_FAILED = 5;
+  var DOWNLOAD_STATUS_CANCELED = 6;
+  var DOWNLOAD_STATUS_DUPLICATE = 8;
 
   function scheduleReconnect() {
     if (reconnectTimer) return;
@@ -228,6 +233,7 @@
       clearReconnect();
       publishConnectionState();
       console.log('Connected to Modern Downloader App');
+      requestLibraryKeys();
       api.storage.local.get(['autoSendCookies']).then(function (cookieRes) {
         if (cookieRes.autoSendCookies !== false) {
           setTimeout(sendCurrentTabCookies, 2000);
@@ -252,7 +258,13 @@
 
     if (message.type === 'ACK') {
       var resolver = pendingDownloadAcks.shift();
-      if (resolver) resolver({ ok: true, message: message.message || 'ok' });
+      if (resolver) {
+        resolver({
+          ok: message.ok !== false,
+          error: message.error,
+          message: message.message || 'ok',
+        });
+      }
       return;
     }
 
@@ -262,6 +274,13 @@
         var finishFeed = pendingCorrelated[feedRequestId];
         delete pendingCorrelated[feedRequestId];
         finishFeed(message);
+      }
+      return;
+    }
+
+    if (message.type === 'LIBRARY_KEYS_RESULT') {
+      if (message.ok !== false) {
+        mergeDownloadedKeys(message.tweetIds, message.mediaIds);
       }
       return;
     }
@@ -282,6 +301,7 @@
         url: item.url,
       };
       updateBadgeFromProgress(sanitized);
+      recordProgressDownloadKeys(item);
       api.storage.local.get(['recentDownloads']).then(function (result) {
         var recents = result.recentDownloads || [];
         var idx = recents.findIndex(function (r) { return r.id === sanitized.id; });
@@ -294,6 +314,160 @@
         publishConnectionState();
         return api.storage.local.set({ recentDownloads: recents });
       });
+    }
+  }
+
+  function tweetIdFromUrl(value) {
+    if (!isSafeHttpUrl(value)) return null;
+    try {
+      var url = new URL(value);
+      var match = url.pathname.match(
+        /^\/(?:[^/]+\/status|i\/(?:web\/)?status)\/(\d{15,20})/,
+      );
+      return match ? match[1] : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function mediaAssetIdFrom(value) {
+    if (!value || typeof value !== 'string') return null;
+    var match = value.match(
+      /\/(?:ext_tw_video(?:_thumb)?|amplify_video(?:_thumb)?|tweet_video(?:_thumb)?)\/(\d{15,20})(?:\/|\.|$)/i,
+    );
+    return match ? match[1] : null;
+  }
+
+  function uniqueCap(values, cap) {
+    var seen = {};
+    var out = [];
+    (Array.isArray(values) ? values : []).forEach(function (raw) {
+      var id = String(raw || '').trim();
+      if (!/^\d{5,25}$/.test(id) || seen[id]) return;
+      seen[id] = true;
+      out.push(id);
+    });
+    if (out.length <= cap) return out;
+    return out.slice(out.length - cap);
+  }
+
+  function sanitizeIdList(values) {
+    return uniqueCap(values, DOWNLOADED_KEYS_CAP);
+  }
+
+  function broadcastDownloadState(payload) {
+    if (!api.tabs || !api.tabs.query) return;
+    var query = { url: [
+      '*://x.com/*',
+      '*://*.x.com/*',
+      '*://twitter.com/*',
+      '*://*.twitter.com/*',
+    ] };
+    var send = function (tabs) {
+      (tabs || []).forEach(function (tab) {
+        if (typeof tab.id !== 'number') return;
+        try {
+          var pending = api.tabs.sendMessage(tab.id, payload);
+          if (pending && typeof pending.catch === 'function') {
+            pending.catch(function () {
+              /* Tab has no content script. */
+            });
+          }
+        } catch (e) {
+          /* Ignore missing receivers. */
+        }
+      });
+    };
+    try {
+      var result = api.tabs.query(query);
+      if (result && typeof result.then === 'function') {
+        result.then(send).catch(function () { /* ignore */ });
+      }
+    } catch (e) {
+      /* tabs.query may be unavailable */
+    }
+  }
+
+  function mergeDownloadedKeys(tweetIds, mediaIds) {
+    var addedTweets = sanitizeIdList(tweetIds);
+    var addedMedia = sanitizeIdList(mediaIds);
+    if (addedTweets.length === 0 && addedMedia.length === 0) {
+      return Promise.resolve();
+    }
+    return api.storage.local.get(['downloadedKeys']).then(function (result) {
+      var current = result.downloadedKeys || {};
+      var next = {
+        tweetIds: uniqueCap(
+          [].concat(current.tweetIds || [], addedTweets),
+          DOWNLOADED_KEYS_CAP,
+        ),
+        mediaIds: uniqueCap(
+          [].concat(current.mediaIds || [], addedMedia),
+          DOWNLOADED_KEYS_CAP,
+        ),
+      };
+      return api.storage.local.set({ downloadedKeys: next }).then(function () {
+        broadcastDownloadState({
+          type: 'MD_DOWNLOAD_STATE',
+          tweetIds: addedTweets,
+          mediaIds: addedMedia,
+          removedTweetIds: [],
+        });
+      });
+    }).catch(function (e) {
+      console.warn('Could not persist downloaded keys', e && e.message);
+    });
+  }
+
+  function removeDownloadedTweetIds(tweetIds) {
+    var removed = sanitizeIdList(tweetIds);
+    if (removed.length === 0) return Promise.resolve();
+    var removedSet = {};
+    removed.forEach(function (id) { removedSet[id] = true; });
+    return api.storage.local.get(['downloadedKeys']).then(function (result) {
+      var current = result.downloadedKeys || {};
+      var nextTweets = (current.tweetIds || []).filter(function (id) {
+        return !removedSet[id];
+      });
+      var next = {
+        tweetIds: nextTweets,
+        mediaIds: current.mediaIds || [],
+      };
+      return api.storage.local.set({ downloadedKeys: next }).then(function () {
+        broadcastDownloadState({
+          type: 'MD_DOWNLOAD_STATE',
+          tweetIds: [],
+          mediaIds: [],
+          removedTweetIds: removed,
+        });
+      });
+    }).catch(function (e) {
+      console.warn('Could not update downloaded keys', e && e.message);
+    });
+  }
+
+  function recordProgressDownloadKeys(item) {
+    var status = item && item.status;
+    var tweetId = item.tweetId || tweetIdFromUrl(item.url);
+    var mediaId = item.mediaId || mediaAssetIdFrom(item.url);
+    if (status === DOWNLOAD_STATUS_COMPLETED || status === DOWNLOAD_STATUS_DUPLICATE) {
+      mergeDownloadedKeys(
+        tweetId ? [tweetId] : [],
+        mediaId ? [mediaId] : [],
+      );
+      return;
+    }
+    if (status === DOWNLOAD_STATUS_FAILED || status === DOWNLOAD_STATUS_CANCELED) {
+      if (tweetId) removeDownloadedTweetIds([tweetId]);
+    }
+  }
+
+  function requestLibraryKeys() {
+    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) return;
+    try {
+      socket.send(JSON.stringify({ type: 'LIBRARY_KEYS' }));
+    } catch (e) {
+      /* ignore */
     }
   }
 
@@ -416,11 +590,11 @@
 
     var requestId = 'xf-' + String(nextRequestId++) + '-' + Date.now();
     var count = parseInt(maxItems, 10);
-    if (!Number.isFinite(count) || count < 1) count = 100;
-    if (count > 100) count = 100;
+    if (!Number.isFinite(count) || count < 1) count = 10000;
+    if (count > 10000) count = 10000;
 
     try {
-      var waitPromise = waitForCorrelatedResponse(requestId, 50000);
+      var waitPromise = waitForCorrelatedResponse(requestId, 13 * 60 * 1000);
       socket.send(JSON.stringify({
         type: 'X_FEED_REQUEST',
         requestId: requestId,
@@ -437,7 +611,77 @@
     }
   }
 
-  async function handleDownloadRequest(mediaUrl, pageUrl, options) {
+  function isXCdnHost(hostname) {
+    return hostMatchesDomain(hostname, 'twimg.com') ||
+      hostMatchesDomain(hostname, 'pscp.tv');
+  }
+
+  function xStatusPermalink(value) {
+    if (!isSafeHttpUrl(value)) return null;
+    try {
+      var url = new URL(value);
+      var hostname = url.hostname.toLowerCase();
+      if (!hostMatchesDomain(hostname, 'x.com') &&
+          !hostMatchesDomain(hostname, 'twitter.com')) {
+        return null;
+      }
+      var match = url.pathname.match(
+        /^\/(?:[^/]+\/status|i\/(?:web\/)?status)\/(\d+)/,
+      );
+      if (!match) return null;
+      url.search = '';
+      url.hash = '';
+      return url.href;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function canonicalizeXDownloadUrl(mediaUrl, pageUrl) {
+    return resolveXDownloadUrl(mediaUrl, pageUrl) || mediaUrl;
+  }
+
+  function isXCdnUrl(value) {
+    if (!isSafeHttpUrl(value)) return false;
+    try {
+      return isXCdnHost(new URL(value).hostname);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function resolveXDownloadUrl(mediaUrl, pageUrl) {
+    try {
+      var permalink = xStatusPermalink(mediaUrl);
+      if (permalink) return permalink;
+      if (isXCdnUrl(mediaUrl)) {
+        return xStatusPermalink(pageUrl);
+      }
+      return mediaUrl;
+    } catch (e) {
+      return mediaUrl;
+    }
+  }
+
+  async function resolvePermalinkFromTab(tab, srcUrl) {
+    if (!tab || typeof tab.id !== 'number' || !api.tabs || !api.tabs.sendMessage) {
+      return null;
+    }
+    try {
+      var response = await api.tabs.sendMessage(tab.id, {
+        type: 'MD_RESOLVE_X_PERMALINK',
+        srcUrl: srcUrl || '',
+      });
+      if (response && response.ok && isSafeHttpUrl(response.url)) {
+        return response.url;
+      }
+    } catch (e) {
+      /* content script may be missing on this tab */
+    }
+    return null;
+  }
+
+  async function handleDownloadRequest(mediaUrl, pageUrl, options, hints) {
     if (!isSafeHttpUrl(mediaUrl)) {
       return { ok: false, error: 'invalid_url' };
     }
@@ -446,7 +690,15 @@
     }
 
     try {
+      var extra = hints && typeof hints === 'object' ? hints : {};
       var safePage = isSafeHttpUrl(pageUrl) ? pageUrl : mediaUrl;
+      var downloadUrl = resolveXDownloadUrl(mediaUrl, safePage);
+      if (!downloadUrl || isXCdnUrl(downloadUrl)) {
+        return { ok: false, error: 'need_tweet_url' };
+      }
+      if (!isSafeHttpUrl(downloadUrl)) {
+        return { ok: false, error: 'invalid_url' };
+      }
       var cookies = await getCookiesForPageUrl(safePage);
       var cookieString = formatCookiesToNetscape(cookies);
       var detectedBrowser = await detectBrowser();
@@ -454,7 +706,7 @@
 
       var payload = {
         type: 'DOWNLOAD',
-        url: mediaUrl,
+        url: downloadUrl,
         cookies: cookieString,
         userAgent: navigator.userAgent,
         referrer: safePage,
@@ -470,8 +722,21 @@
       var ackPromise = waitForAck(5000);
       socket.send(JSON.stringify(payload));
       // Do not log cookies, token, or UA.
-      console.log('Sent download request for', mediaUrl);
-      return await ackPromise;
+      console.log('Sent download request for', downloadUrl);
+      var ack = await ackPromise;
+      if (ack && ack.ok) {
+        var tweetId = extra.tweetId ||
+          tweetIdFromUrl(downloadUrl) ||
+          tweetIdFromUrl(safePage);
+        var mediaId = extra.mediaId ||
+          mediaAssetIdFrom(extra.thumbnailUrl) ||
+          mediaAssetIdFrom(downloadUrl);
+        mergeDownloadedKeys(
+          tweetId ? [tweetId] : [],
+          mediaId ? [mediaId] : [],
+        );
+      }
+      return ack;
     } catch (e) {
       console.error('Error processing download request', e && e.message);
       return { ok: false, error: (e && e.message) || 'error' };
@@ -593,7 +858,13 @@
       var pageUrl = (tab && tab.url) || info.pageUrl || '';
       if (isRestrictedPageUrl(pageUrl) && isRestrictedPageUrl(info.linkUrl || '')) return;
       var url = info.linkUrl || info.srcUrl || info.pageUrl;
-      handleDownloadRequest(url, pageUrl || url, {});
+      (async function () {
+        if (isXCdnUrl(url)) {
+          var resolved = await resolvePermalinkFromTab(tab, info.srcUrl || url);
+          if (resolved) url = resolved;
+        }
+        handleDownloadRequest(url, pageUrl || url, {});
+      })();
     });
   }
 
@@ -683,7 +954,11 @@
     }
 
     if (message.type === 'DOWNLOAD_BTN_CLICK') {
-      handleDownloadRequest(message.url, message.pageUrl, message.options).then(sendResponse);
+      handleDownloadRequest(message.url, message.pageUrl, message.options, {
+        tweetId: message.tweetId,
+        mediaId: message.mediaId,
+        thumbnailUrl: message.thumbnailUrl,
+      }).then(sendResponse);
       return true;
     }
 

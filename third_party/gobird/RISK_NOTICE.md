@@ -12,7 +12,7 @@ X feed panel on Windows.
 - The feature is **OFF by default**. Enabling it in Advanced settings requires
   explicit consent.
 - Modern Downloader only allows the read-only `home` command with
-  `--json --quiet --count 1..100`. When no local heartbeat credentials are
+  `--json --quiet --count 1..10000 --max-pages 500`. When no local heartbeat credentials are
   available, the configured `--browser chrome|firefox` fallback is used.
 - No write commands, free-form arguments, account rotation, or proxy settings
   are passed to gobird.

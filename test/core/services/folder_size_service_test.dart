@@ -92,6 +92,16 @@ void main() {
     expect(snapshot.totalBytes, 16);
   });
 
+  test('default compute scanner classifies mp4 as videoBytes', () async {
+    await writeBytes('clip.mp4', 12);
+    final service = FolderSizeService();
+
+    final snapshot = okSnapshot(await service.getSize(tempRoot.path));
+
+    expect(snapshot.videoBytes, 12);
+    expect(snapshot.totalBytes, 12);
+  });
+
   test('keeps the 3 heaviest direct subfolders; ties sort by name ascending', () async {
     await writeBytes('alpha${Platform.pathSeparator}f.bin', 30);
     await writeBytes('beta${Platform.pathSeparator}f.bin', 50);

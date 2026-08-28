@@ -13,6 +13,8 @@ import '../../../../../core/download/tor_proxy_guard.dart';
 import '../../../../../core/download/yt_dlp_cookie_args.dart';
 import '../../../../../core/download/yt_dlp_progress_parser.dart';
 import '../../../../../core/download/download_status_guard.dart';
+import '../../../../../core/download/fragment_budget.dart';
+import '../../../../../core/download/metadata_probe_limiter.dart';
 
 class YtDlpSource {
   final BinaryLocator _binaryLocator;
@@ -21,6 +23,9 @@ class YtDlpSource {
   YtDlpSource(this._binaryLocator, this._processRunner);
 
   final _downloadProcesses = <String, Process>{};
+  int _activeDownloadCount = 0;
+
+  static final metadataProbeLimiter = MetadataProbeLimiter(maxParallel: 2);
 
   /// Fetch video title quickly
   Future<String?> fetchTitle(String url) async {
@@ -46,6 +51,29 @@ class YtDlpSource {
   }
 
   Future<Map<String, dynamic>> fetchMetadata(
+    String url, {
+    String? cookies,
+    String? cookiesFilePath,
+    String? cookieBrowser,
+    bool useTorProxy = false,
+  }) async {
+    if (!metadataProbeLimiter.tryAcquire()) {
+      throw const MetadataProbeLimitException();
+    }
+    try {
+      return await _fetchMetadataUnlocked(
+        url,
+        cookies: cookies,
+        cookiesFilePath: cookiesFilePath,
+        cookieBrowser: cookieBrowser,
+        useTorProxy: useTorProxy,
+      );
+    } finally {
+      metadataProbeLimiter.release();
+    }
+  }
+
+  Future<Map<String, dynamic>> _fetchMetadataUnlocked(
     String url, {
     String? cookies,
     String? cookiesFilePath,
@@ -110,7 +138,11 @@ class YtDlpSource {
         throw Exception('Empty metadata response from yt-dlp');
       }
 
-      return jsonDecode(cleanStdout) as Map<String, dynamic>;
+      final decoded = _decodeFirstMetadataObject(cleanStdout);
+      if (decoded == null) {
+        throw const FormatException('No metadata JSON object found');
+      }
+      return decoded;
     } finally {
       try {
         if (tempNetscapeFile != null && await tempNetscapeFile.exists()) {
@@ -118,6 +150,27 @@ class YtDlpSource {
         }
       } catch (_) {}
     }
+  }
+
+  Map<String, dynamic>? _decodeFirstMetadataObject(String output) {
+    try {
+      final decoded = jsonDecode(output);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {
+      // A tweet with multiple media entries can emit one JSON object per line.
+    }
+
+    for (final line in const LineSplitter().convert(output)) {
+      final candidate = line.trim();
+      if (candidate.isEmpty) continue;
+      try {
+        final decoded = jsonDecode(candidate);
+        if (decoded is Map<String, dynamic>) return decoded;
+      } catch (_) {
+        // Ignore non-JSON lines and continue with the next media entry.
+      }
+    }
+    return null;
   }
 
   Future<List<Map<String, dynamic>>> fetchPlaylist(String url) async {
@@ -156,6 +209,20 @@ class YtDlpSource {
     String id,
     DownloadRequest request,
   ) async* {
+    _activeDownloadCount++;
+    try {
+      yield* _downloadUnlocked(id, request);
+    } finally {
+      if (_activeDownloadCount > 0) {
+        _activeDownloadCount--;
+      }
+    }
+  }
+
+  Stream<DownloadProgressEvent> _downloadUnlocked(
+    String id,
+    DownloadRequest request,
+  ) async* {
     LoggerService.i('YtDlpSource: Looking for yt-dlp binary...');
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) {
@@ -171,20 +238,31 @@ class YtDlpSource {
     final aria2cPath = await _binaryLocator.findAria2c();
 
     final maxSpeedMode = request.maxSpeedMode;
-    final concurrentFragments = maxSpeedMode ? 64 : request.concurrentFragments;
+    final perJobFragments = maxSpeedMode
+        ? kMaxSpeedFragmentsPerJob
+        : request.concurrentFragments;
+    final activeCount = _activeDownloadCount < 1 ? 1 : _activeDownloadCount;
+    final concurrentFragments = computeConcurrentFragments(
+      perJob: perJobFragments,
+      activeCount: activeCount,
+    );
+    final bufferSize = computeYtDlpBufferSize(
+      concurrentFragments: concurrentFragments,
+      activeCount: activeCount,
+    );
 
     // Native multi-fragment downloader scales beyond aria2c's 16-connection cap.
+    // Max speed stays on; the global fragment budget only shares 64 across jobs.
     if (concurrentFragments >= 16 || maxSpeedMode) {
       LoggerService.i(
         'Native high-speed downloader: $concurrentFragments parallel fragments'
-        '${maxSpeedMode ? ' (max speed mode)' : ''}.',
+        '${maxSpeedMode ? ' (max speed mode)' : ''} '
+        '($activeCount active, budget $kFragmentGlobalBudget).',
       );
       args.addAll(['--concurrent-fragments', concurrentFragments.toString()]);
-      args.addAll([
-        '--buffer-size',
-        concurrentFragments >= 32 ? '128M' : '64M',
-      ]);
-      if (concurrentFragments >= 32) {
+      args.addAll(['--buffer-size', bufferSize]);
+      if (concurrentFragments >= 32 &&
+          activeCount <= kBufferSizeCapActiveCount) {
         args.addAll(['--http-chunk-size', '10M']);
       }
     } else if (aria2cPath != null) {
@@ -476,7 +554,6 @@ class YtDlpSource {
         .listen(
           (line) {
             outputBuffer.writeln(line);
-            LoggerService.debug('yt-dlp: $line');
             if (!lineController.isClosed) {
               lineController.add(line);
             }
@@ -498,7 +575,6 @@ class YtDlpSource {
           (line) {
             errorBuffer.writeln(line);
             outputBuffer.writeln(line);
-            LoggerService.w('yt-dlp stderr: $line');
             detectYtDlpException(line);
             if (!lineController.isClosed) {
               lineController.add(line);
@@ -516,15 +592,6 @@ class YtDlpSource {
 
     await for (final line in lineController.stream) {
       for (final update in parser.onLine(line)) {
-        if (update.filePath != null) {
-          LoggerService.debug('Detected file path: ${update.filePath}');
-        }
-        if (update.speed.contains('Mbps')) {
-          final mbps = double.tryParse(update.speed.split(' ').first);
-          if (mbps != null && mbps > 80.0) {
-            LoggerService.i('High Speed Download: ${update.speed}');
-          }
-        }
         yield DownloadProgressEvent(
           progress: update.progress,
           totalSize: update.totalSize,

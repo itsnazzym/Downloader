@@ -28,13 +28,19 @@ typedef ContentLengthProbe = Future<int?> Function(String url);
 /// Read-only gobird adapter for the experimental X feed engine.
 ///
 /// Only builds the allowlisted read command:
-/// `gobird --json --quiet --count 1..100 home`
+/// `gobird --json --quiet --count 1..10000 --max-pages 500 home`
 /// Credentials are supplied through the child process environment when the
 /// extension heartbeat is available; browser flags are only the fallback.
 class GobirdXFeedService {
-  static const int maxItems = 100;
-  static const Duration defaultTimeout = Duration(seconds: 45);
-  static const int maxStdoutBytes = 8 * 1024 * 1024;
+  /// Tweet budget passed to gobird `--count` (not the displayed video cap).
+  static const int maxTweetCount = 10000;
+
+  /// UI / parser cap on video and GIF items kept from gobird JSON.
+  static const int maxVideoItems = 10000;
+
+  static const int maxPages = 500;
+  static const Duration defaultTimeout = Duration(minutes: 12);
+  static const int maxStdoutBytes = 32 * 1024 * 1024;
 
   final BinaryLocator _locator;
   final GobirdProcessRunner _runProcess;
@@ -85,29 +91,17 @@ class GobirdXFeedService {
     required String browser,
     required int count,
   }) {
-    final normalizedBrowser = normalizeBrowser(browser);
-    final clamped = clampCount(count);
     return <String>[
       '--browser',
-      normalizedBrowser,
-      '--json',
-      '--quiet',
-      '--count',
-      '$clamped',
-      'home',
+      normalizeBrowser(browser),
+      ..._homeFlags(count),
     ];
   }
 
   /// Builds the command used when credentials are supplied through the
   /// process environment instead of browser profile auto-detection.
   static List<String> buildHomeArgsFromEnvironment({required int count}) {
-    return <String>[
-      '--json',
-      '--quiet',
-      '--count',
-      '${clampCount(count)}',
-      'home',
-    ];
+    return _homeFlags(count);
   }
 
   static String normalizeBrowser(String browser) {
@@ -122,13 +116,25 @@ class GobirdXFeedService {
 
   static int clampCount(int count) {
     if (count < 1) return 1;
-    if (count > maxItems) return maxItems;
+    if (count > maxTweetCount) return maxTweetCount;
     return count;
+  }
+
+  static List<String> _homeFlags(int count) {
+    return <String>[
+      '--json',
+      '--quiet',
+      '--count',
+      '${clampCount(count)}',
+      '--max-pages',
+      '$maxPages',
+      'home',
+    ];
   }
 
   Future<XFeedResult> fetchHomeFeed({
     required String browser,
-    int count = maxItems,
+    int count = maxTweetCount,
     Duration timeout = defaultTimeout,
     bool probeContentLength = false,
     FutureOr<void>? cancelSignal,
@@ -213,11 +219,15 @@ class GobirdXFeedService {
         );
       }
 
-      final parsed = parseGobirdHomeJson(stdoutText, maxItems: maxItems);
+      final parsed = _parseGobirdHomeJsonRaw(
+        stdoutText,
+        maxItems: maxVideoItems,
+      );
       var items = parsed.items;
       if (probeContentLength) {
         items = await _attachContentLengths(items);
       }
+      items = [for (final item in items) _withPermalinkDownloadUrl(item)];
 
       return XFeedResult(
         ok: true,
@@ -366,9 +376,22 @@ class GobirdXFeedService {
   }
 
   /// Parses gobird `--json` home timeline output into video feed items.
+  /// Download [XFeedItem.url] is the tweet permalink; CDN URLs are only used
+  /// internally for optional Content-Length probes.
   static ({List<XFeedItem> items, bool truncated}) parseGobirdHomeJson(
     String raw, {
-    int maxItems = GobirdXFeedService.maxItems,
+    int maxItems = GobirdXFeedService.maxVideoItems,
+  }) {
+    final parsed = _parseGobirdHomeJsonRaw(raw, maxItems: maxItems);
+    return (
+      items: [for (final item in parsed.items) _withPermalinkDownloadUrl(item)],
+      truncated: parsed.truncated,
+    );
+  }
+
+  static ({List<XFeedItem> items, bool truncated}) _parseGobirdHomeJsonRaw(
+    String raw, {
+    int maxItems = GobirdXFeedService.maxVideoItems,
   }) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) {
@@ -498,6 +521,25 @@ class GobirdXFeedService {
     }
 
     return (items: items, truncated: videoCandidates > maxItems);
+  }
+
+  static XFeedItem _withPermalinkDownloadUrl(XFeedItem item) {
+    if (item.pageUrl.isEmpty || item.url == item.pageUrl) {
+      return item;
+    }
+    return XFeedItem(
+      id: item.id,
+      url: item.pageUrl,
+      pageUrl: item.pageUrl,
+      title: item.title,
+      author: item.author,
+      thumbnailUrl: item.thumbnailUrl,
+      durationSeconds: item.durationSeconds,
+      width: item.width,
+      height: item.height,
+      sizeBytes: item.sizeBytes,
+      source: item.source,
+    );
   }
 
   static List<Map<String, dynamic>> _asMapList(Object? value) {

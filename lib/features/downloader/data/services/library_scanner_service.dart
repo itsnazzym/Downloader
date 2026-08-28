@@ -3,6 +3,8 @@ import 'package:uuid/uuid.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/download/media_source_resolver.dart';
+import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:modern_downloader/features/x_feed/x_media_identity.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
@@ -18,7 +20,6 @@ class LibraryScannerService {
 
   /// Cache of all video files found during scanning
   List<File>? _videoFileCache;
-  String? _lastScannedPath;
 
   LibraryScannerService(this._binaryLocator) {
     _thumbnailService = ThumbnailService(_binaryLocator);
@@ -34,6 +35,7 @@ class LibraryScannerService {
 
     // Build cache of all video files in basePath (recursive)
     await _buildVideoCache(basePath);
+    var generatedThumbs = 0;
 
     for (final item in items) {
       if (item.status == DownloadStatus.downloading ||
@@ -45,31 +47,25 @@ class LibraryScannerService {
       var fixedItem = item;
 
       // 1. Check Main File
-      if (item.filePath == null || !File(item.filePath!).existsSync()) {
-        final foundPath = _findFileFor(item);
-        if (foundPath != null) {
+      final locatedPath = _locateExistingFile(item, basePath);
+      if (locatedPath != null) {
+        if (locatedPath != item.filePath) {
           LoggerService.debug('LibraryScanner: Fixed path for ${item.title}');
-          fixedItem = fixedItem.copyWith(filePath: foundPath);
+          fixedItem = fixedItem.copyWith(filePath: locatedPath);
+        }
 
-          // File found - mark as completed if it was failed or paused
-          if (fixedItem.status == DownloadStatus.failed ||
-              fixedItem.status == DownloadStatus.paused) {
-            fixedItem = _promoteToCompletedIfValid(fixedItem) ?? fixedItem;
-          }
-        } else {
-          if (fixedItem.status == DownloadStatus.completed) {
-            LoggerService.w('LibraryScanner: File missing for ${item.title}');
-            fixedItem = fixedItem.copyWith(
-              status: DownloadStatus.failed,
-              error: 'File missing from disk',
-            );
-          }
+        // File found - mark as completed if it was failed or paused
+        if (fixedItem.status == DownloadStatus.failed ||
+            fixedItem.status == DownloadStatus.paused) {
+          fixedItem = _promoteToCompletedIfValid(fixedItem) ?? fixedItem;
         }
       } else {
-        // File path exists and file is present - ensure status is completed
-        if (fixedItem.status == DownloadStatus.paused ||
-            fixedItem.status == DownloadStatus.failed) {
-          fixedItem = _promoteToCompletedIfValid(fixedItem) ?? fixedItem;
+        if (fixedItem.status == DownloadStatus.completed) {
+          LoggerService.w('LibraryScanner: File missing for ${item.title}');
+          fixedItem = fixedItem.copyWith(
+            status: DownloadStatus.failed,
+            error: 'File missing from disk',
+          );
         }
       }
 
@@ -99,7 +95,7 @@ class LibraryScannerService {
 
       // 2. Check/Fix Thumbnail - validate existing and generate if missing
       if (fixedItem.filePath != null &&
-          File(fixedItem.filePath!).existsSync()) {
+          DownloadFileResolver.existsOnDisk(fixedItem.filePath!)) {
         // First, validate existing thumbnailUrl - clear if file doesn't exist
         if (fixedItem.thumbnailUrl != null &&
             !fixedItem.thumbnailUrl!.startsWith('http')) {
@@ -121,10 +117,15 @@ class LibraryScannerService {
           // First try existing sidecar
           var thumb = _findSidecarThumbnail(fixedItem.filePath!);
 
-          // If no sidecar, generate one
-          thumb ??= await _thumbnailService.generateThumbnail(
-            fixedItem.filePath!,
-          );
+          // If no sidecar, generate one (bounded to prevent freezing startup)
+          if (thumb == null && generatedThumbs < 5) {
+            thumb = await _thumbnailService.generateThumbnail(
+              fixedItem.filePath!,
+            );
+            if (thumb != null) {
+              generatedThumbs++;
+            }
+          }
 
           if (thumb != null) {
             fixedItem = fixedItem.copyWith(thumbnailUrl: thumb);
@@ -153,29 +154,7 @@ class LibraryScannerService {
     // Two items can end up on the same file (loose title match, then
     // scanForNewFiles imports the real file). Rebind losers, drop ghosts.
     var result = _rebindSharedFiles(fixedItems);
-    result = _rebindSharedFiles(result);
-    return _ensureThumbnails(result);
-  }
-
-  Future<List<DownloadItem>> _ensureThumbnails(List<DownloadItem> items) async {
-    final out = <DownloadItem>[];
-    for (var item in items) {
-      final path = item.filePath;
-      if (path != null &&
-          File(path).existsSync() &&
-          (item.thumbnailUrl == null ||
-              (!item.thumbnailUrl!.startsWith('http') &&
-                  !File(item.thumbnailUrl!).existsSync()))) {
-        final thumb =
-            _findSidecarThumbnail(path) ??
-            await _thumbnailService.generateThumbnail(path);
-        if (thumb != null) {
-          item = item.copyWith(thumbnailUrl: thumb);
-        }
-      }
-      out.add(item);
-    }
-    return out;
+    return _rebindSharedFiles(result);
   }
 
   /// Scans the download directory recursively for new files not in the list
@@ -259,14 +238,10 @@ class LibraryScannerService {
     return newItems;
   }
 
-  /// Builds a cache of all video files in the given path (recursive)
+  /// Builds a cache of all video files in the given path (recursive).
+  /// Always rebuilds so files added since the last scan can be recovered.
   Future<void> _buildVideoCache(String basePath) async {
-    if (_lastScannedPath == basePath && _videoFileCache != null) {
-      return; // Use existing cache
-    }
-
     _videoFileCache = [];
-    _lastScannedPath = basePath;
 
     try {
       final dir = Directory(basePath);
@@ -283,6 +258,33 @@ class LibraryScannerService {
     } catch (e) {
       LoggerService.e('LibraryScanner: Error building cache', e);
     }
+  }
+
+  String _basename(String path) {
+    final parts = path.split(RegExp(r'[/\\]'));
+    return parts.isEmpty ? path : parts.last;
+  }
+
+  /// Resolve the on-disk file for [item], or null if it cannot be found.
+  String? _locateExistingFile(DownloadItem item, String basePath) {
+    final videoId =
+        DownloadFileResolver.extractBracketId(item.filePath) ??
+        DownloadFileResolver.extractBracketId(item.title);
+
+    if (item.filePath != null &&
+        item.filePath!.trim().isNotEmpty &&
+        DownloadFileResolver.existsOnDisk(item.filePath!)) {
+      return item.filePath;
+    }
+
+    final resolved = DownloadFileResolver.resolve(
+      candidatePath: item.filePath,
+      outputFolder: basePath,
+      videoId: videoId,
+    );
+    if (resolved != null) return resolved;
+
+    return _findFileFor(item);
   }
 
   /// Finds a file matching the item's title using normalized comparison
@@ -305,9 +307,7 @@ class LibraryScannerService {
       final needle = videoId.toLowerCase();
       for (final file in _videoFileCache!) {
         if (!isCandidate(file)) continue;
-        final filename = file.uri.pathSegments.isNotEmpty
-            ? file.uri.pathSegments.last
-            : file.path.split(RegExp(r'[/\\]')).last;
+        final filename = _basename(file.path);
         final lower = filename.toLowerCase();
         if (lower.contains('[$needle]')) {
           return file.path;
@@ -322,12 +322,12 @@ class LibraryScannerService {
 
     // Try exact filename match from previous path
     if (item.filePath != null) {
-      final oldFilename = item.filePath!.split(RegExp(r'[/\\]')).last;
+      final oldFilename = _basename(item.filePath!);
       final normalizedOldFilename = _normalize(oldFilename);
 
       for (final file in _videoFileCache!) {
         if (!isCandidate(file)) continue;
-        final filename = file.uri.pathSegments.last;
+        final filename = _basename(file.path);
         final normalizedFilename = _normalize(filename);
 
         if (normalizedFilename == normalizedOldFilename) {
@@ -341,7 +341,7 @@ class LibraryScannerService {
     var bestScore = 0.0;
     for (final file in _videoFileCache!) {
       if (!isCandidate(file)) continue;
-      final filename = file.uri.pathSegments.last;
+      final filename = _basename(file.path);
       final score = _fileMatchScore(normalizedTitle, _normalize(filename));
       if (score > bestScore) {
         bestScore = score;
@@ -397,13 +397,17 @@ class LibraryScannerService {
             downloadedSize: diskSize ?? loser.downloadedSize,
           );
           exclude.add(found.toLowerCase());
-        } else if (_isImported(loser)) {
+        } else if (_isImported(loser) ||
+            _isSameMedia(loser, result[bestIndex])) {
+          LoggerService.debug(
+            'LibraryScanner: Dropped duplicate row for ${loser.title}',
+          );
           dropIds.add(loser.id);
         } else {
-          result[i] = loser.copyWith(
-            clearFilePath: true,
-            status: DownloadStatus.failed,
-            error: 'File missing from disk',
+          // The file exists; this row just has no unique copy. Keep the
+          // shared path rather than lying that the file is missing.
+          LoggerService.w(
+            'LibraryScanner: Shared file kept for ${loser.title}',
           );
         }
       }
@@ -434,6 +438,23 @@ class LibraryScannerService {
   bool _isImported(DownloadItem item) {
     final url = item.request.url.toLowerCase();
     return url.contains('.detected/') || url.contains('/imported');
+  }
+
+  /// True when [a] and [b] are library rows for the same media (same tweet).
+  bool _isSameMedia(DownloadItem a, DownloadItem b) {
+    final urlA = a.request.url.trim();
+    final urlB = b.request.url.trim();
+    if (urlA.isNotEmpty && urlA.toLowerCase() == urlB.toLowerCase()) {
+      return true;
+    }
+    if (XMediaIdentity.sameMedia(urlA, urlB)) return true;
+    final idA =
+        XDownloadUrl.tweetIdFrom(urlA) ??
+        XDownloadUrl.tweetIdFrom(a.request.forceStreamUrl);
+    final idB =
+        XDownloadUrl.tweetIdFrom(urlB) ??
+        XDownloadUrl.tweetIdFrom(b.request.forceStreamUrl);
+    return idA != null && idA == idB;
   }
 
   /// Normalizes a string for comparison (keeps unicode letters, lowercase)
@@ -522,12 +543,7 @@ class LibraryScannerService {
   }
 
   bool _isVideo(String path) {
-    final ext = path.toLowerCase();
-    return ext.endsWith('.mp4') ||
-        ext.endsWith('.mkv') ||
-        ext.endsWith('.webm') ||
-        ext.endsWith('.mov') ||
-        ext.endsWith('.avi');
+    return DownloadFileResolver.isVideoPath(path);
   }
 
   bool _hasStaleRetryState(DownloadItem item) {
@@ -546,7 +562,7 @@ class LibraryScannerService {
 
     try {
       final file = File(path);
-      if (!file.existsSync()) return null;
+      if (!DownloadFileResolver.existsOnDisk(path)) return null;
       final bytes = file.lengthSync();
       if (bytes <= 0) return null;
       final size = FormatUtils.formatBytes(bytes);

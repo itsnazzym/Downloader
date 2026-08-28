@@ -89,7 +89,7 @@ Future<FolderSizeSnapshot> scanFolderSize(String path) async {
 
   final subfolderBytes = <String, int>{};
   try {
-    await for (final entity in dir.list(followLinks: false).handleError((Object _, StackTrace __) {})) {
+    await for (final entity in dir.list(followLinks: false).handleError((Object _, StackTrace _) {})) {
       final type = FileSystemEntity.typeSync(entity.path, followLinks: false);
       if (type == FileSystemEntityType.directory) {
         subfolderBytes[p.basename(entity.path)] = 0;
@@ -106,7 +106,7 @@ Future<FolderSizeSnapshot> scanFolderSize(String path) async {
   var otherBytes = 0;
 
   try {
-    await for (final entity in dir.list(recursive: true, followLinks: false).handleError((Object _, StackTrace __) {})) {
+    await for (final entity in dir.list(recursive: true, followLinks: false).handleError((Object _, StackTrace _) {})) {
       final type = FileSystemEntity.typeSync(entity.path, followLinks: false);
       if (type != FileSystemEntityType.file) {
         continue;

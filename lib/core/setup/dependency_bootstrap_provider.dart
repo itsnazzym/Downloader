@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../logger/logger_service.dart';
@@ -43,6 +45,7 @@ class DependencyBootstrapNotifier
   DependencyBootstrapNotifier(
     this._service, {
     this.updateYtDlp = true,
+    this.checkOptionalGobird = false,
     bool autoStart = true,
   }) : super(DependencyBootstrapState.initial()) {
     if (autoStart) {
@@ -66,6 +69,7 @@ class DependencyBootstrapNotifier
 
   final DependencyBootstrapService _service;
   final bool updateYtDlp;
+  final bool checkOptionalGobird;
   bool _running = false;
 
   Future<void> ensureReady({bool? updateYtDlp}) async {
@@ -73,10 +77,9 @@ class DependencyBootstrapNotifier
     _running = true;
     LoggerService.i('Dependency bootstrap started');
     state = DependencyBootstrapState.initial();
-    final startedAt = DateTime.now();
     try {
       await _service.ensureReady(
-        updateYtDlp: updateYtDlp ?? this.updateYtDlp,
+        checkOptionalGobird: checkOptionalGobird,
         onProgress: (progress) {
           state = DependencyBootstrapState(
             step: progress.step,
@@ -90,11 +93,6 @@ class DependencyBootstrapNotifier
           );
         },
       );
-      const minVisible = Duration(milliseconds: 1200);
-      final elapsed = DateTime.now().difference(startedAt);
-      if (elapsed < minVisible && !state.hasFailed) {
-        await Future<void>.delayed(minVisible - elapsed);
-      }
       if (!state.hasFailed) {
         LoggerService.i('Dependency bootstrap ready');
         state = DependencyBootstrapState(
@@ -105,6 +103,10 @@ class DependencyBootstrapNotifier
           hasFailed: false,
           readyTools: state.readyTools,
         );
+        final shouldUpdate = updateYtDlp ?? this.updateYtDlp;
+        if (shouldUpdate) {
+          unawaited(_runBackgroundYtDlpUpdate());
+        }
       }
     } catch (e) {
       state = DependencyBootstrapState(
@@ -117,6 +119,14 @@ class DependencyBootstrapNotifier
       );
     } finally {
       _running = false;
+    }
+  }
+
+  Future<void> _runBackgroundYtDlpUpdate() async {
+    try {
+      await _service.updateYtDlpInBackground();
+    } catch (e) {
+      LoggerService.w('yt-dlp background update failed: $e');
     }
   }
 
@@ -138,9 +148,10 @@ final dependencyBootstrapProvider =
       DependencyBootstrapNotifier,
       DependencyBootstrapState
     >((ref) {
-      final autoUpdate = ref.read(settingsProvider).autoUpdateYtDlp;
+      final settings = ref.read(settingsProvider);
       return DependencyBootstrapNotifier(
         DependencyBootstrapService(),
-        updateYtDlp: autoUpdate,
+        updateYtDlp: settings.autoUpdateYtDlp,
+        checkOptionalGobird: settings.experimentalXFeedGobirdEnabled,
       );
     });

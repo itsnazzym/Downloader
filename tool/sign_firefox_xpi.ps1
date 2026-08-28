@@ -5,10 +5,38 @@
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
+function Import-DotEnv {
+    param([string]$Path)
+    if (-not (Test-Path $Path)) { return }
+    Get-Content $Path | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith('#')) { return }
+        $eq = $line.IndexOf('=')
+        if ($eq -lt 1) { return }
+        $name = $line.Substring(0, $eq).Trim()
+        $value = $line.Substring($eq + 1).Trim()
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+        if (-not [string]::IsNullOrWhiteSpace($name) -and -not [Environment]::GetEnvironmentVariable($name)) {
+            Set-Item -Path "Env:$name" -Value $value
+        }
+    }
+}
+
+Import-DotEnv (Join-Path $PWD ".env")
+
 $issuer = $env:AMO_JWT_ISSUER
 $secret = $env:AMO_JWT_SECRET
 if (-not $issuer -or -not $secret) {
-    throw "Set AMO_JWT_ISSUER and AMO_JWT_SECRET environment variables first."
+    throw @"
+AMO credentials missing. Set AMO_JWT_ISSUER and AMO_JWT_SECRET via:
+  - Environment variables, or
+  - A .env file at repo root (gitignored), e.g.:
+      AMO_JWT_ISSUER=your_jwt_issuer
+      AMO_JWT_SECRET=your_jwt_secret
+Keys: https://addons.mozilla.org/developers/addon/api/key/
+"@
 }
 
 if (-not (Test-Path "extension/firefox/manifest.json")) {
@@ -23,17 +51,23 @@ $signed = $null
 for ($attempt = 1; $attempt -le 20; $attempt++) {
     $manifest = Get-Content "extension/firefox/manifest.json" -Raw | ConvertFrom-Json
     Write-Host "Signing Firefox add-on version $($manifest.version) (attempt $attempt)"
-    $signOutput = npx --yes web-ext@8 sign `
-        --source-dir extension/firefox `
-        --api-key $issuer `
-        --api-secret $secret `
-        --channel unlisted `
-        --artifacts-dir $artifacts 2>&1 | Out-String
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $signOutput = & npx --yes web-ext@8 sign `
+            --source-dir extension/firefox `
+            --api-key $issuer `
+            --api-secret $secret `
+            --channel unlisted `
+            --artifacts-dir $artifacts 2>&1 | Out-String
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
     Write-Host $signOutput
     $signed = Get-ChildItem $artifacts -Filter *.xpi -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($signed) { break }
     if ($signOutput -match 'already exists') {
-        Write-Host "AMO already has version $($manifest.version) — bumping patch"
+        Write-Host "AMO already has version $($manifest.version) - bumping patch"
         dart run tool/build_extension.dart --bump-patch
         if ($LASTEXITCODE -ne 0) { throw "Failed to bump add-on version after AMO conflict" }
         continue
@@ -44,4 +78,4 @@ for ($attempt = 1; $attempt -le 20; $attempt++) {
 if (-not $signed) { throw "web-ext sign produced no XPI" }
 
 Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
-Write-Host "Signed: modern_downloader_firefox.xpi ($($signed.Length) bytes)"
+Write-Host ("Signed: modern_downloader_firefox.xpi ({0} bytes)" -f $signed.Length)

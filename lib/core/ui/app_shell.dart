@@ -167,64 +167,68 @@ class AppTitleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    // iOS chrome already blurs the sidebar; keep a single live BackdropFilter.
+    final useTitleBlur = !colors.isIosChrome;
+    Widget bar = Container(
+      height: 32,
+      color: colors.background.withValues(alpha: 0.78),
+      child: Row(
+        children: [
+          Expanded(
+            child: DragToMoveArea(
+              child: Container(
+                color: Colors.transparent,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: const Text(
+                  '',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              children: [
+                _WindowButton(
+                  color: const Color(0xFFFFBD2E),
+                  onTap: () {
+                    windowManager.minimize();
+                  },
+                  icon: Icons.minimize,
+                ),
+                const SizedBox(width: 8),
+                _WindowButton(
+                  color: const Color(0xFF28C940),
+                  onTap: () async {
+                    if (await windowManager.isMaximized()) {
+                      windowManager.unmaximize();
+                    } else {
+                      windowManager.maximize();
+                    }
+                  },
+                  icon: Icons.crop_square,
+                ),
+                const SizedBox(width: 8),
+                _WindowButton(
+                  color: const Color(0xFFFF5F57),
+                  onTap: () {
+                    windowManager.close();
+                  },
+                  icon: Icons.close,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (!useTitleBlur) return bar;
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          height: 32,
-          color: colors.background.withValues(alpha: 0.78),
-          child: Row(
-            children: [
-              Expanded(
-                child: DragToMoveArea(
-                  child: Container(
-                    color: Colors.transparent,
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: const Text(
-                      '',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: Row(
-                  children: [
-                    _WindowButton(
-                      color: const Color(0xFFFFBD2E),
-                      onTap: () {
-                        windowManager.minimize();
-                      },
-                      icon: Icons.minimize,
-                    ),
-                    const SizedBox(width: 8),
-                    _WindowButton(
-                      color: const Color(0xFF28C940),
-                      onTap: () async {
-                        if (await windowManager.isMaximized()) {
-                          windowManager.unmaximize();
-                        } else {
-                          windowManager.maximize();
-                        }
-                      },
-                      icon: Icons.crop_square,
-                    ),
-                    const SizedBox(width: 8),
-                    _WindowButton(
-                      color: const Color(0xFFFF5F57),
-                      onTap: () {
-                        windowManager.close();
-                      },
-                      icon: Icons.close,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: bar,
       ),
     );
   }

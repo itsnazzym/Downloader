@@ -4,7 +4,8 @@ import 'package:modern_downloader/features/x_feed/gobird_x_feed_service.dart';
 class XFeedWsContract {
   static const String requestType = 'X_FEED_REQUEST';
   static const String resultType = 'X_FEED_RESULT';
-  static const int maxItems = GobirdXFeedService.maxItems;
+  /// Tweet budget for `count` on X_FEED_REQUEST (not the video display cap).
+  static const int maxItems = GobirdXFeedService.maxTweetCount;
 
   /// Reject payloads that attempt to smuggle cookies through this channel.
   static bool containsCookieFields(Map<String, dynamic> data) {

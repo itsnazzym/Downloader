@@ -12,7 +12,7 @@ class _FakeLocator extends BinaryLocator {
   final String? path;
 
   @override
-  Future<String?> findGobird() async => path;
+  Future<String?> findGobird({bool allowPathProbe = false}) async => path;
 
   @override
   Future<String?> ensureGobirdStaged() async => path;
@@ -30,12 +30,14 @@ void main() {
           '--quiet',
           '--count',
           '50',
+          '--max-pages',
+          '500',
           'home',
         ],
       );
     });
 
-    test('clamps count to 1..100', () {
+    test('clamps count to 1..10000', () {
       expect(
         GobirdXFeedService.buildHomeArgs(
           browser: 'firefox',
@@ -43,13 +45,24 @@ void main() {
         ).contains('1'),
         isTrue,
       );
-      expect(
-        GobirdXFeedService.buildHomeArgs(
-          browser: 'firefox',
-          count: 999,
-        ).contains('100'),
-        isTrue,
+      final high = GobirdXFeedService.buildHomeArgs(
+        browser: 'firefox',
+        count: 99999,
       );
+      final countIndex = high.indexOf('--count');
+      expect(countIndex, greaterThanOrEqualTo(0));
+      expect(high[countIndex + 1], '10000');
+      expect(high.contains('99999'), isFalse);
+    });
+
+    test('keeps tweet budget 10000 and max-pages 500 on the allowlist', () {
+      expect(GobirdXFeedService.defaultTimeout, const Duration(minutes: 12));
+      final args = GobirdXFeedService.buildHomeArgs(
+        browser: 'chrome',
+        count: 10000,
+      );
+      expect(args[args.indexOf('--count') + 1], '10000');
+      expect(args[args.indexOf('--max-pages') + 1], '500');
     });
 
     test('rejects non-allowlisted browser', () {
@@ -62,7 +75,15 @@ void main() {
     test('builds the environment-credential command without browser flags', () {
       expect(
         GobirdXFeedService.buildHomeArgsFromEnvironment(count: 25),
-        <String>['--json', '--quiet', '--count', '25', 'home'],
+        <String>[
+          '--json',
+          '--quiet',
+          '--count',
+          '25',
+          '--max-pages',
+          '500',
+          'home',
+        ],
       );
     });
   });
@@ -154,10 +175,7 @@ void main() {
       final parsed = GobirdXFeedService.parseGobirdHomeJson(raw);
       expect(parsed.items, hasLength(1));
       expect(parsed.items.first.id, '111');
-      expect(
-        parsed.items.first.url,
-        'https://video.twimg.com/ext_tw_video/111.mp4',
-      );
+      expect(parsed.items.first.url, 'https://x.com/alice/status/111');
       expect(parsed.items.first.pageUrl, 'https://x.com/alice/status/111');
       expect(parsed.items.first.author, 'Alice');
       expect(parsed.items.first.durationSeconds, closeTo(12.5, 0.01));
@@ -182,8 +200,8 @@ void main() {
       expect(parsed.items, isEmpty);
     });
 
-    test('honors hard item limit', () {
-      final tweets = List<Map<String, dynamic>>.generate(120, (i) {
+    test('honors hard video item limit', () {
+      final tweets = List<Map<String, dynamic>>.generate(5200, (i) {
         return {
           'id': '$i',
           'text': 'v$i',
@@ -195,10 +213,29 @@ void main() {
       });
       final parsed = GobirdXFeedService.parseGobirdHomeJson(
         jsonEncode(tweets),
-        maxItems: 100,
+        maxItems: 5000,
       );
-      expect(parsed.items, hasLength(100));
+      expect(parsed.items, hasLength(5000));
       expect(parsed.truncated, isTrue);
+    });
+
+    test('does not truncate when video count is at the cap', () {
+      final tweets = List<Map<String, dynamic>>.generate(
+        GobirdXFeedService.maxVideoItems,
+        (i) {
+          return {
+            'id': '$i',
+            'text': 'v$i',
+            'author': {'username': 'u$i', 'name': 'U$i'},
+            'media': [
+              {'type': 'video', 'videoUrl': 'https://video.twimg.com/$i.mp4'},
+            ],
+          };
+        },
+      );
+      final parsed = GobirdXFeedService.parseGobirdHomeJson(jsonEncode(tweets));
+      expect(parsed.items, hasLength(GobirdXFeedService.maxVideoItems));
+      expect(parsed.truncated, isFalse);
     });
   });
 
@@ -243,12 +280,16 @@ void main() {
           ],
         },
       ]);
+      String? probedUrl;
       final service = GobirdXFeedService(
         locator: _FakeLocator('gobird.exe'),
         resolveCredentials: (_) async => null,
         useBrowserCookieFallback: true,
         runProcess: (exe, args) async => ProcessResult(1, 0, payload, ''),
-        contentLengthProbe: (url) async => 4096,
+        contentLengthProbe: (url) async {
+          probedUrl = url;
+          return 4096;
+        },
       );
       final result = await service.fetchHomeFeed(
         browser: 'chrome',
@@ -257,6 +298,8 @@ void main() {
       );
       expect(result.ok, isTrue);
       expect(result.items, hasLength(1));
+      expect(probedUrl, 'https://video.twimg.com/42.mp4');
+      expect(result.items.first.url, 'https://x.com/gopher/status/42');
       expect(result.items.first.sizeBytes, 4096);
     });
 
@@ -323,9 +366,12 @@ void main() {
       );
     });
 
-    test('normalizes count ceiling', () {
+    test('normalizes count ceiling to tweet budget', () {
       expect(XFeedWsContract.normalizeCount(0), 1);
-      expect(XFeedWsContract.normalizeCount(250), 100);
+      expect(XFeedWsContract.normalizeCount(250), 250);
+      expect(XFeedWsContract.normalizeCount(9999), 9999);
+      expect(XFeedWsContract.normalizeCount(10000), 10000);
+      expect(XFeedWsContract.normalizeCount(99999), 10000);
       expect(XFeedWsContract.normalizeCount('25'), 25);
     });
   });

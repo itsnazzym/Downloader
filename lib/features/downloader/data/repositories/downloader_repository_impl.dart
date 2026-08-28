@@ -28,6 +28,11 @@ import '../../../../core/download/download_status_guard.dart';
 import '../../../../core/download/temp_file_cleanup.dart';
 import '../../../../core/download/download_file_resolver.dart';
 import '../../../../core/download/extraction_placeholders.dart';
+import '../../../../core/download/metadata_probe_limiter.dart';
+import '../../../../core/download/x_download_url.dart';
+import '../../../../core/download/x_tweet_display_title.dart';
+import '../../../../core/services/heartbeat_cookie_locator.dart';
+import '../services/x_library_title_repair_service.dart';
 
 class DownloaderRepositoryImpl implements IDownloaderRepository {
   final YtDlpSource _source;
@@ -43,6 +48,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final _activeDownloads = <String, DownloadItem>{};
   final _fingerprintedFinalPaths = <String>{};
   Timer? _saveTimer;
+  bool _xTitleRepairRunning = false;
 
   DownloaderRepositoryImpl(
     this._source,
@@ -53,54 +59,126 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     this._outputFolderGetter, {
     KickSource? kickSource,
     MediaFingerprintService? mediaFingerprintService,
+    Future<void> Function()? waitForLibraryScan,
   }) : _kickSource = kickSource ?? KickSource(),
        _mediaFingerprintService =
            mediaFingerprintService ??
            MediaFingerprintService(_persistenceService) {
-    _loadInitialData();
+    _loadInitialData(waitForLibraryScan: waitForLibraryScan);
   }
 
-  Future<void> _loadInitialData() async {
-    final loaded = await _persistenceService.loadDownloads();
-    final recovered = DownloadCrashRecovery.recoverList(loaded);
-    final didRecover = recovered.asMap().entries.any(
-      (entry) => entry.value.status != loaded[entry.key].status,
-    );
-    List<DownloadItem> initialList = [];
+  Future<void> _loadInitialData({
+    Future<void> Function()? waitForLibraryScan,
+  }) async {
+    try {
+      final loaded = await _persistenceService.loadDownloads();
+      final recovered = DownloadCrashRecovery.recoverList(loaded);
+      final didRecover = recovered.asMap().entries.any(
+        (entry) => entry.value.status != loaded[entry.key].status,
+      );
+      List<DownloadItem> initialList = [];
 
-    for (final item in recovered) {
-      if (_activeDownloads.containsKey(item.id)) continue;
-      initialList.add(item);
-    }
+      for (final item in recovered) {
+        if (_activeDownloads.containsKey(item.id)) continue;
+        initialList.add(item);
+      }
 
-    // Get the download path for scanning
-    final downloadPath = _resolveDownloadPath(initialList);
-    if (downloadPath == null) {
-      // Just load items without scanning if we can't determine path
       for (final item in initialList) {
         _activeDownloads[item.id] = item;
-        _controller.add(item); // Emit to stream
+        _controller.add(item);
       }
       if (didRecover) {
         await _persistenceService.saveDownloads(
           _activeDownloads.values.toList(),
         );
       }
-      return;
-    }
 
-    // Scan and fix existing items (recursive search in subdirectories)
-    final fixedItems = await _libraryScanner.scanAndFix(
-      initialList,
-      downloadPath,
-    );
-    for (final item in fixedItems) {
-      _activeDownloads[item.id] = item;
-      _controller.add(item); // Emit to stream
-    }
+      if (waitForLibraryScan != null) {
+        try {
+          await waitForLibraryScan();
+        } catch (e) {
+          LoggerService.w('Library scan waiting for setup failed: $e');
+        }
+      }
 
-    await _scanLibrary(downloadPath);
-    _saveToDisk();
+      final downloadPath = _resolveDownloadPath(
+        _activeDownloads.values.toList(),
+      );
+      if (downloadPath == null) {
+        unawaited(_repairBrokenXLibraryTitles());
+        return;
+      }
+
+      final fixedItems = await _libraryScanner.scanAndFix(
+        _activeDownloads.values.toList(),
+        downloadPath,
+      );
+      for (final item in fixedItems) {
+        _activeDownloads[item.id] = item;
+        _controller.add(item);
+      }
+
+      await _scanLibrary(downloadPath);
+      _saveToDisk();
+      unawaited(_repairBrokenXLibraryTitles());
+    } catch (e) {
+      LoggerService.e('Failed to load initial download data', e);
+    }
+  }
+
+  Future<void> _repairBrokenXLibraryTitles() async {
+    if (_xTitleRepairRunning) return;
+    _xTitleRepairRunning = true;
+    try {
+      final service = XLibraryTitleRepairService(
+        fetchMetadata:
+            (permalink, {String? cookiesFilePath, String? rawCookies}) async {
+              try {
+                final heartbeat = await HeartbeatCookieLocator.pathForUrl(
+                  permalink,
+                );
+                final cookiePath = (heartbeat != null && heartbeat.isNotEmpty)
+                    ? heartbeat
+                    : cookiesFilePath;
+                return await _source.fetchMetadata(
+                  permalink,
+                  cookies: rawCookies,
+                  cookiesFilePath: cookiePath,
+                );
+              } catch (e) {
+                LoggerService.w('X library title repair metadata failed: $e');
+                return null;
+              }
+            },
+      );
+
+      await service.repairItems(
+        _activeDownloads.values.toList(),
+        shouldAbort: () => _controller.isClosed,
+        onItemRepaired: (repaired) {
+          if (_controller.isClosed) return;
+          final current = _activeDownloads[repaired.id];
+          if (current == null) return;
+          if (current.status == DownloadStatus.extracting ||
+              current.status == DownloadStatus.downloading ||
+              current.status == DownloadStatus.processing) {
+            return;
+          }
+          _update(
+            current.copyWith(
+              title: repaired.title,
+              filePath: repaired.filePath,
+              request: repaired.request,
+              thumbnailUrl: repaired.thumbnailUrl,
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      LoggerService.w('X library title repair failed: $e');
+    } finally {
+      _xTitleRepairRunning = false;
+    }
   }
 
   String? _resolveDownloadPath([List<DownloadItem>? items]) {
@@ -194,6 +272,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     // 4. Scan for new files
     await _scanLibrary(downloadPath);
     _saveToDisk();
+    unawaited(_repairBrokenXLibraryTitles());
 
     LoggerService.i(
       'Library refresh complete. Duplicates removed: ${dupResult.duplicatesRemoved}',
@@ -385,27 +464,15 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 final String? videoId = metadata['id'];
 
                 // Platform-specific title logic...
-                if (currentRequest.url.contains('twitter.com') ||
+                if (XDownloadUrl.isXFamilyUrl(currentRequest.url) ||
+                    currentRequest.url.contains('twitter.com') ||
                     currentRequest.url.contains('x.com')) {
-                  final String? uploader =
-                      metadata['uploader'] ?? metadata['uploader_id'];
-                  final titleIsUseless =
-                      fetchedTitle == null ||
-                      fetchedTitle.isEmpty ||
-                      fetchedTitle == videoId ||
-                      fetchedTitle.contains('twitter.com') ||
-                      TitleCleanerService.isUrlOnlyTitle(fetchedTitle);
-                  if (titleIsUseless) {
-                    if (uploader != null && videoId != null) {
-                      finalTitle = '$uploader - $videoId';
-                    } else if (videoId != null) {
-                      finalTitle = 'Tweet $videoId';
-                    } else {
-                      finalTitle = fetchedTitle ?? 'Twitter Video';
-                    }
-                  } else {
-                    finalTitle = fetchedTitle;
-                  }
+                  finalTitle = XTweetDisplayTitle.fromMetadata(
+                    metadata,
+                    tweetId: (videoId != null && videoId.isNotEmpty)
+                        ? videoId
+                        : (XDownloadUrl.tweetIdFrom(currentRequest.url) ?? ''),
+                  );
                 } else if (fetchedTitle != null &&
                     fetchedTitle.isNotEmpty &&
                     fetchedTitle != 'null' &&
@@ -461,26 +528,35 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 }
               }
             } catch (e) {
-              LoggerService.w(
-                'Metadata extraction failed (retry possible): $e',
-              );
-              if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
-                throw Exception(
-                  DownloadStatusGuard.userFacingProxyErrorMessage(e),
+              final skipProbe = e is MetadataProbeLimitException;
+              if (!skipProbe) {
+                LoggerService.w(
+                  'Metadata extraction failed (retry possible): $e',
+                );
+                if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
+                  throw Exception(
+                    DownloadStatusGuard.userFacingProxyErrorMessage(e),
+                  );
+                }
+                // If metadata fails, we still try to download with derived title as fallback or retry
+                if (retryCount < maxRetries - 1) {
+                  retryCount++;
+                  continue; // Retry whole loop
+                }
+              }
+              if (ExtractionPlaceholders.isGenericTitle(finalTitle) ||
+                  finalTitle.isEmpty) {
+                finalTitle = TitleCleanerService.deriveTitleFromUrl(
+                  currentRequest.url,
                 );
               }
-              // If metadata fails, we still try to download with derived title as fallback or retry
-              if (retryCount < maxRetries - 1) {
-                retryCount++;
-                continue; // Retry whole loop
-              }
-              finalTitle = TitleCleanerService.deriveTitleFromUrl(
-                currentRequest.url,
-              );
-              // Ensure unique filename even without metadata
-              final urlHash = currentRequest.url.hashCode.toRadixString(36);
+              final tweetId = XDownloadUrl.tweetIdFrom(currentRequest.url);
+              final unique = (tweetId != null && tweetId.isNotEmpty)
+                  ? tweetId
+                  : currentRequest.url.hashCode.toRadixString(36);
+              final stem = TitleCleanerService.filenameStem(finalTitle);
               currentRequest = currentRequest.copyWith(
-                customFilename: '$finalTitle [$urlHash].%(ext)s',
+                customFilename: '$stem [$unique].%(ext)s',
               );
             }
 
@@ -843,23 +919,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   }
 
   String _extractInitialTitle(String url) {
-    if (url.contains('youtube.com') || url.contains('youtu.be')) {
-      return 'YouTube Video';
-    }
-    if (url.contains('twitter.com') || url.contains('x.com')) {
-      return 'Twitter Video';
-    }
-    if (url.contains('twitch.tv')) {
-      return 'Twitch Video';
-    }
-    if (url.contains('tiktok.com')) {
-      return 'TikTok Video';
-    }
-    if (url.contains('kick.com')) {
-      return 'Kick Video';
-    }
-    // For unknown sources, derive a clean title from the URL
-    return TitleCleanerService.deriveTitleFromUrl(url);
+    return ExtractionPlaceholders.titleForUrl(url);
   }
 
   String _shouldUpdateTitle(String? current, String? proposed) {

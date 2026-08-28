@@ -83,6 +83,7 @@ class DownloadInspector extends ConsumerWidget {
                     final validPath = DownloadFileResolver.resolvePlayablePath(
                       item.filePath,
                       title: item.title,
+                      outputFolder: item.request.outputFolder,
                     );
                     if (validPath != null &&
                         DownloadFileResolver.isMediaPath(validPath) &&

@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
 import '../logger/logger_service.dart';
 import '../../services/binary_locator.dart';
+import '../../services/process_runner.dart';
 import 'dependency_catalog.dart';
 import 'zip_binary_extractor.dart';
 
@@ -39,17 +41,20 @@ class DependencyBootstrapService {
   DependencyBootstrapService({
     BinaryLocator? locator,
     HttpClient Function()? httpClientFactory,
+    ProcessRunner? processRunner,
   }) : _locator = locator ?? BinaryLocator(),
-       _httpClientFactory = httpClientFactory ?? (() => HttpClient());
+       _httpClientFactory = httpClientFactory ?? (() => HttpClient()),
+       _processRunner = processRunner;
 
   final BinaryLocator _locator;
   final HttpClient Function() _httpClientFactory;
+  final ProcessRunner? _processRunner;
 
   static const _userAgent = 'ModernDownloader/1.0.3 (Windows; bootstrap)';
 
   Future<void> ensureReady({
     required void Function(DependencyBootstrapProgress progress) onProgress,
-    bool updateYtDlp = true,
+    bool checkOptionalGobird = false,
   }) async {
     LoggerService.i('Checking required download tools');
     if (!Platform.isWindows) {
@@ -63,8 +68,62 @@ class DependencyBootstrapService {
     final errors = <String>[];
     final binDir = await BinaryLocator.resolveAppBinDirectory();
 
-    for (final pkg in DependencyCatalog.windowsRequired) {
-      onProgress(
+    await _emitProgress(
+      onProgress,
+      DependencyBootstrapProgress(
+        step: SetupStep.checking,
+        toolName: '',
+        readyTools: List<String>.from(ready),
+      ),
+    );
+
+    final requiredChecks = await Future.wait(
+      DependencyCatalog.windowsRequired.map((pkg) async {
+        try {
+          final missing = await _missingExecutables(pkg);
+          return (pkg: pkg, missing: missing, error: null);
+        } catch (e) {
+          LoggerService.e('Failed to check ${pkg.displayName}', e);
+          return (pkg: pkg, missing: pkg.executableNames, error: e);
+        }
+      }),
+    );
+
+    for (final result in requiredChecks) {
+      final pkg = result.pkg;
+      if (result.error != null) {
+        errors.add('${pkg.displayName}: ${result.error}');
+        await _emitProgress(
+          onProgress,
+          DependencyBootstrapProgress(
+            step: SetupStep.checking,
+            toolName: pkg.displayName,
+            readyTools: List<String>.from(ready),
+            errors: List<String>.from(errors),
+          ),
+        );
+        continue;
+      }
+      if (result.missing.isEmpty) {
+        ready.addAll(pkg.executableNames);
+        await _emitProgress(
+          onProgress,
+          DependencyBootstrapProgress(
+            step: SetupStep.checking,
+            toolName: pkg.displayName,
+            readyTools: List<String>.from(ready),
+          ),
+        );
+      }
+    }
+
+    for (final result in requiredChecks) {
+      if (result.missing.isEmpty || result.error != null) {
+        continue;
+      }
+      final pkg = result.pkg;
+      await _emitProgress(
+        onProgress,
         DependencyBootstrapProgress(
           step: SetupStep.checking,
           toolName: pkg.displayName,
@@ -73,12 +132,6 @@ class DependencyBootstrapService {
       );
 
       try {
-        final missing = await _missingExecutables(pkg);
-        if (missing.isEmpty) {
-          ready.addAll(pkg.executableNames);
-          continue;
-        }
-
         await _installPackage(
           pkg: pkg,
           binDir: binDir,
@@ -89,6 +142,14 @@ class DependencyBootstrapService {
         final stillMissing = await _missingExecutables(pkg);
         if (stillMissing.isEmpty) {
           ready.addAll(pkg.executableNames);
+          await _emitProgress(
+            onProgress,
+            DependencyBootstrapProgress(
+              step: SetupStep.checking,
+              toolName: pkg.displayName,
+              readyTools: List<String>.from(ready),
+            ),
+          );
         } else {
           errors.add(
             '${pkg.displayName}: missing ${stillMissing.join(', ')} after install',
@@ -100,41 +161,44 @@ class DependencyBootstrapService {
       }
     }
 
-    for (final pkg in DependencyCatalog.windowsOptional) {
-      onProgress(
-        DependencyBootstrapProgress(
-          step: SetupStep.checking,
-          toolName: pkg.displayName,
-          readyTools: List<String>.from(ready),
-        ),
-      );
+    if (checkOptionalGobird) {
+      for (final pkg in DependencyCatalog.windowsOptional) {
+        await _emitProgress(
+          onProgress,
+          DependencyBootstrapProgress(
+            step: SetupStep.checking,
+            toolName: pkg.displayName,
+            readyTools: List<String>.from(ready),
+          ),
+        );
 
-      try {
-        final missing = await _missingExecutables(pkg);
-        if (missing.isEmpty) {
-          ready.addAll(pkg.executableNames);
-        } else {
+        try {
+          final missing = await _missingExecutables(
+            pkg,
+            allowOptionalPathProbe: true,
+          );
+          if (missing.isEmpty) {
+            ready.addAll(pkg.executableNames);
+            await _emitProgress(
+              onProgress,
+              DependencyBootstrapProgress(
+                step: SetupStep.checking,
+                toolName: pkg.displayName,
+                readyTools: List<String>.from(ready),
+              ),
+            );
+          } else {
+            LoggerService.w(
+              'Optional dependency ${pkg.displayName} is unavailable: '
+              '${missing.join(', ')}',
+            );
+          }
+        } catch (e) {
           LoggerService.w(
-            'Optional dependency ${pkg.displayName} is unavailable: '
-            '${missing.join(', ')}',
+            'Optional dependency ${pkg.displayName} check failed: $e',
           );
         }
-      } catch (e) {
-        LoggerService.w(
-          'Optional dependency ${pkg.displayName} check failed: $e',
-        );
       }
-    }
-
-    if (updateYtDlp && errors.isEmpty) {
-      onProgress(
-        DependencyBootstrapProgress(
-          step: SetupStep.updating,
-          toolName: 'yt-dlp',
-          readyTools: List<String>.from(ready),
-        ),
-      );
-      await _updateYtDlp();
     }
 
     if (errors.isEmpty) {
@@ -158,25 +222,55 @@ class DependencyBootstrapService {
     );
   }
 
-  Future<List<String>> _missingExecutables(DependencyPackage pkg) async {
-    final missing = <String>[];
-    for (final name in pkg.executableNames) {
-      final finder = _finderFor(name);
-      final path = await finder();
-      if (path == null) {
-        missing.add(name);
-      }
-    }
-    return missing;
+  Future<void> updateYtDlpInBackground() async {
+    await _updateYtDlp();
   }
 
-  Future<String?> Function() _finderFor(String executableName) {
+  Future<void> _emitProgress(
+    void Function(DependencyBootstrapProgress progress) onProgress,
+    DependencyBootstrapProgress progress,
+  ) async {
+    onProgress(progress);
+    await Future<void>.delayed(Duration.zero);
+  }
+
+  Future<List<String>> _missingExecutables(
+    DependencyPackage pkg, {
+    bool allowOptionalPathProbe = false,
+  }) async {
+    final results = await Future.wait(
+      pkg.executableNames.map((name) async {
+        try {
+          final finder = _finderFor(
+            name,
+            allowOptionalPathProbe: allowOptionalPathProbe,
+          );
+          final path = await finder();
+          return path == null ? name : null;
+        } catch (e) {
+          LoggerService.w('Lookup failed for $name: $e');
+          return name;
+        }
+      }),
+    );
+    return [
+      for (final name in results)
+        if (name != null) name,
+    ];
+  }
+
+  Future<String?> Function() _finderFor(
+    String executableName, {
+    bool allowOptionalPathProbe = false,
+  }) {
     final lower = executableName.toLowerCase();
     if (lower.startsWith('yt-dlp')) return _locator.findYtDlp;
     if (lower.startsWith('ffmpeg')) return _locator.findFfmpeg;
     if (lower.startsWith('ffprobe')) return _locator.findFfprobe;
     if (lower.startsWith('aria2')) return _locator.findAria2c;
-    if (lower.startsWith('gobird')) return _locator.findGobird;
+    if (lower.startsWith('gobird')) {
+      return () => _locator.findGobird(allowPathProbe: allowOptionalPathProbe);
+    }
     return () async => null;
   }
 
@@ -312,10 +406,20 @@ class DependencyBootstrapService {
 
   Future<bool> _verifyExecutable(String path, String versionArg) async {
     try {
-      final result = await Process.run(path, [
-        versionArg,
-      ], runInShell: false).timeout(const Duration(seconds: 20));
-      return result.exitCode == 0;
+      final processRunner = _processRunner;
+      if (processRunner != null) {
+        final result = await processRunner
+            .run(path, [versionArg])
+            .timeout(const Duration(seconds: 20));
+        return result.exitCode == 0;
+      }
+      final exitCode = await Isolate.run(() async {
+        final result = await Process.run(path, [
+          versionArg,
+        ], runInShell: false).timeout(const Duration(seconds: 20));
+        return result.exitCode;
+      });
+      return exitCode == 0;
     } catch (e) {
       LoggerService.w('Verify failed for $path: $e');
       return false;
@@ -326,6 +430,13 @@ class DependencyBootstrapService {
     try {
       final ytDlpPath = await _locator.findYtDlp();
       if (ytDlpPath == null) return;
+      final processRunner = _processRunner;
+      if (processRunner != null) {
+        await processRunner
+            .run(ytDlpPath, ['--update'])
+            .timeout(const Duration(seconds: 45));
+        return;
+      }
       await Process.run(ytDlpPath, [
         '--update',
       ], runInShell: false).timeout(const Duration(seconds: 45));

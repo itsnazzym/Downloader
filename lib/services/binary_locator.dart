@@ -2,13 +2,34 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../core/logger/logger_service.dart';
+import 'process_runner.dart';
 
 class BinaryLocator {
+  BinaryLocator({
+    ProcessRunner? processRunner,
+    Future<bool> Function(String path)? fileExists,
+    Future<Directory> Function()? resolveAppBin,
+  }) : _processRunner = processRunner ?? ProcessRunner(),
+       _fileExists = fileExists,
+       _resolveAppBin = resolveAppBin;
+
   static const String ytDlpName = 'yt-dlp';
   static const String ffmpegName = 'ffmpeg';
   static const String ffprobeName = 'ffprobe';
   static const String galleryDlName = 'gallery-dl';
   static const String gobirdName = 'gobird';
+  static const Duration processTimeout = Duration(seconds: 5);
+
+  final ProcessRunner _processRunner;
+  final Future<bool> Function(String path)? _fileExists;
+  final Future<Directory> Function()? _resolveAppBin;
+
+  static final Map<String, String> _resolvedPathCache = {};
+
+  /// Drops cached lookup results. Intended for tests.
+  static void clearResolvedPathCache() {
+    _resolvedPathCache.clear();
+  }
 
   // Custom paths can be set from settings
   String? _customGalleryDlPath;
@@ -35,13 +56,18 @@ class BinaryLocator {
   }
 
   /// Optional experimental gobird binary (Windows). Missing is not an error.
-  Future<String?> findGobird() async {
-    return _findBinary(gobirdName, softMissing: true);
+  /// PATH probes are skipped unless [allowPathProbe] is true (feature enabled).
+  Future<String?> findGobird({bool allowPathProbe = false}) async {
+    return _findBinary(
+      gobirdName,
+      softMissing: true,
+      allowPathProbe: allowPathProbe,
+    );
   }
 
   /// Copies a discovered gobird.exe into the persistent app bin folder when needed.
   Future<String?> ensureGobirdStaged() async {
-    final existing = await findGobird();
+    final existing = await findGobird(allowPathProbe: true);
     if (existing != null && existing.isNotEmpty) {
       try {
         final appBin = await resolveAppBinDirectory();
@@ -159,21 +185,25 @@ class BinaryLocator {
   Future<String?> _findBinary(
     String binaryName, {
     bool softMissing = false,
+    bool allowPathProbe = true,
   }) async {
-    final versionArg =
-        binaryName.contains('ffmpeg') || binaryName.contains('ffprobe')
-        ? '-version'
-        : '--version';
+    final cacheKey = executableFileName(binaryName).toLowerCase();
+    final cached = _resolvedPathCache[cacheKey];
+    if (cached != null) {
+      return cached;
+    }
 
     final binaryWithExt = executableFileName(binaryName);
 
     try {
-      final appBin = await resolveAppBinDirectory();
+      final resolveAppBin = _resolveAppBin;
+      final appBin = resolveAppBin != null
+          ? await resolveAppBin()
+          : await resolveAppBinDirectory();
       final appPath = p.join(appBin.path, binaryWithExt);
-      if (await File(appPath).exists() &&
-          await _verifyBinary(appPath, versionArg)) {
+      if (await _exists(appPath)) {
         LoggerService.i('Using app binary: $appPath');
-        return appPath;
+        return _remember(cacheKey, appPath);
       }
     } catch (e) {
       LoggerService.w('App bin lookup failed for $binaryName: $e');
@@ -196,39 +226,59 @@ class BinaryLocator {
     ];
 
     for (final path in potentialPaths) {
-      if (await File(path).exists() && await _verifyBinary(path, versionArg)) {
-        LoggerService.i('Using local binary: $path');
-        return path;
+      try {
+        if (await _exists(path)) {
+          LoggerService.i('Using local binary: $path');
+          return _remember(cacheKey, path);
+        }
+      } catch (e) {
+        LoggerService.w('Local binary lookup failed for $path: $e');
       }
     }
 
-    // 1. Try via shell/PATH (Fallback only if NOT in bin)
+    if (!allowPathProbe) {
+      if (softMissing) {
+        LoggerService.w('$binaryName not found (optional)');
+      } else {
+        LoggerService.e('$binaryName not found or all locations are invalid');
+      }
+      return null;
+    }
+
+    final versionArg =
+        binaryName.contains('ffmpeg') || binaryName.contains('ffprobe')
+        ? '-version'
+        : '--version';
+
+    // PATH fallback only when no local copy exists.
     if (Platform.isWindows) {
-      // Check Chocolatey specifically first (more reliable than generic PATH sometimes)
-      final programData = Platform.environment['ProgramData'];
-      if (programData != null) {
-        final chocoPath = '$programData\\chocolatey\\bin\\$binaryWithExt';
-        if (await File(chocoPath).exists()) {
-          return chocoPath;
+      try {
+        final programData = Platform.environment['ProgramData'];
+        if (programData != null) {
+          final chocoPath = '$programData\\chocolatey\\bin\\$binaryWithExt';
+          if (await _exists(chocoPath)) {
+            return _remember(cacheKey, chocoPath);
+          }
         }
+      } catch (e) {
+        LoggerService.w('Chocolatey lookup failed for $binaryName: $e');
       }
 
       if (await _verifyBinary(binaryName, versionArg)) {
         LoggerService.i('Found valid $binaryName in PATH');
-        return binaryName;
+        return _remember(cacheKey, binaryName);
       }
     }
 
-    // 2. Fallback: Try 'where' command to get full path from PATH
     try {
-      final result = await Process.run('where', [binaryName], runInShell: true);
+      final result = await _run('where', [binaryName]);
       if (result.exitCode == 0) {
         final paths = result.stdout.toString().split('\r\n');
         for (var path in paths) {
           path = path.trim();
           if (path.isNotEmpty && await _verifyBinary(path, versionArg)) {
             LoggerService.i('Found valid $binaryName via where: $path');
-            return path;
+            return _remember(cacheKey, path);
           }
         }
       }
@@ -244,9 +294,31 @@ class BinaryLocator {
     return null;
   }
 
+  String _remember(String cacheKey, String path) {
+    _resolvedPathCache[cacheKey] = path;
+    return path;
+  }
+
+  Future<bool> _exists(String path) async {
+    try {
+      final fileExists = _fileExists;
+      if (fileExists != null) {
+        return await fileExists(path);
+      }
+      return await File(path).exists();
+    } catch (e) {
+      LoggerService.w('File exists check failed for $path: $e');
+      return false;
+    }
+  }
+
+  Future<ProcessResult> _run(String executable, List<String> arguments) {
+    return _processRunner.run(executable, arguments).timeout(processTimeout);
+  }
+
   Future<bool> _verifyBinary(String path, String versionArg) async {
     try {
-      final result = await Process.run(path, [versionArg], runInShell: true);
+      final result = await _run(path, [versionArg]);
       return result.exitCode == 0;
     } catch (e) {
       return false;

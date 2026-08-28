@@ -9,9 +9,48 @@ class DiskSpaceService {
   /// Minimum required disk space in bytes (2 GB).
   static const int minRequiredBytes = 2 * 1024 * 1024 * 1024;
 
+  static const Duration cacheTtl = Duration(seconds: 30);
+
+  static int? _cachedBytes;
+  static DateTime? _cachedAt;
+  static Future<int?>? _inFlight;
+
+  /// Test hook to clear the ~30s cache.
+  static void resetCache() {
+    _cachedBytes = null;
+    _cachedAt = null;
+    _inFlight = null;
+  }
+
   /// Returns the free disk space in bytes for the system drive, or null if unavailable.
   static Future<int?> getFreeDiskSpace() async {
     if (!Platform.isWindows) return null;
+    final now = DateTime.now();
+    final cachedAt = _cachedAt;
+    if (_cachedBytes != null &&
+        cachedAt != null &&
+        now.difference(cachedAt) < cacheTtl) {
+      return _cachedBytes;
+    }
+    final inFlight = _inFlight;
+    if (inFlight != null) {
+      return inFlight;
+    }
+    final future = _probeFreeDiskSpace();
+    _inFlight = future;
+    try {
+      final bytes = await future;
+      _cachedBytes = bytes;
+      _cachedAt = DateTime.now();
+      return bytes;
+    } finally {
+      if (identical(_inFlight, future)) {
+        _inFlight = null;
+      }
+    }
+  }
+
+  static Future<int?> _probeFreeDiskSpace() async {
     try {
       final userProfile = Platform.environment['USERPROFILE'] ?? 'C:';
       final drive = userProfile.split(':')[0];
