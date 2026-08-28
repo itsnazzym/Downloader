@@ -123,4 +123,85 @@ void main() {
       expect(section.titlePositionPercentageOffset, lessThanOrEqualTo(1));
     }
   });
+
+  testWidgets('shows folder skeleton and Used/Free legend while getSize is pending', (tester) async {
+    final gate = Completer<FolderSizeSnapshot>();
+    final service = FolderSizeService(scanner: (path) => gate.future);
+
+    await tester.pumpWidget(
+      wrapChart(
+        StorageChart(
+          path: r'C:\dl',
+          folderSizeService: service,
+          loadDisk: disk100,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const Key('storage-folder-skeleton')), findsOneWidget);
+    expect(find.text('Used'), findsOneWidget);
+    expect(find.text('Free'), findsOneWidget);
+    expect(find.text('Folder'), findsNothing);
+    expect(find.text('Scanning folder...'), findsOneWidget);
+    expect(find.byType(PieChart), findsOneWidget);
+    expect(sectionsOf(tester).where((s) => s.value > 0), hasLength(2));
+
+    gate.complete(snap(totalBytes: 10));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('shows storageScanError and a 2-slice donut when scan fails without cache', (tester) async {
+    final service = FolderSizeService(
+      scanner: (path) async {
+        throw PathAccessException('list', const OSError('Access denied', 5), path);
+      },
+    );
+
+    await tester.pumpWidget(
+      wrapChart(
+        StorageChart(
+          path: r'C:\dl',
+          folderSizeService: service,
+          loadDisk: disk100,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('storage-folder-error')), findsOneWidget);
+    expect(find.text('Could not read this folder'), findsWidgets);
+    expect(find.byType(StorageChart), findsOneWidget);
+    expect(sectionsOf(tester).where((s) => s.value > 0), hasLength(2));
+    expect(find.text('Folder'), findsNothing);
+  });
+
+  testWidgets('empty snapshot shows 0 files, hides top folders, omits folder pie slice', (tester) async {
+    await tester.pumpWidget(
+      wrapChart(
+        StorageChart(
+          path: r'C:\dl',
+          folderSizeService: serviceFor(
+            snap(
+              totalBytes: 0,
+              fileCount: 0,
+              videoBytes: 0,
+              topSubfolders: const [],
+            ),
+          ),
+          loadDisk: disk100,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 files'), findsOneWidget);
+    expect(find.text('Largest folders'), findsNothing);
+    expect(find.byKey(const Key('storage-folder-details')), findsOneWidget);
+    final pie = sectionsOf(tester).where((s) => s.value > 0).toList();
+    expect(pie.any((s) => s.color == ThemePresets.midnight.warning && s.value > 0), isFalse);
+    expect(find.text('Folder'), findsOneWidget);
+    expect(find.text('0 B'), findsWidgets);
+  });
 }

@@ -169,6 +169,29 @@ class _StorageChartState extends State<StorageChart> {
     return (part / total * 100).toStringAsFixed(1);
   }
 
+  String _hhmm(DateTime time) {
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  String? _scanCaption(BuildContext context) {
+    final l10n = context.l10n;
+    if (_folderError) {
+      return l10n.storageScanError;
+    }
+    if (_folderSnapshot == null && _folderScanInFlight) {
+      return l10n.storageScanInProgress;
+    }
+    if (_folderSnapshot != null && _folderScanInFlight) {
+      return l10n.storageScanCached;
+    }
+    if (_folderSnapshot != null) {
+      return l10n.storageLastScanned(_hhmm(_folderSnapshot!.scannedAt));
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_diskLoading && _totalSpace == null) {
@@ -260,9 +283,28 @@ class _StorageChartState extends State<StorageChart> {
                 style: AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
               ),
               const Spacer(),
+              if (_scanCaption(context) != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Text(
+                    _scanCaption(context)!,
+                    style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                  ),
+                ),
               IconButton(
-                onPressed: () => _loadAll(resetFolder: false, forceFolder: true),
-                icon: Icon(Icons.refresh, color: colors.textSecondary),
+                onPressed: _folderScanInFlight && _folderSnapshot == null
+                    ? null
+                    : () => _loadAll(resetFolder: false, forceFolder: true),
+                icon: _folderScanInFlight && _folderSnapshot != null
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colors.textSecondary,
+                        ),
+                      )
+                    : Icon(Icons.refresh, color: colors.textSecondary),
               ),
             ],
           ),
@@ -348,6 +390,126 @@ class _StorageChartState extends State<StorageChart> {
               ),
             ],
           ),
+          const Gap(AppSpacing.m),
+          if (_folderError && _folderSnapshot == null)
+            KeyedSubtree(
+              key: const Key('storage-folder-error'),
+              child: Text(
+                context.l10n.storageScanError,
+                style: AppTypography.caption.copyWith(color: colors.textSecondary),
+              ),
+            )
+          else if (_folderSnapshot == null)
+            KeyedSubtree(
+              key: const Key('storage-folder-skeleton'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(height: 16, width: 180, color: colors.border),
+                  const Gap(AppSpacing.s),
+                  Container(height: 8, width: double.infinity, color: colors.border),
+                  const Gap(AppSpacing.s),
+                  Container(height: 14, width: 220, color: colors.border),
+                  const Gap(4),
+                  Container(height: 14, width: 200, color: colors.border),
+                  const Gap(4),
+                  Container(height: 14, width: 210, color: colors.border),
+                ],
+              ),
+            )
+          else
+            _FolderDetails(
+              snapshot: _folderSnapshot!,
+              usedBytes: used,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FolderDetails extends StatelessWidget {
+  const _FolderDetails({required this.snapshot, required this.usedBytes});
+
+  final FolderSizeSnapshot snapshot;
+  final int usedBytes;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    final ofUsed = usedBytes <= 0
+        ? '0.0'
+        : (snapshot.totalBytes / usedBytes * 100).toStringAsFixed(1);
+    final types = <({Color color, int bytes, String label})>[
+      (color: colors.info, bytes: snapshot.videoBytes, label: l10n.storageTypeVideo),
+      (color: colors.accent, bytes: snapshot.audioBytes, label: l10n.storageTypeAudio),
+      (color: colors.textDisabled, bytes: snapshot.otherBytes, label: l10n.storageTypeOther),
+    ];
+    final positive = types.where((t) => t.bytes > 0).toList();
+
+    return KeyedSubtree(
+      key: const Key('storage-folder-details'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${FormatUtils.formatBytes(snapshot.totalBytes)} · ${l10n.storageFolderOfUsed(ofUsed)}',
+            style: AppTypography.caption.copyWith(color: colors.textPrimary),
+          ),
+          const Gap(4),
+          Text(
+            l10n.storageFileCount(snapshot.fileCount),
+            style: AppTypography.caption.copyWith(color: colors.textSecondary),
+          ),
+          const Gap(AppSpacing.s),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+              height: 8,
+              width: double.infinity,
+              child: positive.isEmpty
+                  ? ColoredBox(color: colors.border)
+                  : Row(
+                      children: [
+                        for (final t in positive)
+                          Expanded(
+                            flex: t.bytes,
+                            child: ColoredBox(color: t.color),
+                          ),
+                      ],
+                    ),
+            ),
+          ),
+          if (snapshot.topSubfolders.isNotEmpty) ...[
+            const Gap(AppSpacing.s),
+            Text(
+              l10n.storageTopSubfolders,
+              style: AppTypography.caption.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
+              ),
+            ),
+            for (final entry in snapshot.topSubfolders)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entry.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                      ),
+                    ),
+                    Text(
+                      FormatUtils.formatBytes(entry.bytes),
+                      style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ],
       ),
     );
