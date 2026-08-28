@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:gap/gap.dart';
 import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
+import '../../download/download_path_resolver.dart';
 
 import 'widgets/storage_chart.dart';
 import '../../providers/settings_provider.dart';
@@ -67,7 +69,14 @@ class OutputSettingsView extends ConsumerWidget {
               children:
                   [
                         SectionTitle(l10n.settingsOutput),
-                        StorageChart(path: settings.outputFolder),
+                        StorageChart(
+                          path: DownloadPathResolver.resolve(
+                                settingsOutputFolder: settings.outputFolder,
+                                itemFolders: const [],
+                                userProfile: Platform.environment['USERPROFILE'],
+                              ) ??
+                              '',
+                        ),
                         const Gap(AppSpacing.l),
                         ActionTile(
                           title: l10n.downloadFolder,

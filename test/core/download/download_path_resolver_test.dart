@@ -24,5 +24,27 @@ void main() {
         r'C:\Users\me\Downloads',
       );
     });
+
+    test('returns null when folder is empty, itemFolders is empty, and userProfile is missing', () {
+      expect(
+        DownloadPathResolver.resolve(
+          settingsOutputFolder: '  ',
+          itemFolders: const [],
+          userProfile: null,
+        ),
+        isNull,
+      );
+    });
+
+    test('uses user Downloads when output folder is empty and itemFolders is empty', () {
+      expect(
+        DownloadPathResolver.resolve(
+          settingsOutputFolder: '',
+          itemFolders: const [],
+          userProfile: r'C:\Users\me',
+        ),
+        r'C:\Users\me\Downloads',
+      );
+    });
   });
 }
