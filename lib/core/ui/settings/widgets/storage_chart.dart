@@ -1,17 +1,35 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:universal_disk_space/universal_disk_space.dart';
+
 import '../../../design_system/foundation/colors.dart';
 import '../../../design_system/foundation/spacing.dart';
 import '../../../design_system/foundation/typography.dart';
-import 'dart:math';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import '../../../services/folder_size_service.dart';
+import '../../../utils/format_utils.dart';
+
+class DiskChartData {
+  const DiskChartData({required this.totalBytes, required this.freeBytes});
+
+  final int totalBytes;
+  final int freeBytes;
+}
 
 class StorageChart extends StatefulWidget {
-  final String path;
+  StorageChart({
+    super.key,
+    required this.path,
+    FolderSizeService? folderSizeService,
+    this.loadDisk,
+  }) : folderSizeService = folderSizeService ?? FolderSizeService();
 
-  const StorageChart({super.key, required this.path});
+  final String path;
+  final FolderSizeService folderSizeService;
+  final Future<DiskChartData> Function(String path)? loadDisk;
 
   @override
   State<StorageChart> createState() => _StorageChartState();
@@ -19,77 +37,141 @@ class StorageChart extends StatefulWidget {
 
 class _StorageChartState extends State<StorageChart> {
   int _touchedIndex = -1;
-  double? _totalSpace;
-  double? _freeSpace;
-  bool _isLoading = true;
+  int? _totalSpace;
+  int? _freeSpace;
+  bool _diskLoading = true;
+  FolderSizeSnapshot? _folderSnapshot;
+  bool _folderError = false;
+  bool _folderScanInFlight = false;
+
+  Future<DiskChartData> _defaultLoadDisk(String path) async {
+    final diskSpace = DiskSpace();
+    await diskSpace.scan();
+    final disks = diskSpace.disks;
+    final normalizedPath = path.replaceAll('/', '\\');
+    Disk? targetDisk;
+    for (final disk in disks) {
+      if (normalizedPath.toUpperCase().startsWith(disk.devicePath.toUpperCase())) {
+        targetDisk = disk;
+        break;
+      }
+    }
+    targetDisk ??= disks.isNotEmpty ? disks.first : null;
+    if (targetDisk == null) {
+      throw StateError('No volume');
+    }
+    return DiskChartData(
+      totalBytes: targetDisk.totalSize,
+      freeBytes: targetDisk.availableSpace,
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadStorageInfo();
+    _loadAll(resetFolder: true);
   }
 
   @override
   void didUpdateWidget(covariant StorageChart oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.path != oldWidget.path) {
-      _loadStorageInfo();
+      _loadAll(resetFolder: true);
     }
   }
 
-  Future<void> _loadStorageInfo() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadAll({required bool resetFolder, bool forceFolder = false}) async {
+    if (resetFolder) {
+      _folderSnapshot = null;
+      _folderError = false;
+    }
+    await Future.wait<void>([
+      _loadDisk(showFullSpinner: _totalSpace == null),
+      _loadFolder(force: forceFolder),
+    ]);
+  }
+
+  Future<void> _loadDisk({required bool showFullSpinner}) async {
+    if (showFullSpinner) {
+      setState(() => _diskLoading = true);
+    }
     try {
-      final diskSpace = DiskSpace();
-      await diskSpace.scan();
-      var disks = diskSpace.disks;
+      final loader = widget.loadDisk ?? _defaultLoadDisk;
+      final data = await loader(widget.path);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _totalSpace = data.totalBytes;
+        _freeSpace = data.freeBytes;
+        _diskLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading disk space: $e');
+      if (!mounted) {
+        return;
+      }
+      setState(() => _diskLoading = false);
+    }
+  }
 
-      // Find the disk that contains the path
-      // This is a bit tricky, simple heuristic: find the disk with the matching root
-      // Or just assume the path starts with the drive letter on Windows
-      Disk? targetDisk;
-
-      // Normalize path specifically for Windows drive letter matching
-      String normalizedPath = widget.path.replaceAll('/', '\\');
-
-      for (var disk in disks) {
-        // e.g., "C:\"
-        if (normalizedPath.toUpperCase().startsWith(
-          disk.devicePath.toUpperCase(),
-        )) {
-          targetDisk = disk;
-          break;
+  Future<void> _loadFolder({required bool force}) async {
+    final path = widget.path;
+    if (!force) {
+      final peeked = widget.folderSizeService.peek(path);
+      if (peeked != null) {
+        setState(() {
+          _folderSnapshot = peeked;
+          _folderError = false;
+        });
+        if (widget.folderSizeService.isFresh(peeked)) {
+          return;
         }
       }
-
-      // Fallback: If no match (maybe network drive?), just pick the first one or simulate for UI
-      targetDisk ??= disks.isNotEmpty ? disks.first : null;
-
-      if (targetDisk != null) {
-        setState(() {
-          _totalSpace = targetDisk!.totalSize.toDouble();
-          _freeSpace = targetDisk.availableSpace.toDouble();
-          _isLoading = false;
-        });
-      } else {
-        setState(() => _isLoading = false);
+    }
+    setState(() => _folderScanInFlight = true);
+    try {
+      final result = await widget.folderSizeService.getSize(path, force: force);
+      if (!mounted || widget.path != path) {
+        return;
+      }
+      switch (result) {
+        case FolderSizeOk(:final snapshot):
+          setState(() {
+            _folderSnapshot = snapshot;
+            _folderError = false;
+            _folderScanInFlight = false;
+          });
+        case FolderSizeError():
+          setState(() {
+            _folderError = true;
+            _folderScanInFlight = false;
+          });
       }
     } catch (e) {
-      debugPrint("Error loading disk space: $e");
-      setState(() => _isLoading = false);
+      debugPrint('Error loading folder size: $e');
+      if (!mounted || widget.path != path) {
+        return;
+      }
+      setState(() {
+        if (_folderSnapshot == null) {
+          _folderError = true;
+        }
+        _folderScanInFlight = false;
+      });
     }
   }
 
-  String _formatBytes(double bytes) {
-    if (bytes <= 0) return "0 B";
-    const suffixes = ["B", "KB", "MB", "GB", "TB"];
-    var i = (log(bytes) / log(1024)).floor();
-    return '${(bytes / pow(1024, i)).toStringAsFixed(1)} ${suffixes[i]}';
+  String _percent(num part, int total) {
+    if (total <= 0) {
+      return '0.0';
+    }
+    return (part / total * 100).toStringAsFixed(1);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if (_diskLoading && _totalSpace == null) {
       return Container(
         height: 200,
         alignment: Alignment.center,
@@ -108,20 +190,58 @@ class _StorageChartState extends State<StorageChart> {
       );
     }
 
-    final usedSpace = _totalSpace! - _freeSpace!;
-    final usedPercentage = (usedSpace / _totalSpace! * 100).toStringAsFixed(1);
-    final freePercentage = (_freeSpace! / _totalSpace! * 100).toStringAsFixed(
-      1,
-    );
+    final colors = AppColors.of(context);
+    final total = _totalSpace!;
+    final free = _freeSpace!;
+    final used = max(0, total - free);
+    final snapshot = _folderSnapshot;
+    final folderBytes = snapshot?.totalBytes ?? 0;
+    final folderSlice = snapshot == null ? 0 : min(folderBytes, used);
+    final otherUsed = snapshot == null ? used : max(0, used - folderSlice);
+    final showFolderLegend = snapshot != null;
+
+    final sections = <PieChartSectionData>[];
+    void addSection({
+      required Color color,
+      required int value,
+      required String percent,
+    }) {
+      if (value <= 0) {
+        return;
+      }
+      final index = sections.length;
+      final thin = (value / total * 100) < 5.0;
+      sections.add(
+        PieChartSectionData(
+          color: color,
+          value: value.toDouble(),
+          title: '$percent%',
+          radius: _touchedIndex == index ? 60 : 50,
+          titlePositionPercentageOffset: thin ? 1.4 : 0.5,
+          titleStyle: TextStyle(
+            fontSize: _touchedIndex == index ? 16 : 14,
+            fontWeight: FontWeight.bold,
+            color: thin ? colors.textPrimary : Colors.white,
+          ),
+        ),
+      );
+    }
+
+    if (snapshot == null) {
+      addSection(color: colors.primary, value: used, percent: _percent(used, total));
+      addSection(color: colors.success, value: free, percent: _percent(free, total));
+    } else {
+      addSection(color: colors.warning, value: folderSlice, percent: _percent(folderSlice, total));
+      addSection(color: colors.primary, value: otherUsed, percent: _percent(otherUsed, total));
+      addSection(color: colors.success, value: free, percent: _percent(free, total));
+    }
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.l),
       decoration: BoxDecoration(
-        color: AppColors.of(context).surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.of(context).border.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: colors.border.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -134,18 +254,15 @@ class _StorageChartState extends State<StorageChart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 context.l10n.storageUsage,
                 style: AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
               ),
+              const Spacer(),
               IconButton(
-                onPressed: _loadStorageInfo,
-                icon: Icon(
-                  Icons.refresh,
-                  color: AppColors.of(context).textSecondary,
-                ),
+                onPressed: () => _loadAll(resetFolder: false, forceFolder: true),
+                icon: Icon(Icons.refresh, color: colors.textSecondary),
               ),
             ],
           ),
@@ -167,41 +284,14 @@ class _StorageChartState extends State<StorageChart> {
                               _touchedIndex = -1;
                               return;
                             }
-                            _touchedIndex = pieTouchResponse
-                                .touchedSection!
-                                .touchedSectionIndex;
+                            _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
                           });
                         },
                       ),
                       borderData: FlBorderData(show: false),
                       sectionsSpace: 2,
-                      centerSpaceRadius: 40, // Donut style
-                      sections: [
-                        PieChartSectionData(
-                          color: AppColors.of(context).primary,
-                          value: usedSpace,
-                          title: '$usedPercentage%',
-                          radius: _touchedIndex == 0 ? 60 : 50,
-                          titleStyle: TextStyle(
-                            fontSize: _touchedIndex == 0 ? 16 : 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        PieChartSectionData(
-                          color: AppColors.of(context).success.withValues(
-                            alpha: 0.8,
-                          ), // Using green/success flavor for Free space to look positive
-                          value: _freeSpace!,
-                          title: '$freePercentage%',
-                          radius: _touchedIndex == 1 ? 60 : 50,
-                          titleStyle: TextStyle(
-                            fontSize: _touchedIndex == 1 ? 16 : 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
+                      centerSpaceRadius: 40,
+                      sections: sections,
                     ),
                   ),
                 ),
@@ -213,35 +303,45 @@ class _StorageChartState extends State<StorageChart> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Indicator(
-                      color: AppColors.of(context).primary,
-                      text: context.l10n.storageUsed,
-                      size: _formatBytes(usedSpace),
-                      isSquare: false,
-                    ),
+                    if (showFolderLegend) ...[
+                      _Indicator(
+                        color: colors.warning,
+                        text: context.l10n.storageFolder,
+                        size: FormatUtils.formatBytes(folderBytes),
+                        percent: '${_percent(folderSlice, total)}%',
+                        isSquare: false,
+                      ),
+                      const Gap(AppSpacing.s),
+                      _Indicator(
+                        color: colors.primary,
+                        text: context.l10n.storageOtherUsed,
+                        size: FormatUtils.formatBytes(otherUsed),
+                        percent: '${_percent(otherUsed, total)}%',
+                        isSquare: false,
+                      ),
+                    ] else ...[
+                      _Indicator(
+                        color: colors.primary,
+                        text: context.l10n.storageUsed,
+                        size: FormatUtils.formatBytes(used),
+                        percent: '${_percent(used, total)}%',
+                        isSquare: false,
+                      ),
+                    ],
                     const Gap(AppSpacing.s),
                     _Indicator(
-                      color: AppColors.of(
-                        context,
-                      ).success.withValues(alpha: 0.8),
+                      color: colors.success,
                       text: context.l10n.storageFree,
-                      size: _formatBytes(_freeSpace!),
+                      size: FormatUtils.formatBytes(free),
+                      percent: '${_percent(free, total)}%',
                       isSquare: false,
                     ),
                     const Gap(AppSpacing.m),
-                    Divider(
-                      color: AppColors.of(
-                        context,
-                      ).border.withValues(alpha: 0.3),
-                    ),
+                    Divider(color: colors.border.withValues(alpha: 0.3)),
                     const Gap(AppSpacing.s),
                     Text(
-                      context.l10n.storageTotalLabel(
-                        _formatBytes(_totalSpace!),
-                      ),
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.of(context).textSecondary,
-                      ),
+                      context.l10n.storageTotalLabel(FormatUtils.formatBytes(total)),
+                      style: AppTypography.caption.copyWith(color: colors.textSecondary),
                     ),
                   ],
                 ),
@@ -259,11 +359,14 @@ class _Indicator extends StatelessWidget {
     required this.color,
     required this.text,
     required this.size,
+    required this.percent,
     required this.isSquare,
   });
+
   final Color color;
   final String text;
   final String size;
+  final String percent;
   final bool isSquare;
 
   @override
@@ -289,6 +392,14 @@ class _Indicator extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.of(context).textPrimary,
+                ),
+              ),
+              Text(
+                percent,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.of(context).textSecondary,
                 ),
               ),
               Text(
