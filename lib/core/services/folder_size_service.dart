@@ -194,9 +194,34 @@ class FolderSizeService {
   }
 
   Future<FolderSizeResult> getSize(String path, {bool force = false}) async {
+    final key = _cacheKey(path);
+    final pending = _inFlight[key];
+    if (pending != null) {
+      return pending;
+    }
+
+    if (!force) {
+      final cached = _cache[key];
+      if (cached != null && isFresh(cached)) {
+        return FolderSizeOk(cached);
+      }
+    }
+
+    final future = _scanAndStore(key, path);
+    _inFlight[key] = future;
+    try {
+      return await future;
+    } finally {
+      if (identical(_inFlight[key], future)) {
+        _inFlight.remove(key);
+      }
+    }
+  }
+
+  Future<FolderSizeResult> _scanAndStore(String key, String path) async {
     try {
       final snapshot = (await _scanner(path)).copyWith(scannedAt: _clock());
-      _cache[_cacheKey(path)] = snapshot;
+      _cache[key] = snapshot;
       return FolderSizeOk(snapshot);
     } catch (_) {
       return FolderSizeError(path);
