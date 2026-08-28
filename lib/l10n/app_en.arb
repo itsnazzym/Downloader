@@ -10,6 +10,7 @@
 
   "newDownload": "New Download",
   "pasteUrl": "Paste URL here",
+  "xCdnUrlRejected": "Paste the tweet link (x.com/.../status/...), not the video file.",
   "startDownload": "Start Download",
   "cancel": "Cancel",
   "retry": "Retry",
@@ -260,6 +261,27 @@
   "@storageTotalLabel": {
     "placeholders": { "size": { "type": "String" } }
   },
+  "storageFolder": "Folder",
+  "storageOtherUsed": "Other used",
+  "storageFolderOfUsed": "{percent}% of used",
+  "@storageFolderOfUsed": {
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "storageFileCount": "{count, plural, =0{0 files} =1{1 file} other{{count} files}}",
+  "@storageFileCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "storageTypeVideo": "Video",
+  "storageTypeAudio": "Audio",
+  "storageTypeOther": "Other",
+  "storageTopSubfolders": "Largest folders",
+  "storageScanInProgress": "Scanning folder...",
+  "storageLastScanned": "Scanned at {time}",
+  "@storageLastScanned": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "storageScanCached": "Cached",
+  "storageScanError": "Could not read this folder",
   "startingOrganization": "Starting organization...",
   "organizationFailed": "Organization failed: {error}",
   "@organizationFailed": {

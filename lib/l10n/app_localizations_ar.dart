@@ -33,6 +33,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pasteUrl => 'الصق الرابط هنا';
 
   @override
+  String get xCdnUrlRejected =>
+      'الصق رابط التغريدة (x.com/.../status/...) وليس ملف الفيديو.';
+
+  @override
   String get startDownload => 'بدء التنزيل';
 
   @override
@@ -675,6 +679,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String storageTotalLabel(String size) {
     return 'الإجمالي: $size';
   }
+
+  @override
+  String get storageFolder => 'المجلد';
+
+  @override
+  String get storageOtherUsed => 'مستخدم آخر';
+
+  @override
+  String storageFolderOfUsed(String percent) {
+    return '$percent% من المستخدم';
+  }
+
+  @override
+  String storageFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات',
+      one: 'ملف واحد',
+      zero: '0 ملف',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get storageTypeVideo => 'فيديو';
+
+  @override
+  String get storageTypeAudio => 'صوت';
+
+  @override
+  String get storageTypeOther => 'أخرى';
+
+  @override
+  String get storageTopSubfolders => 'أكبر المجلدات';
+
+  @override
+  String get storageScanInProgress => 'جارٍ تحليل المجلد...';
+
+  @override
+  String storageLastScanned(String time) {
+    return 'تم التحليل الساعة $time';
+  }
+
+  @override
+  String get storageScanCached => 'مخزّن مؤقتاً';
+
+  @override
+  String get storageScanError => 'تعذر قراءة هذا المجلد';
 
   @override
   String get startingOrganization => 'بدء التنظيم...';

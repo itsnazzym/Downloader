@@ -33,6 +33,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pasteUrl => 'Collez l\'URL ici';
 
   @override
+  String get xCdnUrlRejected =>
+      'Collez le lien du tweet (x.com/.../status/...), pas le fichier vidéo.';
+
+  @override
   String get startDownload => 'Démarrer';
 
   @override
@@ -694,6 +698,55 @@ class AppLocalizationsFr extends AppLocalizations {
   String storageTotalLabel(String size) {
     return 'Total : $size';
   }
+
+  @override
+  String get storageFolder => 'Dossier';
+
+  @override
+  String get storageOtherUsed => 'Autre utilisé';
+
+  @override
+  String storageFolderOfUsed(String percent) {
+    return '$percent% de l\'espace utilisé';
+  }
+
+  @override
+  String storageFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fichiers',
+      one: '1 fichier',
+      zero: '0 fichier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get storageTypeVideo => 'Vidéo';
+
+  @override
+  String get storageTypeAudio => 'Audio';
+
+  @override
+  String get storageTypeOther => 'Autre';
+
+  @override
+  String get storageTopSubfolders => 'Plus gros dossiers';
+
+  @override
+  String get storageScanInProgress => 'Analyse du dossier...';
+
+  @override
+  String storageLastScanned(String time) {
+    return 'Analysé à $time';
+  }
+
+  @override
+  String get storageScanCached => 'Données en cache';
+
+  @override
+  String get storageScanError => 'Impossible d\'analyser ce dossier';
 
   @override
   String get startingOrganization => 'Organisation en cours...';

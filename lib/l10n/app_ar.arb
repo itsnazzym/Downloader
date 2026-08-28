@@ -10,6 +10,7 @@
 
   "newDownload": "تنزيل جديد",
   "pasteUrl": "الصق الرابط هنا",
+  "xCdnUrlRejected": "الصق رابط التغريدة (x.com/.../status/...) وليس ملف الفيديو.",
   "startDownload": "بدء التنزيل",
   "cancel": "إلغاء",
   "retry": "إعادة المحاولة",
@@ -260,6 +261,27 @@
   "@storageTotalLabel": {
     "placeholders": { "size": { "type": "String" } }
   },
+  "storageFolder": "المجلد",
+  "storageOtherUsed": "مستخدم آخر",
+  "storageFolderOfUsed": "{percent}% من المستخدم",
+  "@storageFolderOfUsed": {
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "storageFileCount": "{count, plural, =0{0 ملف} =1{ملف واحد} other{{count} ملفات}}",
+  "@storageFileCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "storageTypeVideo": "فيديو",
+  "storageTypeAudio": "صوت",
+  "storageTypeOther": "أخرى",
+  "storageTopSubfolders": "أكبر المجلدات",
+  "storageScanInProgress": "جارٍ تحليل المجلد...",
+  "storageLastScanned": "تم التحليل الساعة {time}",
+  "@storageLastScanned": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "storageScanCached": "مخزّن مؤقتاً",
+  "storageScanError": "تعذر قراءة هذا المجلد",
   "startingOrganization": "بدء التنظيم...",
   "organizationFailed": "فشل التنظيم: {error}",
   "@organizationFailed": {

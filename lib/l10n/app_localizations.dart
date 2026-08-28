@@ -148,6 +148,12 @@ abstract class AppLocalizations {
   /// **'Paste URL here'**
   String get pasteUrl;
 
+  /// No description provided for @xCdnUrlRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the tweet link (x.com/.../status/...), not the video file.'**
+  String get xCdnUrlRejected;
+
   /// No description provided for @startDownload.
   ///
   /// In en, this message translates to:
@@ -1389,6 +1395,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total: {size}'**
   String storageTotalLabel(String size);
+
+  /// No description provided for @storageFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get storageFolder;
+
+  /// No description provided for @storageOtherUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Other used'**
+  String get storageOtherUsed;
+
+  /// No description provided for @storageFolderOfUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of used'**
+  String storageFolderOfUsed(String percent);
+
+  /// No description provided for @storageFileCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 files} =1{1 file} other{{count} files}}'**
+  String storageFileCount(int count);
+
+  /// No description provided for @storageTypeVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get storageTypeVideo;
+
+  /// No description provided for @storageTypeAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get storageTypeAudio;
+
+  /// No description provided for @storageTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get storageTypeOther;
+
+  /// No description provided for @storageTopSubfolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Largest folders'**
+  String get storageTopSubfolders;
+
+  /// No description provided for @storageScanInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning folder...'**
+  String get storageScanInProgress;
+
+  /// No description provided for @storageLastScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned at {time}'**
+  String storageLastScanned(String time);
+
+  /// No description provided for @storageScanCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached'**
+  String get storageScanCached;
+
+  /// No description provided for @storageScanError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read this folder'**
+  String get storageScanError;
 
   /// No description provided for @startingOrganization.
   ///

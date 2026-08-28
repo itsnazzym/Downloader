@@ -10,6 +10,7 @@
 
   "newDownload": "Nouveau téléchargement",
   "pasteUrl": "Collez l'URL ici",
+  "xCdnUrlRejected": "Collez le lien du tweet (x.com/.../status/...), pas le fichier vidéo.",
   "startDownload": "Démarrer",
   "cancel": "Annuler",
   "retry": "Réessayer",
@@ -260,6 +261,27 @@
   "@storageTotalLabel": {
     "placeholders": { "size": { "type": "String" } }
   },
+  "storageFolder": "Dossier",
+  "storageOtherUsed": "Autre utilisé",
+  "storageFolderOfUsed": "{percent}% de l'espace utilisé",
+  "@storageFolderOfUsed": {
+    "placeholders": { "percent": { "type": "String" } }
+  },
+  "storageFileCount": "{count, plural, =0{0 fichier} =1{1 fichier} other{{count} fichiers}}",
+  "@storageFileCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "storageTypeVideo": "Vidéo",
+  "storageTypeAudio": "Audio",
+  "storageTypeOther": "Autre",
+  "storageTopSubfolders": "Plus gros dossiers",
+  "storageScanInProgress": "Analyse du dossier...",
+  "storageLastScanned": "Analysé à {time}",
+  "@storageLastScanned": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "storageScanCached": "Données en cache",
+  "storageScanError": "Impossible d'analyser ce dossier",
   "startingOrganization": "Organisation en cours...",
   "organizationFailed": "Organisation échouée : {error}",
   "@organizationFailed": {

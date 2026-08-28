@@ -33,6 +33,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pasteUrl => 'Paste URL here';
 
   @override
+  String get xCdnUrlRejected =>
+      'Paste the tweet link (x.com/.../status/...), not the video file.';
+
+  @override
   String get startDownload => 'Start Download';
 
   @override
@@ -680,6 +684,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String storageTotalLabel(String size) {
     return 'Total: $size';
   }
+
+  @override
+  String get storageFolder => 'Folder';
+
+  @override
+  String get storageOtherUsed => 'Other used';
+
+  @override
+  String storageFolderOfUsed(String percent) {
+    return '$percent% of used';
+  }
+
+  @override
+  String storageFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '1 file',
+      zero: '0 files',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get storageTypeVideo => 'Video';
+
+  @override
+  String get storageTypeAudio => 'Audio';
+
+  @override
+  String get storageTypeOther => 'Other';
+
+  @override
+  String get storageTopSubfolders => 'Largest folders';
+
+  @override
+  String get storageScanInProgress => 'Scanning folder...';
+
+  @override
+  String storageLastScanned(String time) {
+    return 'Scanned at $time';
+  }
+
+  @override
+  String get storageScanCached => 'Cached';
+
+  @override
+  String get storageScanError => 'Could not read this folder';
 
   @override
   String get startingOrganization => 'Starting organization...';
