@@ -51,7 +51,9 @@ class _StorageChartState extends State<StorageChart> {
     final normalizedPath = path.replaceAll('/', '\\');
     Disk? targetDisk;
     for (final disk in disks) {
-      if (normalizedPath.toUpperCase().startsWith(disk.devicePath.toUpperCase())) {
+      if (normalizedPath.toUpperCase().startsWith(
+        disk.devicePath.toUpperCase(),
+      )) {
         targetDisk = disk;
         break;
       }
@@ -80,7 +82,10 @@ class _StorageChartState extends State<StorageChart> {
     }
   }
 
-  Future<void> _loadAll({required bool resetFolder, bool forceFolder = false}) async {
+  Future<void> _loadAll({
+    required bool resetFolder,
+    bool forceFolder = false,
+  }) async {
     if (resetFolder) {
       _folderSnapshot = null;
       _folderError = false;
@@ -251,12 +256,32 @@ class _StorageChartState extends State<StorageChart> {
     }
 
     if (snapshot == null) {
-      addSection(color: colors.primary, value: used, percent: _percent(used, total));
-      addSection(color: colors.success, value: free, percent: _percent(free, total));
+      addSection(
+        color: colors.primary,
+        value: used,
+        percent: _percent(used, total),
+      );
+      addSection(
+        color: colors.success,
+        value: free,
+        percent: _percent(free, total),
+      );
     } else {
-      addSection(color: colors.warning, value: folderSlice, percent: _percent(folderSlice, total));
-      addSection(color: colors.primary, value: otherUsed, percent: _percent(otherUsed, total));
-      addSection(color: colors.success, value: free, percent: _percent(free, total));
+      addSection(
+        color: colors.warning,
+        value: folderSlice,
+        percent: _percent(folderSlice, total),
+      );
+      addSection(
+        color: colors.primary,
+        value: otherUsed,
+        percent: _percent(otherUsed, total),
+      );
+      addSection(
+        color: colors.success,
+        value: free,
+        percent: _percent(free, total),
+      );
     }
 
     return Container(
@@ -288,7 +313,9 @@ class _StorageChartState extends State<StorageChart> {
                   padding: const EdgeInsets.only(right: 8),
                   child: Text(
                     _scanCaption(context)!,
-                    style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                    style: AppTypography.caption.copyWith(
+                      color: colors.textSecondary,
+                    ),
                   ),
                 ),
               IconButton(
@@ -326,7 +353,9 @@ class _StorageChartState extends State<StorageChart> {
                               _touchedIndex = -1;
                               return;
                             }
-                            _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                            _touchedIndex = pieTouchResponse
+                                .touchedSection!
+                                .touchedSectionIndex;
                           });
                         },
                       ),
@@ -382,8 +411,12 @@ class _StorageChartState extends State<StorageChart> {
                     Divider(color: colors.border.withValues(alpha: 0.3)),
                     const Gap(AppSpacing.s),
                     Text(
-                      context.l10n.storageTotalLabel(FormatUtils.formatBytes(total)),
-                      style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                      context.l10n.storageTotalLabel(
+                        FormatUtils.formatBytes(total),
+                      ),
+                      style: AppTypography.caption.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -396,7 +429,9 @@ class _StorageChartState extends State<StorageChart> {
               key: const Key('storage-folder-error'),
               child: Text(
                 context.l10n.storageScanError,
-                style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                style: AppTypography.caption.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
             )
           else if (_folderSnapshot == null)
@@ -407,7 +442,11 @@ class _StorageChartState extends State<StorageChart> {
                 children: [
                   Container(height: 16, width: 180, color: colors.border),
                   const Gap(AppSpacing.s),
-                  Container(height: 8, width: double.infinity, color: colors.border),
+                  Container(
+                    height: 8,
+                    width: double.infinity,
+                    color: colors.border,
+                  ),
                   const Gap(AppSpacing.s),
                   Container(height: 14, width: 220, color: colors.border),
                   const Gap(4),
@@ -418,10 +457,7 @@ class _StorageChartState extends State<StorageChart> {
               ),
             )
           else
-            _FolderDetails(
-              snapshot: _folderSnapshot!,
-              usedBytes: used,
-            ),
+            _FolderDetails(snapshot: _folderSnapshot!, usedBytes: used),
         ],
       ),
     );
@@ -455,9 +491,21 @@ class _FolderDetails extends StatelessWidget {
         ? '0.0'
         : (snapshot.totalBytes / usedBytes * 100).toStringAsFixed(1);
     final types = <({Color color, int bytes, String label})>[
-      (color: colors.info, bytes: snapshot.videoBytes, label: l10n.storageTypeVideo),
-      (color: colors.accent, bytes: snapshot.audioBytes, label: l10n.storageTypeAudio),
-      (color: colors.textDisabled, bytes: snapshot.otherBytes, label: l10n.storageTypeOther),
+      (
+        color: colors.info,
+        bytes: snapshot.videoBytes,
+        label: l10n.storageTypeVideo,
+      ),
+      (
+        color: colors.accent,
+        bytes: snapshot.audioBytes,
+        label: l10n.storageTypeAudio,
+      ),
+      (
+        color: colors.textDisabled,
+        bytes: snapshot.otherBytes,
+        label: l10n.storageTypeOther,
+      ),
     ];
     final positive = types.where((t) => t.bytes > 0).toList();
 
@@ -513,12 +561,16 @@ class _FolderDetails extends StatelessWidget {
                       child: Text(
                         entry.name,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                        style: AppTypography.caption.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ),
                     Text(
                       FormatUtils.formatBytes(entry.bytes),
-                      style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                      style: AppTypography.caption.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
                   ],
                 ),

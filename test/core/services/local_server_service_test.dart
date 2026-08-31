@@ -93,10 +93,7 @@ void main() {
       overrides: [
         downloaderRepositoryProvider.overrideWithValue(repo),
         localServerServiceProvider.overrideWith(
-          (ref) => LocalServerService(
-            ref,
-            onExtensionFlush: flushed.add,
-          ),
+          (ref) => LocalServerService(ref, onExtensionFlush: flushed.add),
         ),
       ],
     );
@@ -119,9 +116,7 @@ void main() {
     final completer = Completer<Map<String, dynamic>>();
     ws.listen((event) {
       if (!completer.isCompleted) {
-        completer.complete(
-          jsonDecode(event as String) as Map<String, dynamic>,
-        );
+        completer.complete(jsonDecode(event as String) as Map<String, dynamic>);
       }
     });
     return completer.future;
@@ -131,11 +126,7 @@ void main() {
     final ws = await connect();
     final first = firstMessage(ws);
     ws.add(
-      jsonEncode({
-        'type': 'HELLO',
-        'token': expectedToken,
-        'version': '2.1.0',
-      }),
+      jsonEncode({'type': 'HELLO', 'token': expectedToken, 'version': '2.1.0'}),
     );
     final msg = await first.timeout(const Duration(seconds: 2));
     expect(msg['type'], 'HELLO_OK');
@@ -145,9 +136,7 @@ void main() {
   test('HELLO with wrong token returns AUTH_FAILED', () async {
     final ws = await connect();
     final first = firstMessage(ws);
-    ws.add(
-      jsonEncode({'type': 'HELLO', 'token': 'wrong', 'version': '2.1.0'}),
-    );
+    ws.add(jsonEncode({'type': 'HELLO', 'token': 'wrong', 'version': '2.1.0'}));
     final msg = await first.timeout(const Duration(seconds: 2));
     expect(msg['type'], 'AUTH_FAILED');
     await ws.close();
@@ -171,11 +160,7 @@ void main() {
     });
 
     ws.add(
-      jsonEncode({
-        'type': 'HELLO',
-        'token': expectedToken,
-        'version': '2.1.0',
-      }),
+      jsonEncode({'type': 'HELLO', 'token': expectedToken, 'version': '2.1.0'}),
     );
     await helloOk.future.timeout(const Duration(seconds: 2));
 
@@ -212,11 +197,7 @@ void main() {
     });
 
     ws.add(
-      jsonEncode({
-        'type': 'HELLO',
-        'token': expectedToken,
-        'version': '2.1.0',
-      }),
+      jsonEncode({'type': 'HELLO', 'token': expectedToken, 'version': '2.1.0'}),
     );
     await helloOk.future.timeout(const Duration(seconds: 2));
 

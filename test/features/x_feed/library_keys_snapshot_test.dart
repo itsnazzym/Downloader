@@ -24,19 +24,16 @@ DownloadItem _item({
 void main() {
   group('LibraryKeysSnapshot', () {
     test('includes tweet and media ids for completed files still on disk', () {
-      final snapshot = LibraryKeysSnapshot.fromDownloads(
-        <DownloadItem>[
-          _item(
-            id: 'a',
-            status: DownloadStatus.completed,
-            url: 'https://x.com/alice/status/1112223334445556667',
-            filePath: r'C:\Videos\keep.mp4',
-            thumbnailUrl:
-                'https://pbs.twimg.com/ext_tw_video_thumb/1891234567890123456/pu/img/abc.jpg',
-          ),
-        ],
-        fileExists: (path) => path.endsWith('keep.mp4'),
-      );
+      final snapshot = LibraryKeysSnapshot.fromDownloads(<DownloadItem>[
+        _item(
+          id: 'a',
+          status: DownloadStatus.completed,
+          url: 'https://x.com/alice/status/1112223334445556667',
+          filePath: r'C:\Videos\keep.mp4',
+          thumbnailUrl:
+              'https://pbs.twimg.com/ext_tw_video_thumb/1891234567890123456/pu/img/abc.jpg',
+        ),
+      ], fileExists: (path) => path.endsWith('keep.mp4'));
 
       expect(snapshot.tweetIds, <String>['1112223334445556667']);
       expect(snapshot.mediaIds, <String>['1891234567890123456']);
@@ -47,57 +44,48 @@ void main() {
     });
 
     test('skips completed items whose files are gone', () {
-      final snapshot = LibraryKeysSnapshot.fromDownloads(
-        <DownloadItem>[
-          _item(
-            id: 'gone',
-            status: DownloadStatus.completed,
-            url: 'https://x.com/alice/status/1112223334445556667',
-            filePath: r'C:\Videos\missing.mp4',
-          ),
-        ],
-        fileExists: (_) => false,
-      );
+      final snapshot = LibraryKeysSnapshot.fromDownloads(<DownloadItem>[
+        _item(
+          id: 'gone',
+          status: DownloadStatus.completed,
+          url: 'https://x.com/alice/status/1112223334445556667',
+          filePath: r'C:\Videos\missing.mp4',
+        ),
+      ], fileExists: (_) => false);
 
       expect(snapshot.tweetIds, isEmpty);
       expect(snapshot.mediaIds, isEmpty);
     });
 
     test('includes duplicate items even without a local file', () {
-      final snapshot = LibraryKeysSnapshot.fromDownloads(
-        <DownloadItem>[
-          _item(
-            id: 'dup',
-            status: DownloadStatus.duplicate,
-            url: 'https://x.com/bob/status/2223334445556667778',
-            forceStreamUrl:
-                'https://video.twimg.com/ext_tw_video/1891234567890123456/pu/vid/720x1280/x.mp4',
-          ),
-        ],
-        fileExists: (_) => false,
-      );
+      final snapshot = LibraryKeysSnapshot.fromDownloads(<DownloadItem>[
+        _item(
+          id: 'dup',
+          status: DownloadStatus.duplicate,
+          url: 'https://x.com/bob/status/2223334445556667778',
+          forceStreamUrl:
+              'https://video.twimg.com/ext_tw_video/1891234567890123456/pu/vid/720x1280/x.mp4',
+        ),
+      ], fileExists: (_) => false);
 
       expect(snapshot.tweetIds, <String>['2223334445556667778']);
       expect(snapshot.mediaIds, <String>['1891234567890123456']);
     });
 
     test('omits queued and failed downloads', () {
-      final snapshot = LibraryKeysSnapshot.fromDownloads(
-        <DownloadItem>[
-          _item(
-            id: 'q',
-            status: DownloadStatus.queued,
-            url: 'https://x.com/alice/status/1112223334445556667',
-          ),
-          _item(
-            id: 'f',
-            status: DownloadStatus.failed,
-            url: 'https://x.com/alice/status/1112223334445556668',
-            filePath: r'C:\Videos\fail.mp4',
-          ),
-        ],
-        fileExists: (_) => true,
-      );
+      final snapshot = LibraryKeysSnapshot.fromDownloads(<DownloadItem>[
+        _item(
+          id: 'q',
+          status: DownloadStatus.queued,
+          url: 'https://x.com/alice/status/1112223334445556667',
+        ),
+        _item(
+          id: 'f',
+          status: DownloadStatus.failed,
+          url: 'https://x.com/alice/status/1112223334445556668',
+          filePath: r'C:\Videos\fail.mp4',
+        ),
+      ], fileExists: (_) => true);
 
       expect(snapshot.tweetIds, isEmpty);
     });

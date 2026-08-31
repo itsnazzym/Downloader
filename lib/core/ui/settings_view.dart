@@ -146,7 +146,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(c, false),
-                                      child: const Text('Changer uniquement le dossier'),
+                                      child: const Text(
+                                        'Changer uniquement le dossier',
+                                      ),
                                     ),
                                     ElevatedButton(
                                       onPressed: () => Navigator.pop(c, true),
@@ -170,9 +172,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
                         ActionTile(
                           title: 'Migrer la bibliothèque',
-                          subtitle: 'Déplacer toutes les vidéos et miniatures vers un autre disque/dossier',
+                          subtitle:
+                              'Déplacer toutes les vidéos et miniatures vers un autre disque/dossier',
                           icon: Icons.drive_file_move_rounded,
-                          onTap: () => LibraryMigrationDialog.show(context, ref),
+                          onTap: () =>
+                              LibraryMigrationDialog.show(context, ref),
                         ),
                         DropdownTile(
                           title: l10n.formatLabel,

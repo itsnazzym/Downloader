@@ -40,7 +40,10 @@ class NotificationService {
   }
 
   Future<void> showDownloadFailed(String title, String error) async {
-    await _show(title: _l10n().notificationDownloadFailed, body: '$title\n$error');
+    await _show(
+      title: _l10n().notificationDownloadFailed,
+      body: '$title\n$error',
+    );
   }
 
   Future<void> showClipboardDetected(String url) async {

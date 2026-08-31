@@ -540,7 +540,10 @@ class LibraryScannerService {
       final videoDir = videoFile.parent;
       final videoName = videoFile.uri.pathSegments.isNotEmpty
           ? videoFile.uri.pathSegments.last.replaceAll(RegExp(r'\.[^.]+$'), '')
-          : videoPath.split(RegExp(r'[/\\]')).last.replaceAll(RegExp(r'\.[^.]+$'), '');
+          : videoPath
+                .split(RegExp(r'[/\\]'))
+                .last
+                .replaceAll(RegExp(r'\.[^.]+$'), '');
 
       final exts = ['.jpg', '.jpeg', '.webp', '.png'];
       // 1. Check sidecar next to video

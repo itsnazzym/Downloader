@@ -131,7 +131,9 @@ void main() {
 
     test('does not treat a status permalink as a media asset id', () {
       expect(
-        XDownloadUrl.mediaAssetIdFrom('https://x.com/alice/status/1112223334445556667'),
+        XDownloadUrl.mediaAssetIdFrom(
+          'https://x.com/alice/status/1112223334445556667',
+        ),
         isNull,
       );
       expect(

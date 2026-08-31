@@ -28,8 +28,10 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('md_migration_test_');
-    sourceDir = Directory(p.join(tempDir.path, 'source'))..createSync(recursive: true);
-    targetDir = Directory(p.join(tempDir.path, 'target'))..createSync(recursive: true);
+    sourceDir = Directory(p.join(tempDir.path, 'source'))
+      ..createSync(recursive: true);
+    targetDir = Directory(p.join(tempDir.path, 'target'))
+      ..createSync(recursive: true);
 
     persistence = FakePersistenceService();
     service = LibraryMigrationService(persistence);
@@ -43,15 +45,22 @@ void main() {
 
   test('migrates video files, thumbnails, and updates persistence', () async {
     // Create source video and thumbnail
-    final sourceTwitterDir = Directory(p.join(sourceDir.path, 'Twitter'))..createSync(recursive: true);
-    final videoFile = File(p.join(sourceTwitterDir.path, 'clip [12345].mp4'))..writeAsStringSync('dummy video content');
-    
-    final sourceThumbDir = Directory(p.join(sourceDir.path, 'Thumbnails'))..createSync(recursive: true);
-    final thumbFile = File(p.join(sourceThumbDir.path, 'clip [12345].jpg'))..writeAsStringSync('dummy thumb content');
+    final sourceTwitterDir = Directory(p.join(sourceDir.path, 'Twitter'))
+      ..createSync(recursive: true);
+    final videoFile = File(p.join(sourceTwitterDir.path, 'clip [12345].mp4'))
+      ..writeAsStringSync('dummy video content');
+
+    final sourceThumbDir = Directory(p.join(sourceDir.path, 'Thumbnails'))
+      ..createSync(recursive: true);
+    final thumbFile = File(p.join(sourceThumbDir.path, 'clip [12345].jpg'))
+      ..writeAsStringSync('dummy thumb content');
 
     final item = DownloadItem(
       id: 'test-1',
-      request: DownloadRequest(url: 'https://x.com/user/status/12345', outputFolder: sourceDir.path),
+      request: DownloadRequest(
+        url: 'https://x.com/user/status/12345',
+        outputFolder: sourceDir.path,
+      ),
       status: DownloadStatus.completed,
       filePath: videoFile.path,
       thumbnailUrl: thumbFile.path,
@@ -60,7 +69,10 @@ void main() {
 
     final failedItem = DownloadItem(
       id: 'test-2',
-      request: DownloadRequest(url: 'https://x.com/user/status/67890', outputFolder: sourceDir.path),
+      request: DownloadRequest(
+        url: 'https://x.com/user/status/67890',
+        outputFolder: sourceDir.path,
+      ),
       status: DownloadStatus.failed,
       error: 'Low Disk Space: 1.6 GB free',
       title: 'failed clip',
@@ -78,8 +90,12 @@ void main() {
     expect(result.errorsCount, 0);
 
     // Verify files on target
-    final targetVideo = File(p.join(targetDir.path, 'Twitter', 'clip [12345].mp4'));
-    final targetThumb = File(p.join(targetDir.path, 'Thumbnails', 'clip [12345].jpg'));
+    final targetVideo = File(
+      p.join(targetDir.path, 'Twitter', 'clip [12345].mp4'),
+    );
+    final targetThumb = File(
+      p.join(targetDir.path, 'Thumbnails', 'clip [12345].jpg'),
+    );
 
     expect(targetVideo.existsSync(), isTrue);
     expect(targetThumb.existsSync(), isTrue);

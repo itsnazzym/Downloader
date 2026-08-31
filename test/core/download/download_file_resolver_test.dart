@@ -90,16 +90,16 @@ void main() {
       });
 
       dir = Directory.systemTemp.createTempSync('md_resolver_nested_');
-      final nested = Directory(
-        '${dir.path}${Platform.pathSeparator}Pornhub',
-      )..createSync();
+      final nested = Directory('${dir.path}${Platform.pathSeparator}Pornhub')
+        ..createSync();
       final file = File(
         '${nested.path}${Platform.pathSeparator}clip [nested123].mp4',
       );
       file.writeAsBytesSync([0, 0, 0]);
 
       final resolved = DownloadFileResolver.resolve(
-        candidatePath: '${dir.path}${Platform.pathSeparator}clip [nested123].webm',
+        candidatePath:
+            '${dir.path}${Platform.pathSeparator}clip [nested123].webm',
         outputFolder: dir.path,
         videoId: 'nested123',
         preferredExtension: '.mp4',

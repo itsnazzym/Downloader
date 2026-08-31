@@ -18,10 +18,7 @@ void main() {
   });
 
   FolderSizeService serviceWithProdScanner({DateTime Function()? clock}) {
-    return FolderSizeService(
-      scanner: scanFolderSize,
-      clock: clock,
-    );
+    return FolderSizeService(scanner: scanFolderSize, clock: clock);
   }
 
   Future<File> writeBytes(String relativePath, int length) async {
@@ -102,41 +99,51 @@ void main() {
     expect(snapshot.totalBytes, 12);
   });
 
-  test('keeps the 3 heaviest direct subfolders; ties sort by name ascending', () async {
-    await writeBytes('alpha${Platform.pathSeparator}f.bin', 30);
-    await writeBytes('beta${Platform.pathSeparator}f.bin', 50);
-    await writeBytes('gamma${Platform.pathSeparator}f.bin', 50);
-    await writeBytes('delta${Platform.pathSeparator}f.bin', 10);
-    final service = serviceWithProdScanner();
+  test(
+    'keeps the 3 heaviest direct subfolders; ties sort by name ascending',
+    () async {
+      await writeBytes('alpha${Platform.pathSeparator}f.bin', 30);
+      await writeBytes('beta${Platform.pathSeparator}f.bin', 50);
+      await writeBytes('gamma${Platform.pathSeparator}f.bin', 50);
+      await writeBytes('delta${Platform.pathSeparator}f.bin', 10);
+      final service = serviceWithProdScanner();
 
-    final snapshot = okSnapshot(await service.getSize(tempRoot.path));
+      final snapshot = okSnapshot(await service.getSize(tempRoot.path));
 
-    expect(snapshot.topSubfolders.map((e) => e.name).toList(), ['beta', 'gamma', 'alpha']);
-    expect(snapshot.topSubfolders.map((e) => e.bytes).toList(), [50, 50, 30]);
-  });
+      expect(snapshot.topSubfolders.map((e) => e.name).toList(), [
+        'beta',
+        'gamma',
+        'alpha',
+      ]);
+      expect(snapshot.topSubfolders.map((e) => e.bytes).toList(), [50, 50, 30]);
+    },
+  );
 
-  test('TTL: second getSize skips scanner while age < 10 min; rescans at 10 min', () async {
-    await writeBytes('a.bin', 4);
-    var now = DateTime(2026, 8, 28, 12, 0);
-    var scans = 0;
-    final service = FolderSizeService(
-      clock: () => now,
-      scanner: (path) async {
-        scans += 1;
-        return scanFolderSize(path);
-      },
-    );
+  test(
+    'TTL: second getSize skips scanner while age < 10 min; rescans at 10 min',
+    () async {
+      await writeBytes('a.bin', 4);
+      var now = DateTime(2026, 8, 28, 12, 0);
+      var scans = 0;
+      final service = FolderSizeService(
+        clock: () => now,
+        scanner: (path) async {
+          scans += 1;
+          return scanFolderSize(path);
+        },
+      );
 
-    await service.getSize(tempRoot.path);
-    expect(scans, 1);
+      await service.getSize(tempRoot.path);
+      expect(scans, 1);
 
-    await service.getSize(tempRoot.path);
-    expect(scans, 1);
+      await service.getSize(tempRoot.path);
+      expect(scans, 1);
 
-    now = now.add(const Duration(minutes: 10));
-    await service.getSize(tempRoot.path);
-    expect(scans, 2);
-  });
+      now = now.add(const Duration(minutes: 10));
+      await service.getSize(tempRoot.path);
+      expect(scans, 2);
+    },
+  );
 
   test('path A cache is never returned for path B', () async {
     await writeBytes('a.bin', 4);
@@ -157,31 +164,38 @@ void main() {
     expect(service.peek(other.path)!.totalBytes, snapB.totalBytes);
   });
 
-  test('root PathAccessException is FolderSizeError and keeps prior cache', () async {
-    await writeBytes('a.bin', 7);
-    var scans = 0;
-    var fail = false;
-    final service = FolderSizeService(
-      scanner: (path) async {
-        scans += 1;
-        if (fail) {
-          throw PathAccessException('list', const OSError('Access denied', 5), path);
-        }
-        return scanFolderSize(path);
-      },
-    );
+  test(
+    'root PathAccessException is FolderSizeError and keeps prior cache',
+    () async {
+      await writeBytes('a.bin', 7);
+      var scans = 0;
+      var fail = false;
+      final service = FolderSizeService(
+        scanner: (path) async {
+          scans += 1;
+          if (fail) {
+            throw PathAccessException(
+              'list',
+              const OSError('Access denied', 5),
+              path,
+            );
+          }
+          return scanFolderSize(path);
+        },
+      );
 
-    final first = okSnapshot(await service.getSize(tempRoot.path));
-    expect(first.totalBytes, 7);
-    expect(scans, 1);
+      final first = okSnapshot(await service.getSize(tempRoot.path));
+      expect(first.totalBytes, 7);
+      expect(scans, 1);
 
-    fail = true;
-    final second = await service.getSize(tempRoot.path, force: true);
-    expect(second, isA<FolderSizeError>());
-    expect((second as FolderSizeError).path, tempRoot.path);
-    expect(service.peek(tempRoot.path)!.totalBytes, 7);
-    expect(scans, 2);
-  });
+      fail = true;
+      final second = await service.getSize(tempRoot.path, force: true);
+      expect(second, isA<FolderSizeError>());
+      expect((second as FolderSizeError).path, tempRoot.path);
+      expect(service.peek(tempRoot.path)!.totalBytes, 7);
+      expect(scans, 2);
+    },
+  );
 
   test('joins an in-flight scan for the same cache key', () async {
     await writeBytes('a.bin', 3);

@@ -46,7 +46,7 @@ class LibraryMigrationService {
   final PersistenceService _persistenceService;
 
   LibraryMigrationService([PersistenceService? persistenceService])
-      : _persistenceService = persistenceService ?? PersistenceService();
+    : _persistenceService = persistenceService ?? PersistenceService();
 
   Future<MigrationResult> migrateLibrary({
     required String newOutputFolder,
@@ -81,13 +81,15 @@ class LibraryMigrationService {
       var updatedItem = item;
 
       final filename = item.filePath != null ? p.basename(item.filePath!) : '';
-      onProgress?.call(MigrationProgress(
-        status: 'Traitement en cours...',
-        current: i + 1,
-        total: total,
-        percentage: total > 0 ? (i + 1) / total : 1.0,
-        currentFile: item.title ?? filename,
-      ));
+      onProgress?.call(
+        MigrationProgress(
+          status: 'Traitement en cours...',
+          current: i + 1,
+          total: total,
+          percentage: total > 0 ? (i + 1) / total : 1.0,
+          currentFile: item.title ?? filename,
+        ),
+      );
 
       // 1. Update request outputFolder
       updatedItem = updatedItem.copyWith(
@@ -128,7 +130,10 @@ class LibraryMigrationService {
             updatedItem = updatedItem.copyWith(filePath: dstFile.path);
             databaseItemsUpdated++;
           } catch (e) {
-            LoggerService.e('LibraryMigration: Failed to move video ${srcFile.path}', e);
+            LoggerService.e(
+              'LibraryMigration: Failed to move video ${srcFile.path}',
+              e,
+            );
             errors.add('Erreur vidéo (${srcFile.path}): $e');
           }
         }
@@ -144,7 +149,8 @@ class LibraryMigrationService {
             final thumbName = p.basename(srcThumb.path);
             final dstThumb = File(p.join(targetThumbDir.path, thumbName));
 
-            if (p.canonicalize(srcThumb.path) != p.canonicalize(dstThumb.path)) {
+            if (p.canonicalize(srcThumb.path) !=
+                p.canonicalize(dstThumb.path)) {
               await _copyFileSafely(srcThumb, dstThumb);
               thumbnailsMoved++;
               freedBytes += await srcThumb.length();
@@ -156,7 +162,10 @@ class LibraryMigrationService {
             updatedItem = updatedItem.copyWith(thumbnailUrl: dstThumb.path);
             databaseItemsUpdated++;
           } catch (e) {
-            LoggerService.e('LibraryMigration: Failed to move thumbnail ${srcThumb.path}', e);
+            LoggerService.e(
+              'LibraryMigration: Failed to move thumbnail ${srcThumb.path}',
+              e,
+            );
             errors.add('Erreur miniature (${srcThumb.path}): $e');
           }
         }
@@ -165,7 +174,9 @@ class LibraryMigrationService {
       // 4. If status was failed due to disk space, unblock to queued
       final err = item.error ?? '';
       if (item.status == DownloadStatus.failed &&
-          (err.contains('Disk Space') || err.contains('Low Disk') || err.contains('espace'))) {
+          (err.contains('Disk Space') ||
+              err.contains('Low Disk') ||
+              err.contains('espace'))) {
         updatedItem = updatedItem.copyWith(
           status: DownloadStatus.queued,
           clearError: true,
@@ -184,13 +195,15 @@ class LibraryMigrationService {
 
     // Delete source files if requested
     if (deleteSourceFiles) {
-      onProgress?.call(MigrationProgress(
-        status: 'Nettoyage des fichiers sources...',
-        current: total,
-        total: total,
-        percentage: 1.0,
-        currentFile: 'Nettoyage en cours',
-      ));
+      onProgress?.call(
+        MigrationProgress(
+          status: 'Nettoyage des fichiers sources...',
+          current: total,
+          total: total,
+          percentage: 1.0,
+          currentFile: 'Nettoyage en cours',
+        ),
+      );
 
       for (final f in filesToDeleteOnSource) {
         try {
@@ -198,14 +211,16 @@ class LibraryMigrationService {
             await f.delete();
           }
         } catch (e) {
-          LoggerService.w('LibraryMigration: Could not delete source file ${f.path}: $e');
+          LoggerService.w(
+            'LibraryMigration: Could not delete source file ${f.path}: $e',
+          );
         }
       }
     }
 
     LoggerService.i(
       'LibraryMigration complete. Videos: $videosMoved, Thumbs: $thumbnailsMoved, '
-      'DB items: $databaseItemsUpdated, Freed: ${(freedBytes / (1024*1024*1024)).toStringAsFixed(2)} GB',
+      'DB items: $databaseItemsUpdated, Freed: ${(freedBytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB',
     );
 
     return MigrationResult(

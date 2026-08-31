@@ -42,14 +42,17 @@ void main() {
     await Future<void>.delayed(Duration.zero);
   }
 
-  test('does not start a timer when clipboard monitoring is disabled', () async {
-    final container = await containerWithClipboard(enabled: false);
-    final service = container.read(clipboardServiceProvider);
+  test(
+    'does not start a timer when clipboard monitoring is disabled',
+    () async {
+      final container = await containerWithClipboard(enabled: false);
+      final service = container.read(clipboardServiceProvider);
 
-    await settleStart(service);
+      await settleStart(service);
 
-    expect(service.isTimerActive, isFalse);
-  });
+      expect(service.isTimerActive, isFalse);
+    },
+  );
 
   test('starts a timer when clipboard monitoring is enabled', () async {
     final container = await containerWithClipboard(enabled: true);

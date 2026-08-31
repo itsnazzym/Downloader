@@ -59,7 +59,10 @@ class DiskSpaceService {
 
   static String _extractDriveKey(String path) {
     final normalized = path.replaceAll('/', '\\');
-    final match = RegExp(r'^([a-zA-Z]:)', caseSensitive: false).firstMatch(normalized);
+    final match = RegExp(
+      r'^([a-zA-Z]:)',
+      caseSensitive: false,
+    ).firstMatch(normalized);
     return match != null ? match.group(1)!.toUpperCase() : 'C:';
   }
 

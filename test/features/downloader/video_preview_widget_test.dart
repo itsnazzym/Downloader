@@ -18,28 +18,27 @@ void main() {
     );
   }
 
-  testWidgets('idle inspector preview shows thumbnail chrome without a player', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      wrapPreview(
-        const VideoPreviewWidget(filePath: r'C:\does\not\exist.mp4'),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 600));
+  testWidgets(
+    'idle inspector preview shows thumbnail chrome without a player',
+    (tester) async {
+      await tester.pumpWidget(
+        wrapPreview(
+          const VideoPreviewWidget(filePath: r'C:\does\not\exist.mp4'),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
 
-    expect(find.byType(WinVideoPlayer), findsNothing);
-    expect(find.byIcon(Icons.play_circle_outline_rounded), findsOneWidget);
-    expect(find.text('Preview unavailable'), findsNothing);
-  });
+      expect(find.byType(WinVideoPlayer), findsNothing);
+      expect(find.byIcon(Icons.play_circle_outline_rounded), findsOneWidget);
+      expect(find.text('Preview unavailable'), findsNothing);
+    },
+  );
 
   testWidgets('hover mounts a loading state then unmounts the player on exit', (
     tester,
   ) async {
     await tester.pumpWidget(
-      wrapPreview(
-        const VideoPreviewWidget(filePath: r'C:\does\not\exist.mp4'),
-      ),
+      wrapPreview(const VideoPreviewWidget(filePath: r'C:\does\not\exist.mp4')),
     );
     await tester.pump(const Duration(milliseconds: 600));
 

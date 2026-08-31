@@ -258,7 +258,8 @@ class DownloadListNotifier
       _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(items);
       bool newQueued = false;
       for (final item in items) {
-        if (item.status == DownloadStatus.queued && !_resumeIds.contains(item.id)) {
+        if (item.status == DownloadStatus.queued &&
+            !_resumeIds.contains(item.id)) {
           _resumeIds.add(item.id);
           newQueued = true;
         }

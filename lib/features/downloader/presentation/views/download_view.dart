@@ -225,11 +225,14 @@ class _DownloadTopBar extends ConsumerWidget {
               final currentMode = ref.read(downloadViewModeProvider);
               final colors = AppColors.of(context);
 
-              final isDate = currentSort == DownloadSort.dateDesc ||
+              final isDate =
+                  currentSort == DownloadSort.dateDesc ||
                   currentSort == DownloadSort.dateAsc;
-              final isName = currentSort == DownloadSort.nameAsc ||
+              final isName =
+                  currentSort == DownloadSort.nameAsc ||
                   currentSort == DownloadSort.nameDesc;
-              final isSize = currentSort == DownloadSort.sizeDesc ||
+              final isSize =
+                  currentSort == DownloadSort.sizeDesc ||
                   currentSort == DownloadSort.sizeAsc;
 
               return [
@@ -246,10 +249,11 @@ class _DownloadTopBar extends ConsumerWidget {
                 PopupMenuItem(
                   value: 'date',
                   onTap: () {
-                    ref.read(downloadSortProvider.notifier).state =
-                        currentSort == DownloadSort.dateDesc
-                            ? DownloadSort.dateAsc
-                            : DownloadSort.dateDesc;
+                    ref
+                        .read(downloadSortProvider.notifier)
+                        .state = currentSort == DownloadSort.dateDesc
+                        ? DownloadSort.dateAsc
+                        : DownloadSort.dateDesc;
                   },
                   child: Row(
                     children: [
@@ -264,8 +268,9 @@ class _DownloadTopBar extends ConsumerWidget {
                           'Date',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight:
-                                isDate ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isDate
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -284,10 +289,11 @@ class _DownloadTopBar extends ConsumerWidget {
                 PopupMenuItem(
                   value: 'name',
                   onTap: () {
-                    ref.read(downloadSortProvider.notifier).state =
-                        currentSort == DownloadSort.nameAsc
-                            ? DownloadSort.nameDesc
-                            : DownloadSort.nameAsc;
+                    ref
+                        .read(downloadSortProvider.notifier)
+                        .state = currentSort == DownloadSort.nameAsc
+                        ? DownloadSort.nameDesc
+                        : DownloadSort.nameAsc;
                   },
                   child: Row(
                     children: [
@@ -302,8 +308,9 @@ class _DownloadTopBar extends ConsumerWidget {
                           'Nom (A-Z)',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight:
-                                isName ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isName
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -322,10 +329,11 @@ class _DownloadTopBar extends ConsumerWidget {
                 PopupMenuItem(
                   value: 'size',
                   onTap: () {
-                    ref.read(downloadSortProvider.notifier).state =
-                        currentSort == DownloadSort.sizeDesc
-                            ? DownloadSort.sizeAsc
-                            : DownloadSort.sizeDesc;
+                    ref
+                        .read(downloadSortProvider.notifier)
+                        .state = currentSort == DownloadSort.sizeDesc
+                        ? DownloadSort.sizeAsc
+                        : DownloadSort.sizeDesc;
                   },
                   child: Row(
                     children: [
@@ -340,8 +348,9 @@ class _DownloadTopBar extends ConsumerWidget {
                           'Taille',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight:
-                                isSize ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isSize
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),

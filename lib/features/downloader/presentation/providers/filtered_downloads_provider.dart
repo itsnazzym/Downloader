@@ -124,13 +124,13 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
           case DownloadSort.dateAsc:
             return a.sortOrder.compareTo(b.sortOrder);
           case DownloadSort.nameAsc:
-            return (a.title ?? '')
-                .toLowerCase()
-                .compareTo((b.title ?? '').toLowerCase());
+            return (a.title ?? '').toLowerCase().compareTo(
+              (b.title ?? '').toLowerCase(),
+            );
           case DownloadSort.nameDesc:
-            return (b.title ?? '')
-                .toLowerCase()
-                .compareTo((a.title ?? '').toLowerCase());
+            return (b.title ?? '').toLowerCase().compareTo(
+              (a.title ?? '').toLowerCase(),
+            );
           case DownloadSort.sizeAsc:
             return compareDownloadSize(a, b);
           case DownloadSort.sizeDesc:

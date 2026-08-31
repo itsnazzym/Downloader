@@ -28,9 +28,7 @@ void main() {
           ),
         );
       },
-      home: MeshGradientBackground(
-        child: child ?? const SizedBox.expand(),
-      ),
+      home: MeshGradientBackground(child: child ?? const SizedBox.expand()),
     );
   }
 

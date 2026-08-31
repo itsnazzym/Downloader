@@ -15,10 +15,7 @@ class LibraryKeysSnapshot {
   final List<String> tweetIds;
   final List<String> mediaIds;
 
-  const LibraryKeysSnapshot({
-    required this.tweetIds,
-    required this.mediaIds,
-  });
+  const LibraryKeysSnapshot({required this.tweetIds, required this.mediaIds});
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

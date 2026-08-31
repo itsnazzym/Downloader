@@ -14,12 +14,13 @@ import '../../../../features/downloader/presentation/providers/downloader_provid
 class LibraryMigrationDialog extends ConsumerStatefulWidget {
   final String? initialTargetFolder;
 
-  const LibraryMigrationDialog({
-    super.key,
-    this.initialTargetFolder,
-  });
+  const LibraryMigrationDialog({super.key, this.initialTargetFolder});
 
-  static Future<void> show(BuildContext context, WidgetRef ref, {String? targetFolder}) async {
+  static Future<void> show(
+    BuildContext context,
+    WidgetRef ref, {
+    String? targetFolder,
+  }) async {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -28,10 +29,12 @@ class LibraryMigrationDialog extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<LibraryMigrationDialog> createState() => _LibraryMigrationDialogState();
+  ConsumerState<LibraryMigrationDialog> createState() =>
+      _LibraryMigrationDialogState();
 }
 
-class _LibraryMigrationDialogState extends ConsumerState<LibraryMigrationDialog> {
+class _LibraryMigrationDialogState
+    extends ConsumerState<LibraryMigrationDialog> {
   String? _targetFolder;
   bool _deleteSource = true;
   bool _isMigrating = false;
@@ -115,7 +118,11 @@ class _LibraryMigrationDialogState extends ConsumerState<LibraryMigrationDialog>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.green,
+              size: 28,
+            ),
             const Gap(AppSpacing.m),
             Text('Migration Terminée !', style: AppTypography.h3),
           ],
@@ -124,21 +131,36 @@ class _LibraryMigrationDialogState extends ConsumerState<LibraryMigrationDialog>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('• Vidéos déplacées : ${_result!.videosMoved}', style: AppTypography.body),
+            Text(
+              '• Vidéos déplacées : ${_result!.videosMoved}',
+              style: AppTypography.body,
+            ),
             const Gap(AppSpacing.xs),
-            Text('• Miniatures déplacées : ${_result!.thumbnailsMoved}', style: AppTypography.body),
+            Text(
+              '• Miniatures déplacées : ${_result!.thumbnailsMoved}',
+              style: AppTypography.body,
+            ),
             const Gap(AppSpacing.xs),
-            Text('• Base de données mise à jour : ${_result!.databaseItemsUpdated} éléments', style: AppTypography.body),
+            Text(
+              '• Base de données mise à jour : ${_result!.databaseItemsUpdated} éléments',
+              style: AppTypography.body,
+            ),
             if (_result!.freedGigabytes > 0.01) ...[
               const Gap(AppSpacing.xs),
               Text(
                 '• Espace libéré sur l\'ancien disque : ${_result!.freedGigabytes.toStringAsFixed(2)} Go',
-                style: AppTypography.body.copyWith(fontWeight: FontWeight.bold, color: colors.primary),
+                style: AppTypography.body.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colors.primary,
+                ),
               ),
             ],
             if (_result!.errors.isNotEmpty) ...[
               const Gap(AppSpacing.m),
-              Text('Avertissements : ${_result!.errors.length}', style: const TextStyle(color: Colors.orange)),
+              Text(
+                'Avertissements : ${_result!.errors.length}',
+                style: const TextStyle(color: Colors.orange),
+              ),
             ],
           ],
         ),
@@ -170,7 +192,10 @@ class _LibraryMigrationDialogState extends ConsumerState<LibraryMigrationDialog>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_progress?.status ?? 'Veuillez patienter...', style: AppTypography.body),
+            Text(
+              _progress?.status ?? 'Veuillez patienter...',
+              style: AppTypography.body,
+            ),
             const Gap(AppSpacing.m),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -187,21 +212,29 @@ class _LibraryMigrationDialogState extends ConsumerState<LibraryMigrationDialog>
               children: [
                 Text(
                   '${_progress?.current ?? 0} / ${_progress?.total ?? 0}',
-                  style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                  style: AppTypography.caption.copyWith(
+                    color: colors.textSecondary,
+                  ),
                 ),
                 Text(
                   '${((_progress?.percentage ?? 0) * 100).toInt()}%',
-                  style: AppTypography.caption.copyWith(color: colors.primary, fontWeight: FontWeight.bold),
+                  style: AppTypography.caption.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
-            if (_progress?.currentFile != null && _progress!.currentFile!.isNotEmpty) ...[
+            if (_progress?.currentFile != null &&
+                _progress!.currentFile!.isNotEmpty) ...[
               const Gap(AppSpacing.s),
               Text(
                 _progress!.currentFile!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                style: AppTypography.caption.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
             ],
           ],
@@ -240,11 +273,24 @@ class _LibraryMigrationDialogState extends ConsumerState<LibraryMigrationDialog>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Dossier actuel :', style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Dossier actuel :',
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const Gap(AppSpacing.xs),
-                  Text(currentOutput.isEmpty ? 'Non configuré' : currentOutput, style: AppTypography.body),
+                  Text(
+                    currentOutput.isEmpty ? 'Non configuré' : currentOutput,
+                    style: AppTypography.body,
+                  ),
                   const Divider(height: 20),
-                  Text('Nouveau dossier cible :', style: AppTypography.caption.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Nouveau dossier cible :',
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const Gap(AppSpacing.xs),
                   Row(
                     children: [
@@ -252,7 +298,9 @@ class _LibraryMigrationDialogState extends ConsumerState<LibraryMigrationDialog>
                         child: Text(
                           _targetFolder ?? 'Sélectionner un dossier...',
                           style: AppTypography.body.copyWith(
-                            color: _targetFolder == null ? colors.textSecondary : colors.textPrimary,
+                            color: _targetFolder == null
+                                ? colors.textSecondary
+                                : colors.textPrimary,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),

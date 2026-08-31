@@ -383,9 +383,8 @@ void main() {
     test(
       'recovers file moved into a site subfolder when stored path is the parent',
       () async {
-        final siteDir = Directory(
-          '${dir.path}${Platform.pathSeparator}Pornhub',
-        )..createSync();
+        final siteDir = Directory('${dir.path}${Platform.pathSeparator}Pornhub')
+          ..createSync();
         final real = File(
           '${siteDir.path}${Platform.pathSeparator}'
           'interracial bunnies - Being a good girl for daddy [ph1].mp4',

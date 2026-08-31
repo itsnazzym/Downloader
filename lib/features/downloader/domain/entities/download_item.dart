@@ -111,7 +111,8 @@ class DownloadItem {
     final tweetId =
         XDownloadUrl.tweetIdFrom(request.url) ??
         XDownloadUrl.tweetIdFrom(request.forceStreamUrl);
-    final mediaId = XDownloadUrl.mediaAssetIdFrom(request.forceStreamUrl) ??
+    final mediaId =
+        XDownloadUrl.mediaAssetIdFrom(request.forceStreamUrl) ??
         XDownloadUrl.mediaAssetIdFrom(request.forceThumbnailUrl) ??
         XDownloadUrl.mediaAssetIdFrom(thumbnailUrl) ??
         XDownloadUrl.mediaAssetIdFrom(request.url);
