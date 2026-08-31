@@ -46,4 +46,41 @@ void main() {
       );
     });
   });
+
+  group('DownloadStatusGuard.isPermanentDownloadError', () {
+    test('detects suspended tweets', () {
+      const sample =
+          'ERROR: [twitter] 2091798624661602420: Suspended';
+      expect(DownloadStatusGuard.isPermanentDownloadError(sample), isTrue);
+      expect(
+        DownloadStatusGuard.userFacingDownloadErrorMessage(sample),
+        contains('suspendu'),
+      );
+    });
+
+    test('detects tweets without video', () {
+      const sample =
+          'ERROR: [twitter] 2093058718350893415: No video could be found in this tweet';
+      expect(DownloadStatusGuard.isPermanentDownloadError(sample), isTrue);
+      expect(
+        DownloadStatusGuard.userFacingDownloadErrorMessage(sample),
+        contains('Aucune vidéo'),
+      );
+    });
+
+    test('detects unsupported URLs', () {
+      const sample =
+          'ERROR: Unsupported URL: https://discord.com/invite/JoinForbidden';
+      expect(DownloadStatusGuard.isPermanentDownloadError(sample), isTrue);
+      expect(
+        DownloadStatusGuard.userFacingDownloadErrorMessage(sample),
+        contains('non prise en charge'),
+      );
+    });
+
+    test('does not retry permanent errors', () {
+      const sample = 'ERROR: [twitter] 123: Suspended';
+      expect(DownloadStatusGuard.isNonRetryableError(sample), isTrue);
+    });
+  });
 }

@@ -1,3 +1,4 @@
+import 'package:modern_downloader/core/download/download_url_policy.dart';
 import 'package:modern_downloader/core/download/extension_download_batcher.dart';
 import 'package:modern_downloader/core/download/x_download_url.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
@@ -61,6 +62,11 @@ class LocalServerDownloadIntake {
     } catch (e) {
       LoggerService.w('Failed to resolve download URL: $e');
       return const LocalServerDownloadIntakeResult.error('invalid_url');
+    }
+
+    if (!DownloadUrlPolicy.isAllowed(downloadUrl)) {
+      LoggerService.w('Rejected unsupported download URL from extension: $downloadUrl');
+      return const LocalServerDownloadIntakeResult.error('unsupported_url');
     }
 
     LoggerService.i('📥 Received download request: $downloadUrl');

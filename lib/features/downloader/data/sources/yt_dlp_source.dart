@@ -547,6 +547,11 @@ class YtDlpSource {
         detectedException = PrivateVideoException(log: data);
       } else if (check.contains('geo-restricted')) {
         detectedException = GeoBlockedException(log: data);
+      } else if (DownloadStatusGuard.isPermanentDownloadError(data)) {
+        detectedException = YtDlpException(
+          DownloadStatusGuard.userFacingDownloadErrorMessage(data),
+          originalLog: data,
+        );
       }
     }
 
@@ -621,6 +626,12 @@ class YtDlpSource {
         if (DownloadStatusGuard.isNonRetryableProxyError(errText)) {
           throw YtDlpException(
             DownloadStatusGuard.userFacingProxyErrorMessage(errText),
+          );
+        }
+        if (DownloadStatusGuard.isPermanentDownloadError(errText)) {
+          throw YtDlpException(
+            DownloadStatusGuard.userFacingDownloadErrorMessage(errText),
+            originalLog: errText,
           );
         }
         throw YtDlpException(

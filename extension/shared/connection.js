@@ -681,6 +681,19 @@
     return null;
   }
 
+  function isAllowedDownloadUrl(value) {
+    var permalink = xStatusPermalink(value);
+    if (permalink) return true;
+    if (!isSafeHttpUrl(value)) return false;
+    if (isXCdnUrl(value)) return false;
+    try {
+      var hostname = new URL(value).hostname;
+      return isSupportedDomain(hostname, adultSitesEnabled);
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function handleDownloadRequest(mediaUrl, pageUrl, options, hints) {
     if (!isSafeHttpUrl(mediaUrl)) {
       return { ok: false, error: 'invalid_url' };
@@ -698,6 +711,9 @@
       }
       if (!isSafeHttpUrl(downloadUrl)) {
         return { ok: false, error: 'invalid_url' };
+      }
+      if (!isAllowedDownloadUrl(downloadUrl)) {
+        return { ok: false, error: 'unsupported_url' };
       }
       var cookies = await getCookiesForPageUrl(safePage);
       var cookieString = formatCookiesToNetscape(cookies);

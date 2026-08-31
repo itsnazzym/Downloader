@@ -304,9 +304,21 @@
 
   function findXVideoElements(article) {
     var videos = article.querySelectorAll('video');
-    if (videos.length > 0) return Array.prototype.slice.call(videos);
-    var player = article.querySelector('[data-testid="videoPlayer"]');
-    return player ? [player] : [];
+    if (videos.length === 0) return [];
+
+    var playable = [];
+    for (var i = 0; i < videos.length; i++) {
+      var video = videos[i];
+      var rect = video.getBoundingClientRect();
+      if (rect.width < 80 || rect.height < 45) continue;
+
+      var hasSrc = !!(video.currentSrc || video.src);
+      var hasPoster = !!(video.poster);
+      if (!hasSrc && !hasPoster) continue;
+
+      playable.push(video);
+    }
+    return playable;
   }
 
   function findXPreviewUrl(article, videoElement) {
@@ -727,6 +739,8 @@
           ? t('offline', 'Offline')
           : err === 'need_tweet_url'
             ? t('needTweet', 'Need tweet')
+            : err === 'unsupported_url'
+              ? t('unsupportedUrl', 'Unsupported')
             : t('failed', 'Failed');
         btn.classList.add('err');
         if (toggle) toggle.classList.add('err');

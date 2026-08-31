@@ -545,9 +545,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 LoggerService.w(
                   'Metadata extraction failed (retry possible): $e',
                 );
-                if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
+                if (DownloadStatusGuard.isNonRetryableError(e)) {
                   throw Exception(
-                    DownloadStatusGuard.userFacingProxyErrorMessage(e),
+                    DownloadStatusGuard.userFacingDownloadErrorMessage(e),
                   );
                 }
                 // If metadata fails, we still try to download with derived title as fallback or retry
@@ -685,9 +685,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             return;
           } catch (e) {
             if (e.toString().contains('Low Disk Space')) rethrow;
-            if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
+            if (DownloadStatusGuard.isNonRetryableError(e)) {
               throw Exception(
-                DownloadStatusGuard.userFacingProxyErrorMessage(e),
+                DownloadStatusGuard.userFacingDownloadErrorMessage(e),
               );
             }
             if (!DownloadStatusGuard.shouldRetryAfterError(
@@ -719,17 +719,13 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         _update(
           _activeDownloads[id]!.copyWith(
             status: DownloadStatus.failed,
-            error: DownloadStatusGuard.isNonRetryableProxyError(e)
-                ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
-                : e.toString(),
+            error: DownloadStatusGuard.userFacingDownloadErrorMessage(e),
           ),
         );
         unawaited(
           NotificationService().showDownloadFailed(
             _activeDownloads[id]?.title ?? 'Download Failed',
-            DownloadStatusGuard.isNonRetryableProxyError(e)
-                ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
-                : e.toString(),
+            DownloadStatusGuard.userFacingDownloadErrorMessage(e),
           ),
         );
       } finally {
