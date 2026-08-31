@@ -46,4 +46,56 @@ void main() {
       );
     });
   });
+
+  group('DownloadStatusGuard.isPermanentExtractorError', () {
+    test('treats X suspended tweets as permanent', () {
+      const sample =
+          'yt-dlp exited with code 1. Error: ERROR: [twitter] 2091798624661602420: Suspended';
+      expect(DownloadStatusGuard.isPermanentExtractorError(sample), isTrue);
+      expect(DownloadStatusGuard.isNonRetryableError(sample), isTrue);
+      expect(
+        DownloadStatusGuard.userFacingErrorMessage(sample),
+        contains('suspended'),
+      );
+    });
+
+    test('treats tweets without video as permanent', () {
+      const sample =
+          'yt-dlp exited with code 1. Error: ERROR: [twitter] 2093058718350893415: No video could be found in this tweet';
+      expect(DownloadStatusGuard.isPermanentExtractorError(sample), isTrue);
+      expect(
+        DownloadStatusGuard.userFacingErrorMessage(sample),
+        contains('no downloadable video'),
+      );
+    });
+
+    test('treats unsupported invite URLs as permanent', () {
+      const sample =
+          'yt-dlp exited with code 1. Error: WARNING: [generic] Falling back on generic information extractor\nERROR: Unsupported URL: https://discord.com/invite/JoinForbidden';
+      expect(DownloadStatusGuard.isPermanentExtractorError(sample), isTrue);
+      expect(
+        DownloadStatusGuard.userFacingErrorMessage(sample),
+        contains('not a supported video page'),
+      );
+    });
+
+    test('does not treat transient extractor errors as permanent', () {
+      expect(
+        DownloadStatusGuard.isPermanentExtractorError(
+          'HTTP Error 429: Too Many Requests',
+        ),
+        isFalse,
+      );
+      expect(
+        DownloadStatusGuard.isPermanentExtractorError('Video unavailable'),
+        isFalse,
+      );
+      expect(
+        DownloadStatusGuard.isPermanentExtractorError(
+          'connection suspended by peer',
+        ),
+        isFalse,
+      );
+    });
+  });
 }

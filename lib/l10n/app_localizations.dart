@@ -154,6 +154,12 @@ abstract class AppLocalizations {
   /// **'Paste the tweet link (x.com/.../status/...), not the video file.'**
   String get xCdnUrlRejected;
 
+  /// No description provided for @unsupportedDownloadUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'This page is not a downloadable video (invite or unsupported site).'**
+  String get unsupportedDownloadUrl;
+
   /// No description provided for @startDownload.
   ///
   /// In en, this message translates to:

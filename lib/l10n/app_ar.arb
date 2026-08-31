@@ -11,6 +11,7 @@
   "newDownload": "تنزيل جديد",
   "pasteUrl": "الصق الرابط هنا",
   "xCdnUrlRejected": "الصق رابط التغريدة (x.com/.../status/...) وليس ملف الفيديو.",
+  "unsupportedDownloadUrl": "هذه الصفحة ليست فيديو قابل للتنزيل (دعوة أو موقع غير مدعوم).",
   "startDownload": "بدء التنزيل",
   "cancel": "إلغاء",
   "retry": "إعادة المحاولة",

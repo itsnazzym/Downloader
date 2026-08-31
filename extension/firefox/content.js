@@ -279,7 +279,7 @@
 
   function resolveXPermalinkFromElement(element, srcUrl) {
     var article = findXArticle(element);
-    var post = findXPostLink(article);
+    var post = findXPostLinkNear(element) || findXPostLink(article);
     if (post && post.url) return post.url;
     if (srcUrl) {
       var videos = document.querySelectorAll('video');
@@ -302,11 +302,41 @@
     return statusPermalinkFromPage();
   }
 
+  function findXPostLinkNear(element) {
+    var curr = element;
+    var depth = 0;
+    while (curr && depth < 20) {
+      if (curr.tagName === 'A') {
+        var fromSelf = parseXStatusLink(curr.href);
+        if (fromSelf) return fromSelf;
+      }
+      var role = curr.getAttribute && curr.getAttribute('role');
+      if (role === 'link' && curr.querySelector) {
+        var quoteLinks = curr.querySelectorAll('a[href]');
+        for (var q = 0; q < quoteLinks.length; q++) {
+          var fromQuote = parseXStatusLink(quoteLinks[q].href);
+          if (fromQuote) return fromQuote;
+        }
+      }
+      curr = curr.parentElement;
+      depth++;
+    }
+    return findXPostLink(findXArticle(element));
+  }
+
   function findXVideoElements(article) {
     var videos = article.querySelectorAll('video');
     if (videos.length > 0) return Array.prototype.slice.call(videos);
     var player = article.querySelector('[data-testid="videoPlayer"]');
-    return player ? [player] : [];
+    if (!player) return [];
+    var preview = findXPreviewUrl(article, null);
+    if (
+      preview &&
+      (xMediaAssetId(preview) || preview.indexOf('video.twimg.com') !== -1)
+    ) {
+      return [player];
+    }
+    return [];
   }
 
   function findXPreviewUrl(article, videoElement) {
@@ -379,10 +409,10 @@
       var videoElements = findXVideoElements(article);
       if (videoElements.length === 0) return;
 
-      var post = findXPostLink(article);
-      if (!post) return;
-
       videoElements.forEach(function (videoElement, videoIndex) {
+        var post = findXPostLinkNear(videoElement) || findXPostLink(article);
+        if (!post) return;
+
         videoPostsFound++;
         if (items.length >= limit) return;
         var itemId = videoIndex === 0
@@ -727,7 +757,9 @@
           ? t('offline', 'Offline')
           : err === 'need_tweet_url'
             ? t('needTweet', 'Need tweet')
-            : t('failed', 'Failed');
+            : err === 'unsupported_url'
+              ? t('unsupportedUrl', 'Not a video')
+              : t('failed', 'Failed');
         btn.classList.add('err');
         if (toggle) toggle.classList.add('err');
         setTimeout(function () {

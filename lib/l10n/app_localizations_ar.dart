@@ -37,6 +37,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصق رابط التغريدة (x.com/.../status/...) وليس ملف الفيديو.';
 
   @override
+  String get unsupportedDownloadUrl =>
+      'هذه الصفحة ليست فيديو قابل للتنزيل (دعوة أو موقع غير مدعوم).';
+
+  @override
   String get startDownload => 'بدء التنزيل';
 
   @override

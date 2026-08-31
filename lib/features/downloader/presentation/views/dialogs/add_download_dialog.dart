@@ -57,7 +57,12 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
       if (AppColors.of(context).isIosChrome &&
           DownloadUrlValidator.isValidHttpUrl(url) &&
           !DownloadUrlValidator.isAcceptableDownloadUrl(url)) {
-        AppToast.showError(context, context.l10n.xCdnUrlRejected);
+        AppToast.showError(
+          context,
+          DownloadUrlValidator.isNonMediaPageUrl(url)
+              ? context.l10n.unsupportedDownloadUrl
+              : context.l10n.xCdnUrlRejected,
+        );
       }
       return;
     }
@@ -376,6 +381,9 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                         }
                         if (!DownloadUrlValidator.isValidHttpUrl(value)) {
                           return l10n.enterValidUrl;
+                        }
+                        if (DownloadUrlValidator.isNonMediaPageUrl(value)) {
+                          return l10n.unsupportedDownloadUrl;
                         }
                         if (!DownloadUrlValidator.isAcceptableDownloadUrl(
                           value,

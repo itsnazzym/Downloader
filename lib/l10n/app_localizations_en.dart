@@ -37,6 +37,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Paste the tweet link (x.com/.../status/...), not the video file.';
 
   @override
+  String get unsupportedDownloadUrl =>
+      'This page is not a downloadable video (invite or unsupported site).';
+
+  @override
   String get startDownload => 'Start Download';
 
   @override

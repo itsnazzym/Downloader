@@ -91,6 +91,7 @@
   "offline": { "message": "Offline" },
   "failed": { "message": "Failed" },
   "needTweet": { "message": "Need tweet" },
+  "unsupportedUrl": { "message": "Not a video" },
   "statusQueued": { "message": "Queued" },
   "statusExtracting": { "message": "Extracting" },
   "statusDownloading": { "message": "Downloading" },

@@ -46,6 +46,25 @@
     }
   }
 
+  var NON_MEDIA_HOSTS = [
+    'discord.com',
+    'discord.gg',
+    'discordapp.com',
+    'discordapp.net',
+  ];
+
+  function isNonMediaDownloadUrl(value) {
+    if (!isSafeHttpUrl(value)) return false;
+    try {
+      var hostname = new URL(value).hostname.toLowerCase();
+      return NON_MEDIA_HOSTS.some(function (domain) {
+        return hostMatchesDomain(hostname, domain);
+      });
+    } catch (e) {
+      return false;
+    }
+  }
+
   function isRestrictedPageUrl(value) {
     if (!value || typeof value !== 'string') return true;
     return /^(chrome|chrome-extension|moz-extension|about|edge|devtools):/i.test(value);
@@ -699,6 +718,9 @@
       if (!isSafeHttpUrl(downloadUrl)) {
         return { ok: false, error: 'invalid_url' };
       }
+      if (isNonMediaDownloadUrl(downloadUrl)) {
+        return { ok: false, error: 'unsupported_url' };
+      }
       var cookies = await getCookiesForPageUrl(safePage);
       var cookieString = formatCookiesToNetscape(cookies);
       var detectedBrowser = await detectBrowser();
@@ -859,10 +881,16 @@
       if (isRestrictedPageUrl(pageUrl) && isRestrictedPageUrl(info.linkUrl || '')) return;
       var url = info.linkUrl || info.srcUrl || info.pageUrl;
       (async function () {
+        if (isNonMediaDownloadUrl(url) && isXPageUrl(pageUrl)) {
+          var fromTweet = await resolvePermalinkFromTab(tab, info.srcUrl || url);
+          if (!fromTweet) fromTweet = xStatusPermalink(pageUrl);
+          if (fromTweet) url = fromTweet;
+        }
         if (isXCdnUrl(url)) {
           var resolved = await resolvePermalinkFromTab(tab, info.srcUrl || url);
           if (resolved) url = resolved;
         }
+        if (isNonMediaDownloadUrl(url)) return;
         handleDownloadRequest(url, pageUrl || url, {});
       })();
     });

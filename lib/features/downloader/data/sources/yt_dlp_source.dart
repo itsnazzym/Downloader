@@ -124,10 +124,8 @@ class YtDlpSource {
       final result = await _processRunner.run(ytDlp, args);
       if (result.exitCode != 0) {
         final stderr = result.stderr.toString();
-        if (DownloadStatusGuard.isNonRetryableProxyError(stderr)) {
-          throw Exception(
-            DownloadStatusGuard.userFacingProxyErrorMessage(stderr),
-          );
+        if (DownloadStatusGuard.isNonRetryableError(stderr)) {
+          throw Exception(DownloadStatusGuard.userFacingErrorMessage(stderr));
         }
         throw Exception('Failed to fetch metadata: $stderr');
       }
@@ -618,9 +616,9 @@ class YtDlpSource {
         LoggerService.e('Full Stderr: $errorBuffer');
         if (detectedException != null) throw detectedException!;
         final errText = errorBuffer.toString();
-        if (DownloadStatusGuard.isNonRetryableProxyError(errText)) {
+        if (DownloadStatusGuard.isNonRetryableError(errText)) {
           throw YtDlpException(
-            DownloadStatusGuard.userFacingProxyErrorMessage(errText),
+            DownloadStatusGuard.userFacingErrorMessage(errText),
           );
         }
         throw YtDlpException(

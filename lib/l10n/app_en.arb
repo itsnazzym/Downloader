@@ -11,6 +11,7 @@
   "newDownload": "New Download",
   "pasteUrl": "Paste URL here",
   "xCdnUrlRejected": "Paste the tweet link (x.com/.../status/...), not the video file.",
+  "unsupportedDownloadUrl": "This page is not a downloadable video (invite or unsupported site).",
   "startDownload": "Start Download",
   "cancel": "Cancel",
   "retry": "Retry",
