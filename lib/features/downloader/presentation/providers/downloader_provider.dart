@@ -19,7 +19,7 @@ import '../../data/sources/kick_source.dart';
 import '../../data/datasources/persistence_service.dart';
 import '../../data/services/library_scanner_service.dart';
 import '../../data/repositories/downloader_repository_impl.dart';
-import 'package:modern_downloader/services/service_providers.dart';
+import 'package:modern_downloader/core/services/binary/service_providers.dart';
 import '../../../../core/services/download_stats_service.dart';
 import '../../../../core/plugins/plugin_manager.dart';
 import '../../../../core/logger/logger_service.dart';
@@ -114,9 +114,10 @@ class DownloadListNotifier
   }
 
   Future<void> _init() async {
-    // Simulate loading for better UX (Skeleton demonstration) or valid async load
-    await Future.delayed(const Duration(milliseconds: 600));
+    // Yield so constructor init does not mutate other providers synchronously.
+    await Future<void>.delayed(Duration.zero);
     try {
+      await _repository.initialized;
       final items = _repository.getCurrentDownloads();
       state = AsyncValue.data(items);
       _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(items);
@@ -193,8 +194,14 @@ class DownloadListNotifier
       final updates = Map<String, DownloadItem>.from(_pendingUpdates);
       _pendingUpdates.clear();
 
+      bool newQueuedAdded = false;
       updates.forEach((id, item) {
         itemMap[id] = item;
+
+        if (item.status == DownloadStatus.queued && !_resumeIds.contains(id)) {
+          _resumeIds.add(id);
+          newQueuedAdded = true;
+        }
 
         // Side effects for terminal states (handled once per event effectively)
         // Note: usage of 'item' here refers to the latest update for that ID
@@ -232,13 +239,12 @@ class DownloadListNotifier
 
       state = AsyncValue.data(newState);
 
-      // Process queue if any slot freed up
-      // We check if any of the updates were terminal
+      // Process queue if any slot freed up or new queued items arrived
       final hasTerminal = updates.values.any(
         (i) => isStatsRebuildStatus(i.status),
       );
 
-      if (hasTerminal) {
+      if (hasTerminal || newQueuedAdded) {
         _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(newState);
         _processQueue();
       }
@@ -250,9 +256,32 @@ class DownloadListNotifier
       final items = _repository.getCurrentDownloads();
       state = AsyncValue.data(items);
       _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(items);
+      bool newQueued = false;
+      for (final item in items) {
+        if (item.status == DownloadStatus.queued && !_resumeIds.contains(item.id)) {
+          _resumeIds.add(item.id);
+          newQueued = true;
+        }
+      }
+      if (newQueued || _queue.isNotEmpty) {
+        _processQueue();
+      }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  Future<void> resumeAllQueued() async {
+    final items = state.valueOrNull ?? _repository.getCurrentDownloads();
+    for (final item in items) {
+      if ((item.status == DownloadStatus.queued ||
+              item.status == DownloadStatus.paused ||
+              item.status == DownloadStatus.failed) &&
+          !_resumeIds.contains(item.id)) {
+        _resumeIds.add(item.id);
+      }
+    }
+    await _processQueue();
   }
 
   Future<void> refreshLibrary() async {
@@ -276,7 +305,7 @@ class DownloadListNotifier
       LoggerService.w(
         'Rejected X CDN download without a tweet permalink: $url',
       );
-      NotificationService().showError(
+      await NotificationService().showError(
         'Need tweet link',
         'Paste the tweet link (x.com/.../status/...), not the video file.',
       );
@@ -436,11 +465,8 @@ class DownloadListNotifier
     });
   }
 
+  /// [newIndex] is the insertion index after the item is removed (onReorderItem).
   Future<void> reorder(int oldIndex, int newIndex) async {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
-    }
-
     state.whenData((currentList) async {
       final items = List<DownloadItem>.from(currentList);
       final item = items.removeAt(oldIndex);
@@ -496,19 +522,21 @@ class DownloadListNotifier
     try {
       do {
         _processQueueAgain = false;
-        while (_queue.isNotEmpty || _resumeIds.isNotEmpty) {
-          final currentList = state.valueOrNull ?? [];
-          final activeCount = currentList
-              .where(
-                (i) =>
-                    i.status == DownloadStatus.downloading ||
-                    i.status == DownloadStatus.extracting ||
-                    i.status == DownloadStatus.processing,
-              )
-              .length;
+        final currentList =
+            state.valueOrNull ?? _repository.getCurrentDownloads();
+        int activeCount = currentList
+            .where(
+              (i) =>
+                  i.status == DownloadStatus.downloading ||
+                  i.status == DownloadStatus.extracting ||
+                  i.status == DownloadStatus.processing,
+            )
+            .length;
 
-          final settings = _ref.read(settingsProvider);
-          final maxConcurrent = settings.maxConcurrent;
+        final settings = _ref.read(settingsProvider);
+        final maxConcurrent = settings.maxConcurrent;
+
+        while (_queue.isNotEmpty || _resumeIds.isNotEmpty) {
           final pendingCount = _resumeIds.length + _queue.length;
           if (computeStartableCount(
                 activeCount: activeCount,
@@ -519,15 +547,15 @@ class DownloadListNotifier
             break;
           }
 
+          activeCount++;
+
           if (_resumeIds.isNotEmpty) {
             final id = _resumeIds.removeAt(0);
             await _repository.resumeDownload(id);
-            refreshList();
           } else {
             final nextRequest = _queue.removeAt(0);
             await _persistQueue();
             await _repository.startDownload(nextRequest);
-            refreshList();
           }
         }
       } while (_processQueueAgain);

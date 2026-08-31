@@ -1,9 +1,14 @@
 [Setup]
+; Static AppId and update settings ensure every installer execution performs an in-place upgrade of the existing install
+AppId=Modern Downloader
 AppName=Modern Downloader
 AppVersion={#AppVersion}
-AppPublisher=Mizaruta
+AppPublisher=itsnazzym
 DefaultDirName={autopf}\ModernDownloader
+UsePreviousAppDir=yes
+DisableDirPage=auto
 DefaultGroupName=Modern Downloader
+DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\modern_downloader.exe
 OutputBaseFilename=ModernDownloader-Setup-{#AppVersion}
 OutputDir=..\
@@ -14,6 +19,10 @@ WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
+CloseApplications=force
+CloseApplicationsFilter=modern_downloader.exe
+RestartApplications=no
+UpdateUninstallLogAppName=yes
 
 [Files]
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs

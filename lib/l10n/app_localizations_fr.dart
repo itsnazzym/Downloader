@@ -1129,4 +1129,100 @@ class AppLocalizationsFr extends AppLocalizations {
   String duplicatesSkipped(int count) {
     return '$count doublons ignorés';
   }
+
+  @override
+  String get trayShow => 'Afficher';
+
+  @override
+  String get trayExit => 'Quitter';
+
+  @override
+  String get needTweetLink => 'Lien de tweet requis';
+
+  @override
+  String get openFullscreen => 'Ouvrir en plein écran';
+
+  @override
+  String get previewUnavailable => 'Aperçu indisponible';
+
+  @override
+  String get sourceYouTube => 'YouTube';
+
+  @override
+  String get sourceInstagram => 'Instagram';
+
+  @override
+  String get sourceTwitter => 'Twitter';
+
+  @override
+  String get sourceTwitch => 'Twitch';
+
+  @override
+  String get sourceKick => 'Kick';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageArabic => 'العربية';
+
+  @override
+  String get qualityManual => 'Manuel';
+
+  @override
+  String get qualityManualPlus => 'Manuel+';
+
+  @override
+  String get notificationDownloadCompleted => 'Téléchargement terminé';
+
+  @override
+  String get notificationDownloadFailed => 'Téléchargement échoué';
+
+  @override
+  String get notificationLinkDetected => 'Lien détecté';
+
+  @override
+  String notificationLinkDetectedBody(String url) {
+    return 'Cliquez pour télécharger : $url';
+  }
+
+  @override
+  String get notificationLinksQueuedTitle => 'Liens en file';
+
+  @override
+  String notificationLinksQueuedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count liens en file',
+      one: '$count lien en file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationExtensionConnected => 'Extension connectée';
+
+  @override
+  String get notificationExtensionConnectedBody =>
+      'L\'extension de navigateur est connectée.';
+
+  @override
+  String get notificationBatchComplete => 'Lot terminé';
+
+  @override
+  String notificationBatchCompleteBody(int count, String totalSize) {
+    return '$count téléchargements terminés — $totalSize au total';
+  }
+
+  @override
+  String get notificationYtDlpUpdated => 'yt-dlp mis à jour';
+
+  @override
+  String notificationYtDlpUpdatedBody(String version) {
+    return 'Mis à jour vers $version';
+  }
 }

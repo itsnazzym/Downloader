@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../../core/logger/logger_service.dart';
-import '../../services/binary_locator.dart';
-import '../../services/process_runner.dart';
+import '../../core/services/binary/binary_locator.dart';
+import '../../core/services/binary/process_runner.dart';
 import 'x_feed_cookie_credentials.dart';
 import 'x_feed_models.dart';
 

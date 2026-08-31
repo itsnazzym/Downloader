@@ -21,6 +21,9 @@ class _BatchRepo implements IDownloaderRepository {
   final List<DownloadItem> _items;
 
   @override
+  Future<void> get initialized => Future.value();
+
+  @override
   Future<void> cancelDownload(String id) async {}
 
   @override

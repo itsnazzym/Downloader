@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:modern_downloader/features/downloader/data/sources/yt_dlp_source.dart';
-import 'package:modern_downloader/services/binary_locator.dart';
-import 'package:modern_downloader/services/process_runner.dart';
+import 'package:modern_downloader/core/services/binary/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/process_runner.dart';
 
 class _FakeBinaryLocator extends BinaryLocator {
   @override

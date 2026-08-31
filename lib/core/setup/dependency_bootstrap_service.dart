@@ -4,8 +4,8 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import '../logger/logger_service.dart';
-import '../../services/binary_locator.dart';
-import '../../services/process_runner.dart';
+import '../services/binary/binary_locator.dart';
+import '../services/binary/process_runner.dart';
 import 'dependency_catalog.dart';
 import 'zip_binary_extractor.dart';
 
@@ -325,9 +325,9 @@ class DependencyBootstrapService {
           ),
         );
         final bytes = await downloadFile.readAsBytes();
-        final extracted = ZipBinaryExtractor.extractExecutables(
-          bytes,
-          pkg.executableNames.toSet(),
+        final wanted = pkg.executableNames.toSet();
+        final extracted = await Isolate.run(
+          () => ZipBinaryExtractor.extractExecutables(bytes, wanted),
         );
         for (final name in pkg.executableNames) {
           final payload = extracted[name.toLowerCase()];

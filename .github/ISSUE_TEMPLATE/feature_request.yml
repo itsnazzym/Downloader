@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest an enhancement for the Windows app or browser extensions
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the outcome you want. This project is **Windows-first** (Flutter desktop + Chrome/Firefox MV3 extensions).
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Downloads / engines (yt-dlp, gallery-dl, aria2c, FFmpeg)
+        - UI / settings / i18n
+        - Browser extension
+        - X Feed / gobird
+        - Installer / CI / docs
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is hard or missing today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

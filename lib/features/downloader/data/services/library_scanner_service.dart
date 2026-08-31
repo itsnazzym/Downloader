@@ -12,7 +12,7 @@ import 'package:modern_downloader/features/downloader/domain/enums/download_stat
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/services/metadata_extractor_service.dart';
 import 'package:modern_downloader/core/services/thumbnail_service.dart';
-import 'package:modern_downloader/services/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 
 class LibraryScannerService {
   final BinaryLocator _binaryLocator;
@@ -37,7 +37,11 @@ class LibraryScannerService {
     await _buildVideoCache(basePath);
     var generatedThumbs = 0;
 
-    for (final item in items) {
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      if (i > 0 && i % 30 == 0) {
+        await Future<void>.delayed(Duration.zero);
+      }
       if (item.status == DownloadStatus.downloading ||
           item.status == DownloadStatus.extracting) {
         fixedItems.add(item);
@@ -532,11 +536,45 @@ class LibraryScannerService {
       final dotIndex = videoPath.lastIndexOf('.');
       if (dotIndex == -1) return null;
       final basePath = videoPath.substring(0, dotIndex);
+      final videoFile = File(videoPath);
+      final videoDir = videoFile.parent;
+      final videoName = videoFile.uri.pathSegments.isNotEmpty
+          ? videoFile.uri.pathSegments.last.replaceAll(RegExp(r'\.[^.]+$'), '')
+          : videoPath.split(RegExp(r'[/\\]')).last.replaceAll(RegExp(r'\.[^.]+$'), '');
 
-      final exts = ['.jpg', '.webp', '.png'];
+      final exts = ['.jpg', '.jpeg', '.webp', '.png'];
+      // 1. Check sidecar next to video
       for (final ext in exts) {
         final path = '$basePath$ext';
         if (File(path).existsSync()) return path;
+      }
+
+      // 2. Check Thumbnails subfolders
+      final candidateDirs = <Directory>[
+        Directory('${videoDir.path}/Thumbnails'),
+        Directory('${videoDir.parent.path}/Thumbnails'),
+      ];
+
+      for (final thumbDir in candidateDirs) {
+        if (!thumbDir.existsSync()) continue;
+        for (final ext in exts) {
+          final directPath = '${thumbDir.path}/$videoName$ext';
+          if (File(directPath).existsSync()) return directPath;
+        }
+
+        // 3. Bracket ID matching in Thumbnails/
+        final videoId = DownloadFileResolver.extractBracketId(videoPath);
+        if (videoId != null && videoId.isNotEmpty) {
+          final needle = '[$videoId]'.toLowerCase();
+          try {
+            for (final entity in thumbDir.listSync()) {
+              if (entity is File &&
+                  entity.path.toLowerCase().contains(needle)) {
+                return entity.path;
+              }
+            }
+          } catch (_) {}
+        }
       }
     } catch (_) {}
     return null;

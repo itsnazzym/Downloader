@@ -7,6 +7,8 @@ class MediaSourceResolver {
 
   static const Set<String> knownFolders = {
     'twitter',
+    'x',
+    'twimg',
     'youtube',
     'instagram',
     'tiktok',
@@ -27,6 +29,8 @@ class MediaSourceResolver {
     'youtube': 'YouTube',
     'youtu': 'YouTube',
     'twitter': 'Twitter',
+    'x': 'Twitter',
+    'twimg': 'Twitter',
     'instagram': 'Instagram',
     'tiktok': 'TikTok',
     'twitch': 'Twitch',

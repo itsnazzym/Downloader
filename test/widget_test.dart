@@ -38,6 +38,8 @@ class MockLocalServerService extends LocalServerService {
 
 class MockDownloaderRepository implements IDownloaderRepository {
   @override
+  Future<void> get initialized => Future.value();
+  @override
   Future<void> cancelDownload(String id) async {}
   @override
   Future<void> clearHistory() async {}

@@ -25,8 +25,8 @@ import '../../../../core/plugins/plugin_interface.dart';
 import '../../../../core/download/download_crash_recovery.dart';
 import '../../../../core/download/download_path_resolver.dart';
 import '../../../../core/download/download_status_guard.dart';
-import '../../../../core/download/temp_file_cleanup.dart';
 import '../../../../core/download/download_file_resolver.dart';
+import '../../../../core/download/download_file_cleanup.dart';
 import '../../../../core/download/extraction_placeholders.dart';
 import '../../../../core/download/metadata_probe_limiter.dart';
 import '../../../../core/download/x_download_url.dart';
@@ -47,8 +47,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final _controller = StreamController<DownloadItem>.broadcast();
   final _activeDownloads = <String, DownloadItem>{};
   final _fingerprintedFinalPaths = <String>{};
+  final _initialDataCompleter = Completer<void>();
   Timer? _saveTimer;
   bool _xTitleRepairRunning = false;
+
+  @override
+  Future<void> get initialized => _initialDataCompleter.future;
 
   DownloaderRepositoryImpl(
     this._source,
@@ -76,21 +80,16 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       final didRecover = recovered.asMap().entries.any(
         (entry) => entry.value.status != loaded[entry.key].status,
       );
-      List<DownloadItem> initialList = [];
-
       for (final item in recovered) {
-        if (_activeDownloads.containsKey(item.id)) continue;
-        initialList.add(item);
-      }
-
-      for (final item in initialList) {
         _activeDownloads[item.id] = item;
-        _controller.add(item);
       }
       if (didRecover) {
         await _persistenceService.saveDownloads(
           _activeDownloads.values.toList(),
         );
+      }
+      if (!_initialDataCompleter.isCompleted) {
+        _initialDataCompleter.complete();
       }
 
       if (waitForLibraryScan != null) {
@@ -114,8 +113,15 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         downloadPath,
       );
       for (final item in fixedItems) {
-        _activeDownloads[item.id] = item;
-        _controller.add(item);
+        final existing = _activeDownloads[item.id];
+        if (existing == null ||
+            existing.status != item.status ||
+            existing.filePath != item.filePath ||
+            existing.thumbnailUrl != item.thumbnailUrl ||
+            existing.title != item.title) {
+          _activeDownloads[item.id] = item;
+          _controller.add(item);
+        }
       }
 
       await _scanLibrary(downloadPath);
@@ -123,6 +129,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       unawaited(_repairBrokenXLibraryTitles());
     } catch (e) {
       LoggerService.e('Failed to load initial download data', e);
+    } finally {
+      if (!_initialDataCompleter.isCompleted) {
+        _initialDataCompleter.complete();
+      }
     }
   }
 
@@ -324,7 +334,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     );
     _update(item);
 
-    _startDownloadProcess(id, effectiveRequest);
+    unawaited(_startDownloadProcess(id, effectiveRequest));
     return id;
   }
 
@@ -368,7 +378,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           try {
             // 2. Pre-flight Check: Disk Space
             if (retryCount == 0) {
-              await DiskSpaceService.checkDiskSpace();
+              await DiskSpaceService.checkDiskSpace(
+                currentRequest.outputFolder ?? _outputFolderGetter(),
+              );
             }
 
             // 3. Status Update
@@ -662,8 +674,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             final isDuplicate = await _deduplicateFinalFile(id);
             if (!isDuplicate &&
                 _activeDownloads[id]?.status == DownloadStatus.completed) {
-              NotificationService().showDownloadComplete(
-                _activeDownloads[id]!.title ?? 'Download Complete',
+              unawaited(
+                NotificationService().showDownloadComplete(
+                  _activeDownloads[id]!.title ?? 'Download Complete',
+                ),
               );
             }
 
@@ -710,11 +724,13 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 : e.toString(),
           ),
         );
-        NotificationService().showDownloadFailed(
-          _activeDownloads[id]?.title ?? 'Download Failed',
-          DownloadStatusGuard.isNonRetryableProxyError(e)
-              ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
-              : e.toString(),
+        unawaited(
+          NotificationService().showDownloadFailed(
+            _activeDownloads[id]?.title ?? 'Download Failed',
+            DownloadStatusGuard.isNonRetryableProxyError(e)
+                ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
+                : e.toString(),
+          ),
         );
       } finally {
         if (tempCookiesFile?.existsSync() ?? false) {
@@ -723,7 +739,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       }
     }
 
-    run();
+    unawaited(run());
   }
 
   Future<void> _tryGalleryDlFallback(String id, DownloadRequest request) async {
@@ -787,62 +803,13 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
   @override
   Future<void> deleteDownload(String id) async {
-    // 1. Cancel active process if running
     await _source.cancel(id);
 
-    // 2. Locate the item to find its file path
     final item = _activeDownloads[id];
     if (item != null && item.filePath != null) {
-      try {
-        final file = File(item.filePath!);
-
-        // Delete main file
-        if (await file.exists()) {
-          await file.delete();
-          LoggerService.i('Deleted file: ${item.filePath}');
-        }
-
-        // Delete sidecar thumbnails (.jpg, .webp, .png next to video)
-        final dotIndex = item.filePath!.lastIndexOf('.');
-        if (dotIndex != -1) {
-          final basePath = item.filePath!.substring(0, dotIndex);
-          for (final ext in ['.jpg', '.webp', '.png']) {
-            try {
-              final thumbFile = File('$basePath$ext');
-              if (await thumbFile.exists()) {
-                await thumbFile.delete();
-                LoggerService.i('Deleted thumbnail: $basePath$ext');
-              }
-            } catch (_) {}
-          }
-        }
-
-        // 3. Cleanup temporary files (.part, .ytdl, etc.)
-        final directory = file.parent;
-        if (await directory.exists()) {
-          final filename = file.uri.pathSegments.last.replaceAll(
-            RegExp(r'\.\w+$'),
-            '',
-          );
-          await for (final entity in directory.list()) {
-            if (entity is File) {
-              final name = entity.uri.pathSegments.last;
-              if (name.contains(filename) &&
-                  TempFileCleanup.isFragmentOrTemp(name)) {
-                try {
-                  await entity.delete();
-                  LoggerService.debug('Cleaned up temp file: $name');
-                } catch (_) {}
-              }
-            }
-          }
-        }
-      } catch (e) {
-        LoggerService.w('Failed to delete files for $id: $e');
-      }
+      await DownloadFileCleanup.deleteMediaAndSidecars(item.filePath!);
     }
 
-    // 4. Remove from state and persistence
     _activeDownloads.remove(id);
     if (item != null) {
       _controller.add(item.copyWith(status: DownloadStatus.canceled));
@@ -877,7 +844,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       return;
     }
     _update(current.copyWith(status: DownloadStatus.extracting, error: null));
-    _startDownloadProcess(id, current.request);
+    unawaited(_startDownloadProcess(id, current.request));
   }
 
   void _update(DownloadItem item) {
@@ -889,7 +856,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   void _saveToDisk() {
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 500), () {
-      _persistenceService.saveDownloads(_activeDownloads.values.toList());
+      unawaited(
+        _persistenceService.saveDownloads(_activeDownloads.values.toList()),
+      );
     });
   }
 

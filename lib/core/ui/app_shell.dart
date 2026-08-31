@@ -193,8 +193,8 @@ class AppTitleBar extends StatelessWidget {
               children: [
                 _WindowButton(
                   color: const Color(0xFFFFBD2E),
-                  onTap: () {
-                    windowManager.minimize();
+                  onTap: () async {
+                    await windowManager.minimize();
                   },
                   icon: Icons.minimize,
                 ),
@@ -203,9 +203,9 @@ class AppTitleBar extends StatelessWidget {
                   color: const Color(0xFF28C940),
                   onTap: () async {
                     if (await windowManager.isMaximized()) {
-                      windowManager.unmaximize();
+                      await windowManager.unmaximize();
                     } else {
-                      windowManager.maximize();
+                      await windowManager.maximize();
                     }
                   },
                   icon: Icons.crop_square,
@@ -213,8 +213,8 @@ class AppTitleBar extends StatelessWidget {
                 const SizedBox(width: 8),
                 _WindowButton(
                   color: const Color(0xFFFF5F57),
-                  onTap: () {
-                    windowManager.close();
+                  onTap: () async {
+                    await windowManager.close();
                   },
                   icon: Icons.close,
                 ),

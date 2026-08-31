@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:modern_downloader/core/download/temp_file_cleanup.dart';
+import 'package:modern_downloader/core/logger/logger_service.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 
 /// Resolves the real on-disk video file after yt-dlp finishes.
@@ -131,7 +132,8 @@ class DownloadFileResolver {
         if (!exists(entity.path)) continue;
         matches.add(entity);
       }
-    } catch (_) {
+    } catch (e) {
+      LoggerService.debug('findByVideoId directory listing failed: $e');
       return null;
     }
 
@@ -143,7 +145,8 @@ class DownloadFileResolver {
       if (aPref != bPref) return aPref.compareTo(bPref);
       try {
         return b.statSync().modified.compareTo(a.statSync().modified);
-      } catch (_) {
+      } catch (e) {
+        LoggerService.debug('findByVideoId stat failed: $e');
         return 0;
       }
     });
@@ -218,7 +221,9 @@ class DownloadFileResolver {
           existsSync: exists,
         );
         if (byId != null && isMediaPath(byId)) return byId;
-      } catch (_) {}
+      } catch (e) {
+        LoggerService.debug('resolvePlayablePath parent lookup failed: $e');
+      }
     }
 
     return null;
@@ -246,7 +251,9 @@ class DownloadFileResolver {
       if (long != null && long != path && File(long).existsSync()) {
         return true;
       }
-    } catch (_) {}
+    } catch (e) {
+      LoggerService.debug('exists check failed for $path: $e');
+    }
     return false;
   }
 
@@ -316,7 +323,8 @@ class DownloadFileResolver {
       final bytes = file.lengthSync();
       if (bytes <= 0) return null;
       return FormatUtils.formatBytes(bytes);
-    } catch (_) {
+    } catch (e) {
+      LoggerService.debug('formattedFileSize failed for $path: $e');
       return null;
     }
   }
@@ -336,7 +344,9 @@ class DownloadFileResolver {
       try {
         final parent = File(normalizePath(candidatePath)).parent.path;
         if (parent.isNotEmpty) return parent;
-      } catch (_) {}
+      } catch (e) {
+        LoggerService.debug('searchDirectory parent failed: $e');
+      }
     }
     if (outputFolder != null && outputFolder.trim().isNotEmpty) {
       return outputFolder.trim();

@@ -1,0 +1,73 @@
+name: Bug report
+description: Crash, failed download, or extension / installer problem
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Include enough detail to reproduce on **Windows**. Do not paste API tokens, `.env` contents, or AMO JWT secrets.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Windows app
+        - Chrome / Edge / Brave extension
+        - Firefox extension
+        - Installer / portable ZIP
+        - CI / build
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+      description: From Settings or the GitHub release tag (e.g. 1.0.6).
+      placeholder: "1.0.6"
+    validations:
+      required: true
+
+  - type: input
+    id: windows_version
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: App log output, extension popup status, or a screenshot. Redact tokens.
+    validations:
+      required: false

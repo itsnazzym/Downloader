@@ -22,7 +22,11 @@
 
   var ADULT_ORIGINS = ['*://*.pornhub.com/*'];
 
-  var STATUS_LABELS = [
+  var STATUS_KEYS = [
+    'statusQueued', 'statusExtracting', 'statusDownloading', 'statusProcessing',
+    'statusCompleted', 'statusFailed', 'statusCanceled', 'statusPaused', 'statusDuplicate',
+  ];
+  var STATUS_FALLBACKS = [
     'Queued', 'Extracting', 'Downloading', 'Processing',
     'Completed', 'Failed', 'Canceled', 'Paused', 'Duplicate',
   ];
@@ -37,12 +41,27 @@
     return fallback;
   }
 
+  function applyDocumentLang() {
+    try {
+      var uiLang = api.i18n && api.i18n.getUILanguage ? api.i18n.getUILanguage() : '';
+      if (uiLang) {
+        document.documentElement.lang = String(uiLang).split(/[-_]/)[0];
+      }
+    } catch (e) { /* keep existing html lang */ }
+  }
+
   function applyI18n() {
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       var msg = t(key, el.textContent);
       if (msg) el.textContent = msg;
     });
+  }
+
+  function statusLabel(index) {
+    var key = STATUS_KEYS[index];
+    var fallback = STATUS_FALLBACKS[index] || t('statusProcessing', 'Processing');
+    return key ? t(key, fallback) : fallback;
   }
 
   function setConnectionUi(connected, detail) {
@@ -74,6 +93,7 @@
     });
   }
 
+  applyDocumentLang();
   applyI18n();
   updateStatus();
   setInterval(updateStatus, 2000);
@@ -171,7 +191,7 @@
       var div = document.createElement('div');
       div.className = 'download-item';
 
-      var statusTextLabel = STATUS_LABELS[item.status] || 'Processing';
+      var statusTextLabel = statusLabel(item.status);
       var progressPct = ((item.progress || 0) * 100).toFixed(1);
       var title = item.title || item.url || 'Downloading...';
 

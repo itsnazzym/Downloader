@@ -4,8 +4,8 @@ import 'dart:io';
 import '../../domain/entities/download_request.dart';
 import '../../domain/exceptions/yt_dlp_exception.dart';
 import '../../../../../core/logger/logger_service.dart';
-import '../../../../../services/binary_locator.dart';
-import '../../../../../services/process_runner.dart';
+import '../../../../../core/services/binary/binary_locator.dart';
+import '../../../../../core/services/binary/process_runner.dart';
 import '../../../../../core/download/cookie_browser_args.dart';
 import '../../../../../core/download/temp_file_cleanup.dart';
 import '../../../../../core/download/download_file_resolver.dart';
@@ -148,7 +148,9 @@ class YtDlpSource {
         if (tempNetscapeFile != null && await tempNetscapeFile.exists()) {
           await tempNetscapeFile.delete();
         }
-      } catch (_) {}
+      } catch (e) {
+        LoggerService.w('Failed to delete temp Netscape cookies file: $e');
+      }
     }
   }
 
@@ -666,14 +668,16 @@ class YtDlpSource {
       );
 
       if (currentFilePath != null) {
-        _cleanupTempFiles(currentFilePath);
+        unawaited(_cleanupTempFiles(currentFilePath));
       }
     } finally {
       try {
         if (tempNetscapeCookies != null && await tempNetscapeCookies.exists()) {
           await tempNetscapeCookies.delete();
         }
-      } catch (_) {}
+      } catch (e) {
+        LoggerService.w('Failed to delete temp Netscape cookies file: $e');
+      }
     }
   }
 
@@ -750,7 +754,9 @@ class YtDlpSource {
         domain = parts[parts.length - 2];
         return domain[0].toUpperCase() + domain.substring(1);
       }
-    } catch (_) {}
+    } catch (e) {
+      LoggerService.debug('Failed to extract site name from URL: $e');
+    }
     return 'Other';
   }
 }

@@ -6,7 +6,7 @@
   "default_locale": "en",
   "description": "__MSG_extDescription__",
   "minimum_chrome_version": "116",
-  "homepage_url": "https://github.com/Mizaruta/Downloader",
+  "homepage_url": "https://github.com/itsnazzym/Downloader",
   "author": "Modern Downloader",
   "permissions": [
     "activeTab",

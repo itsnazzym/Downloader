@@ -14,8 +14,8 @@ import '../../../../features/downloader/presentation/providers/downloader_provid
 import '../../design_system/components/app_toast.dart';
 import '../settings_view.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/services/binary_locator.dart';
-import 'package:modern_downloader/services/binary_verifier.dart';
+import 'package:modern_downloader/core/services/binary/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
 
 class AdvancedSettingsView extends ConsumerStatefulWidget {
   const AdvancedSettingsView({super.key});

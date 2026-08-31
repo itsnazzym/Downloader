@@ -7,7 +7,7 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../design_system/components/app_toast.dart';
-import '../../../services/binary_verifier.dart';
+import '../../services/binary/binary_verifier.dart';
 import '../../services/file_organization_service.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart';
@@ -80,7 +80,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
         });
 
         // Show result dialog
-        showDialog(
+        await showDialog(
           context: context,
           builder: (c) => AlertDialog(
             title: Text(c.l10n.organizationComplete),

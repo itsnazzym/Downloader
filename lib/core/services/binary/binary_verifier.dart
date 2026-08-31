@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../core/logger/logger_service.dart';
+import '../../logger/logger_service.dart';
 import 'binary_locator.dart';
 
 class BinaryVerifier {

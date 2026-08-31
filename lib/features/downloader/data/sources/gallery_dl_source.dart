@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import '../../domain/entities/download_request.dart';
 import '../../../../../core/logger/logger_service.dart';
-import '../../../../../services/binary_locator.dart';
+import '../../../../../core/services/binary/binary_locator.dart';
 import '../../../../../core/download/cookie_browser_args.dart';
 
 /// Source for downloading via gallery-dl CLI

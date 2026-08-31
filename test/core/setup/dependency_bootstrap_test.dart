@@ -7,7 +7,7 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/setup/dependency_bootstrap_service.dart';
 import 'package:modern_downloader/core/setup/dependency_catalog.dart';
 import 'package:modern_downloader/core/setup/zip_binary_extractor.dart';
-import 'package:modern_downloader/services/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 
 void main() {
   group('DependencyCatalog', () {

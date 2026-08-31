@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:local_notifier/local_notifier.dart';
+import 'package:modern_downloader/l10n/app_localizations.dart';
 import '../logger/logger_service.dart';
 import '../providers/settings_provider.dart';
 
@@ -10,6 +12,15 @@ class NotificationService {
   }
 
   NotificationService._internal();
+
+  AppLocalizations _l10n() {
+    try {
+      final code = prefs.getString('locale') ?? 'en';
+      return lookupAppLocalizations(Locale(code));
+    } catch (_) {
+      return lookupAppLocalizations(const Locale('en'));
+    }
+  }
 
   Future<void> init() async {
     try {
@@ -25,43 +36,56 @@ class NotificationService {
   }
 
   Future<void> showDownloadComplete(String title) async {
-    _show(title: 'Download Completed', body: title);
+    await _show(title: _l10n().notificationDownloadCompleted, body: title);
   }
 
   Future<void> showDownloadFailed(String title, String error) async {
-    _show(title: 'Download Failed', body: '$title\n$error');
+    await _show(title: _l10n().notificationDownloadFailed, body: '$title\n$error');
   }
 
   Future<void> showClipboardDetected(String url) async {
-    _show(title: 'Link Detected', body: 'Click to download: $url');
+    final l10n = _l10n();
+    await _show(
+      title: l10n.notificationLinkDetected,
+      body: l10n.notificationLinkDetectedBody(url),
+    );
   }
 
   Future<void> showLinksQueued(int count) async {
     if (count < 1) return;
-    final noun = count == 1 ? 'link' : 'links';
-    _show(title: 'Links queued', body: '$count $noun queued');
+    final l10n = _l10n();
+    await _show(
+      title: l10n.notificationLinksQueuedTitle,
+      body: l10n.notificationLinksQueuedBody(count),
+    );
   }
 
   Future<void> showExtensionConnected() async {
-    _show(
-      title: 'Extension Connected',
-      body: 'Browser extension successfully connected.',
+    final l10n = _l10n();
+    await _show(
+      title: l10n.notificationExtensionConnected,
+      body: l10n.notificationExtensionConnectedBody,
     );
   }
 
   Future<void> showBatchComplete(int count, String totalSize) async {
-    _show(
-      title: 'Batch Download Complete',
-      body: '$count downloads finished — $totalSize total',
+    final l10n = _l10n();
+    await _show(
+      title: l10n.notificationBatchComplete,
+      body: l10n.notificationBatchCompleteBody(count, totalSize),
     );
   }
 
   Future<void> showUpdateAvailable(String version) async {
-    _show(title: 'yt-dlp Updated', body: 'Updated to $version');
+    final l10n = _l10n();
+    await _show(
+      title: l10n.notificationYtDlpUpdated,
+      body: l10n.notificationYtDlpUpdatedBody(version),
+    );
   }
 
   Future<void> showError(String title, String details) async {
-    _show(title: title, body: details);
+    await _show(title: title, body: details);
   }
 
   Future<void> _show({required String title, required String body}) async {

@@ -1,23 +1,24 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/core/download/x_download_url.dart';
 import 'package:modern_downloader/core/download/extension_download_batcher.dart';
 import 'package:modern_downloader/core/download/progress_throttle.dart';
 import '../logger/logger_service.dart';
 import 'heartbeat_cookie_locator.dart';
 import '../services/notification_service.dart';
 import '../security/local_server_auth.dart';
+import '../security/local_server_download_intake.dart';
 import '../../features/x_feed/gobird_x_feed_service.dart';
 import '../../features/x_feed/library_keys_snapshot.dart';
 import '../../features/x_feed/x_feed_ws_contract.dart';
-import '../../services/binary_locator.dart';
+import 'binary/binary_locator.dart';
 
 final localServerServiceProvider = Provider<LocalServerService>((ref) {
   return LocalServerService(ref);
@@ -34,11 +35,17 @@ class LocalServerService {
   /// HELLO must arrive within this window or the socket is closed.
   static const Duration helloTimeout = Duration(seconds: 2);
 
-  LocalServerService(this._ref, {GobirdXFeedService? gobirdFeedService})
-    : _gobirdFeedService =
-          gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator()) {
+  @visibleForTesting
+  int? get boundPort => _server?.port;
+
+  LocalServerService(
+    this._ref, {
+    GobirdXFeedService? gobirdFeedService,
+    void Function(List<ExtensionDownloadIngest> batch)? onExtensionFlush,
+  }) : _gobirdFeedService =
+           gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator()) {
     _downloadBatcher = ExtensionDownloadBatcher(
-      onFlush: _flushExtensionDownloads,
+      onFlush: onExtensionFlush ?? _flushExtensionDownloads,
     );
   }
 
@@ -67,7 +74,7 @@ class LocalServerService {
 ''');
 
       _server!.listen((HttpRequest request) {
-        _handleRequest(request);
+        unawaited(_handleRequest(request));
       });
     } catch (e) {
       LoggerService.e('Failed to start Local Server on port $port', e);
@@ -82,7 +89,7 @@ class LocalServerService {
       LoggerService.w('Failed to flush extension download batch: $e');
     }
     for (final client in _clients) {
-      client.close();
+      unawaited(client.close());
     }
     _clients.clear();
     await _server?.close();
@@ -121,7 +128,7 @@ class LocalServerService {
   void _acceptClient(WebSocket socket) {
     if (_clients.contains(socket)) return;
     _clients.add(socket);
-    NotificationService().showExtensionConnected();
+    unawaited(NotificationService().showExtensionConnected());
   }
 
   void _handleWebSocket(WebSocket socket, HttpRequest request) {
@@ -140,8 +147,10 @@ class LocalServerService {
           socket.add(
             jsonEncode({'type': 'AUTH_FAILED', 'reason': 'hello_timeout'}),
           );
-        } catch (_) {}
-        socket.close();
+        } catch (e) {
+          LoggerService.w('Failed to send HELLO timeout AUTH_FAILED: $e');
+        }
+        unawaited(socket.close());
       }
     });
 
@@ -163,7 +172,7 @@ class LocalServerService {
             } else {
               helloTimer?.cancel();
               socket.add(jsonEncode({'type': 'AUTH_FAILED'}));
-              socket.close();
+              unawaited(socket.close());
             }
             return;
           }
@@ -209,7 +218,7 @@ class LocalServerService {
               );
             }
           } else if (type == 'HEARTBEAT_COOKIES') {
-            _handleHeartbeatCookies(data);
+            unawaited(_handleHeartbeatCookies(data));
           } else if (type == LibraryKeysSnapshot.requestType) {
             _sendLibraryKeys(socket);
           } else if (type == XFeedWsContract.requestType) {
@@ -392,87 +401,22 @@ class LocalServerService {
 
   /// Returns an error code, or null when the download was accepted.
   String? _processDownloadPayload(Map<String, dynamic> data) {
-    final url = data['url'] as String?;
-    final cookies = data['cookies'] as String?;
-    final userAgent = data['userAgent'] as String?;
-
-    final isAudioOnly = data['isAudioOnly'] as bool?;
-    final isPlaylist = data['isPlaylist'] as bool?;
-    final cookieBrowser = data['cookieBrowser'] as String?;
-    final preferredQuality = data['preferredQuality'] as String?;
-
-    if (url == null || url.isEmpty) return 'invalid_url';
-
-    // Only accept http(s) download targets from the extension.
-    final uri = Uri.tryParse(url);
-    if (uri == null ||
-        (uri.scheme != 'http' && uri.scheme != 'https') ||
-        uri.host.isEmpty) {
-      LoggerService.w('Rejected non-http(s) download URL from extension');
-      return 'invalid_url';
-    }
-
-    late final String downloadUrl;
-    try {
-      final referrerRaw = data['referrer'];
-      final referrer = referrerRaw is String ? referrerRaw : null;
-      final resolved = XDownloadUrl.resolveForDownload(url, referrer);
-      if (resolved == null) {
-        LoggerService.w(
-          'Rejected X CDN download without a tweet permalink: $url',
-        );
-        return 'need_tweet_url';
-      }
-      final canonicalUri = Uri.tryParse(resolved);
-      if (canonicalUri == null ||
-          (canonicalUri.scheme != 'http' && canonicalUri.scheme != 'https') ||
-          canonicalUri.host.isEmpty) {
-        LoggerService.w('Resolved download URL was not http(s)');
-        return 'invalid_url';
-      }
-      downloadUrl = resolved;
-    } catch (e) {
-      LoggerService.w('Failed to resolve download URL: $e');
-      return 'invalid_url';
-    }
-
-    LoggerService.i('📥 Received download request: $downloadUrl');
-    if (cookies != null) {
-      LoggerService.debug('With Cookies: ${cookies.length} chars');
-    }
-
-    if (isPlaylist == true) {
-      LoggerService.i('Playlist Mode Detected');
-    }
-
-    if (userAgent != null) {
-      LoggerService.debug('With UA length: ${userAgent.length}');
-    }
-
-    _downloadBatcher.add(
-      ExtensionDownloadIngest(
-        url: downloadUrl,
-        cookies: cookies,
-        userAgent: userAgent,
-        isAudioOnly: isAudioOnly ?? false,
-        isPlaylist: isPlaylist ?? false,
-        cookieBrowser: cookieBrowser,
-        preferredQuality: preferredQuality,
-      ),
-    );
+    final result = LocalServerDownloadIntake.parse(data);
+    if (!result.isOk) return result.errorCode;
+    _downloadBatcher.add(result.ingest!);
     return null;
   }
 
   void _flushExtensionDownloads(List<ExtensionDownloadIngest> batch) {
     if (batch.isEmpty) return;
     try {
-      windowManager.show();
-      windowManager.focus();
+      unawaited(windowManager.show());
+      unawaited(windowManager.focus());
     } catch (e) {
       LoggerService.w('Failed to show/focus window for extension batch: $e');
     }
     try {
-      NotificationService().showLinksQueued(batch.length);
+      unawaited(NotificationService().showLinksQueued(batch.length));
     } catch (e) {
       LoggerService.w('Failed to show batch queued notification: $e');
     }

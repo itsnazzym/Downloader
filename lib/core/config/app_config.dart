@@ -1,6 +1,6 @@
 class AppConfig {
   static const String appName = 'Modern Downloader';
-  static const String version = '1.0.3';
+  static const String version = '1.0.6';
 
   // Window Sizes
   static const double minWindowWidth = 800;

@@ -5,7 +5,7 @@ import 'package:modern_downloader/features/downloader/data/services/library_scan
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/services/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 
 void main() {
   group('LibraryScannerService path recovery', () {

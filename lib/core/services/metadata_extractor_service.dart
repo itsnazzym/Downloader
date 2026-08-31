@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import '../../services/binary_locator.dart';
+import 'binary/binary_locator.dart';
 import '../logger/logger_service.dart';
 
 class VideoMetadata {

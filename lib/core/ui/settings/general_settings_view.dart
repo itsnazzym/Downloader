@@ -100,6 +100,7 @@ class GeneralSettingsView extends ConsumerWidget {
                           title: l10n.preferredQuality,
                           value: settings.preferredQuality,
                           options: const ["best", "manual", "manual+"],
+                          optionLabels: qualityOptionLabels(l10n),
                           onChanged: settingsNotifier.setPreferredQuality,
                           icon: Icons.high_quality,
                         ),

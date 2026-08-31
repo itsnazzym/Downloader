@@ -669,7 +669,7 @@
       toggle = document.createElement('button');
       toggle.className = 'toggle';
       toggle.type = 'button';
-      toggle.setAttribute('aria-label', 'Quality');
+      toggle.setAttribute('aria-label', t('quality', 'Quality'));
       toggle.textContent = '▾';
       wrap.appendChild(toggle);
 
@@ -678,10 +678,10 @@
       wrap.appendChild(menu);
 
       [
-        { label: 'Best Quality', val: 'best' },
+        { label: t('qualityBest', 'Best Quality'), val: 'best' },
         { label: '1080p', val: '1080p' },
         { label: '720p', val: '720p' },
-        { label: 'Audio Only', val: 'audio' },
+        { label: t('qualityAudioOnly', 'Audio Only'), val: 'audio' },
       ].forEach(function (opt) {
         var item = document.createElement('div');
         item.className = 'item';
@@ -690,7 +690,7 @@
           e.stopPropagation();
           if (markedDownloaded) return;
           selectedQuality = opt.val;
-          btn.textContent = opt.val === 'audio' ? 'Audio' : opt.label;
+          btn.textContent = opt.val === 'audio' ? t('qualityAudio', 'Audio') : opt.label;
           menu.classList.remove('open');
         });
         menu.appendChild(item);
@@ -724,10 +724,10 @@
         }
         var err = (result && result.error) || 'failed';
         btn.textContent = err === 'app_offline'
-          ? 'Offline'
+          ? t('offline', 'Offline')
           : err === 'need_tweet_url'
-            ? 'Need tweet'
-            : 'Failed';
+            ? t('needTweet', 'Need tweet')
+            : t('failed', 'Failed');
         btn.classList.add('err');
         if (toggle) toggle.classList.add('err');
         setTimeout(function () {

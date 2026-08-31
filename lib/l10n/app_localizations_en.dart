@@ -1111,4 +1111,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String duplicatesSkipped(int count) {
     return '$count duplicates skipped';
   }
+
+  @override
+  String get trayShow => 'Show';
+
+  @override
+  String get trayExit => 'Exit';
+
+  @override
+  String get needTweetLink => 'Need tweet link';
+
+  @override
+  String get openFullscreen => 'Open fullscreen';
+
+  @override
+  String get previewUnavailable => 'Preview unavailable';
+
+  @override
+  String get sourceYouTube => 'YouTube';
+
+  @override
+  String get sourceInstagram => 'Instagram';
+
+  @override
+  String get sourceTwitter => 'Twitter';
+
+  @override
+  String get sourceTwitch => 'Twitch';
+
+  @override
+  String get sourceKick => 'Kick';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageArabic => 'العربية';
+
+  @override
+  String get qualityManual => 'Manual';
+
+  @override
+  String get qualityManualPlus => 'Manual+';
+
+  @override
+  String get notificationDownloadCompleted => 'Download Completed';
+
+  @override
+  String get notificationDownloadFailed => 'Download Failed';
+
+  @override
+  String get notificationLinkDetected => 'Link Detected';
+
+  @override
+  String notificationLinkDetectedBody(String url) {
+    return 'Click to download: $url';
+  }
+
+  @override
+  String get notificationLinksQueuedTitle => 'Links queued';
+
+  @override
+  String notificationLinksQueuedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count links queued',
+      one: '$count link queued',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationExtensionConnected => 'Extension Connected';
+
+  @override
+  String get notificationExtensionConnectedBody =>
+      'Browser extension successfully connected.';
+
+  @override
+  String get notificationBatchComplete => 'Batch Download Complete';
+
+  @override
+  String notificationBatchCompleteBody(int count, String totalSize) {
+    return '$count downloads finished — $totalSize total';
+  }
+
+  @override
+  String get notificationYtDlpUpdated => 'yt-dlp Updated';
+
+  @override
+  String notificationYtDlpUpdatedBody(String version) {
+    return 'Updated to $version';
+  }
 }

@@ -1104,4 +1104,100 @@ class AppLocalizationsAr extends AppLocalizations {
   String duplicatesSkipped(int count) {
     return 'تم تخطي $count من العناصر المكررة';
   }
+
+  @override
+  String get trayShow => 'إظهار';
+
+  @override
+  String get trayExit => 'خروج';
+
+  @override
+  String get needTweetLink => 'يلزم رابط التغريدة';
+
+  @override
+  String get openFullscreen => 'فتح بملء الشاشة';
+
+  @override
+  String get previewUnavailable => 'المعاينة غير متاحة';
+
+  @override
+  String get sourceYouTube => 'YouTube';
+
+  @override
+  String get sourceInstagram => 'Instagram';
+
+  @override
+  String get sourceTwitter => 'Twitter';
+
+  @override
+  String get sourceTwitch => 'Twitch';
+
+  @override
+  String get sourceKick => 'Kick';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageArabic => 'العربية';
+
+  @override
+  String get qualityManual => 'يدوي';
+
+  @override
+  String get qualityManualPlus => 'يدوي+';
+
+  @override
+  String get notificationDownloadCompleted => 'اكتمل التنزيل';
+
+  @override
+  String get notificationDownloadFailed => 'فشل التنزيل';
+
+  @override
+  String get notificationLinkDetected => 'تم اكتشاف رابط';
+
+  @override
+  String notificationLinkDetectedBody(String url) {
+    return 'انقر للتنزيل: $url';
+  }
+
+  @override
+  String get notificationLinksQueuedTitle => 'روابط في قائمة الانتظار';
+
+  @override
+  String notificationLinksQueuedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count روابط في قائمة الانتظار',
+      one: 'رابط واحد في قائمة الانتظار',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationExtensionConnected => 'تم توصيل الإضافة';
+
+  @override
+  String get notificationExtensionConnectedBody =>
+      'تم توصيل إضافة المتصفح بنجاح.';
+
+  @override
+  String get notificationBatchComplete => 'اكتمل التنزيل المجمع';
+
+  @override
+  String notificationBatchCompleteBody(int count, String totalSize) {
+    return 'اكتمل $count من التنزيلات — $totalSize إجماليًا';
+  }
+
+  @override
+  String get notificationYtDlpUpdated => 'تم تحديث yt-dlp';
+
+  @override
+  String notificationYtDlpUpdatedBody(String version) {
+    return 'تم التحديث إلى $version';
+  }
 }

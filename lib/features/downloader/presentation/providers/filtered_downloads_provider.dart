@@ -1,8 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+
+/// Compares formatted size strings (`"10 MB"` vs `"2 GB"`) by parsed bytes.
+int compareDownloadSize(DownloadItem a, DownloadItem b) {
+  return FormatUtils.parseBytes(
+    a.totalSize,
+  ).compareTo(FormatUtils.parseBytes(b.totalSize));
+}
 
 // --- Filter State Definitions ---
 
@@ -116,18 +124,17 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
           case DownloadSort.dateAsc:
             return a.sortOrder.compareTo(b.sortOrder);
           case DownloadSort.nameAsc:
-            return (a.title ?? '').compareTo(b.title ?? '');
+            return (a.title ?? '')
+                .toLowerCase()
+                .compareTo((b.title ?? '').toLowerCase());
           case DownloadSort.nameDesc:
-            return (b.title ?? '').compareTo(a.title ?? '');
+            return (b.title ?? '')
+                .toLowerCase()
+                .compareTo((a.title ?? '').toLowerCase());
           case DownloadSort.sizeAsc:
-            // Need to parse size string, complex but doable or fallback to 0
-            // For now simple string compare might be flawed for sizes "10 MB" vs "2 GB"
-            // Better to have bytes in entity but we have formatted string.
-            // We'll rely on string or skip for now if too complex to parse here without helper.
-            // Let's rely on basic string compare as placeholder or implement parser.
-            return (a.totalSize).compareTo(b.totalSize);
+            return compareDownloadSize(a, b);
           case DownloadSort.sizeDesc:
-            return (b.totalSize).compareTo(a.totalSize);
+            return compareDownloadSize(b, a);
         }
       });
 

@@ -137,7 +137,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
             }
           }
 
-          ref
+          await ref
               .read(downloadListProvider.notifier)
               .startDownload(
                 url,
@@ -158,7 +158,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
         }
       } catch (e) {
         // Fallback to single download if check fails
-        ref
+        await ref
             .read(downloadListProvider.notifier)
             .startDownload(
               url,

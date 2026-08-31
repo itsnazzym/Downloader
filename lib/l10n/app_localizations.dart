@@ -2115,6 +2115,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} duplicates skipped'**
   String duplicatesSkipped(int count);
+
+  /// No description provided for @trayShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get trayShow;
+
+  /// No description provided for @trayExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get trayExit;
+
+  /// No description provided for @needTweetLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Need tweet link'**
+  String get needTweetLink;
+
+  /// No description provided for @openFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open fullscreen'**
+  String get openFullscreen;
+
+  /// No description provided for @previewUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview unavailable'**
+  String get previewUnavailable;
+
+  /// No description provided for @sourceYouTube.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube'**
+  String get sourceYouTube;
+
+  /// No description provided for @sourceInstagram.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get sourceInstagram;
+
+  /// No description provided for @sourceTwitter.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitter'**
+  String get sourceTwitter;
+
+  /// No description provided for @sourceTwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch'**
+  String get sourceTwitch;
+
+  /// No description provided for @sourceKick.
+  ///
+  /// In en, this message translates to:
+  /// **'Kick'**
+  String get sourceKick;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// No description provided for @languageArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'العربية'**
+  String get languageArabic;
+
+  /// No description provided for @qualityManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get qualityManual;
+
+  /// No description provided for @qualityManualPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual+'**
+  String get qualityManualPlus;
+
+  /// No description provided for @notificationDownloadCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Completed'**
+  String get notificationDownloadCompleted;
+
+  /// No description provided for @notificationDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Failed'**
+  String get notificationDownloadFailed;
+
+  /// No description provided for @notificationLinkDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Link Detected'**
+  String get notificationLinkDetected;
+
+  /// No description provided for @notificationLinkDetectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to download: {url}'**
+  String notificationLinkDetectedBody(String url);
+
+  /// No description provided for @notificationLinksQueuedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Links queued'**
+  String get notificationLinksQueuedTitle;
+
+  /// No description provided for @notificationLinksQueuedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} link queued} other{{count} links queued}}'**
+  String notificationLinksQueuedBody(int count);
+
+  /// No description provided for @notificationExtensionConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Extension Connected'**
+  String get notificationExtensionConnected;
+
+  /// No description provided for @notificationExtensionConnectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser extension successfully connected.'**
+  String get notificationExtensionConnectedBody;
+
+  /// No description provided for @notificationBatchComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch Download Complete'**
+  String get notificationBatchComplete;
+
+  /// No description provided for @notificationBatchCompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} downloads finished — {totalSize} total'**
+  String notificationBatchCompleteBody(int count, String totalSize);
+
+  /// No description provided for @notificationYtDlpUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'yt-dlp Updated'**
+  String get notificationYtDlpUpdated;
+
+  /// No description provided for @notificationYtDlpUpdatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated to {version}'**
+  String notificationYtDlpUpdatedBody(String version);
 }
 
 class _AppLocalizationsDelegate

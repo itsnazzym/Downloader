@@ -72,29 +72,29 @@
         <details class="appearance">
             <summary data-i18n="appearance">Appearance</summary>
             <div class="appearance-row">
-                <label for="btn-color">Color</label>
+                <label for="btn-color" data-i18n="btnColor">Color</label>
                 <input type="color" id="btn-color" value="#6C5DD3">
-                <label for="btn-position">Position</label>
+                <label for="btn-position" data-i18n="btnPosition">Position</label>
                 <select id="btn-position">
-                    <option value="top-right">Top right</option>
-                    <option value="top-left">Top left</option>
-                    <option value="bottom-right">Bottom right</option>
-                    <option value="bottom-left">Bottom left</option>
+                    <option value="top-right" data-i18n="posTopRight">Top right</option>
+                    <option value="top-left" data-i18n="posTopLeft">Top left</option>
+                    <option value="bottom-right" data-i18n="posBottomRight">Bottom right</option>
+                    <option value="bottom-left" data-i18n="posBottomLeft">Bottom left</option>
                 </select>
-                <label for="btn-size">Size</label>
+                <label for="btn-size" data-i18n="btnSize">Size</label>
                 <select id="btn-size">
-                    <option value="small">Small</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="large">Large</option>
+                    <option value="small" data-i18n="sizeSmall">Small</option>
+                    <option value="normal" selected data-i18n="sizeNormal">Normal</option>
+                    <option value="large" data-i18n="sizeLarge">Large</option>
                 </select>
                 <label class="inline-check">
                     <input type="checkbox" id="quality-toggle" checked>
-                    Quality menu
+                    <span data-i18n="qualityMenu">Quality menu</span>
                 </label>
             </div>
         </details>
 
-        <div id="connection-msg" class="connection-msg" aria-live="polite">Offline</div>
+        <div id="connection-msg" class="connection-msg" aria-live="polite" data-i18n="offline">Offline</div>
     </div>
 
     <script src="browser_api.js"></script>

@@ -434,5 +434,49 @@
     "placeholders": {
       "count": { "type": "int" }
     }
+  },
+
+  "trayShow": "إظهار",
+  "trayExit": "خروج",
+  "needTweetLink": "يلزم رابط التغريدة",
+  "openFullscreen": "فتح بملء الشاشة",
+  "previewUnavailable": "المعاينة غير متاحة",
+  "sourceYouTube": "YouTube",
+  "sourceInstagram": "Instagram",
+  "sourceTwitter": "Twitter",
+  "sourceTwitch": "Twitch",
+  "sourceKick": "Kick",
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageArabic": "العربية",
+  "qualityManual": "يدوي",
+  "qualityManualPlus": "يدوي+",
+
+  "notificationDownloadCompleted": "اكتمل التنزيل",
+  "notificationDownloadFailed": "فشل التنزيل",
+  "notificationLinkDetected": "تم اكتشاف رابط",
+  "notificationLinkDetectedBody": "انقر للتنزيل: {url}",
+  "@notificationLinkDetectedBody": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "notificationLinksQueuedTitle": "روابط في قائمة الانتظار",
+  "notificationLinksQueuedBody": "{count, plural, =1{رابط واحد في قائمة الانتظار} other{{count} روابط في قائمة الانتظار}}",
+  "@notificationLinksQueuedBody": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "notificationExtensionConnected": "تم توصيل الإضافة",
+  "notificationExtensionConnectedBody": "تم توصيل إضافة المتصفح بنجاح.",
+  "notificationBatchComplete": "اكتمل التنزيل المجمع",
+  "notificationBatchCompleteBody": "اكتمل {count} من التنزيلات — {totalSize} إجماليًا",
+  "@notificationBatchCompleteBody": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "totalSize": { "type": "String" }
+    }
+  },
+  "notificationYtDlpUpdated": "تم تحديث yt-dlp",
+  "notificationYtDlpUpdatedBody": "تم التحديث إلى {version}",
+  "@notificationYtDlpUpdatedBody": {
+    "placeholders": { "version": { "type": "String" } }
   }
 }

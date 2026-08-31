@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import '../core/logger/logger_service.dart';
+import '../../logger/logger_service.dart';
 import 'process_runner.dart';
 
 class BinaryLocator {

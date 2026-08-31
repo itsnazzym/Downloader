@@ -6,6 +6,7 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:glass/glass.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class VideoPreviewWidget extends StatefulWidget {
   final String filePath;
@@ -222,7 +223,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
               ),
               const Gap(8),
               Text(
-                'Preview unavailable',
+                context.l10n.previewUnavailable,
                 style: TextStyle(
                   color: AppColors.of(context).textSecondary,
                   fontSize: 12,
@@ -233,7 +234,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                 TextButton.icon(
                   onPressed: widget.onFullscreen,
                   icon: const Icon(Icons.fullscreen_rounded, size: 18),
-                  label: const Text('Open fullscreen'),
+                  label: Text(context.l10n.openFullscreen),
                 ),
               ],
             ],

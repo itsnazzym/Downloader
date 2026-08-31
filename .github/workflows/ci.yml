@@ -34,6 +34,10 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib/ test/ tool/
       - run: flutter analyze --no-fatal-infos
       - run: flutter test --coverage --reporter=compact
+      # Conservative floor (~20%) so new untested files do not fail CI immediately.
+      # Raise this as repository/server tests land. Do not drop --no-fatal-infos
+      # until `flutter analyze` (no flags) is clean — see CONTRIBUTING.md.
+      - run: dart run tool/check_coverage.dart --min 20 coverage/lcov.info
 
       - uses: actions/upload-artifact@v4
         if: always()

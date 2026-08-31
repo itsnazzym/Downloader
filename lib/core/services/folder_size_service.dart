@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -213,7 +214,7 @@ class FolderSizeService {
       return await future;
     } finally {
       if (identical(_inFlight[key], future)) {
-        _inFlight.remove(key);
+        unawaited(_inFlight.remove(key));
       }
     }
   }

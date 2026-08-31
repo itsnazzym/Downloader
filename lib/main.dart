@@ -173,15 +173,24 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
     }
   }
 
+  AppLocalizations _l10nForLocale(String localeCode) {
+    try {
+      return lookupAppLocalizations(Locale(localeCode));
+    } catch (_) {
+      return lookupAppLocalizations(const Locale('en'));
+    }
+  }
+
   Future<void> _initTray() async {
     try {
+      final l10n = _l10nForLocale(ref.read(settingsProvider).locale);
       await trayManager.setIcon('assets/icons/tray.ico');
       await trayManager.setContextMenu(
         Menu(
           items: [
-            MenuItem(key: 'show_window', label: 'Show'),
+            MenuItem(key: 'show_window', label: l10n.trayShow),
             MenuItem.separator(),
-            MenuItem(key: 'exit_app', label: 'Exit'),
+            MenuItem(key: 'exit_app', label: l10n.trayExit),
           ],
         ),
       );
@@ -193,10 +202,8 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   void _handleClipboardUrl(String url) {
     final resolved = XDownloadUrl.resolveForDownload(url);
     if (resolved == null) {
-      NotificationService().showError(
-        'Need tweet link',
-        'Paste the tweet link (x.com/.../status/...), not the video file.',
-      );
+      final l10n = _l10nForLocale(ref.read(settingsProvider).locale);
+      NotificationService().showError(l10n.needTweetLink, l10n.xCdnUrlRejected);
       return;
     }
     NotificationService().showClipboardDetected(resolved);
@@ -274,6 +281,14 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String>(settingsProvider.select((s) => s.locale), (
+      previous,
+      next,
+    ) {
+      if (previous != next) {
+        unawaited(_initTray());
+      }
+    });
     final router = ref.watch(routerProvider);
     final settings = ref.watch(settingsProvider);
     ThemeMode themeMode;

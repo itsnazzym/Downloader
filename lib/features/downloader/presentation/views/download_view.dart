@@ -133,16 +133,39 @@ class _DownloadTopBar extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
+          // Resume All Queue
+          IconButton(
+            onPressed: () async {
+              await ref.read(downloadListProvider.notifier).resumeAllQueued();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('File d\'attente lancée'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            icon: Icon(
+              Icons.play_circle_outline_rounded,
+              size: 20,
+              color: AppColors.of(context).primary,
+            ),
+            tooltip: 'Lancer tous les téléchargements en attente',
+          ),
+          const SizedBox(width: 8),
           // Refresh Library
           IconButton(
             onPressed: () async {
-              ref.read(downloadListProvider.notifier).refreshLibrary();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(l10n.refreshLibrary),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              await ref.read(downloadListProvider.notifier).refreshLibrary();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.refreshLibrary),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
             },
             icon: Icon(
               Icons.refresh,
@@ -200,6 +223,14 @@ class _DownloadTopBar extends ConsumerWidget {
             itemBuilder: (context) {
               final currentSort = ref.read(downloadSortProvider);
               final currentMode = ref.read(downloadViewModeProvider);
+              final colors = AppColors.of(context);
+
+              final isDate = currentSort == DownloadSort.dateDesc ||
+                  currentSort == DownloadSort.dateAsc;
+              final isName = currentSort == DownloadSort.nameAsc ||
+                  currentSort == DownloadSort.nameDesc;
+              final isSize = currentSort == DownloadSort.sizeDesc ||
+                  currentSort == DownloadSort.sizeAsc;
 
               return [
                 PopupMenuItem(
@@ -212,45 +243,119 @@ class _DownloadTopBar extends ConsumerWidget {
                     ),
                   ),
                 ),
-                CheckedPopupMenuItem(
-                  checked: currentSort == DownloadSort.dateDesc,
-                  value: 'dateDesc',
-                  child: Text(
-                    l10n.sortDateNewest,
-                    style: const TextStyle(fontSize: 13),
+                PopupMenuItem(
+                  value: 'date',
+                  onTap: () {
+                    ref.read(downloadSortProvider.notifier).state =
+                        currentSort == DownloadSort.dateDesc
+                            ? DownloadSort.dateAsc
+                            : DownloadSort.dateDesc;
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        isDate ? Icons.check : null,
+                        size: 18,
+                        color: isDate ? colors.primary : Colors.transparent,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Date',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight:
+                                isDate ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        isDate && currentSort == DownloadSort.dateAsc
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        size: 16,
+                        color: isDate
+                            ? colors.primary
+                            : colors.textSecondary.withValues(alpha: 0.5),
+                      ),
+                    ],
                   ),
-                  onTap: () => ref.read(downloadSortProvider.notifier).state =
-                      DownloadSort.dateDesc,
                 ),
-                CheckedPopupMenuItem(
-                  checked: currentSort == DownloadSort.dateAsc,
-                  value: 'dateAsc',
-                  child: Text(
-                    l10n.sortDateOldest,
-                    style: const TextStyle(fontSize: 13),
+                PopupMenuItem(
+                  value: 'name',
+                  onTap: () {
+                    ref.read(downloadSortProvider.notifier).state =
+                        currentSort == DownloadSort.nameAsc
+                            ? DownloadSort.nameDesc
+                            : DownloadSort.nameAsc;
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        isName ? Icons.check : null,
+                        size: 18,
+                        color: isName ? colors.primary : Colors.transparent,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Nom (A-Z)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight:
+                                isName ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        isName && currentSort == DownloadSort.nameDesc
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        size: 16,
+                        color: isName
+                            ? colors.primary
+                            : colors.textSecondary.withValues(alpha: 0.5),
+                      ),
+                    ],
                   ),
-                  onTap: () => ref.read(downloadSortProvider.notifier).state =
-                      DownloadSort.dateAsc,
                 ),
-                CheckedPopupMenuItem(
-                  checked: currentSort == DownloadSort.nameAsc,
-                  value: 'nameAsc',
-                  child: Text(
-                    l10n.sortNameAsc,
-                    style: const TextStyle(fontSize: 13),
+                PopupMenuItem(
+                  value: 'size',
+                  onTap: () {
+                    ref.read(downloadSortProvider.notifier).state =
+                        currentSort == DownloadSort.sizeDesc
+                            ? DownloadSort.sizeAsc
+                            : DownloadSort.sizeDesc;
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSize ? Icons.check : null,
+                        size: 18,
+                        color: isSize ? colors.primary : Colors.transparent,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Taille',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight:
+                                isSize ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        isSize && currentSort == DownloadSort.sizeAsc
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        size: 16,
+                        color: isSize
+                            ? colors.primary
+                            : colors.textSecondary.withValues(alpha: 0.5),
+                      ),
+                    ],
                   ),
-                  onTap: () => ref.read(downloadSortProvider.notifier).state =
-                      DownloadSort.nameAsc,
-                ),
-                CheckedPopupMenuItem(
-                  checked: currentSort == DownloadSort.sizeDesc,
-                  value: 'sizeDesc',
-                  child: Text(
-                    l10n.sortSizeLargest,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                  onTap: () => ref.read(downloadSortProvider.notifier).state =
-                      DownloadSort.sizeDesc,
                 ),
 
                 const PopupMenuDivider(),

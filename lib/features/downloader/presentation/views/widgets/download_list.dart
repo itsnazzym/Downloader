@@ -140,7 +140,7 @@ class DownloadList extends ConsumerWidget {
               child: widget,
             );
           },
-          onReorder: (oldIndex, newIndex) {
+          onReorderItem: (oldIndex, newIndex) {
             ref.read(downloadListProvider.notifier).reorder(oldIndex, newIndex);
           },
           itemBuilder: (context, index) {

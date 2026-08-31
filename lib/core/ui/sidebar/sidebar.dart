@@ -106,6 +106,24 @@ class AppSidebar extends ConsumerWidget {
     }
 
     final l10n = context.l10n;
+
+    String sourceLabel(String source) {
+      switch (source) {
+        case 'YouTube':
+          return l10n.sourceYouTube;
+        case 'Instagram':
+          return l10n.sourceInstagram;
+        case 'Twitter':
+          return l10n.sourceTwitter;
+        case 'Twitch':
+          return l10n.sourceTwitch;
+        case 'Kick':
+          return l10n.sourceKick;
+        default:
+          return source;
+      }
+    }
+
     final String location = GoRouterState.of(context).uri.path;
     final bool isSettingsActive = location.startsWith('/settings');
     final colors = AppColors.of(context);
@@ -311,7 +329,7 @@ class AppSidebar extends ConsumerWidget {
 
                                 return _NavItem(
                                   icon: icon,
-                                  label: source,
+                                  label: sourceLabel(source),
                                   count: sourceCounts[source] ?? 0,
                                   isSelected: sourceFilter == source,
                                   onTap: () => setSource(source),
@@ -384,6 +402,12 @@ class AppSidebar extends ConsumerWidget {
                     label: l10n.settingsPlugins,
                     isSelected: location == '/settings/plugins',
                     onTap: () => context.push('/settings/plugins'),
+                  ),
+                  _NavItem(
+                    icon: Icons.auto_awesome_motion,
+                    label: l10n.smartOrganization,
+                    isSelected: location == '/settings/smart_organizer',
+                    onTap: () => context.push('/settings/smart_organizer'),
                   ),
                 ],
               ),

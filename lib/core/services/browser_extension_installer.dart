@@ -16,10 +16,10 @@ class BrowserExtensionInstaller {
   BrowserExtensionInstaller._();
 
   static const firefoxXpiUrl =
-      'https://github.com/Mizaruta/Downloader/releases/latest/download/modern_downloader_firefox.xpi';
+      'https://github.com/itsnazzym/Downloader/releases/latest/download/modern_downloader_firefox.xpi';
 
   static const chromeZipUrl =
-      'https://github.com/Mizaruta/Downloader/releases/latest/download/modern_downloader_chrome.zip';
+      'https://github.com/itsnazzym/Downloader/releases/latest/download/modern_downloader_chrome.zip';
 
   static Directory? resolveChromeDir() {
     return _firstExistingDir(_candidateRoots(), 'chrome');

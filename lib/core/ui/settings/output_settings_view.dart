@@ -12,6 +12,7 @@ import '../../design_system/foundation/typography.dart';
 import '../../download/download_path_resolver.dart';
 
 import 'widgets/storage_chart.dart';
+import 'widgets/library_migration_dialog.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -87,10 +88,45 @@ class OutputSettingsView extends ConsumerWidget {
                           onTap: () async {
                             String? path = await FilePicker.platform
                                 .getDirectoryPath();
-                            if (path != null) {
-                              settingsNotifier.setOutputFolder(path);
+                            if (path != null && context.mounted) {
+                              // Ask if user wants to migrate existing downloads
+                              final shouldMigrate = await showDialog<bool>(
+                                context: context,
+                                builder: (c) => AlertDialog(
+                                  title: const Text('Modifier le dossier'),
+                                  content: const Text(
+                                    'Souhaitez-vous migrer automatiquement toutes vos vidéos et miniatures existantes vers ce nouveau dossier ?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(c, false),
+                                      child: const Text('Changer uniquement le dossier'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(c, true),
+                                      child: const Text('Migrer les fichiers'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (shouldMigrate == true && context.mounted) {
+                                await LibraryMigrationDialog.show(
+                                  context,
+                                  ref,
+                                  targetFolder: path,
+                                );
+                              } else {
+                                settingsNotifier.setOutputFolder(path);
+                              }
                             }
                           },
+                        ),
+                        ActionTile(
+                          title: 'Migrer la bibliothèque',
+                          subtitle: 'Déplacer toutes les vidéos et miniatures vers un autre disque/dossier',
+                          icon: Icons.drive_file_move_rounded,
+                          onTap: () => LibraryMigrationDialog.show(context, ref),
                         ),
                         DropdownTile(
                           title: l10n.formatLabel,

@@ -2,10 +2,11 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 
+// ignore_for_file: avoid_print
+
 class LoggerService {
   static void i(String message, [String? name]) {
     if (!kReleaseMode) {
-      // ignore: avoid_print
       print('ℹ️ [${name ?? 'INFO'}] $message');
     }
     developer.log(message, name: name ?? 'INFO', level: 800);
@@ -13,7 +14,6 @@ class LoggerService {
 
   static void w(String message, [String? name]) {
     if (!kReleaseMode) {
-      // ignore: avoid_print
       print('⚠️ [${name ?? 'WARN'}] $message');
     }
     developer.log(message, name: name ?? 'WARN', level: 900);
@@ -21,9 +21,7 @@ class LoggerService {
 
   static void e(String message, [Object? error, StackTrace? stackTrace]) {
     if (!kReleaseMode) {
-      // ignore: avoid_print
       print('❌ [ERROR] $message');
-      // ignore: avoid_print
       if (stackTrace != null) print(stackTrace);
     }
     developer.log(
@@ -37,7 +35,6 @@ class LoggerService {
 
   static void debug(String message) {
     if (!kDebugMode) return;
-    // ignore: avoid_print
     print('🐞 [DEBUG] $message');
     developer.log(message, name: 'DEBUG', level: 500);
   }

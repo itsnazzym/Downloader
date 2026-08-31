@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/services/binary_locator.dart';
-import 'package:modern_downloader/services/process_runner.dart';
+import 'package:modern_downloader/core/services/binary/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/process_runner.dart';
 import 'package:path/path.dart' as p;
 
 class _CountingProcessRunner extends ProcessRunner {
@@ -34,7 +34,9 @@ void main() {
     BinaryLocator.clearResolvedPathCache();
     try {
       await tmp.delete(recursive: true);
-    } catch (_) {}
+    } catch (_) {
+      // Best-effort temp cleanup; leftover dirs are harmless.
+    }
   });
 
   test('file present returns path with zero Process.run', () async {

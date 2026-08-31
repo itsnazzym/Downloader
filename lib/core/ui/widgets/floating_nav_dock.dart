@@ -53,6 +53,13 @@ class FloatingNavDock extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 _DockItem(
+                  icon: Icons.bar_chart_rounded,
+                  label: l10n.statistics,
+                  selected: currentLocation == '/stats',
+                  onTap: () => context.go('/stats'),
+                ),
+                const SizedBox(width: 6),
+                _DockItem(
                   icon: Icons.settings_rounded,
                   label: l10n.settings,
                   selected: currentLocation.startsWith('/settings'),

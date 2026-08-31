@@ -1,6 +1,6 @@
 import 'dart:io';
 import '../logger/logger_service.dart';
-import '../../services/binary_locator.dart';
+import 'binary/binary_locator.dart';
 
 /// Service to auto-update yt-dlp at app startup.
 class YtDlpUpdaterService {

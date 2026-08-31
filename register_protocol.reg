@@ -1,6 +1,6 @@
 Windows Registry Editor Version 5.00
 
-; Dev-only template. Prefer tools/register_protocol.ps1 which points at the
+; Dev-only template. Prefer tool/register_protocol.ps1 which points at the
 ; locally built Debug executable. The installer registers HKCU classes.
 
 [HKEY_CURRENT_USER\Software\Classes\moderndownloader]

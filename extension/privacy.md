@@ -36,4 +36,4 @@ The desktop app requires an API token. The extension sends the token only inside
 
 ## Contact
 
-Project: https://github.com/Mizaruta/Downloader
+Project: https://github.com/itsnazzym/Downloader

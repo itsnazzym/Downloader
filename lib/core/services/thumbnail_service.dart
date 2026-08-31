@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:modern_downloader/services/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 
 /// Service to generate thumbnails from video files using ffmpeg

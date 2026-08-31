@@ -8,9 +8,35 @@ import '../design_system/foundation/colors.dart';
 import '../design_system/foundation/spacing.dart';
 import '../design_system/foundation/typography.dart';
 import '../design_system/components/app_toast.dart';
-import '../../services/binary_verifier.dart';
+import '../services/binary/binary_verifier.dart';
 import '../providers/settings_provider.dart';
+import 'settings/widgets/library_migration_dialog.dart';
+import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+
+Map<String, String> languageOptionLabels(AppLocalizations l10n) {
+  return {
+    'en': l10n.languageEnglish,
+    'fr': l10n.languageFrench,
+    'ar': l10n.languageArabic,
+  };
+}
+
+Map<String, String> themeModeOptionLabels(AppLocalizations l10n) {
+  return {
+    'system': l10n.systemMode,
+    'dark': l10n.darkMode,
+    'light': l10n.lightMode,
+  };
+}
+
+Map<String, String> qualityOptionLabels(AppLocalizations l10n) {
+  return {
+    'best': l10n.bestQuality,
+    'manual': l10n.qualityManual,
+    'manual+': l10n.qualityManualPlus,
+  };
+}
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -93,6 +119,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           title: l10n.preferredQuality,
                           value: settings.preferredQuality,
                           options: const ["best", "manual", "manual+"],
+                          optionLabels: qualityOptionLabels(l10n),
                           onChanged: settingsNotifier.setPreferredQuality,
                           icon: Icons.high_quality,
                         ),
@@ -108,10 +135,44 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           onTap: () async {
                             String? path = await FilePicker.platform
                                 .getDirectoryPath();
-                            if (path != null) {
-                              settingsNotifier.setOutputFolder(path);
+                            if (path != null && context.mounted) {
+                              final shouldMigrate = await showDialog<bool>(
+                                context: context,
+                                builder: (c) => AlertDialog(
+                                  title: const Text('Modifier le dossier'),
+                                  content: const Text(
+                                    'Souhaitez-vous migrer automatiquement toutes vos vidéos et miniatures existantes vers ce nouveau dossier ?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(c, false),
+                                      child: const Text('Changer uniquement le dossier'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(c, true),
+                                      child: const Text('Migrer les fichiers'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (shouldMigrate == true && context.mounted) {
+                                await LibraryMigrationDialog.show(
+                                  context,
+                                  ref,
+                                  targetFolder: path,
+                                );
+                              } else {
+                                settingsNotifier.setOutputFolder(path);
+                              }
                             }
                           },
+                        ),
+                        ActionTile(
+                          title: 'Migrer la bibliothèque',
+                          subtitle: 'Déplacer toutes les vidéos et miniatures vers un autre disque/dossier',
+                          icon: Icons.drive_file_move_rounded,
+                          onTap: () => LibraryMigrationDialog.show(context, ref),
                         ),
                         DropdownTile(
                           title: l10n.formatLabel,
@@ -493,6 +554,7 @@ class DropdownTile extends StatelessWidget {
   final List<String> options;
   final ValueChanged<String> onChanged;
   final IconData icon;
+  final Map<String, String>? optionLabels;
 
   const DropdownTile({
     super.key,
@@ -501,6 +563,7 @@ class DropdownTile extends StatelessWidget {
     required this.options,
     required this.onChanged,
     required this.icon,
+    this.optionLabels,
   });
 
   @override
@@ -545,7 +608,12 @@ class DropdownTile extends StatelessWidget {
                 color: AppColors.of(context).textSecondary,
               ),
               items: options
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(optionLabels?[e] ?? e),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) => v != null ? onChanged(v) : null,
             ),

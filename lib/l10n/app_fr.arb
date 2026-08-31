@@ -434,5 +434,49 @@
     "placeholders": {
       "count": { "type": "int" }
     }
+  },
+
+  "trayShow": "Afficher",
+  "trayExit": "Quitter",
+  "needTweetLink": "Lien de tweet requis",
+  "openFullscreen": "Ouvrir en plein écran",
+  "previewUnavailable": "Aperçu indisponible",
+  "sourceYouTube": "YouTube",
+  "sourceInstagram": "Instagram",
+  "sourceTwitter": "Twitter",
+  "sourceTwitch": "Twitch",
+  "sourceKick": "Kick",
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageArabic": "العربية",
+  "qualityManual": "Manuel",
+  "qualityManualPlus": "Manuel+",
+
+  "notificationDownloadCompleted": "Téléchargement terminé",
+  "notificationDownloadFailed": "Téléchargement échoué",
+  "notificationLinkDetected": "Lien détecté",
+  "notificationLinkDetectedBody": "Cliquez pour télécharger : {url}",
+  "@notificationLinkDetectedBody": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "notificationLinksQueuedTitle": "Liens en file",
+  "notificationLinksQueuedBody": "{count, plural, =1{{count} lien en file} other{{count} liens en file}}",
+  "@notificationLinksQueuedBody": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "notificationExtensionConnected": "Extension connectée",
+  "notificationExtensionConnectedBody": "L'extension de navigateur est connectée.",
+  "notificationBatchComplete": "Lot terminé",
+  "notificationBatchCompleteBody": "{count} téléchargements terminés — {totalSize} au total",
+  "@notificationBatchCompleteBody": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "totalSize": { "type": "String" }
+    }
+  },
+  "notificationYtDlpUpdated": "yt-dlp mis à jour",
+  "notificationYtDlpUpdatedBody": "Mis à jour vers {version}",
+  "@notificationYtDlpUpdatedBody": {
+    "placeholders": { "version": { "type": "String" } }
   }
 }
