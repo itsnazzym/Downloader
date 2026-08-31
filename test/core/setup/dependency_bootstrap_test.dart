@@ -226,7 +226,7 @@ class _BarrierLocator extends BinaryLocator {
 }
 
 class _SpyUpdateService extends DependencyBootstrapService {
-  _SpyUpdateService(super.locator);
+  _SpyUpdateService(BinaryLocator locator) : super(locator: locator);
 
   bool updateCalled = false;
 
@@ -239,10 +239,10 @@ class _SpyUpdateService extends DependencyBootstrapService {
 
 class _HangUpdateService extends DependencyBootstrapService {
   _HangUpdateService(
-    super.locator, {
+    BinaryLocator locator, {
     required this.started,
     required this.hang,
-  });
+  }) : super(locator: locator);
 
   final Completer<void> started;
   final Completer<void> hang;
