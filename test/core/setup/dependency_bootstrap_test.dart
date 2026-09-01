@@ -63,19 +63,12 @@ void main() {
     setUp(BinaryLocator.clearResolvedPathCache);
     tearDown(BinaryLocator.clearResolvedPathCache);
 
-    test(
-      'skips gobird unless experimental feed is enabled',
-      () async {
-        final locator = _RecordingLocator();
-        final service = DependencyBootstrapService(locator: locator);
-        await service.ensureReady(
-          onProgress: (_) {},
-          checkOptionalGobird: false,
-        );
-        expect(locator.calls.contains('gobird'), isFalse);
-      },
-      skip: !Platform.isWindows,
-    );
+    test('skips gobird unless experimental feed is enabled', () async {
+      final locator = _RecordingLocator();
+      final service = DependencyBootstrapService(locator: locator);
+      await service.ensureReady(onProgress: (_) {}, checkOptionalGobird: false);
+      expect(locator.calls.contains('gobird'), isFalse);
+    }, skip: !Platform.isWindows);
 
     test('checks gobird when experimental feed is enabled', () async {
       final locator = _RecordingLocator();
@@ -136,30 +129,26 @@ void main() {
       expect(sw.elapsedMilliseconds, lessThan(500));
     }, skip: !Platform.isWindows);
 
-    test(
-      'starts yt-dlp update in the background after ready',
-      () async {
-        final hang = Completer<void>();
-        final started = Completer<void>();
-        final service = _HangUpdateService(
-          _RecordingLocator(),
-          started: started,
-          hang: hang,
-        );
-        final notifier = DependencyBootstrapNotifier(
-          service,
-          updateYtDlp: true,
-          autoStart: false,
-        );
+    test('starts yt-dlp update in the background after ready', () async {
+      final hang = Completer<void>();
+      final started = Completer<void>();
+      final service = _HangUpdateService(
+        _RecordingLocator(),
+        started: started,
+        hang: hang,
+      );
+      final notifier = DependencyBootstrapNotifier(
+        service,
+        updateYtDlp: true,
+        autoStart: false,
+      );
 
-        await notifier.ensureReady();
-        expect(notifier.state.isReady, isTrue);
-        expect(started.isCompleted, isTrue);
-        expect(hang.isCompleted, isFalse);
-        hang.complete();
-      },
-      skip: !Platform.isWindows,
-    );
+      await notifier.ensureReady();
+      expect(notifier.state.isReady, isTrue);
+      expect(started.isCompleted, isTrue);
+      expect(hang.isCompleted, isFalse);
+      hang.complete();
+    }, skip: !Platform.isWindows);
   });
 }
 

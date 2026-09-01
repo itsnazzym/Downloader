@@ -40,6 +40,7 @@ class YtDlpCookieArgs {
     String? cookiesFilePath,
     String? rawCookies,
     String? cookieBrowser,
+    bool allowBrowserCookies = true,
   }) {
     final filePath = cookiesFilePath?.trim();
     if (filePath != null && filePath.isNotEmpty) {
@@ -55,6 +56,7 @@ class YtDlpCookieArgs {
       return ['--add-header', 'Cookie:${rawCookies!}'];
     }
 
+    if (!allowBrowserCookies) return const [];
     return CookieBrowserArgs.ytDlpArgs(cookieBrowser);
   }
 

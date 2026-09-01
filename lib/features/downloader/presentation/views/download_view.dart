@@ -17,6 +17,24 @@ class DownloadView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isNarrow = MediaQuery.sizeOf(context).width < 720;
+    if (isNarrow) {
+      ref.listen<String?>(selectedDownloadIdProvider, (previous, next) {
+        if (next == null || next == previous) return;
+        showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          showDragHandle: true,
+          builder: (context) {
+            return SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.86,
+              child: DownloadInspector(downloadId: next),
+            );
+          },
+        );
+      });
+    }
+
     // 3-Column Layout: [Sidebar (handled by Shell)] [Main List] [Inspector]
     return Row(
       children: [
@@ -39,49 +57,54 @@ class DownloadView extends ConsumerWidget {
         // Inspector Panel (Conditional or Always visible but empty?)
         // Design Doc says "Inspector appears on selection".
         // We will show it if an item is selected.
-        Consumer(
-          builder: (context, ref, child) {
-            final selectedId = ref.watch(selectedDownloadIdProvider);
-            if (selectedId == null) return const SizedBox.shrink();
+        if (!isNarrow)
+          Consumer(
+            builder: (context, ref, child) {
+              final selectedId = ref.watch(selectedDownloadIdProvider);
+              if (selectedId == null) return const SizedBox.shrink();
 
-            final layout = ref.watch(paneLayoutProvider);
-            return ResizableWidthPane(
-              width: layout.visibleInspectorWidth,
-              minWidth: PaneLayout.inspectorRail,
-              maxWidth: PaneLayout.inspectorMax,
-              contentMinWidth: PaneLayout.inspectorMin,
-              resizeFrom: PaneResizeFrom.leading,
-              onWidthChanged: (width) {
-                ref.read(paneLayoutProvider.notifier).setInspectorWidth(width);
-              },
-              onDragActive: (active) {
-                ref.read(paneResizeActiveProvider.notifier).state = active;
-              },
-              onResizeEnd: () {
-                ref.read(paneResizeActiveProvider.notifier).state = false;
-                ref.read(paneLayoutProvider.notifier).commitInspectorDrag();
-                ref.read(paneLayoutProvider.notifier).persist();
-              },
-              onToggleCollapse: () {
-                ref
-                    .read(paneLayoutProvider.notifier)
-                    .toggleInspectorCollapsed();
-                ref.read(paneLayoutProvider.notifier).persist();
-              },
-              child: layout.inspectorCollapsed
-                  ? _CollapsedInspectorRail(
-                      onExpand: () {
-                        ref.read(paneLayoutProvider.notifier).expandInspector();
-                        ref.read(paneLayoutProvider.notifier).persist();
-                      },
-                    )
-                  : ColoredBox(
-                      color: AppColors.of(context).surface,
-                      child: DownloadInspector(downloadId: selectedId),
-                    ),
-            );
-          },
-        ),
+              final layout = ref.watch(paneLayoutProvider);
+              return ResizableWidthPane(
+                width: layout.visibleInspectorWidth,
+                minWidth: PaneLayout.inspectorRail,
+                maxWidth: PaneLayout.inspectorMax,
+                contentMinWidth: PaneLayout.inspectorMin,
+                resizeFrom: PaneResizeFrom.leading,
+                onWidthChanged: (width) {
+                  ref
+                      .read(paneLayoutProvider.notifier)
+                      .setInspectorWidth(width);
+                },
+                onDragActive: (active) {
+                  ref.read(paneResizeActiveProvider.notifier).state = active;
+                },
+                onResizeEnd: () {
+                  ref.read(paneResizeActiveProvider.notifier).state = false;
+                  ref.read(paneLayoutProvider.notifier).commitInspectorDrag();
+                  ref.read(paneLayoutProvider.notifier).persist();
+                },
+                onToggleCollapse: () {
+                  ref
+                      .read(paneLayoutProvider.notifier)
+                      .toggleInspectorCollapsed();
+                  ref.read(paneLayoutProvider.notifier).persist();
+                },
+                child: layout.inspectorCollapsed
+                    ? _CollapsedInspectorRail(
+                        onExpand: () {
+                          ref
+                              .read(paneLayoutProvider.notifier)
+                              .expandInspector();
+                          ref.read(paneLayoutProvider.notifier).persist();
+                        },
+                      )
+                    : ColoredBox(
+                        color: AppColors.of(context).surface,
+                        child: DownloadInspector(downloadId: selectedId),
+                      ),
+              );
+            },
+          ),
       ],
     );
   }

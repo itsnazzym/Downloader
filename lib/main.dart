@@ -22,6 +22,9 @@ import 'package:modern_downloader/core/services/notification_service.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
 import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:modern_downloader/core/android/android_share_service.dart';
+import 'package:modern_downloader/core/android/android_permissions.dart';
+import 'package:modern_downloader/core/android/android_storage.dart';
 import 'package:modern_downloader/features/downloader/data/datasources/startup_cleanup_service.dart';
 import 'dart:async';
 import 'dart:io';
@@ -38,7 +41,11 @@ void main(List<String> args) async {
   await NotificationService().init();
 
   // Protocol Handler Setup
-  await protocolHandler.register('moderndownloader');
+  try {
+    await protocolHandler.register('moderndownloader');
+  } catch (e) {
+    debugPrint('Protocol handler register skipped: $e');
+  }
 
   // Single Instance Check
   final container = ProviderContainer();
@@ -49,8 +56,12 @@ void main(List<String> args) async {
   }
 
   String? initialUrl;
-  final initialUrlStr = await protocolHandler.getInitialUrl();
-  if (initialUrlStr != null) initialUrl = _extractUrlFromUri(initialUrlStr);
+  try {
+    final initialUrlStr = await protocolHandler.getInitialUrl();
+    if (initialUrlStr != null) initialUrl = _extractUrlFromUri(initialUrlStr);
+  } catch (e) {
+    debugPrint('Protocol initial URL skipped: $e');
+  }
 
   if (initialUrl == null && args.isNotEmpty) {
     final protocolArg = args.firstWhere(
@@ -63,7 +74,26 @@ void main(List<String> args) async {
   if (initialUrl != null) {
     container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
       initialUrl,
+      shouldAutoStart: PlatformInfo.isMobile,
     );
+  }
+
+  if (PlatformInfo.isAndroid) {
+    final shared = await AndroidShareService.instance.peekInitialUrl();
+    if (shared != null) {
+      container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
+        shared,
+        shouldAutoStart: true,
+      );
+    }
+    try {
+      final output = await AndroidStorage.resolveDefaultOutputFolder();
+      if ((prefs.getString('output_folder') ?? '').isEmpty) {
+        await prefs.setString('output_folder', output);
+      }
+    } catch (e) {
+      debugPrint('Android default output folder skipped: $e');
+    }
   }
 
   if (PlatformInfo.isDesktop) {
@@ -86,7 +116,11 @@ void main(List<String> args) async {
   }
 
   // Listen for deep links
-  protocolHandler.addListener(_ProtocolListener(container));
+  try {
+    protocolHandler.addListener(_ProtocolListener(container));
+  } catch (e) {
+    debugPrint('Protocol listener skipped: $e');
+  }
 
   runApp(
     UncontrolledProviderScope(
@@ -110,9 +144,12 @@ class _ProtocolListener extends ProtocolListener {
     if (extractedUrl != null) {
       container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
         extractedUrl,
+        shouldAutoStart: PlatformInfo.isMobile,
       );
-      windowManager.show();
-      windowManager.focus();
+      if (PlatformInfo.isDesktop) {
+        windowManager.show();
+        windowManager.focus();
+      }
     }
   }
 }
@@ -139,8 +176,10 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
-    trayManager.addListener(this);
+    if (PlatformInfo.isDesktop) {
+      windowManager.addListener(this);
+      trayManager.addListener(this);
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -160,12 +199,24 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
     if (_postBootstrapStarted || !mounted) return;
     _postBootstrapStarted = true;
     try {
-      _initTray();
-      ref.read(clipboardServiceProvider).startMonitoring();
+      if (PlatformInfo.isDesktop) {
+        unawaited(_initTray());
+        ref.read(clipboardServiceProvider).startMonitoring();
+        ref.read(clipboardServiceProvider).clipboardStream.listen((url) {
+          _handleClipboardUrl(url);
+        });
+      } else {
+        unawaited(AndroidPermissions.ensure());
+        AndroidShareService.instance.start();
+        AndroidShareService.instance.urlStream.listen((url) {
+          ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
+            url,
+            shouldAutoStart: true,
+          );
+          unawaited(NotificationService().showLinksQueued(1));
+        });
+      }
       ref.read(localServerServiceProvider).start();
-      ref.read(clipboardServiceProvider).clipboardStream.listen((url) {
-        _handleClipboardUrl(url);
-      });
       final settings = ref.read(settingsProvider);
       unawaited(StartupCleanupService.cleanup(settings.outputFolder));
     } catch (e) {
@@ -212,10 +263,14 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
   @override
   void dispose() {
-    _bootstrapSub?.close();
-    windowManager.removeListener(this);
-    trayManager.removeListener(this);
-    ref.read(clipboardServiceProvider).stopMonitoring();
+    if (PlatformInfo.isDesktop) {
+      _bootstrapSub?.close();
+      windowManager.removeListener(this);
+      trayManager.removeListener(this);
+      ref.read(clipboardServiceProvider).stopMonitoring();
+    } else {
+      _bootstrapSub?.close();
+    }
     super.dispose();
   }
 
@@ -285,7 +340,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       previous,
       next,
     ) {
-      if (previous != next) {
+      if (previous != next && PlatformInfo.isDesktop) {
         unawaited(_initTray());
       }
     });

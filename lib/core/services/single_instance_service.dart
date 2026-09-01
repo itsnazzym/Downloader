@@ -16,6 +16,9 @@ class SingleInstanceService {
     List<String> args,
     ProviderContainer container,
   ) async {
+    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
+      return false;
+    }
     try {
       // Try to bind - if this works, we are the primary instance
       _server = await ServerSocket.bind(InternetAddress.loopbackIPv4, _port);

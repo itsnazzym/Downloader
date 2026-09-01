@@ -478,5 +478,10 @@
   "notificationYtDlpUpdatedBody": "Mis à jour vers {version}",
   "@notificationYtDlpUpdatedBody": {
     "placeholders": { "version": { "type": "String" } }
-  }
+  },
+
+  "browseX": "Parcourir X",
+  "browseXHint": "Connectez-vous si besoin, puis appuyez sur Télécharger sur une vidéo.",
+  "mobileLibrary": "Bibliothèque",
+  "shareDownloadStarted": "Téléchargement lancé depuis le partage"
 }

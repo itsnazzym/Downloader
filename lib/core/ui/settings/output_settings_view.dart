@@ -77,6 +77,9 @@ class OutputSettingsView extends ConsumerWidget {
                                 itemFolders: const [],
                                 userProfile:
                                     Platform.environment['USERPROFILE'],
+                                fallbackFolder: Platform.isAndroid
+                                    ? '/storage/emulated/0/Download/ModernDownloader'
+                                    : null,
                               ) ??
                               '',
                         ),

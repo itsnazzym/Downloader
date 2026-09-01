@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import '../logger/logger_service.dart';
+import '../platform/platform_info.dart';
 import '../providers/settings_provider.dart';
 
 class NotificationService {
@@ -12,6 +16,10 @@ class NotificationService {
   }
 
   NotificationService._internal();
+
+  final FlutterLocalNotificationsPlugin _mobilePlugin =
+      FlutterLocalNotificationsPlugin();
+  bool _mobileReady = false;
 
   AppLocalizations _l10n() {
     try {
@@ -24,11 +32,19 @@ class NotificationService {
 
   Future<void> init() async {
     try {
-      await localNotifier.setup(
-        appName: 'Modern Downloader',
-        // The parameter shortcutPolicy argument is only available on Windows
-        shortcutPolicy: ShortcutPolicy.requireCreate,
-      );
+      if (PlatformInfo.isDesktop) {
+        await localNotifier.setup(
+          appName: 'Modern Downloader',
+          // The parameter shortcutPolicy argument is only available on Windows
+          shortcutPolicy: ShortcutPolicy.requireCreate,
+        );
+      } else if (Platform.isAndroid) {
+        const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+        await _mobilePlugin.initialize(
+          const InitializationSettings(android: android),
+        );
+        _mobileReady = true;
+      }
       LoggerService.i('NotificationService initialized');
     } catch (e) {
       LoggerService.e('Failed to initialize NotificationService', e);
@@ -93,7 +109,6 @@ class NotificationService {
 
   Future<void> _show({required String title, required String body}) async {
     try {
-      // Access prefs directly since NotificationService is a singleton
       try {
         final dnd = prefs.getBool('do_not_disturb') ?? false;
         if (dnd) {
@@ -102,10 +117,26 @@ class NotificationService {
         }
       } catch (_) {}
 
+      if (Platform.isAndroid && _mobileReady) {
+        const details = NotificationDetails(
+          android: AndroidNotificationDetails(
+            'downloads',
+            'Downloads',
+            channelDescription: 'Download progress and completion',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+          ),
+        );
+        await _mobilePlugin.show(
+          DateTime.now().millisecondsSinceEpoch.remainder(100000),
+          title,
+          body,
+          details,
+        );
+        return;
+      }
+
       final notification = LocalNotification(title: title, body: body);
-
-      // We can add onClick listeners here if needed in the future
-
       await notification.show();
     } catch (e) {
       LoggerService.w('Failed to show notification: $e');

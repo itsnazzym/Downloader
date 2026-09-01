@@ -1225,4 +1225,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String notificationYtDlpUpdatedBody(String version) {
     return 'Mis à jour vers $version';
   }
+
+  @override
+  String get browseX => 'Parcourir X';
+
+  @override
+  String get browseXHint =>
+      'Connectez-vous si besoin, puis appuyez sur Télécharger sur une vidéo.';
+
+  @override
+  String get mobileLibrary => 'Bibliothèque';
+
+  @override
+  String get shareDownloadStarted => 'Téléchargement lancé depuis le partage';
 }

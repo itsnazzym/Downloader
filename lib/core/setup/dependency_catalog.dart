@@ -1,3 +1,5 @@
+import 'dart:io';
+
 /// Official Windows x64 downloads for tools the downloader needs.
 class DependencyPackage {
   const DependencyPackage({
@@ -19,7 +21,7 @@ class DependencyPackage {
   final bool optional;
 }
 
-enum DependencyKind { executable, zip }
+enum DependencyKind { executable, zip, nativeBundle }
 
 class DependencyCatalog {
   const DependencyCatalog._();
@@ -68,6 +70,39 @@ class DependencyCatalog {
       optional: true,
     ),
   ];
+
+  static const List<DependencyPackage> androidRequired = [
+    DependencyPackage(
+      id: 'yt-dlp',
+      displayName: 'yt-dlp',
+      downloadUrl: '',
+      kind: DependencyKind.nativeBundle,
+      executableNames: ['yt-dlp'],
+      versionArgs: {'yt-dlp': '--version'},
+    ),
+    DependencyPackage(
+      id: 'ffmpeg',
+      displayName: 'FFmpeg',
+      downloadUrl: '',
+      kind: DependencyKind.nativeBundle,
+      executableNames: ['ffmpeg', 'ffprobe'],
+      versionArgs: {'ffmpeg': '-version', 'ffprobe': '-version'},
+    ),
+    DependencyPackage(
+      id: 'aria2c',
+      displayName: 'aria2c',
+      downloadUrl: '',
+      kind: DependencyKind.nativeBundle,
+      executableNames: ['aria2c'],
+      versionArgs: {'aria2c': '--version'},
+    ),
+  ];
+
+  static List<DependencyPackage> requiredPackages() {
+    if (Platform.isAndroid) return androidRequired;
+    if (Platform.isWindows) return windowsRequired;
+    return const [];
+  }
 
   static List<String> allExecutableNames() {
     return [for (final pkg in windowsRequired) ...pkg.executableNames];
