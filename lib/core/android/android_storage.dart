@@ -3,25 +3,17 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'android_engine_bridge.dart';
+import '../platform/android_storage.dart' as platform_android;
 
 /// Resolves a writable default library folder per platform.
 class AndroidStorage {
   AndroidStorage._();
 
   static const String folderName = 'ModernDownloader';
-  static const String androidPublicFallback =
-      '/storage/emulated/0/Download/ModernDownloader';
 
   static Future<String> resolveDefaultOutputFolder() async {
     if (Platform.isAndroid) {
-      try {
-        final native = await AndroidEngineBridge.instance.defaultOutputDir();
-        if (native != null && native.trim().isNotEmpty) {
-          return native;
-        }
-      } catch (_) {}
-      return androidPublicFallback;
+      return platform_android.AndroidStorage.defaultOutputFolder();
     }
 
     if (Platform.isWindows) {

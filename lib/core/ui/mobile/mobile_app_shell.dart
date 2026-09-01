@@ -31,7 +31,7 @@ class MobileAppShell extends ConsumerWidget {
         context.go('/stats');
         break;
       case 3:
-        context.go('/settings/general');
+        context.go('/settings');
         break;
       default:
         context.go('/');

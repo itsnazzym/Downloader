@@ -4,6 +4,7 @@ import 'package:riverpod/riverpod.dart';
 import '../../features/downloader/presentation/views/download_view.dart';
 import '../ui/app_shell.dart';
 import '../ui/settings/general_settings_view.dart';
+import '../ui/settings/settings_hub_view.dart';
 import '../../features/browser/x_browser_view.dart';
 import '../ui/settings/output_settings_view.dart';
 import '../ui/settings/advanced_settings_view.dart';
@@ -40,7 +41,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const GeneralSettingsView(),
+            builder: (context, state) => const AdaptiveSettingsHome(),
           ),
           GoRoute(
             path: '/settings/general',
