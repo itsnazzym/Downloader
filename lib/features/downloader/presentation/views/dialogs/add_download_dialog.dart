@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/design_system/components/app_button.dart';
 import 'package:modern_downloader/core/design_system/components/app_text_field.dart';
 import 'package:modern_downloader/core/design_system/components/app_toast.dart';
@@ -338,14 +339,18 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final compact = PlatformInfo.useMobileLayout(context);
     return Dialog(
       backgroundColor: AppColors.of(context).surface,
+      insetPadding: compact
+          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 24)
+          : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: AppColors.of(context).border),
       ),
       child: Container(
-        width: 400,
+        width: compact ? double.infinity : 400,
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Form(
           key: _formKey,

@@ -129,7 +129,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: settingsLeading(context),
         backgroundColor: AppColors.of(
           context,
         ).background.withValues(alpha: 0.8),

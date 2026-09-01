@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import '../logger/logger_service.dart';
@@ -13,6 +16,9 @@ class NotificationService {
 
   NotificationService._internal();
 
+  final FlutterLocalNotificationsPlugin _mobileNotifications =
+      FlutterLocalNotificationsPlugin();
+
   AppLocalizations _l10n() {
     try {
       final code = prefs.getString('locale') ?? 'en';
@@ -24,11 +30,31 @@ class NotificationService {
 
   Future<void> init() async {
     try {
-      await localNotifier.setup(
-        appName: 'Modern Downloader',
-        // The parameter shortcutPolicy argument is only available on Windows
-        shortcutPolicy: ShortcutPolicy.requireCreate,
-      );
+      if (Platform.isAndroid || Platform.isIOS) {
+        const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+        const ios = DarwinInitializationSettings();
+        await _mobileNotifications.initialize(
+          const InitializationSettings(android: android, iOS: ios),
+        );
+        await _mobileNotifications
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >()
+            ?.createNotificationChannel(
+              const AndroidNotificationChannel(
+                'downloads',
+                'Downloads',
+                description: 'Download status notifications',
+                importance: Importance.defaultImportance,
+              ),
+            );
+      } else {
+        await localNotifier.setup(
+          appName: 'Modern Downloader',
+          // The parameter shortcutPolicy argument is only available on Windows
+          shortcutPolicy: ShortcutPolicy.requireCreate,
+        );
+      }
       LoggerService.i('NotificationService initialized');
     } catch (e) {
       LoggerService.e('Failed to initialize NotificationService', e);
@@ -101,6 +127,25 @@ class NotificationService {
           return;
         }
       } catch (_) {}
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        await _mobileNotifications.show(
+          DateTime.now().millisecondsSinceEpoch.remainder(100000),
+          title,
+          body,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'downloads',
+              'Downloads',
+              channelDescription: 'Download status notifications',
+              importance: Importance.defaultImportance,
+              priority: Priority.defaultPriority,
+            ),
+            iOS: DarwinNotificationDetails(),
+          ),
+        );
+        return;
+      }
 
       final notification = LocalNotification(title: title, body: body);
 

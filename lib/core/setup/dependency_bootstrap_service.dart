@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import '../logger/logger_service.dart';
+import '../platform/android_ytdlp_client.dart';
 import '../services/binary/binary_locator.dart';
 import '../services/binary/process_runner.dart';
 import 'dependency_catalog.dart';
@@ -57,6 +58,10 @@ class DependencyBootstrapService {
     bool checkOptionalGobird = false,
   }) async {
     LoggerService.i('Checking required download tools');
+    if (Platform.isAndroid) {
+      await _ensureAndroidReady(onProgress);
+      return;
+    }
     if (!Platform.isWindows) {
       onProgress(
         const DependencyBootstrapProgress(step: SetupStep.ready, toolName: ''),
@@ -223,7 +228,48 @@ class DependencyBootstrapService {
   }
 
   Future<void> updateYtDlpInBackground() async {
+    if (Platform.isAndroid) {
+      try {
+        await AndroidYtDlpClient.instance.updateYtDlp();
+      } catch (e) {
+        LoggerService.w('Android yt-dlp update skipped: $e');
+      }
+      return;
+    }
     await _updateYtDlp();
+  }
+
+  Future<void> _ensureAndroidReady(
+    void Function(DependencyBootstrapProgress progress) onProgress,
+  ) async {
+    final ready = <String>[];
+    try {
+      onProgress(
+        const DependencyBootstrapProgress(
+          step: SetupStep.extracting,
+          toolName: 'yt-dlp',
+        ),
+      );
+      await AndroidYtDlpClient.instance.initEngine();
+      ready.addAll(const ['yt-dlp', 'ffmpeg', 'aria2c']);
+      onProgress(
+        DependencyBootstrapProgress(
+          step: SetupStep.ready,
+          toolName: '',
+          readyTools: ready,
+        ),
+      );
+    } catch (e) {
+      LoggerService.e('Android download engine init failed', e);
+      onProgress(
+        DependencyBootstrapProgress(
+          step: SetupStep.failed,
+          toolName: 'yt-dlp',
+          errors: ['$e'],
+          readyTools: ready,
+        ),
+      );
+    }
   }
 
   Future<void> _emitProgress(

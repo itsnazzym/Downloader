@@ -52,5 +52,17 @@ void main() {
         );
       },
     );
+
+    test('joins posix Downloads when a custom separator is provided', () {
+      expect(
+        DownloadPathResolver.resolve(
+          settingsOutputFolder: '',
+          itemFolders: const [],
+          userProfile: '/storage/emulated/0',
+          pathSeparator: '/',
+        ),
+        '/storage/emulated/0/Downloads',
+      );
+    });
   });
 }

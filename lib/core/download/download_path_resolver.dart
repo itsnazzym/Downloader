@@ -3,6 +3,7 @@ class DownloadPathResolver {
     required String settingsOutputFolder,
     required List<String> itemFolders,
     String? userProfile,
+    String pathSeparator = '\\',
   }) {
     if (settingsOutputFolder.trim().isNotEmpty) {
       return settingsOutputFolder;
@@ -13,7 +14,7 @@ class DownloadPathResolver {
       }
     }
     if (userProfile != null && userProfile.isNotEmpty) {
-      return '$userProfile\\Downloads';
+      return '$userProfile${pathSeparator}Downloads';
     }
     return null;
   }

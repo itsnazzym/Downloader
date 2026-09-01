@@ -23,6 +23,7 @@ import '../../design_system/components/app_toast.dart';
 import '../../plugins/plugin_manager.dart';
 
 import '../../providers/settings_provider.dart';
+import '../settings_view.dart';
 
 import '../../services/browser_extension_installer.dart';
 import 'widgets/extension_install_guide_dialog.dart';
@@ -48,7 +49,7 @@ class PluginsSettingsView extends ConsumerWidget {
       backgroundColor: AppColors.of(context).background,
 
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: settingsLeading(context),
 
         backgroundColor: AppColors.of(
           context,

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/platform/file_opener.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -161,14 +162,6 @@ class DownloadItemContextMenu extends ConsumerWidget {
   }
 
   void _revealInFolder(String path) {
-    try {
-      if (Platform.isWindows) {
-        Process.start('explorer.exe', ['/select,', path]);
-      } else if (Platform.isMacOS) {
-        Process.start('open', ['-R', path]);
-      } else {
-        Process.start('xdg-open', [File(path).parent.path]);
-      }
-    } catch (_) {}
+    FileOpener.reveal(path);
   }
 }

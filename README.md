@@ -4,7 +4,7 @@
 
 # Modern Downloader
 
-**Téléchargeur de médias moderne, fluide et privé pour Windows**  
+**Téléchargeur de médias moderne, fluide et privé pour Windows et Android**  
 *Modern, high-performance, privacy-first media downloader & library manager*
 
 <br />
@@ -13,6 +13,7 @@
 [![Release](https://img.shields.io/github/v/release/itsnazzym/Downloader?color=orange)](https://github.com/itsnazzym/Downloader/releases)
 [![License](https://img.shields.io/github/license/itsnazzym/Downloader?color=green)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?logo=windows&logoColor=white)](https://github.com/itsnazzym/Downloader/releases)
+[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://github.com/itsnazzym/Downloader/releases)
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 
 [Téléchargements / Releases](https://github.com/itsnazzym/Downloader/releases) · [Extensions](#extensions-navigateur--browser-extensions) · [Confidentialité](extension/privacy.md)
@@ -115,11 +116,13 @@ tool/                  # Scripts d'automatisation de build et packaging
 2. Lancez `modern_downloader.exe`. Les moteurs d'extraction (`yt-dlp`, `FFmpeg`, `aria2c`) sont inclus ou initialisés automatiquement.
 3. *(Optionnel)* Installez l'[extension de navigateur](#extensions-navigateur--browser-extensions) pour capturer les médias en un clic.
 
+**Android :** installez l'APK `ModernDownloader-Android-vX.Y.Z.apk` depuis Releases. Au premier lancement, l'app extrait `yt-dlp`, FFmpeg et aria2c (via youtubedl-android). Partagez une URL depuis le navigateur ou YouTube via *Partager → Modern Downloader*. Les fichiers vont dans `Download/ModernDownloader`.
+
 ---
 
 ### 💻 Développeur — Compilation depuis les sources
 
-**Prérequis :** Windows 10/11 · [Flutter SDK](https://docs.flutter.dev/get-started/install/windows) stable · Git · Python 3.10+
+**Prérequis :** Windows 10/11 ou Linux/macOS + Android SDK · [Flutter SDK](https://docs.flutter.dev/get-started/install) stable · Git · Python 3.10+
 
 ```bash
 # 1. Cloner le dépôt
@@ -131,11 +134,15 @@ flutter pub get
 
 # 3. Lancer en mode développement
 flutter run -d windows
+# ou : flutter run -d android
 
 # 4. Compiler la version Release Windows
 flutter build windows --release
 
-# 5. Créer l'installeur Setup et le ZIP Portable
+# 5. Compiler l'APK Android (minSdk 24)
+flutter build apk --release
+
+# 6. Créer l'installeur Setup et le ZIP Portable (Windows)
 python tool/package_release.py
 ```
 

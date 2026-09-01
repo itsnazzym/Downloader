@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -17,6 +18,34 @@ class DownloadView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (PlatformInfo.useMobileLayout(context)) {
+      ref.listen<String?>(selectedDownloadIdProvider, (previous, next) {
+        if (next == null || next == previous) return;
+        showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          builder: (context) {
+            return SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.92,
+              child: DownloadInspector(downloadId: next),
+            );
+          },
+        ).whenComplete(() {
+          if (ref.read(selectedDownloadIdProvider) == next) {
+            ref.read(selectedDownloadIdProvider.notifier).state = null;
+          }
+        });
+      });
+
+      return const Column(
+        children: [
+          _DownloadTopBar(),
+          Expanded(child: DownloadList()),
+        ],
+      );
+    }
+
     // 3-Column Layout: [Sidebar (handled by Shell)] [Main List] [Inspector]
     return Row(
       children: [

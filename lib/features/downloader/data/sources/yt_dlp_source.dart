@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import '../../domain/entities/download_request.dart';
 import '../../domain/exceptions/yt_dlp_exception.dart';
+import 'download_progress_event.dart';
+export 'download_progress_event.dart';
 import '../../../../../core/logger/logger_service.dart';
 import '../../../../../core/services/binary/binary_locator.dart';
 import '../../../../../core/services/binary/process_runner.dart';
@@ -15,6 +17,8 @@ import '../../../../../core/download/yt_dlp_progress_parser.dart';
 import '../../../../../core/download/download_status_guard.dart';
 import '../../../../../core/download/fragment_budget.dart';
 import '../../../../../core/download/metadata_probe_limiter.dart';
+import '../../../../../core/platform/android_ytdlp_args.dart';
+import '../../../../../core/platform/android_ytdlp_client.dart';
 
 class YtDlpSource {
   final BinaryLocator _binaryLocator;
@@ -30,6 +34,11 @@ class YtDlpSource {
   /// Fetch video title quickly
   Future<String?> fetchTitle(String url) async {
     try {
+      if (Platform.isAndroid) {
+        final metadata = await fetchMetadata(url);
+        final title = metadata['title'];
+        return title is String && title.trim().isNotEmpty ? title.trim() : null;
+      }
       final ytDlp = await _binaryLocator.findYtDlp();
       if (ytDlp == null) return null;
 
@@ -80,6 +89,45 @@ class YtDlpSource {
     String? cookieBrowser,
     bool useTorProxy = false,
   }) async {
+    if (Platform.isAndroid) {
+      final args = <String>['--dump-json', '--no-warnings', '--no-playlist'];
+      File? tempNetscapeFile;
+      try {
+        var effectiveCookiesPath = cookiesFilePath;
+        if ((effectiveCookiesPath == null || effectiveCookiesPath.isEmpty) &&
+            YtDlpCookieArgs.isNetscapeFormat(cookies)) {
+          tempNetscapeFile = File(
+            '${Directory.systemTemp.path}/md_meta_cookies_${DateTime.now().millisecondsSinceEpoch}.txt',
+          );
+          await tempNetscapeFile.writeAsString(cookies!);
+          effectiveCookiesPath = tempNetscapeFile.path;
+        }
+        args.addAll(
+          AndroidYtDlpArgs.sanitize(
+            YtDlpCookieArgs.build(
+              cookiesFilePath: effectiveCookiesPath,
+              rawCookies: cookies,
+              cookieBrowser: null,
+            ),
+          ),
+        );
+        final proxy = await TorProxyGuard.resolveProxyUrl(
+          useTorProxy: useTorProxy,
+        );
+        if (proxy != null) {
+          args.addAll(['--proxy', proxy]);
+        }
+        args.add(url);
+        return await AndroidYtDlpClient.instance.probeJson(args);
+      } finally {
+        try {
+          if (tempNetscapeFile != null && await tempNetscapeFile.exists()) {
+            await tempNetscapeFile.delete();
+          }
+        } catch (_) {}
+      }
+    }
+
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) throw Exception('yt-dlp binary not found');
 
@@ -176,6 +224,19 @@ class YtDlpSource {
   }
 
   Future<List<Map<String, dynamic>>> fetchPlaylist(String url) async {
+    if (Platform.isAndroid) {
+      try {
+        return await AndroidYtDlpClient.instance.probePlaylist([
+          '--flat-playlist',
+          '--dump-single-json',
+          '--no-warnings',
+          url,
+        ]);
+      } catch (e) {
+        LoggerService.w('Android playlist probe failed: $e');
+        return [];
+      }
+    }
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) return [];
 
@@ -226,7 +287,9 @@ class YtDlpSource {
     DownloadRequest request,
   ) async* {
     LoggerService.i('YtDlpSource: Looking for yt-dlp binary...');
-    final ytDlp = await _binaryLocator.findYtDlp();
+    final ytDlp = Platform.isAndroid
+        ? 'android://yt-dlp'
+        : await _binaryLocator.findYtDlp();
     if (ytDlp == null) {
       LoggerService.e('yt-dlp binary NOT FOUND!');
       throw Exception('yt-dlp binary not found. Please install yt-dlp.');
@@ -295,25 +358,30 @@ class YtDlpSource {
     // Output template - Use proper Windows path separators
     String outputPath;
     String baseFolder = request.outputFolder ?? '';
+    final sep = Platform.isWindows ? '\\' : '/';
 
     // Standard User Downloads directory if none provided
     if (baseFolder.isEmpty) {
       if (Platform.isWindows) {
         final userProfile = Platform.environment['USERPROFILE'];
         if (userProfile != null) {
-          baseFolder = '$userProfile\\Downloads';
+          baseFolder = '$userProfile${sep}Downloads';
         }
       }
       baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
     }
 
-    baseFolder = baseFolder.replaceAll('/', '\\');
+    if (Platform.isWindows) {
+      baseFolder = baseFolder.replaceAll('/', '\\');
+    } else {
+      baseFolder = baseFolder.replaceAll('\\', '/');
+    }
 
     // Organize by site: Add subfolder
     if (request.organizeBySite) {
       // Use DownloadItem.source logic but for the request URL
       final siteFolder = _getSiteName(request.url);
-      baseFolder = '$baseFolder\\$siteFolder';
+      baseFolder = '$baseFolder$sep$siteFolder';
     }
 
     final downloadsDir = Directory(baseFolder);
@@ -325,7 +393,7 @@ class YtDlpSource {
     // yt-dlp extracts the same generic title for different videos on unknown sites.
     // The ID is unique per video (e.g. YouTube video ID, tweet status ID, etc.)
     final filename = request.customFilename ?? '%(title)s [%(id)s].%(ext)s';
-    outputPath = '$baseFolder\\$filename';
+    outputPath = '$baseFolder$sep$filename';
 
     args.add('-o');
     args.add(outputPath);
@@ -499,6 +567,24 @@ class YtDlpSource {
 
     LoggerService.i('YtDlpSource: Running: $ytDlp ${args.join(' ')}');
 
+    final preferredExt = request.audioOnly
+        ? '.${request.audioFormat}'
+        : '.${request.outputFormat}';
+    final videoIdFromFilename = DownloadFileResolver.extractBracketId(
+      request.customFilename ?? filename,
+    );
+
+    if (Platform.isAndroid) {
+      yield* AndroidYtDlpClient.instance.download(
+        id: id,
+        args: AndroidYtDlpArgs.sanitize(args),
+        outputFolder: baseFolder,
+        videoId: videoIdFromFilename,
+        preferredExt: preferredExt,
+      );
+      return;
+    }
+
     // Start process
     final process = await Process.start(
       ytDlp,
@@ -513,13 +599,6 @@ class YtDlpSource {
     YtDlpException? detectedException;
     final errorBuffer = StringBuffer();
     final outputBuffer = StringBuffer();
-
-    final preferredExt = request.audioOnly
-        ? '.${request.audioFormat}'
-        : '.${request.outputFormat}';
-    final videoIdFromFilename = DownloadFileResolver.extractBracketId(
-      request.customFilename ?? filename,
-    );
 
     final parser = YtDlpProgressParser(
       baseFolder: baseFolder,
@@ -713,6 +792,10 @@ class YtDlpSource {
   }
 
   Future<void> cancel(String id) async {
+    if (Platform.isAndroid) {
+      await AndroidYtDlpClient.instance.cancel(id);
+      return;
+    }
     final process = _downloadProcesses[id];
     if (process != null) {
       await _processRunner.kill(process); // Use robust kill
@@ -759,28 +842,4 @@ class YtDlpSource {
     }
     return 'Other';
   }
-}
-
-class DownloadProgressEvent {
-  final double progress;
-  final String totalSize;
-  final String downloadedSize;
-  final String speed;
-  final String eta;
-  final String? title;
-  final String step;
-  final String? filePath;
-  final bool isDuplicate;
-
-  DownloadProgressEvent({
-    required this.progress,
-    required this.totalSize,
-    this.downloadedSize = '',
-    required this.speed,
-    required this.eta,
-    this.title,
-    this.step = '',
-    this.filePath,
-    this.isDuplicate = false,
-  });
 }

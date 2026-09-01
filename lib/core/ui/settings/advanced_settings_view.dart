@@ -9,6 +9,7 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import 'package:gap/gap.dart';
+import '../../platform/platform_info.dart';
 import '../../providers/settings_provider.dart';
 import '../../../../features/downloader/presentation/providers/downloader_provider.dart';
 import '../../design_system/components/app_toast.dart';
@@ -114,7 +115,7 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
       extendBodyBehindAppBar: true,
       backgroundColor: colors.background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: settingsLeading(context),
         backgroundColor: colors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
@@ -167,13 +168,14 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                               settingsNotifier.setClipboardMonitorEnabled,
                           icon: Icons.paste_rounded,
                         ),
-                        SwitchTile(
-                          title: l10n.minimizeToTray,
-                          subtitle: l10n.minimizeToTrayDesc,
-                          value: settings.minimizeToTray,
-                          onChanged: settingsNotifier.setMinimizeToTray,
-                          icon: Icons.arrow_downward_rounded,
-                        ),
+                        if (PlatformInfo.isDesktop)
+                          SwitchTile(
+                            title: l10n.minimizeToTray,
+                            subtitle: l10n.minimizeToTrayDesc,
+                            value: settings.minimizeToTray,
+                            onChanged: settingsNotifier.setMinimizeToTray,
+                            icon: Icons.arrow_downward_rounded,
+                          ),
                         SwitchTile(
                           title: l10n.doNotDisturb,
                           subtitle: l10n.doNotDisturbDesc,
@@ -181,145 +183,158 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                           onChanged: settingsNotifier.setDoNotDisturb,
                           icon: Icons.notifications_off_outlined,
                         ),
-                        DropdownTile(
-                          title: l10n.cookiesFromBrowser,
-                          value: settings.cookieBrowser,
-                          options: const [
-                            "firefox",
-                            "chrome",
-                            "edge",
-                            "brave",
-                            "vivaldi",
-                            "opera",
-                          ],
-                          onChanged: settingsNotifier.setCookieBrowser,
-                          icon: Icons.browser_updated_rounded,
-                        ),
-                        ActionTile(
-                          title: l10n.extensionApiToken,
-                          subtitle: settings.apiToken.isEmpty
-                              ? l10n.generatedOnFirstLaunch
-                              : settings.apiToken,
-                          icon: Icons.vpn_key_outlined,
-                          onTap: () async {
-                            await Clipboard.setData(
-                              ClipboardData(text: settings.apiToken),
-                            );
-                            if (context.mounted) {
-                              AppToast.showSuccess(
-                                context,
-                                l10n.tokenCopiedHint,
-                              );
-                            }
-                          },
-                          trailing: IconButton(
-                            icon: const Icon(Icons.copy),
-                            tooltip: l10n.copyToken,
-                            onPressed: () async {
+                        if (PlatformInfo.isDesktop)
+                          DropdownTile(
+                            title: l10n.cookiesFromBrowser,
+                            value: settings.cookieBrowser,
+                            options: const [
+                              "firefox",
+                              "chrome",
+                              "edge",
+                              "brave",
+                              "vivaldi",
+                              "opera",
+                            ],
+                            onChanged: settingsNotifier.setCookieBrowser,
+                            icon: Icons.browser_updated_rounded,
+                          ),
+                        if (PlatformInfo.isDesktop)
+                          ActionTile(
+                            title: l10n.extensionApiToken,
+                            subtitle: settings.apiToken.isEmpty
+                                ? l10n.generatedOnFirstLaunch
+                                : settings.apiToken,
+                            icon: Icons.vpn_key_outlined,
+                            onTap: () async {
                               await Clipboard.setData(
                                 ClipboardData(text: settings.apiToken),
                               );
                               if (context.mounted) {
-                                AppToast.showSuccess(context, l10n.tokenCopied);
+                                AppToast.showSuccess(
+                                  context,
+                                  l10n.tokenCopiedHint,
+                                );
+                              }
+                            },
+                            trailing: IconButton(
+                              icon: const Icon(Icons.copy),
+                              tooltip: l10n.copyToken,
+                              onPressed: () async {
+                                await Clipboard.setData(
+                                  ClipboardData(text: settings.apiToken),
+                                );
+                                if (context.mounted) {
+                                  AppToast.showSuccess(
+                                    context,
+                                    l10n.tokenCopied,
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        if (PlatformInfo.isDesktop)
+                          ActionTile(
+                            title: l10n.localServerPort,
+                            subtitle: l10n.serverPortRestartHint(
+                              settings.serverPort,
+                            ),
+                            icon: Icons.lan_outlined,
+                            onTap: () async {
+                              final controller = TextEditingController(
+                                text: settings.serverPort.toString(),
+                              );
+                              final next = await showDialog<int>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(l10n.localServerPort),
+                                  content: TextField(
+                                    controller: controller,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      hintText: '6969',
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(l10n.cancel),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        final parsed = int.tryParse(
+                                          controller.text.trim(),
+                                        );
+                                        Navigator.pop(context, parsed);
+                                      },
+                                      child: Text(l10n.save),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (next != null && next > 0 && next < 65536) {
+                                settingsNotifier.setServerPort(next);
+                                if (context.mounted) {
+                                  AppToast.showSuccess(
+                                    context,
+                                    l10n.portSavedRestart,
+                                  );
+                                }
                               }
                             },
                           ),
-                        ),
-                        ActionTile(
-                          title: l10n.localServerPort,
-                          subtitle: l10n.serverPortRestartHint(
-                            settings.serverPort,
-                          ),
-                          icon: Icons.lan_outlined,
-                          onTap: () async {
-                            final controller = TextEditingController(
-                              text: settings.serverPort.toString(),
-                            );
-                            final next = await showDialog<int>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text(l10n.localServerPort),
-                                content: TextField(
-                                  controller: controller,
-                                  keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    hintText: '6969',
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text(l10n.cancel),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      final parsed = int.tryParse(
-                                        controller.text.trim(),
-                                      );
-                                      Navigator.pop(context, parsed);
-                                    },
-                                    child: Text(l10n.save),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (next != null && next > 0 && next < 65536) {
-                              settingsNotifier.setServerPort(next);
-                              if (context.mounted) {
-                                AppToast.showSuccess(
-                                  context,
-                                  l10n.portSavedRestart,
-                                );
-                              }
-                            }
-                          },
-                        ),
 
-                        const Gap(AppSpacing.l),
-                        SectionTitle(l10n.experimentalXFeedSection),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.m),
-                          child: Text(
-                            l10n.experimentalXFeedWarning,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: colors.warning,
+                        if (PlatformInfo.isDesktop) const Gap(AppSpacing.l),
+                        if (PlatformInfo.isDesktop)
+                          SectionTitle(l10n.experimentalXFeedSection),
+                        if (PlatformInfo.isDesktop)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.m,
+                            ),
+                            child: Text(
+                              l10n.experimentalXFeedWarning,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: colors.warning,
+                              ),
                             ),
                           ),
-                        ),
-                        SwitchTile(
-                          title: l10n.experimentalXFeedGobird,
-                          subtitle: l10n.experimentalXFeedGobirdDesc,
-                          value: settings.experimentalXFeedGobirdEnabled,
-                          onChanged: _onGobirdToggle,
-                          icon: Icons.science_outlined,
-                        ),
-                        DropdownTile(
-                          title: l10n.gobirdBrowser,
-                          value: settings.gobirdBrowser,
-                          options: const ['chrome', 'firefox'],
-                          onChanged: settingsNotifier.setGobirdBrowser,
-                          icon: Icons.web_asset,
-                        ),
-                        ActionTile(
-                          title: l10n.gobirdBinaryStatus,
-                          subtitle: gobirdStatusSubtitle,
-                          icon: Icons.memory_outlined,
-                          onTap: _refreshGobirdStatus,
-                          trailing: settings.experimentalXFeedGobirdEnabled
-                              ? TextButton(
-                                  onPressed: () {
-                                    settingsNotifier
-                                        .setExperimentalXFeedGobirdEnabled(
-                                          false,
-                                        );
-                                  },
-                                  child: Text(l10n.gobirdDisableNow),
-                                )
-                              : IconButton(
-                                  icon: const Icon(Icons.refresh),
-                                  onPressed: _refreshGobirdStatus,
-                                ),
-                        ),
+                        if (PlatformInfo.isDesktop)
+                          SwitchTile(
+                            title: l10n.experimentalXFeedGobird,
+                            subtitle: l10n.experimentalXFeedGobirdDesc,
+                            value: settings.experimentalXFeedGobirdEnabled,
+                            onChanged: _onGobirdToggle,
+                            icon: Icons.science_outlined,
+                          ),
+                        if (PlatformInfo.isDesktop)
+                          DropdownTile(
+                            title: l10n.gobirdBrowser,
+                            value: settings.gobirdBrowser,
+                            options: const ['chrome', 'firefox'],
+                            onChanged: settingsNotifier.setGobirdBrowser,
+                            icon: Icons.web_asset,
+                          ),
+                        if (PlatformInfo.isDesktop)
+                          ActionTile(
+                            title: l10n.gobirdBinaryStatus,
+                            subtitle: gobirdStatusSubtitle,
+                            icon: Icons.memory_outlined,
+                            onTap: _refreshGobirdStatus,
+                            trailing: settings.experimentalXFeedGobirdEnabled
+                                ? TextButton(
+                                    onPressed: () {
+                                      settingsNotifier
+                                          .setExperimentalXFeedGobirdEnabled(
+                                            false,
+                                          );
+                                    },
+                                    child: Text(l10n.gobirdDisableNow),
+                                  )
+                                : IconButton(
+                                    icon: const Icon(Icons.refresh),
+                                    onPressed: _refreshGobirdStatus,
+                                  ),
+                          ),
 
                         const Gap(AppSpacing.l),
                         SectionTitle(l10n.dataAndHistory),

@@ -1,6 +1,7 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'dart:ui';
@@ -21,6 +22,9 @@ class _DragDropOverlayState extends ConsumerState<DragDropOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    if (!PlatformInfo.isDesktop) {
+      return widget.child;
+    }
     return DropTarget(
       onDragEntered: (details) {
         setState(() => _isDragging = true);

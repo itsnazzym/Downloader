@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/platform/file_opener.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
@@ -382,11 +383,7 @@ class DownloadInspector extends ConsumerWidget {
   }
 
   void _openFile(String path) {
-    try {
-      Process.run('explorer', [path]);
-    } catch (e) {
-      debugPrint("Error opening file: $e");
-    }
+    FileOpener.open(path);
   }
 
   /// Open media files in the built-in player, others in Explorer

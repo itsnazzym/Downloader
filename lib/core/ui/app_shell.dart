@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/core/providers/launch_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
@@ -17,6 +18,7 @@ import 'package:modern_downloader/core/ui/widgets/mesh_gradient_background.dart'
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
 import 'package:modern_downloader/core/ui/widgets/resizable_width_pane.dart';
+import '../platform/platform_info.dart';
 import 'sidebar/sidebar.dart';
 
 class AppShell extends ConsumerWidget {
@@ -55,61 +57,69 @@ class AppShell extends ConsumerWidget {
 
     final colors = AppColors.of(context);
     final location = GoRouterState.of(context).uri.path;
-    final showDock = colors.useFloatingDock;
+    final mobile = PlatformInfo.useMobileLayout(context);
+    final showDock = colors.useFloatingDock && !mobile;
     final mesh = colors.useMeshBackground;
     final layout = ref.watch(paneLayoutProvider);
     final resizing = ref.watch(paneResizeActiveProvider);
 
-    Widget chrome = Scaffold(
-      backgroundColor: mesh ? Colors.transparent : colors.background,
-      body: MouseRegion(
-        cursor: resizing ? SystemMouseCursors.resizeColumn : MouseCursor.defer,
-        child: Column(
-          children: [
-            const AppTitleBar(),
-            Expanded(
-              child: Row(
+    Widget chrome = mobile
+        ? _MobileAppChrome(location: location, child: child)
+        : Scaffold(
+            backgroundColor: mesh ? Colors.transparent : colors.background,
+            body: MouseRegion(
+              cursor: resizing
+                  ? SystemMouseCursors.resizeColumn
+                  : MouseCursor.defer,
+              child: Column(
                 children: [
-                  ResizableWidthPane(
-                    width: layout.visibleSidebarWidth,
-                    minWidth: PaneLayout.sidebarRail,
-                    maxWidth: PaneLayout.sidebarMax,
-                    resizeFrom: PaneResizeFrom.trailing,
-                    onWidthChanged: (width) {
-                      ref
-                          .read(paneLayoutProvider.notifier)
-                          .setSidebarWidth(width);
-                    },
-                    onDragActive: (active) {
-                      ref.read(paneResizeActiveProvider.notifier).state =
-                          active;
-                    },
-                    onResizeEnd: () {
-                      ref.read(paneResizeActiveProvider.notifier).state = false;
-                      ref.read(paneLayoutProvider.notifier).commitSidebarDrag();
-                      ref.read(paneLayoutProvider.notifier).persist();
-                    },
-                    onToggleCollapse: () {
-                      ref
-                          .read(paneLayoutProvider.notifier)
-                          .toggleSidebarCollapsed();
-                      ref.read(paneLayoutProvider.notifier).persist();
-                    },
-                    child: const AppSidebar(),
-                  ),
+                  const AppTitleBar(),
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: showDock ? 72 : 0),
-                      child: child,
+                    child: Row(
+                      children: [
+                        ResizableWidthPane(
+                          width: layout.visibleSidebarWidth,
+                          minWidth: PaneLayout.sidebarRail,
+                          maxWidth: PaneLayout.sidebarMax,
+                          resizeFrom: PaneResizeFrom.trailing,
+                          onWidthChanged: (width) {
+                            ref
+                                .read(paneLayoutProvider.notifier)
+                                .setSidebarWidth(width);
+                          },
+                          onDragActive: (active) {
+                            ref.read(paneResizeActiveProvider.notifier).state =
+                                active;
+                          },
+                          onResizeEnd: () {
+                            ref.read(paneResizeActiveProvider.notifier).state =
+                                false;
+                            ref
+                                .read(paneLayoutProvider.notifier)
+                                .commitSidebarDrag();
+                            ref.read(paneLayoutProvider.notifier).persist();
+                          },
+                          onToggleCollapse: () {
+                            ref
+                                .read(paneLayoutProvider.notifier)
+                                .toggleSidebarCollapsed();
+                            ref.read(paneLayoutProvider.notifier).persist();
+                          },
+                          child: const AppSidebar(),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: showDock ? 72 : 0),
+                            child: child,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
 
     if (mesh) {
       chrome = MeshGradientBackground(child: chrome);
@@ -156,6 +166,73 @@ class AppShell extends ConsumerWidget {
         initialUrl: data.url,
         initialCookies: data.cookies,
         userAgent: data.userAgent,
+      ),
+    );
+  }
+}
+
+class _MobileAppChrome extends StatelessWidget {
+  const _MobileAppChrome({required this.child, required this.location});
+
+  final Widget child;
+  final String location;
+
+  int get _index {
+    if (location.startsWith('/settings')) return 2;
+    if (location == '/stats') return 1;
+    return 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    return Scaffold(
+      backgroundColor: colors.useMeshBackground
+          ? Colors.transparent
+          : colors.background,
+      body: SafeArea(child: child),
+      floatingActionButton: location == '/'
+          ? FloatingActionButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const AddDownloadDialog(),
+                );
+              },
+              tooltip: l10n.newDownload,
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (index) {
+          switch (index) {
+            case 0:
+              context.go('/');
+            case 1:
+              context.go('/stats');
+            case 2:
+              context.go('/settings');
+          }
+        },
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.download_outlined),
+            selectedIcon: const Icon(Icons.download_rounded),
+            label: l10n.mainPage,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.bar_chart_outlined),
+            selectedIcon: const Icon(Icons.bar_chart_rounded),
+            label: l10n.statistics,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings_rounded),
+            label: l10n.settings,
+          ),
+        ],
       ),
     );
   }

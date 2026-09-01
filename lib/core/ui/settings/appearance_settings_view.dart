@@ -31,7 +31,7 @@ class _AppearanceSettingsViewState
       extendBodyBehindAppBar: true,
       backgroundColor: ds.AppColors.of(context).background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: settingsLeading(context),
         backgroundColor: ds.AppColors.of(
           context,
         ).background.withValues(alpha: 0.8),

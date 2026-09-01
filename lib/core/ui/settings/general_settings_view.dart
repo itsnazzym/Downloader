@@ -25,7 +25,7 @@ class GeneralSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        leading: const SizedBox(), // Hide back button if shown by default
+        leading: settingsLeading(context),
         backgroundColor: AppColors.of(
           context,
         ).background.withValues(alpha: 0.8),

@@ -1,0 +1,3 @@
+-keep class com.yausername.** { *; }
+-keep class com.orpheusdroid.** { *; }
+-dontwarn com.yausername.**

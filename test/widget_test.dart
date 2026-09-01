@@ -180,4 +180,76 @@ void main() {
     expect(find.text('Content'), findsOneWidget);
     expect(find.byType(AppShell), findsOneWidget);
   });
+
+  testWidgets('AppShell uses a phone navigation bar on a compact viewport', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        ShellRoute(
+          builder: (context, state, child) {
+            return AppShell(child: child);
+          },
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) => const Center(child: Text('Content')),
+            ),
+            GoRoute(
+              path: '/stats',
+              builder: (context, state) => const Center(child: Text('Stats')),
+            ),
+            GoRoute(
+              path: '/settings',
+              builder: (context, state) =>
+                  const Center(child: Text('Settings')),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          clipboardServiceProvider.overrideWith(
+            (ref) => MockClipboardService(ref),
+          ),
+          localServerServiceProvider.overrideWith(
+            (ref) => MockLocalServerService(ref),
+          ),
+          downloaderRepositoryProvider.overrideWithValue(
+            MockDownloaderRepository(),
+          ),
+          mediaPlayerProvider.overrideWith(
+            (ref) => MediaPlayerNotifier(testMode: true),
+          ),
+          dependencyBootstrapProvider.overrideWith(
+            (ref) => DependencyBootstrapNotifier.ready(),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+    expect(find.byType(AppTitleBar), findsNothing);
+  });
 }
