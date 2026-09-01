@@ -5,11 +5,9 @@ import 'package:modern_downloader/core/design_system/foundation/typography.dart'
 import 'package:modern_downloader/core/ui/blur_container.dart';
 import 'package:modern_downloader/theme/ios_theme.dart';
 import '../../domain/entities/download_item.dart';
-import '../../domain/enums/download_status.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
-import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'download_item_display.dart';
 import 'progress_bar.dart';
 
 class DownloadCard extends StatelessWidget {
@@ -33,17 +31,7 @@ class DownloadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final sizeLabel =
-        ExtractionPlaceholders.showExtractingSize(
-          status: item.status,
-          totalSize: item.totalSize,
-        )
-        ? context.l10n.extractingSize
-        : DownloadFileResolver.displaySize(
-            storedTotalSize: item.totalSize,
-            filePath: item.filePath,
-            unknownLabel: '',
-          );
+    final sizeLabel = DownloadItemDisplay.size(context, item);
     return GestureDetector(
       onTap: onTap,
       child: RepaintBoundary(
@@ -100,12 +88,7 @@ class DownloadCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.status == DownloadStatus.extracting &&
-                                    ExtractionPlaceholders.isGenericTitle(
-                                      item.title,
-                                    )
-                                ? context.l10n.extractingTitle
-                                : (item.title ?? context.l10n.unknownTitle),
+                            DownloadItemDisplay.title(context, item),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTypography.label.copyWith(
@@ -143,7 +126,7 @@ class DownloadCard extends StatelessWidget {
                                     fontSize: 11,
                                   ),
                                 ),
-                              if (_showSpeed(item)) ...[
+                              if (DownloadItemDisplay.showSpeed(item)) ...[
                                 if (sizeLabel.isNotEmpty) const Gap(6),
                                 Text(
                                   item.speed,
@@ -153,7 +136,8 @@ class DownloadCard extends StatelessWidget {
                                   ),
                                 ),
                               ],
-                              if (item.eta.isNotEmpty && _isActive(item)) ...[
+                              if (item.eta.isNotEmpty &&
+                                  DownloadItemDisplay.isActive(item)) ...[
                                 const Gap(4),
                                 Text(
                                   'ETA ${item.eta}',
@@ -168,7 +152,7 @@ class DownloadCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (_isActive(item)) ...[
+                    if (DownloadItemDisplay.isActive(item)) ...[
                       if (onCancel != null)
                         _buildActionButton(
                           context,
@@ -176,9 +160,7 @@ class DownloadCard extends StatelessWidget {
                           onTap: onCancel!,
                           color: colors.surfaceHighlight,
                         ),
-                    ] else if (item.status == DownloadStatus.failed ||
-                        item.status == DownloadStatus.canceled ||
-                        item.status == DownloadStatus.completed) ...[
+                    ] else if (DownloadItemDisplay.isTerminal(item)) ...[
                       if (onRetry != null)
                         _buildActionButton(
                           context,
@@ -226,19 +208,5 @@ class DownloadCard extends StatelessWidget {
         child: Icon(icon, size: 16, color: colors.textPrimary),
       ),
     );
-  }
-
-  bool _showSpeed(DownloadItem item) {
-    if (item.speed.isEmpty) return false;
-    if (item.speed.toLowerCase().contains('retry')) return false;
-    return item.status == DownloadStatus.downloading ||
-        item.status == DownloadStatus.extracting ||
-        item.status == DownloadStatus.processing;
-  }
-
-  bool _isActive(DownloadItem item) {
-    return item.status == DownloadStatus.queued ||
-        item.status == DownloadStatus.extracting ||
-        item.status == DownloadStatus.downloading;
   }
 }

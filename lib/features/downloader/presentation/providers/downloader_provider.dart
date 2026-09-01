@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/providers/settings_provider.dart';
-import '../../../../core/setup/dependency_bootstrap_provider.dart';
 import '../../../../core/download/yt_dlp_cookie_args.dart';
 import '../../../../core/download/x_download_url.dart';
+import '../../../../core/download/download_request_factory.dart';
+import '../../../../core/download/download_queue_controller.dart';
 import '../../../../core/services/local_server_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../x_feed/x_media_identity.dart';
@@ -13,80 +13,14 @@ import '../../domain/entities/download_item.dart';
 import '../../domain/entities/download_request.dart';
 import '../../domain/enums/download_status.dart';
 import '../../domain/repositories/i_downloader_repository.dart';
-import '../../data/sources/yt_dlp_source.dart';
-import '../../data/sources/gallery_dl_source.dart';
-import '../../data/sources/kick_source.dart';
-import '../../data/datasources/persistence_service.dart';
-import '../../data/services/library_scanner_service.dart';
-import '../../data/repositories/downloader_repository_impl.dart';
-import 'package:modern_downloader/core/services/binary/service_providers.dart';
+import '../../data/downloader_data_providers.dart';
 import '../../../../core/services/download_stats_service.dart';
-import '../../../../core/plugins/plugin_manager.dart';
 import '../../../../core/logger/logger_service.dart';
 import '../../../../core/download/async_serializer.dart';
 import '../../../../core/download/extension_download_batcher.dart';
-import '../../../../core/download/fragment_budget.dart';
 import '../../../../core/download/progress_throttle.dart';
 
-// Data Layer Providers
-final ytDlpSourceProvider = Provider<YtDlpSource>((ref) {
-  return YtDlpSource(
-    ref.read(binaryLocatorProvider),
-    ref.read(processRunnerProvider),
-  );
-});
-
-final galleryDlSourceProvider = Provider<GalleryDlSource>((ref) {
-  return GalleryDlSource(ref.read(binaryLocatorProvider));
-});
-
-// Added persistenceServiceProvider
-final persistenceServiceProvider = Provider<PersistenceService>((ref) {
-  return PersistenceService();
-});
-
-final libraryScannerServiceProvider = Provider<LibraryScannerService>((ref) {
-  return LibraryScannerService(ref.read(binaryLocatorProvider));
-});
-
-final kickSourceProvider = Provider<KickSource>((ref) {
-  return KickSource();
-});
-
-final downloaderRepositoryProvider = Provider<IDownloaderRepository>((ref) {
-  final libraryScanGate = Completer<void>();
-  void completeIfUnblocked(DependencyBootstrapState state) {
-    if (!state.blocksUi && !libraryScanGate.isCompleted) {
-      libraryScanGate.complete();
-    }
-  }
-
-  try {
-    completeIfUnblocked(ref.read(dependencyBootstrapProvider));
-    ref.listen<DependencyBootstrapState>(dependencyBootstrapProvider, (
-      previous,
-      next,
-    ) {
-      completeIfUnblocked(next);
-    });
-  } catch (e) {
-    LoggerService.w('Waiting for setup before library scan failed: $e');
-    if (!libraryScanGate.isCompleted) {
-      libraryScanGate.complete();
-    }
-  }
-
-  return DownloaderRepositoryImpl(
-    ref.read(ytDlpSourceProvider),
-    ref.read(galleryDlSourceProvider),
-    ref.read(persistenceServiceProvider),
-    ref.read(libraryScannerServiceProvider),
-    ref.read(pluginManagerProvider.notifier),
-    () => ref.read(settingsProvider).outputFolder,
-    kickSource: ref.read(kickSourceProvider),
-    waitForLibraryScan: () => libraryScanGate.future,
-  );
-});
+export '../../data/downloader_data_providers.dart';
 
 // Presentation Layer - Controller
 final activeDownloadsProvider = StreamProvider<DownloadItem>((ref) {
@@ -328,29 +262,17 @@ class DownloadListNotifier
       globalPath: explicitOrGlobal,
     );
 
-    final request = DownloadRequest(
+    final request = DownloadRequestFactory.fromSettings(
+      settings: settings,
       url: resolvedUrl,
-      outputFolder: settings.outputFolder.isNotEmpty
-          ? settings.outputFolder
-          : null,
-      audioOnly: audioOnly ?? settings.audioOnly,
-      preferredQuality: preferredQuality ?? settings.preferredQuality,
-      outputFormat: settings.outputFormat,
-      audioFormat: settings.audioFormat,
-      embedThumbnail: settings.embedThumbnail,
-      embedSubtitles: settings.embedSubtitles,
-      twitterIncludeReplies: settings.twitterIncludeReplies,
-      twitchDownloadChat: settings.twitchDownloadChat,
-      twitchQuality: settings.twitchQuality,
       cookiesFilePath: resolvedCookiesPath,
-      useTorProxy: settings.useTorProxy,
-      concurrentFragments: settings.concurrentFragments,
-      maxSpeedMode: settings.maxSpeedMode,
       rawCookies: rawCookies,
-      videoFormatId: videoFormatId,
-      cookieBrowser: cookieBrowser ?? settings.cookieBrowser,
-      organizeBySite: organizeBySite ?? settings.organizeBySite,
       userAgent: userAgent,
+      videoFormatId: videoFormatId,
+      cookieBrowser: cookieBrowser,
+      organizeBySite: organizeBySite,
+      audioOnly: audioOnly,
+      preferredQuality: preferredQuality,
     );
 
     await _queueOps.run(() async {
@@ -411,28 +333,15 @@ class DownloadListNotifier
           globalPath: settings.cookiesFilePath,
         );
 
-        final request = DownloadRequest(
+        final request = DownloadRequestFactory.fromSettings(
+          settings: settings,
           url: resolvedUrl,
-          outputFolder: settings.outputFolder.isNotEmpty
-              ? settings.outputFolder
-              : null,
-          audioOnly: item.isAudioOnly ? true : settings.audioOnly,
-          preferredQuality: item.preferredQuality ?? settings.preferredQuality,
-          outputFormat: settings.outputFormat,
-          audioFormat: settings.audioFormat,
-          embedThumbnail: settings.embedThumbnail,
-          embedSubtitles: settings.embedSubtitles,
-          twitterIncludeReplies: settings.twitterIncludeReplies,
-          twitchDownloadChat: settings.twitchDownloadChat,
-          twitchQuality: settings.twitchQuality,
           cookiesFilePath: resolvedCookiesPath,
-          useTorProxy: settings.useTorProxy,
-          concurrentFragments: settings.concurrentFragments,
-          maxSpeedMode: settings.maxSpeedMode,
           rawCookies: item.cookies,
-          cookieBrowser: item.cookieBrowser ?? settings.cookieBrowser,
-          organizeBySite: settings.organizeBySite,
           userAgent: item.userAgent,
+          cookieBrowser: item.cookieBrowser,
+          audioOnly: item.isAudioOnly ? true : null,
+          preferredQuality: item.preferredQuality,
         );
         final mediaKey = XMediaIdentity.mediaKey(request.url);
         if (_isDuplicateRequest(request, batchKeys: batchKeys)) {
@@ -525,22 +434,15 @@ class DownloadListNotifier
         _processQueueAgain = false;
         final currentList =
             state.valueOrNull ?? _repository.getCurrentDownloads();
-        int activeCount = currentList
-            .where(
-              (i) =>
-                  i.status == DownloadStatus.downloading ||
-                  i.status == DownloadStatus.extracting ||
-                  i.status == DownloadStatus.processing,
-            )
-            .length;
+        int activeCount = DownloadQueueController.busyCount(currentList);
 
         final settings = _ref.read(settingsProvider);
         final maxConcurrent = settings.maxConcurrent;
 
         while (_queue.isNotEmpty || _resumeIds.isNotEmpty) {
           final pendingCount = _resumeIds.length + _queue.length;
-          if (computeStartableCount(
-                activeCount: activeCount,
+          if (DownloadQueueController.startableCount(
+                busyCount: activeCount,
                 maxConcurrent: maxConcurrent,
                 pendingCount: pendingCount,
               ) <
@@ -579,49 +481,12 @@ class DownloadListNotifier
     DownloadRequest request, {
     Set<String> batchKeys = const <String>{},
   }) {
-    final mediaKey = XMediaIdentity.mediaKey(request.url);
-    if (mediaKey == null) {
-      return false;
-    }
-    if (batchKeys.contains(mediaKey) ||
-        _queue.any(
-          (queuedRequest) =>
-              XMediaIdentity.mediaKey(queuedRequest.url) == mediaKey,
-        )) {
-      return true;
-    }
-
-    final items = state.valueOrNull ?? const <DownloadItem>[];
-    return items.any((item) {
-      if (XMediaIdentity.mediaKey(item.request.url) != mediaKey) {
-        return false;
-      }
-      if (_isActiveOrQueued(item.status)) {
-        return true;
-      }
-
-      final filePath = item.filePath;
-      return item.status == DownloadStatus.completed &&
-          filePath != null &&
-          filePath.isNotEmpty &&
-          File(filePath).existsSync();
-    });
-  }
-
-  bool _isActiveOrQueued(DownloadStatus status) {
-    switch (status) {
-      case DownloadStatus.queued:
-      case DownloadStatus.extracting:
-      case DownloadStatus.downloading:
-      case DownloadStatus.processing:
-        return true;
-      case DownloadStatus.completed:
-      case DownloadStatus.failed:
-      case DownloadStatus.canceled:
-      case DownloadStatus.paused:
-      case DownloadStatus.duplicate:
-        return false;
-    }
+    return DownloadQueueController.isDuplicateRequest(
+      request: request,
+      queued: _queue,
+      items: state.valueOrNull ?? const <DownloadItem>[],
+      batchKeys: batchKeys,
+    );
   }
 
   void _markDuplicate(DownloadRequest request) {
