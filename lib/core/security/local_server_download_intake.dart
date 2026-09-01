@@ -2,6 +2,7 @@ import 'package:modern_downloader/core/download/download_url_policy.dart';
 import 'package:modern_downloader/core/download/extension_download_batcher.dart';
 import 'package:modern_downloader/core/download/x_download_url.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:modern_downloader/core/utils/download_url_validator.dart';
 
 /// Result of parsing an extension DOWNLOAD payload.
 class LocalServerDownloadIntakeResult {
@@ -38,6 +39,11 @@ class LocalServerDownloadIntake {
         uri.host.isEmpty) {
       LoggerService.w('Rejected non-http(s) download URL from extension');
       return const LocalServerDownloadIntakeResult.error('invalid_url');
+    }
+
+    if (DownloadUrlValidator.isNonMediaPageUrl(url)) {
+      LoggerService.w('Rejected non-media download URL from extension: $url');
+      return const LocalServerDownloadIntakeResult.error('unsupported_url');
     }
 
     late final String downloadUrl;

@@ -37,6 +37,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Collez le lien du tweet (x.com/.../status/...), pas le fichier vidéo.';
 
   @override
+  String get unsupportedDownloadUrl =>
+      'Cette page n\'est pas une vidéo téléchargeable (invitation ou site non supporté).';
+
+  @override
   String get startDownload => 'Démarrer';
 
   @override

@@ -78,6 +78,13 @@ void main() {
       );
     });
 
+    test('detects unsupported invite URLs wrapped in yt-dlp fallback logs', () {
+      const sample =
+          'yt-dlp exited with code 1. Error: WARNING: [generic] Falling back on generic information extractor\nERROR: Unsupported URL: https://discord.com/invite/JoinForbidden';
+      expect(DownloadStatusGuard.isPermanentDownloadError(sample), isTrue);
+      expect(DownloadStatusGuard.isNonRetryableError(sample), isTrue);
+    });
+
     test('does not retry permanent errors', () {
       const sample = 'ERROR: [twitter] 123: Suspended';
       expect(DownloadStatusGuard.isNonRetryableError(sample), isTrue);
@@ -86,6 +93,21 @@ void main() {
           SuspendedContentException(log: sample),
         ),
         isTrue,
+      );
+    });
+
+    test('does not treat transient extractor errors as permanent', () {
+      expect(
+        DownloadStatusGuard.isPermanentDownloadError(
+          'HTTP Error 429: Too Many Requests',
+        ),
+        isFalse,
+      );
+      expect(
+        DownloadStatusGuard.isPermanentDownloadError(
+          'connection suspended by peer',
+        ),
+        isFalse,
       );
     });
   });

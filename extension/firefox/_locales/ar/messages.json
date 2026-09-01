@@ -91,6 +91,7 @@
   "offline": { "message": "غير متصل" },
   "failed": { "message": "فشل" },
   "needTweet": { "message": "يلزم رابط التغريدة" },
+  "unsupportedUrl": { "message": "ليست فيديو" },
   "statusQueued": { "message": "في الانتظار" },
   "statusExtracting": { "message": "جارٍ الاستخراج" },
   "statusDownloading": { "message": "جارٍ التنزيل" },

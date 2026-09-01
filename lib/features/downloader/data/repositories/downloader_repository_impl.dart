@@ -523,15 +523,18 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               return;
             } catch (e) {
               if (_shouldAbort(id)) return;
-              LoggerService.w(
-                'Metadata extraction failed (retry possible): $e',
-              );
-              if (DownloadStatusGuard.isNonRetryableError(e)) {
-                rethrow;
-              }
-              if (retryCount < maxRetries - 1) {
-                retryCount++;
-                continue;
+              final skipProbe = e is MetadataProbeLimitException;
+              if (!skipProbe) {
+                LoggerService.w(
+                  'Metadata extraction failed (retry possible): $e',
+                );
+                if (DownloadStatusGuard.isNonRetryableError(e)) {
+                  rethrow;
+                }
+                if (retryCount < maxRetries - 1) {
+                  retryCount++;
+                  continue;
+                }
               }
               if (ExtractionPlaceholders.isGenericTitle(finalTitle) ||
                   finalTitle.isEmpty) {
@@ -688,7 +691,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         )) {
           return;
         }
-        if (!DownloadStatusGuard.isPermanentDownloadError(e) &&
+        if (!DownloadStatusGuard.isNonRetryableError(e) &&
             GalleryDlSource.shouldUseFallback(request.url)) {
           try {
             await _tryGalleryDlFallback(id, request);

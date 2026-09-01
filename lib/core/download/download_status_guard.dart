@@ -18,7 +18,8 @@ class DownloadStatusGuard {
         text.contains('failed to establish a new connection') ||
         text.contains('aucune connexion n\'a pu être établie') ||
         text.contains('expressément refusée') ||
-        text.contains('expressement refusee');
+        text.contains('expressement refusee') ||
+        text.contains('proxy/tor unreachable');
   }
 
   /// Content-side failures that will not succeed on retry (suspended tweet, etc.).
@@ -35,17 +36,17 @@ class DownloadStatusGuard {
       return true;
     }
     final text = error.toString().toLowerCase();
-    if (text.contains('unsupported url')) return true;
-    if (text.contains('no video could be found')) return true;
-    if (text.contains(': suspended') || text.endsWith('suspended')) {
+    if (text.contains('unsupported url') ||
+        text.contains('this url is not a supported video page')) {
       return true;
     }
+    if (text.contains('no video could be found') ||
+        text.contains('this tweet has no downloadable video')) {
+      return true;
+    }
+    if (_isTwitterSuspended(text)) return true;
     if (text.contains('tweet is unavailable') ||
         text.contains('this tweet is unavailable')) {
-      return true;
-    }
-    if (text.contains('account is suspended') ||
-        text.contains('user has been suspended')) {
       return true;
     }
     if (text.contains('video unavailable') ||
@@ -54,6 +55,19 @@ class DownloadStatusGuard {
       return true;
     }
     return false;
+  }
+
+  /// Avoid matching unrelated logs such as "connection suspended by peer".
+  static bool _isTwitterSuspended(String text) {
+    if (!text.contains('twitter') &&
+        !text.contains('[twitter]') &&
+        !text.contains('x account or tweet is suspended')) {
+      return false;
+    }
+    return text.contains(': suspended') ||
+        text.contains('account is suspended') ||
+        text.contains('user has been suspended') ||
+        text.contains('x account or tweet is suspended');
   }
 
   static bool isNonRetryableError(Object error) {
