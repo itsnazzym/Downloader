@@ -304,21 +304,20 @@
 
   function findXVideoElements(article) {
     var videos = article.querySelectorAll('video');
-    if (videos.length === 0) return [];
-
     var playable = [];
     for (var i = 0; i < videos.length; i++) {
       var video = videos[i];
-      var rect = video.getBoundingClientRect();
-      if (rect.width < 80 || rect.height < 45) continue;
-
-      var hasSrc = !!(video.currentSrc || video.src);
-      var hasPoster = !!(video.poster);
-      if (!hasSrc && !hasPoster) continue;
-
+      // Off-screen tweets often report 0×0 before layout. Only reject
+      // decoded audio-only / empty frames (readyState > 0 and 0×0).
+      if (video.readyState > 0 && video.videoWidth === 0 && video.videoHeight === 0) {
+        continue;
+      }
       playable.push(video);
     }
-    return playable;
+    if (playable.length > 0) return playable;
+    return Array.prototype.slice.call(
+      article.querySelectorAll('[data-testid="videoPlayer"]'),
+    );
   }
 
   function findXPreviewUrl(article, videoElement) {
