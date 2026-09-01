@@ -34,5 +34,25 @@ void main() {
       limiter.release();
       expect(limiter.inFlight, 0);
     });
+
+    test('acquire throws when cancelled while waiting', () async {
+      final limiter = MetadataProbeLimiter(maxParallel: 1);
+      expect(limiter.tryAcquire(), isTrue);
+
+      var cancelled = false;
+      final waiting = limiter.acquire(isCancelled: () => cancelled);
+      await Future<void>.delayed(Duration.zero);
+      expect(limiter.waiting, 1);
+
+      cancelled = true;
+      await expectLater(
+        waiting,
+        throwsA(isA<MetadataProbeCancelledException>()),
+      );
+      expect(limiter.waiting, 0);
+
+      limiter.release();
+      expect(limiter.inFlight, 0);
+    });
   });
 }

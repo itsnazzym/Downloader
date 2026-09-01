@@ -30,6 +30,7 @@ import '../../../../core/download/download_file_cleanup.dart';
 import '../../../../core/download/extraction_placeholders.dart';
 import '../../../../core/download/x_download_url.dart';
 import '../../../../core/download/x_tweet_display_title.dart';
+import '../../../../core/download/metadata_probe_limiter.dart';
 import '../../../../core/services/heartbeat_cookie_locator.dart';
 import '../services/x_library_title_repair_service.dart';
 
@@ -349,8 +350,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         tempCookiesFile = prepared.tempFile;
 
         while (retryCount < maxRetries) {
-          if (_activeDownloads[id]?.status == DownloadStatus.canceled ||
-              _activeDownloads[id]?.status == DownloadStatus.paused) {
+          if (_shouldAbort(id)) {
             return;
           }
 
@@ -449,6 +449,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   cookiesFilePath: currentRequest.cookiesFilePath,
                   cookieBrowser: currentRequest.cookieBrowser,
                   useTorProxy: currentRequest.useTorProxy,
+                  isCancelled: () => _shouldAbort(id),
                 );
                 final String? fetchedTitle = metadata['title'];
                 finalThumbnail = metadata['thumbnail'];
@@ -518,14 +519,15 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   );
                 }
               }
+            } on MetadataProbeCancelledException {
+              return;
             } catch (e) {
+              if (_shouldAbort(id)) return;
               LoggerService.w(
                 'Metadata extraction failed (retry possible): $e',
               );
               if (DownloadStatusGuard.isNonRetryableError(e)) {
-                throw Exception(
-                  DownloadStatusGuard.userFacingDownloadErrorMessage(e),
-                );
+                rethrow;
               }
               if (retryCount < maxRetries - 1) {
                 retryCount++;
@@ -545,6 +547,8 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 ),
               );
             }
+
+            if (_shouldAbort(id)) return;
 
             // 5. Download Execution
             _update(
@@ -658,11 +662,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             // Note: stats recording is handled by the provider layer
             return;
           } catch (e) {
+            if (e is MetadataProbeCancelledException) rethrow;
             if (e.toString().contains('Low Disk Space')) rethrow;
             if (DownloadStatusGuard.isNonRetryableError(e)) {
-              throw Exception(
-                DownloadStatusGuard.userFacingDownloadErrorMessage(e),
-              );
+              rethrow;
             }
             if (!DownloadStatusGuard.shouldRetryAfterError(
               _activeDownloads[id]?.status,
@@ -676,13 +679,17 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           }
         }
       } catch (e, st) {
+        if (e is MetadataProbeCancelledException || _shouldAbort(id)) {
+          return;
+        }
         LoggerService.e('Download $id FATAL ERROR', e, st);
         if (!DownloadStatusGuard.shouldRetryAfterError(
           _activeDownloads[id]?.status,
         )) {
           return;
         }
-        if (GalleryDlSource.shouldUseFallback(request.url)) {
+        if (!DownloadStatusGuard.isPermanentDownloadError(e) &&
+            GalleryDlSource.shouldUseFallback(request.url)) {
           try {
             await _tryGalleryDlFallback(id, request);
             return;
@@ -728,6 +735,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       LoggerService.w('Failed to create temp cookies file: $e');
       return (request: request, tempFile: null);
     }
+  }
+
+  bool _shouldAbort(String id) {
+    final status = _activeDownloads[id]?.status;
+    return status == DownloadStatus.canceled || status == DownloadStatus.paused;
   }
 
   String _uniqueFilename(String title, String? videoId, String url) {

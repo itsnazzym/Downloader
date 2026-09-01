@@ -56,9 +56,13 @@ class YtDlpSource {
     String? cookiesFilePath,
     String? cookieBrowser,
     bool useTorProxy = false,
+    bool Function()? isCancelled,
   }) async {
-    await metadataProbeLimiter.acquire();
+    await metadataProbeLimiter.acquire(isCancelled: isCancelled);
     try {
+      if (isCancelled != null && isCancelled()) {
+        throw const MetadataProbeCancelledException();
+      }
       return await _fetchMetadataUnlocked(
         url,
         cookies: cookies,
