@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:window_manager/window_manager.dart';
+import '../../platform/platform_info.dart';
 
 /// State for the integrated media player
 class MediaPlayerState {
@@ -216,7 +217,9 @@ class MediaPlayerNotifier extends StateNotifier<MediaPlayerState> {
 
       // 3. Exclusive fullscreen after a visible frame, then force a redraw
       //    so D3D survives the HWND resize.
-      await windowManager.setFullScreen(true);
+      if (PlatformInfo.isDesktop) {
+        await windowManager.setFullScreen(true);
+      }
       await Future<void>.delayed(const Duration(milliseconds: 180));
       try {
         final pos = player.state.position;
@@ -282,7 +285,9 @@ class MediaPlayerNotifier extends StateNotifier<MediaPlayerState> {
       await _player?.stop();
     } catch (_) {}
     try {
-      await windowManager.setFullScreen(false);
+      if (PlatformInfo.isDesktop) {
+        await windowManager.setFullScreen(false);
+      }
     } catch (_) {}
     if (mounted) {
       state = const MediaPlayerState();

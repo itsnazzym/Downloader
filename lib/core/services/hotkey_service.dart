@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../features/downloader/presentation/views/dialogs/add_download_dialog.dart';
 import '../logger/logger_service.dart';
+import '../platform/platform_info.dart';
 import '../providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -81,6 +82,7 @@ class _HotkeyHandlerState extends ConsumerState<HotkeyHandler> {
     }
 
     if (event.logicalKey == LogicalKeyboardKey.escape) {
+      if (!PlatformInfo.isDesktop) return;
       final settings = ref.read(settingsProvider);
       if (settings.minimizeToTray) {
         LoggerService.debug('Hotkey: Esc → Minimize to tray');

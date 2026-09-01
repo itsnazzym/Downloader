@@ -195,6 +195,10 @@ class BinaryLocator {
 
     final binaryWithExt = executableFileName(binaryName);
 
+    if (Platform.isAndroid) {
+      return _remember(cacheKey, binaryName);
+    }
+
     try {
       final resolveAppBin = _resolveAppBin;
       final appBin = resolveAppBin != null

@@ -1,9 +1,11 @@
 import 'dart:io';
 import '../../logger/logger_service.dart';
 import 'binary_locator.dart';
+import 'process_runner.dart';
 
 class BinaryVerifier {
   static final _locator = BinaryLocator();
+  static final _runner = ProcessRunner();
 
   /// Checks if yt-dlp is installed and returns version info
   static Future<BinaryStatus> checkYtDlp() async {
@@ -42,7 +44,7 @@ class BinaryVerifier {
   ) async {
     final name = path.split(Platform.pathSeparator).last;
     try {
-      final result = await Process.run(path, args, runInShell: true);
+      final result = await _runner.run(path, args);
       if (result.exitCode == 0) {
         final output = result.stdout.toString().trim();
         // Extract first line for version

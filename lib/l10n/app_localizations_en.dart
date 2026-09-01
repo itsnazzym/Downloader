@@ -1211,4 +1211,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationYtDlpUpdatedBody(String version) {
     return 'Updated to $version';
   }
+
+  @override
+  String get browseX => 'Browse X';
+
+  @override
+  String get browseXHint =>
+      'Sign in if needed, then tap Download on any video.';
+
+  @override
+  String get mobileLibrary => 'Library';
+
+  @override
+  String get shareDownloadStarted => 'Download started from share';
 }

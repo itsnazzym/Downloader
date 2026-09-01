@@ -479,5 +479,10 @@
   "notificationYtDlpUpdatedBody": "Updated to {version}",
   "@notificationYtDlpUpdatedBody": {
     "placeholders": { "version": { "type": "String" } }
-  }
+  },
+
+  "browseX": "Browse X",
+  "browseXHint": "Sign in if needed, then tap Download on any video.",
+  "mobileLibrary": "Library",
+  "shareDownloadStarted": "Download started from share"
 }

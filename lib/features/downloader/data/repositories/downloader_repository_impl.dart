@@ -201,6 +201,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       userProfile: Platform.isWindows
           ? Platform.environment['USERPROFILE']
           : null,
+      fallbackFolder: Platform.isAndroid
+          ? '/storage/emulated/0/Download/ModernDownloader'
+          : null,
     );
   }
 

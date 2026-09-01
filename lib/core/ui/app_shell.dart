@@ -17,6 +17,8 @@ import 'package:modern_downloader/core/ui/widgets/mesh_gradient_background.dart'
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
 import 'package:modern_downloader/core/ui/widgets/resizable_width_pane.dart';
+import 'package:modern_downloader/core/ui/mobile/mobile_app_shell.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'sidebar/sidebar.dart';
 
 class AppShell extends ConsumerWidget {
@@ -55,10 +57,14 @@ class AppShell extends ConsumerWidget {
 
     final colors = AppColors.of(context);
     final location = GoRouterState.of(context).uri.path;
-    final showDock = colors.useFloatingDock;
+    final showDock = colors.useFloatingDock && PlatformInfo.isDesktop;
     final mesh = colors.useMeshBackground;
     final layout = ref.watch(paneLayoutProvider);
     final resizing = ref.watch(paneResizeActiveProvider);
+
+    if (PlatformInfo.isMobile) {
+      return MobileAppShell(child: child);
+    }
 
     Widget chrome = Scaffold(
       backgroundColor: mesh ? Colors.transparent : colors.background,
@@ -66,7 +72,7 @@ class AppShell extends ConsumerWidget {
         cursor: resizing ? SystemMouseCursors.resizeColumn : MouseCursor.defer,
         child: Column(
           children: [
-            const AppTitleBar(),
+            if (PlatformInfo.isDesktop) const AppTitleBar(),
             Expanded(
               child: Row(
                 children: [

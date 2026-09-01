@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_notifier
   media_kit_libs_windows_video
   media_kit_video
+  permission_handler_windows
   protocol_handler_windows
   screen_retriever_windows
   tray_manager
@@ -16,6 +17,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  flutter_local_notifications_windows
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

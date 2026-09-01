@@ -2283,6 +2283,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Updated to {version}'**
   String notificationYtDlpUpdatedBody(String version);
+
+  /// No description provided for @browseX.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse X'**
+  String get browseX;
+
+  /// No description provided for @browseXHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in if needed, then tap Download on any video.'**
+  String get browseXHint;
+
+  /// No description provided for @mobileLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get mobileLibrary;
+
+  /// No description provided for @shareDownloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started from share'**
+  String get shareDownloadStarted;
 }
 
 class _AppLocalizationsDelegate
