@@ -52,14 +52,14 @@ class DownloadQueueController {
 
   /// True when [request] is already queued, in-flight, or completed in the library.
   ///
-  /// Completed items with a persisted [DownloadItem.filePath] are treated as
-  /// duplicates without a disk `existsSync`. Missing files are repaired by
-  /// the library scanner, not on the enqueue hot path.
+  /// Completed items with a persisted [DownloadItem.filePath] are duplicates
+  /// unless [fileExists] reports that file as missing.
   static bool isDuplicateRequest({
     required DownloadRequest request,
     required Iterable<DownloadRequest> queued,
     required Iterable<DownloadItem> items,
     Set<String> batchKeys = const <String>{},
+    bool Function(String path)? fileExists,
   }) {
     final mediaKey = XMediaIdentity.mediaKey(request.url);
     if (mediaKey == null) return false;
@@ -78,6 +78,9 @@ class DownloadQueueController {
       if (item.status == DownloadStatus.completed &&
           filePath != null &&
           filePath.isNotEmpty) {
+        if (fileExists != null && !fileExists(filePath)) {
+          continue;
+        }
         return true;
       }
     }

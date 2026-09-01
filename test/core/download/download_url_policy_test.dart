@@ -50,5 +50,32 @@ void main() {
         isFalse,
       );
     });
+
+    test('gates adult hosts behind includeAdult', () {
+      expect(
+        DownloadUrlPolicy.isAllowed(
+          'https://www.pornhub.com/view_video.php?viewkey=1',
+        ),
+        isTrue,
+      );
+      expect(
+        DownloadUrlPolicy.isAllowed(
+          'https://www.pornhub.com/view_video.php?viewkey=1',
+          includeAdult: false,
+        ),
+        isFalse,
+      );
+    });
+
+    test('allows reddit/vimeo/soundcloud on the download allowlist', () {
+      expect(
+        DownloadUrlPolicy.isAllowed(
+          'https://www.reddit.com/r/videos/comments/x',
+        ),
+        isTrue,
+      );
+      expect(DownloadUrlPolicy.isAllowed('https://vimeo.com/123'), isTrue);
+      expect(DownloadUrlPolicy.isAllowed('https://soundcloud.com/a/b'), isTrue);
+    });
   });
 }

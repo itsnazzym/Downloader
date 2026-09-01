@@ -14,7 +14,26 @@
     'kick.com',
   ];
 
-  var ADULT_DOMAINS = ['pornhub.com'];
+  var ALLOWED_DOWNLOAD_DOMAINS = [
+    'youtube.com', 'youtu.be',
+    'instagram.com',
+    'twitter.com', 'x.com',
+    'tiktok.com',
+    'twitch.tv',
+    'facebook.com', 'fb.watch',
+    'kick.com',
+    'reddit.com', 'redd.it',
+    'vimeo.com',
+    'dailymotion.com',
+    'soundcloud.com',
+  ];
+
+  var ADULT_DOMAINS = [
+    'pornhub.com',
+    'xvideos.com',
+    'xnxx.com',
+    'xhamster.com',
+  ];
 
   function hostMatchesDomain(hostname, domain) {
     var host = String(hostname || '').toLowerCase().replace(/^\./, '');
@@ -70,7 +89,15 @@
     if (isXStatusPermalink(value)) return true;
     if (!isSafeHttpUrl(value)) return false;
     try {
-      return isSupportedDomain(new URL(value).hostname, !!adultSitesEnabled);
+      var hostname = new URL(value).hostname;
+      var allowed = ALLOWED_DOWNLOAD_DOMAINS.some(function (d) {
+        return hostMatchesDomain(hostname, d);
+      });
+      if (allowed) return true;
+      if (!adultSitesEnabled) return false;
+      return ADULT_DOMAINS.some(function (d) {
+        return hostMatchesDomain(hostname, d);
+      });
     } catch (e) {
       return false;
     }
@@ -78,6 +105,7 @@
 
   root.MDUrl = {
     SUPPORTED_DOMAINS: SUPPORTED_DOMAINS,
+    ALLOWED_DOWNLOAD_DOMAINS: ALLOWED_DOWNLOAD_DOMAINS,
     ADULT_DOMAINS: ADULT_DOMAINS,
     hostMatchesDomain: hostMatchesDomain,
     isSupportedDomain: isSupportedDomain,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/providers/settings_provider.dart';
@@ -6,6 +7,7 @@ import '../../../../core/download/yt_dlp_cookie_args.dart';
 import '../../../../core/download/x_download_url.dart';
 import '../../../../core/download/download_request_factory.dart';
 import '../../../../core/download/download_queue_controller.dart';
+import '../../../../core/download/download_url_policy.dart';
 import '../../../../core/services/local_server_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../x_feed/x_media_identity.dart';
@@ -248,6 +250,14 @@ class DownloadListNotifier
     }
 
     final settings = _ref.read(settingsProvider);
+    if (!DownloadUrlPolicy.isAllowed(
+      resolvedUrl,
+      includeAdult: settings.adultSitesEnabled,
+    )) {
+      LoggerService.w('Rejected unsupported download URL: $resolvedUrl');
+      await _notifyUnsupportedUrl();
+      return;
+    }
     final heartbeatCookies = await LocalServerService.heartbeatCookiePathForUrl(
       resolvedUrl,
     );
@@ -302,6 +312,7 @@ class DownloadListNotifier
       final batchKeys = <String>{};
       final cookiePathByHost = <String, String?>{};
       var skippedDuplicates = 0;
+      var rejectedUnsupported = 0;
       var queued = 0;
 
       for (final item in items) {
@@ -310,6 +321,14 @@ class DownloadListNotifier
           LoggerService.w(
             'Rejected X CDN download without a tweet permalink: ${item.url}',
           );
+          continue;
+        }
+        if (!DownloadUrlPolicy.isAllowed(
+          resolvedUrl,
+          includeAdult: settings.adultSitesEnabled,
+        )) {
+          rejectedUnsupported++;
+          LoggerService.w('Rejected unsupported download URL: $resolvedUrl');
           continue;
         }
         String? heartbeatCookies;
@@ -360,6 +379,9 @@ class DownloadListNotifier
         _showDuplicateBatchSummary(skippedDuplicates);
       }
       if (queued == 0) {
+        if (rejectedUnsupported > 0 && skippedDuplicates == 0) {
+          await _notifyUnsupportedUrl();
+        }
         return;
       }
       await _persistQueue();
@@ -486,6 +508,20 @@ class DownloadListNotifier
       queued: _queue,
       items: state.valueOrNull ?? const <DownloadItem>[],
       batchKeys: batchKeys,
+      fileExists: (path) {
+        try {
+          return File(path).existsSync();
+        } catch (_) {
+          return false;
+        }
+      },
+    );
+  }
+
+  Future<void> _notifyUnsupportedUrl() async {
+    await NotificationService().showError(
+      'Unsupported URL',
+      'This link is not supported (Discord invite, unknown host, etc.).',
     );
   }
 

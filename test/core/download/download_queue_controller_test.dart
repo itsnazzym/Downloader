@@ -91,6 +91,25 @@ void main() {
       );
     });
 
+    test('allows re-download when completed file is missing', () {
+      expect(
+        DownloadQueueController.isDuplicateRequest(
+          request: const DownloadRequest(url: tweetA),
+          queued: const [],
+          items: [
+            item(
+              id: '1',
+              url: tweetA,
+              status: DownloadStatus.completed,
+              filePath: r'C:\Videos\missing.mp4',
+            ),
+          ],
+          fileExists: (_) => false,
+        ),
+        isFalse,
+      );
+    });
+
     test('allows a new tweet id', () {
       expect(
         DownloadQueueController.isDuplicateRequest(

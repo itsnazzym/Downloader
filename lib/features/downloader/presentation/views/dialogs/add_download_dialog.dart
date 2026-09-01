@@ -9,6 +9,7 @@ import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
+import 'package:modern_downloader/core/download/download_url_policy.dart';
 import 'package:modern_downloader/core/utils/download_url_validator.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/core/ui/widgets/animated_input_field.dart';
@@ -62,6 +63,17 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
       return;
     }
     if (formOk) {
+      final settings = ref.read(settingsProvider);
+      if (!DownloadUrlPolicy.isAllowed(
+        url,
+        includeAdult: settings.adultSitesEnabled,
+      )) {
+        AppToast.showError(
+          context,
+          'URL non supportée (Discord, hôte inconnu, etc.).',
+        );
+        return;
+      }
       setState(() => _isLoading = true);
 
       // Check for playlist

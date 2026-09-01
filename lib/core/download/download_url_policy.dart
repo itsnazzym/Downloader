@@ -1,10 +1,13 @@
 import 'package:modern_downloader/core/download/x_download_url.dart';
 
 /// Host allowlist for extension / manual download URLs.
+///
+/// Keep [allowedDomains] / [adultDomains] in sync with
+/// `ALLOWED_DOWNLOAD_DOMAINS` / `ADULT_DOMAINS` in `extension/shared/url_policy.js`.
 class DownloadUrlPolicy {
   DownloadUrlPolicy._();
 
-  static const Set<String> _allowedDomains = {
+  static const Set<String> allowedDomains = {
     'youtube.com',
     'youtu.be',
     'instagram.com',
@@ -20,6 +23,9 @@ class DownloadUrlPolicy {
     'vimeo.com',
     'dailymotion.com',
     'soundcloud.com',
+  };
+
+  static const Set<String> adultDomains = {
     'pornhub.com',
     'xvideos.com',
     'xnxx.com',
@@ -27,7 +33,7 @@ class DownloadUrlPolicy {
   };
 
   /// Returns true when [url] may be handed to yt-dlp / gallery-dl.
-  static bool isAllowed(String url) {
+  static bool isAllowed(String url, {bool includeAdult = true}) {
     final trimmed = url.trim();
     if (trimmed.isEmpty) return false;
 
@@ -41,8 +47,13 @@ class DownloadUrlPolicy {
     if (XDownloadUrl.isCdnHost(uri.host)) return false;
 
     final host = uri.host.toLowerCase();
-    for (final domain in _allowedDomains) {
+    for (final domain in allowedDomains) {
       if (_hostMatches(host, domain)) return true;
+    }
+    if (includeAdult) {
+      for (final domain in adultDomains) {
+        if (_hostMatches(host, domain)) return true;
+      }
     }
     return false;
   }
