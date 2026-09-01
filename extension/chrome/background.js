@@ -5,58 +5,27 @@
 (function () {
   'use strict';
 
-  if (typeof importScripts === 'function' && typeof MD_API === 'undefined') {
+  if (typeof importScripts === 'function') {
     try {
-      importScripts('browser_api.js');
+      if (typeof MD_API === 'undefined') importScripts('browser_api.js');
+      if (typeof MDUrl === 'undefined') importScripts('url_policy.js');
+      if (typeof MDBadge === 'undefined') importScripts('badge.js');
     } catch (e) {
-      console.warn('browser_api importScripts failed', e);
+      console.warn('extension helper importScripts failed', e);
     }
   }
 
   var api = typeof MD_API !== 'undefined' ? MD_API : chrome;
-  var action = typeof MD_ACTION !== 'undefined' ? MD_ACTION : (api.action || api.browserAction);
 
   var OFFSCREEN_URL = 'offscreen.html';
   var OFFSCREEN_REASON = 'WEB_SOCKET';
   var KEEPALIVE_ALARM = 'md-keepalive';
   var creatingOffscreen = null;
 
-  function isSafeHttpUrl(value) {
-    try {
-      var u = new URL(value);
-      return (u.protocol === 'http:' || u.protocol === 'https:') && !!u.hostname;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function isRestrictedPageUrl(value) {
-    if (!value || typeof value !== 'string') return true;
-    return /^(chrome|chrome-extension|moz-extension|about|edge|devtools):/i.test(value);
-  }
-
-  function setConnected(connected) {
-    try {
-      api.storage.local.set({ isConnected: !!connected });
-    } catch (e) { /* ignore */ }
-    if (!action || !action.setBadgeText) return;
-    if (connected) {
-      action.setBadgeBackgroundColor({ color: '#6C5DD3' });
-    } else {
-      action.setBadgeText({ text: 'OFF' });
-      action.setBadgeBackgroundColor({ color: '#FF4757' });
-    }
-  }
-
-  function updateActiveBadge(count) {
-    if (!action || !action.setBadgeText) return;
-    if (count > 0) {
-      action.setBadgeText({ text: String(count > 99 ? '99+' : count) });
-      action.setBadgeBackgroundColor({ color: '#4CAF50' });
-    } else {
-      action.setBadgeText({ text: '' });
-    }
-  }
+  var isSafeHttpUrl = MDUrl.isSafeHttpUrl;
+  var isRestrictedPageUrl = MDUrl.isRestrictedPageUrl;
+  var setConnected = MDBadge.setConnected;
+  var updateActiveBadge = MDBadge.updateActiveBadge;
 
   async function ensureOffscreen() {
     try {
