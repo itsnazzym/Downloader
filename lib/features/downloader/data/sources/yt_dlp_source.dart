@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import '../../domain/entities/download_request.dart';
 import '../../domain/exceptions/yt_dlp_exception.dart';
 import '../../../../../core/logger/logger_service.dart';
@@ -56,11 +57,13 @@ class YtDlpSource {
     String? cookiesFilePath,
     String? cookieBrowser,
     bool useTorProxy = false,
+    bool Function()? isCancelled,
   }) async {
-    if (!metadataProbeLimiter.tryAcquire()) {
-      throw const MetadataProbeLimitException();
-    }
+    await metadataProbeLimiter.acquire(isCancelled: isCancelled);
     try {
+      if (isCancelled != null && isCancelled()) {
+        throw const MetadataProbeCancelledException();
+      }
       return await _fetchMetadataUnlocked(
         url,
         cookies: cookies,
@@ -105,6 +108,7 @@ class YtDlpSource {
           cookiesFilePath: effectiveCookiesPath,
           rawCookies: cookies,
           cookieBrowser: cookieBrowser,
+          allowBrowserCookies: !Platform.isAndroid,
         ),
       );
 
@@ -125,11 +129,12 @@ class YtDlpSource {
       if (result.exitCode != 0) {
         final stderr = result.stderr.toString();
         if (DownloadStatusGuard.isNonRetryableProxyError(stderr)) {
-          throw Exception(
+          throw YtDlpException(
             DownloadStatusGuard.userFacingProxyErrorMessage(stderr),
           );
         }
-        throw Exception('Failed to fetch metadata: $stderr');
+        throw YtDlpException.fromLog(stderr) ??
+            Exception('Failed to fetch metadata: $stderr');
       }
 
       // Sanitize output: sometimes yt-dlp prints empty lines or debug info even with --no-warnings
@@ -267,6 +272,9 @@ class YtDlpSource {
           activeCount <= kBufferSizeCapActiveCount) {
         args.addAll(['--http-chunk-size', '10M']);
       }
+    } else if (Platform.isAndroid) {
+      LoggerService.i('Activating Android Aria2c engine (libaria2c.so)');
+      args.addAll(['--downloader', 'libaria2c.so']);
     } else if (aria2cPath != null) {
       LoggerService.i(
         'Activating Aria2c engine: $aria2cPath with $concurrentFragments threads',
@@ -292,7 +300,7 @@ class YtDlpSource {
       args.add('--no-playlist');
     }
 
-    // Output template - Use proper Windows path separators
+    // Output template - Use platform path separators
     String outputPath;
     String baseFolder = request.outputFolder ?? '';
 
@@ -307,13 +315,15 @@ class YtDlpSource {
       baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
     }
 
-    baseFolder = baseFolder.replaceAll('/', '\\');
+    if (Platform.isWindows) {
+      baseFolder = baseFolder.replaceAll('/', '\\');
+    }
 
     // Organize by site: Add subfolder
     if (request.organizeBySite) {
       // Use DownloadItem.source logic but for the request URL
       final siteFolder = _getSiteName(request.url);
-      baseFolder = '$baseFolder\\$siteFolder';
+      baseFolder = p.join(baseFolder, siteFolder);
     }
 
     final downloadsDir = Directory(baseFolder);
@@ -325,7 +335,7 @@ class YtDlpSource {
     // yt-dlp extracts the same generic title for different videos on unknown sites.
     // The ID is unique per video (e.g. YouTube video ID, tweet status ID, etc.)
     final filename = request.customFilename ?? '%(title)s [%(id)s].%(ext)s';
-    outputPath = '$baseFolder\\$filename';
+    outputPath = p.join(baseFolder, filename);
 
     args.add('-o');
     args.add(outputPath);
@@ -441,6 +451,7 @@ class YtDlpSource {
       cookiesFilePath: cookiesFilePath,
       rawCookies: request.rawCookies,
       cookieBrowser: request.cookieBrowser,
+      allowBrowserCookies: !Platform.isAndroid,
     );
     args.addAll(cookieArgs);
     if (cookieArgs.contains('--cookies')) {
@@ -500,10 +511,9 @@ class YtDlpSource {
     LoggerService.i('YtDlpSource: Running: $ytDlp ${args.join(' ')}');
 
     // Start process
-    final process = await Process.start(
+    final process = await _processRunner.start(
       ytDlp,
       args,
-      runInShell: false,
       environment: {'PYTHONIOENCODING': 'utf-8'},
     );
     _downloadProcesses[id] = process;
@@ -540,14 +550,7 @@ class YtDlpSource {
 
     void detectYtDlpException(String data) {
       if (detectedException != null) return;
-      final check = data.toLowerCase();
-      if (check.contains('video unavailable')) {
-        detectedException = VideoUnavailableException(log: data);
-      } else if (check.contains('private video')) {
-        detectedException = PrivateVideoException(log: data);
-      } else if (check.contains('geo-restricted')) {
-        detectedException = GeoBlockedException(log: data);
-      }
+      detectedException = YtDlpException.fromLog(data);
     }
 
     process.stdout
@@ -623,9 +626,10 @@ class YtDlpSource {
             DownloadStatusGuard.userFacingProxyErrorMessage(errText),
           );
         }
-        throw YtDlpException(
-          'yt-dlp exited with code $exitCode. Error: $errorBuffer',
-        );
+        throw YtDlpException.fromLog(errText) ??
+            YtDlpException(
+              'yt-dlp exited with code $exitCode. Error: $errorBuffer',
+            );
       }
 
       // Prefer after_move print, then resolve against disk (fragments / remux).

@@ -3,6 +3,7 @@ class DownloadPathResolver {
     required String settingsOutputFolder,
     required List<String> itemFolders,
     String? userProfile,
+    String? fallbackFolder,
   }) {
     if (settingsOutputFolder.trim().isNotEmpty) {
       return settingsOutputFolder;
@@ -14,6 +15,9 @@ class DownloadPathResolver {
     }
     if (userProfile != null && userProfile.isNotEmpty) {
       return '$userProfile\\Downloads';
+    }
+    if (fallbackFolder != null && fallbackFolder.trim().isNotEmpty) {
+      return fallbackFolder;
     }
     return null;
   }

@@ -11,6 +11,7 @@
   "newDownload": "تنزيل جديد",
   "pasteUrl": "الصق الرابط هنا",
   "xCdnUrlRejected": "الصق رابط التغريدة (x.com/.../status/...) وليس ملف الفيديو.",
+  "unsupportedDownloadUrl": "هذه الصفحة ليست فيديو قابل للتنزيل (دعوة أو موقع غير مدعوم).",
   "startDownload": "بدء التنزيل",
   "cancel": "إلغاء",
   "retry": "إعادة المحاولة",
@@ -478,5 +479,10 @@
   "notificationYtDlpUpdatedBody": "تم التحديث إلى {version}",
   "@notificationYtDlpUpdatedBody": {
     "placeholders": { "version": { "type": "String" } }
-  }
+  },
+
+  "browseX": "تصفح X",
+  "browseXHint": "سجّل الدخول إن لزم، ثم اضغط تنزيل على أي فيديو.",
+  "mobileLibrary": "المكتبة",
+  "shareDownloadStarted": "بدأ التنزيل من المشاركة"
 }

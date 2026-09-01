@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../logger/logger_service.dart';
 import '../services/binary/binary_locator.dart';
 import '../services/binary/process_runner.dart';
+import '../android/android_engine_bridge.dart';
 import 'dependency_catalog.dart';
 import 'zip_binary_extractor.dart';
 
@@ -57,6 +58,10 @@ class DependencyBootstrapService {
     bool checkOptionalGobird = false,
   }) async {
     LoggerService.i('Checking required download tools');
+    if (Platform.isAndroid) {
+      await _ensureAndroidEngine(onProgress);
+      return;
+    }
     if (!Platform.isWindows) {
       onProgress(
         const DependencyBootstrapProgress(step: SetupStep.ready, toolName: ''),
@@ -426,8 +431,62 @@ class DependencyBootstrapService {
     }
   }
 
+  Future<void> _ensureAndroidEngine(
+    void Function(DependencyBootstrapProgress progress) onProgress,
+  ) async {
+    final ready = <String>[];
+    await _emitProgress(
+      onProgress,
+      const DependencyBootstrapProgress(
+        step: SetupStep.checking,
+        toolName: 'yt-dlp',
+      ),
+    );
+    try {
+      await _emitProgress(
+        onProgress,
+        const DependencyBootstrapProgress(
+          step: SetupStep.extracting,
+          toolName: 'yt-dlp',
+        ),
+      );
+      await AndroidEngineBridge.instance.ensureInitialized();
+      for (final pkg in DependencyCatalog.androidRequired) {
+        ready.addAll(pkg.executableNames);
+        await _emitProgress(
+          onProgress,
+          DependencyBootstrapProgress(
+            step: SetupStep.verifying,
+            toolName: pkg.displayName,
+            readyTools: List<String>.from(ready),
+          ),
+        );
+      }
+      onProgress(
+        DependencyBootstrapProgress(
+          step: SetupStep.ready,
+          toolName: '',
+          readyTools: ready,
+        ),
+      );
+    } catch (e) {
+      LoggerService.e('Android engine bootstrap failed', e);
+      onProgress(
+        DependencyBootstrapProgress(
+          step: SetupStep.failed,
+          toolName: 'yt-dlp',
+          errors: ['$e'],
+        ),
+      );
+    }
+  }
+
   Future<void> _updateYtDlp() async {
     try {
+      if (Platform.isAndroid) {
+        await AndroidEngineBridge.instance.updateYtDlp();
+        return;
+      }
       final ytDlpPath = await _locator.findYtDlp();
       if (ytDlpPath == null) return;
       final processRunner = _processRunner;

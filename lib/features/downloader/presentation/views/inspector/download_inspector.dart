@@ -8,10 +8,8 @@ import 'package:modern_downloader/core/download/extraction_placeholders.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/core/ui/widgets/log_viewer.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:modern_downloader/core/ui/widgets/log_viewer.dart';
 import 'video_preview_widget.dart';
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
@@ -26,19 +24,9 @@ class DownloadInspector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    // Find the item
-    final downloadsAsync = ref.watch(downloadListProvider);
-    final downloads = downloadsAsync.valueOrNull ?? [];
-    final item = downloads.firstWhere(
-      (element) => element.id == downloadId,
-      orElse: () => DownloadItem(
-        id: 'deleted',
-        request: const DownloadRequest(url: ''),
-        status: DownloadStatus.queued,
-      ),
-    );
+    final item = ref.watch(downloadItemByIdProvider(downloadId));
 
-    if (item.id == 'deleted') {
+    if (item == null) {
       return Center(child: Text(l10n.selectDownload));
     }
 

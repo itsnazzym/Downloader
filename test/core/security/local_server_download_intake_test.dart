@@ -49,5 +49,13 @@ void main() {
       expect(result.errorCode, 'need_tweet_url');
       expect(result.isOk, isFalse);
     });
+
+    test('rejects unsupported external URLs such as Discord invites', () {
+      final result = LocalServerDownloadIntake.parse({
+        'url': 'https://discord.com/invite/JoinForbidden',
+      });
+      expect(result.errorCode, 'unsupported_url');
+      expect(result.isOk, isFalse);
+    });
   });
 }

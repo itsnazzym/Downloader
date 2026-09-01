@@ -15,6 +15,8 @@ import 'package:modern_downloader/features/downloader/data/sources/yt_dlp_source
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/core/download/metadata_probe_limiter.dart';
+import 'package:modern_downloader/features/downloader/domain/exceptions/yt_dlp_exception.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _MemoryPersistence extends PersistenceService {
@@ -61,11 +63,14 @@ class _NoopScanner extends LibraryScannerService {
 }
 
 class _FakeYtDlp extends YtDlpSource {
-  _FakeYtDlp({this.downloadError, this.metadataHold})
+  _FakeYtDlp({this.downloadError, this.metadataError, this.metadataHold})
     : super(BinaryLocator(), ProcessRunner());
 
   final Object? downloadError;
+  final Object? metadataError;
   final Completer<Map<String, dynamic>>? metadataHold;
+  int metadataCalls = 0;
+  int downloadCalls = 0;
 
   @override
   Future<Map<String, dynamic>> fetchMetadata(
@@ -74,9 +79,18 @@ class _FakeYtDlp extends YtDlpSource {
     String? cookiesFilePath,
     String? cookieBrowser,
     bool useTorProxy = false,
+    bool Function()? isCancelled,
   }) async {
+    metadataCalls++;
     if (metadataHold != null) {
-      return metadataHold!.future;
+      final result = await metadataHold!.future;
+      if (isCancelled != null && isCancelled()) {
+        throw const MetadataProbeCancelledException();
+      }
+      return result;
+    }
+    if (metadataError != null) {
+      throw metadataError!;
     }
     return {'id': 'vid1', 'title': 'Test Video', 'thumbnail': null};
   }
@@ -86,6 +100,7 @@ class _FakeYtDlp extends YtDlpSource {
     String id,
     DownloadRequest request,
   ) async* {
+    downloadCalls++;
     if (downloadError != null) {
       throw downloadError!;
     }
@@ -105,11 +120,15 @@ class _FakeYtDlp extends YtDlpSource {
 class _FakeGalleryDl extends GalleryDlSource {
   _FakeGalleryDl() : super(BinaryLocator());
 
+  int downloadCalls = 0;
+
   @override
   Stream<GalleryDlProgressEvent> download(
     String id,
     DownloadRequest request,
-  ) async* {}
+  ) async* {
+    downloadCalls++;
+  }
 
   @override
   Future<void> cancel(String id) async {}
@@ -121,12 +140,14 @@ void main() {
   late Directory tmp;
   late _MemoryPersistence persistence;
   late Completer<void> loaded;
+  late _FakeGalleryDl gallery;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     tmp = await Directory.systemTemp.createTemp('downloader-repo-');
     persistence = _MemoryPersistence();
     loaded = Completer<void>();
+    gallery = _FakeGalleryDl();
   });
 
   tearDown(() async {
@@ -138,7 +159,7 @@ void main() {
   DownloaderRepositoryImpl buildRepo(_FakeYtDlp source) {
     return DownloaderRepositoryImpl(
       source,
-      _FakeGalleryDl(),
+      gallery,
       persistence,
       _NoopScanner(),
       PluginManager(),
@@ -222,5 +243,82 @@ void main() {
     expect(await media.exists(), isFalse);
     expect(await thumb.exists(), isFalse);
     expect(await part.exists(), isFalse);
+  });
+
+  Future<DownloadItem> _waitFailed(DownloaderRepositoryImpl repo) {
+    final failed = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.failed && !failed.isCompleted) {
+        failed.complete(item);
+      }
+    });
+    return failed.future;
+  }
+
+  test(
+    'suspended metadata fails once without download or gallery-dl',
+    () async {
+      final source = _FakeYtDlp(metadataError: SuspendedContentException());
+      final repo = buildRepo(source);
+      await loaded.future.timeout(const Duration(seconds: 3));
+
+      final failed = _waitFailed(repo);
+      await repo.startDownload(
+        const DownloadRequest(
+          url: 'https://x.com/alice/status/2093058718350893415',
+        ),
+      );
+
+      final item = await failed.timeout(const Duration(seconds: 8));
+      expect(item.status, DownloadStatus.failed);
+      expect(item.error, isNot(contains('Exception:')));
+      expect(item.error, contains('suspendu'));
+      expect(source.metadataCalls, 1);
+      expect(source.downloadCalls, 0);
+      expect(gallery.downloadCalls, 0);
+    },
+  );
+
+  test('no-video metadata fails once without download or gallery-dl', () async {
+    final source = _FakeYtDlp(metadataError: NoMediaFoundException());
+    final repo = buildRepo(source);
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    final failed = _waitFailed(repo);
+    await repo.startDownload(
+      const DownloadRequest(
+        url: 'https://x.com/alice/status/2091798624661602420',
+      ),
+    );
+
+    final item = await failed.timeout(const Duration(seconds: 8));
+    expect(item.status, DownloadStatus.failed);
+    expect(item.error, isNot(contains('Exception:')));
+    expect(item.error, contains('Aucune vidéo'));
+    expect(source.metadataCalls, 1);
+    expect(source.downloadCalls, 0);
+    expect(gallery.downloadCalls, 0);
+  });
+
+  test('cancel during metadata aborts without download or fail', () async {
+    final hold = Completer<Map<String, dynamic>>();
+    final source = _FakeYtDlp(metadataHold: hold);
+    final repo = buildRepo(source);
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    final id = await repo.startDownload(
+      const DownloadRequest(
+        url: 'https://x.com/alice/status/2093058718350893415',
+      ),
+    );
+    await repo.cancelDownload(id);
+    hold.complete({'id': 'vid1', 'title': 'Late', 'thumbnail': null});
+
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    final item = repo.getCurrentDownloads().firstWhere((e) => e.id == id);
+    expect(item.status, DownloadStatus.canceled);
+    expect(source.downloadCalls, 0);
+    expect(gallery.downloadCalls, 0);
+    expect(item.error, isNull);
   });
 }

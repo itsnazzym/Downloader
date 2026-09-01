@@ -49,7 +49,7 @@ jobs:
         run: flutter test --coverage --reporter=compact
 
       - name: Check test coverage
-        run: dart run tool/check_coverage.dart --min 20 coverage/lcov.info
+        run: dart run tool/check_coverage.dart --min 30 coverage/lcov.info
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -80,6 +80,9 @@ jobs:
 
       - name: Build and synchronize extensions
         run: dart run tool/build_extension.dart
+
+      - name: Verify extension contract and packaged copies
+        run: dart run tool/check_extension_contract.dart
 
       - name: Verify Manifest V3 validity
         run: |

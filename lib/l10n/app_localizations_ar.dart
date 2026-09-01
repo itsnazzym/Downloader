@@ -37,6 +37,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصق رابط التغريدة (x.com/.../status/...) وليس ملف الفيديو.';
 
   @override
+  String get unsupportedDownloadUrl =>
+      'هذه الصفحة ليست فيديو قابل للتنزيل (دعوة أو موقع غير مدعوم).';
+
+  @override
   String get startDownload => 'بدء التنزيل';
 
   @override
@@ -1200,4 +1204,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String notificationYtDlpUpdatedBody(String version) {
     return 'تم التحديث إلى $version';
   }
+
+  @override
+  String get browseX => 'تصفح X';
+
+  @override
+  String get browseXHint => 'سجّل الدخول إن لزم، ثم اضغط تنزيل على أي فيديو.';
+
+  @override
+  String get mobileLibrary => 'المكتبة';
+
+  @override
+  String get shareDownloadStarted => 'بدأ التنزيل من المشاركة';
 }

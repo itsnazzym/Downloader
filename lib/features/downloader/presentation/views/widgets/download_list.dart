@@ -19,6 +19,7 @@ import '../../../domain/entities/download_item.dart';
 import '../../../domain/enums/download_status.dart';
 import '../../providers/filtered_downloads_provider.dart';
 import '../../providers/downloader_provider.dart';
+import '../../widgets/download_item_display.dart';
 import 'download_item_skeleton.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
@@ -378,7 +379,7 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _extractionTitle(context, widget.item),
+                          DownloadItemDisplay.title(context, widget.item),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: AppTypography.label.copyWith(
@@ -396,7 +397,10 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _extractionSource(context, widget.item),
+                                    DownloadItemDisplay.source(
+                                      context,
+                                      widget.item,
+                                    ),
                                     style: AppTypography.mono.copyWith(
                                       fontSize: 10,
                                     ),
@@ -406,15 +410,16 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                     isDownloading &&
                                             widget.item.speed.isNotEmpty
                                         ? widget.item.speed
-                                        : _extractionSize(context, widget.item),
+                                        : DownloadItemDisplay.size(
+                                            context,
+                                            widget.item,
+                                          ),
                                     style: AppTypography.caption,
                                   ),
                                 ],
                               ),
                             ),
-                            if (widget.item.status == DownloadStatus.failed ||
-                                widget.item.status == DownloadStatus.canceled ||
-                                widget.item.status == DownloadStatus.completed)
+                            if (DownloadItemDisplay.isTerminal(widget.item))
                               Row(
                                 children: [
                                   IconButton(
@@ -587,7 +592,7 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                         children: [
                           Expanded(
                             child: Text(
-                              _extractionTitle(context, widget.item),
+                              DownloadItemDisplay.title(context, widget.item),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.label.copyWith(
@@ -787,40 +792,4 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
       size: 24,
     );
   }
-}
-
-String _extractionTitle(BuildContext context, DownloadItem item) {
-  final l10n = context.l10n;
-  if (item.status == DownloadStatus.extracting &&
-      ExtractionPlaceholders.isGenericTitle(item.title)) {
-    return l10n.extractingTitle;
-  }
-  if (item.title == null || item.title!.trim().isEmpty) {
-    return l10n.unknownTitle;
-  }
-  return item.title!;
-}
-
-String _extractionSource(BuildContext context, DownloadItem item) {
-  if (ExtractionPlaceholders.showExtractingSource(
-    status: item.status,
-    source: item.source,
-  )) {
-    return context.l10n.extractingSource;
-  }
-  return item.source;
-}
-
-String _extractionSize(BuildContext context, DownloadItem item) {
-  if (ExtractionPlaceholders.showExtractingSize(
-    status: item.status,
-    totalSize: item.totalSize,
-  )) {
-    return context.l10n.extractingSize;
-  }
-  return DownloadFileResolver.displaySize(
-    storedTotalSize: item.totalSize,
-    filePath: item.filePath,
-    unknownLabel: context.l10n.unknownSize,
-  );
 }

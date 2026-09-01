@@ -37,6 +37,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Collez le lien du tweet (x.com/.../status/...), pas le fichier vidéo.';
 
   @override
+  String get unsupportedDownloadUrl =>
+      'Cette page n\'est pas une vidéo téléchargeable (invitation ou site non supporté).';
+
+  @override
   String get startDownload => 'Démarrer';
 
   @override
@@ -1225,4 +1229,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String notificationYtDlpUpdatedBody(String version) {
     return 'Mis à jour vers $version';
   }
+
+  @override
+  String get browseX => 'Parcourir X';
+
+  @override
+  String get browseXHint =>
+      'Connectez-vous si besoin, puis appuyez sur Télécharger sur une vidéo.';
+
+  @override
+  String get mobileLibrary => 'Bibliothèque';
+
+  @override
+  String get shareDownloadStarted => 'Téléchargement lancé depuis le partage';
 }

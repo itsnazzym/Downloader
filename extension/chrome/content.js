@@ -304,9 +304,20 @@
 
   function findXVideoElements(article) {
     var videos = article.querySelectorAll('video');
-    if (videos.length > 0) return Array.prototype.slice.call(videos);
-    var player = article.querySelector('[data-testid="videoPlayer"]');
-    return player ? [player] : [];
+    var playable = [];
+    for (var i = 0; i < videos.length; i++) {
+      var video = videos[i];
+      // Off-screen tweets often report 0×0 before layout. Only reject
+      // decoded audio-only / empty frames (readyState > 0 and 0×0).
+      if (video.readyState > 0 && video.videoWidth === 0 && video.videoHeight === 0) {
+        continue;
+      }
+      playable.push(video);
+    }
+    if (playable.length > 0) return playable;
+    return Array.prototype.slice.call(
+      article.querySelectorAll('[data-testid="videoPlayer"]'),
+    );
   }
 
   function findXPreviewUrl(article, videoElement) {
@@ -727,6 +738,8 @@
           ? t('offline', 'Offline')
           : err === 'need_tweet_url'
             ? t('needTweet', 'Need tweet')
+            : err === 'unsupported_url'
+              ? t('unsupportedUrl', 'Unsupported')
             : t('failed', 'Failed');
         btn.classList.add('err');
         if (toggle) toggle.classList.add('err');

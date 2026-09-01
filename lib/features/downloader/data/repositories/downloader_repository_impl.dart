@@ -28,9 +28,9 @@ import '../../../../core/download/download_status_guard.dart';
 import '../../../../core/download/download_file_resolver.dart';
 import '../../../../core/download/download_file_cleanup.dart';
 import '../../../../core/download/extraction_placeholders.dart';
-import '../../../../core/download/metadata_probe_limiter.dart';
 import '../../../../core/download/x_download_url.dart';
 import '../../../../core/download/x_tweet_display_title.dart';
+import '../../../../core/download/metadata_probe_limiter.dart';
 import '../../../../core/services/heartbeat_cookie_locator.dart';
 import '../services/x_library_title_repair_service.dart';
 
@@ -201,6 +201,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       userProfile: Platform.isWindows
           ? Platform.environment['USERPROFILE']
           : null,
+      fallbackFolder: Platform.isAndroid
+          ? '/storage/emulated/0/Download/ModernDownloader'
+          : null,
     );
   }
 
@@ -345,33 +348,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     Future<void> run() async {
       File? tempCookiesFile;
       try {
-        // 1. Prepare Cookies
-        DownloadRequest currentRequest = request;
-        if (request.rawCookies != null && request.rawCookies!.isNotEmpty) {
-          // Check if it's a Header string (Extension) or Netscape file content
-          // Headers usually have "name=value;" and NO tabs. Netscape has tabs.
-          final isHeader =
-              !request.rawCookies!.contains('\t') &&
-              request.rawCookies!.contains('=');
-
-          if (!isHeader) {
-            try {
-              final tempDir = Directory.systemTemp;
-              tempCookiesFile = File('${tempDir.path}/md_cookies_$id.txt');
-              await tempCookiesFile.writeAsString(request.rawCookies!);
-              currentRequest = request.copyWith(
-                cookiesFilePath: tempCookiesFile.path,
-                clearRawCookies: true,
-              );
-            } catch (e) {
-              LoggerService.w('Failed to create temp cookies file: $e');
-            }
-          }
-        }
+        final prepared = await _prepareCookieFile(id, request);
+        DownloadRequest currentRequest = prepared.request;
+        tempCookiesFile = prepared.tempFile;
 
         while (retryCount < maxRetries) {
-          if (_activeDownloads[id]?.status == DownloadStatus.canceled ||
-              _activeDownloads[id]?.status == DownloadStatus.paused) {
+          if (_shouldAbort(id)) {
             return;
           }
 
@@ -470,6 +452,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   cookiesFilePath: currentRequest.cookiesFilePath,
                   cookieBrowser: currentRequest.cookieBrowser,
                   useTorProxy: currentRequest.useTorProxy,
+                  isCancelled: () => _shouldAbort(id),
                 );
                 final String? fetchedTitle = metadata['title'];
                 finalThumbnail = metadata['thumbnail'];
@@ -539,21 +522,21 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   );
                 }
               }
+            } on MetadataProbeCancelledException {
+              return;
             } catch (e) {
+              if (_shouldAbort(id)) return;
               final skipProbe = e is MetadataProbeLimitException;
               if (!skipProbe) {
                 LoggerService.w(
                   'Metadata extraction failed (retry possible): $e',
                 );
-                if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
-                  throw Exception(
-                    DownloadStatusGuard.userFacingProxyErrorMessage(e),
-                  );
+                if (DownloadStatusGuard.isNonRetryableError(e)) {
+                  rethrow;
                 }
-                // If metadata fails, we still try to download with derived title as fallback or retry
                 if (retryCount < maxRetries - 1) {
                   retryCount++;
-                  continue; // Retry whole loop
+                  continue;
                 }
               }
               if (ExtractionPlaceholders.isGenericTitle(finalTitle) ||
@@ -562,15 +545,16 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   currentRequest.url,
                 );
               }
-              final tweetId = XDownloadUrl.tweetIdFrom(currentRequest.url);
-              final unique = (tweetId != null && tweetId.isNotEmpty)
-                  ? tweetId
-                  : currentRequest.url.hashCode.toRadixString(36);
-              final stem = TitleCleanerService.filenameStem(finalTitle);
               currentRequest = currentRequest.copyWith(
-                customFilename: '$stem [$unique].%(ext)s',
+                customFilename: _uniqueFilename(
+                  finalTitle,
+                  XDownloadUrl.tweetIdFrom(currentRequest.url),
+                  currentRequest.url,
+                ),
               );
             }
+
+            if (_shouldAbort(id)) return;
 
             // 5. Download Execution
             _update(
@@ -684,11 +668,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             // Note: stats recording is handled by the provider layer
             return;
           } catch (e) {
+            if (e is MetadataProbeCancelledException) rethrow;
             if (e.toString().contains('Low Disk Space')) rethrow;
-            if (DownloadStatusGuard.isNonRetryableProxyError(e)) {
-              throw Exception(
-                DownloadStatusGuard.userFacingProxyErrorMessage(e),
-              );
+            if (DownloadStatusGuard.isNonRetryableError(e)) {
+              rethrow;
             }
             if (!DownloadStatusGuard.shouldRetryAfterError(
               _activeDownloads[id]?.status,
@@ -702,13 +685,17 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           }
         }
       } catch (e, st) {
+        if (e is MetadataProbeCancelledException || _shouldAbort(id)) {
+          return;
+        }
         LoggerService.e('Download $id FATAL ERROR', e, st);
         if (!DownloadStatusGuard.shouldRetryAfterError(
           _activeDownloads[id]?.status,
         )) {
           return;
         }
-        if (GalleryDlSource.shouldUseFallback(request.url)) {
+        if (!DownloadStatusGuard.isNonRetryableError(e) &&
+            GalleryDlSource.shouldUseFallback(request.url)) {
           try {
             await _tryGalleryDlFallback(id, request);
             return;
@@ -716,22 +703,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             LoggerService.w('Gallery DL fallback failed: $ge');
           }
         }
-        _update(
-          _activeDownloads[id]!.copyWith(
-            status: DownloadStatus.failed,
-            error: DownloadStatusGuard.isNonRetryableProxyError(e)
-                ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
-                : e.toString(),
-          ),
-        );
-        unawaited(
-          NotificationService().showDownloadFailed(
-            _activeDownloads[id]?.title ?? 'Download Failed',
-            DownloadStatusGuard.isNonRetryableProxyError(e)
-                ? DownloadStatusGuard.userFacingProxyErrorMessage(e)
-                : e.toString(),
-          ),
-        );
+        _markDownloadFailed(id, e);
       } finally {
         if (tempCookiesFile?.existsSync() ?? false) {
           tempCookiesFile?.deleteSync();
@@ -740,6 +712,61 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     }
 
     unawaited(run());
+  }
+
+  Future<({DownloadRequest request, File? tempFile})> _prepareCookieFile(
+    String id,
+    DownloadRequest request,
+  ) async {
+    if (request.rawCookies == null || request.rawCookies!.isEmpty) {
+      return (request: request, tempFile: null);
+    }
+    final isHeader =
+        !request.rawCookies!.contains('\t') &&
+        request.rawCookies!.contains('=');
+    if (isHeader) {
+      return (request: request, tempFile: null);
+    }
+    try {
+      final tempFile = File('${Directory.systemTemp.path}/md_cookies_$id.txt');
+      await tempFile.writeAsString(request.rawCookies!);
+      return (
+        request: request.copyWith(
+          cookiesFilePath: tempFile.path,
+          clearRawCookies: true,
+        ),
+        tempFile: tempFile,
+      );
+    } catch (e) {
+      LoggerService.w('Failed to create temp cookies file: $e');
+      return (request: request, tempFile: null);
+    }
+  }
+
+  bool _shouldAbort(String id) {
+    final status = _activeDownloads[id]?.status;
+    return status == DownloadStatus.canceled || status == DownloadStatus.paused;
+  }
+
+  String _uniqueFilename(String title, String? videoId, String url) {
+    final unique = (videoId != null && videoId.isNotEmpty)
+        ? videoId.replaceAll(RegExp(r'[<>:"/\\|?*]'), '')
+        : url.hashCode.toRadixString(36);
+    final stem = TitleCleanerService.filenameStem(title);
+    return '$stem [$unique].%(ext)s';
+  }
+
+  void _markDownloadFailed(String id, Object error) {
+    final item = _activeDownloads[id];
+    if (item == null) return;
+    final message = DownloadStatusGuard.userFacingDownloadErrorMessage(error);
+    _update(item.copyWith(status: DownloadStatus.failed, error: message));
+    unawaited(
+      NotificationService().showDownloadFailed(
+        item.title ?? 'Download Failed',
+        message,
+      ),
+    );
   }
 
   Future<void> _tryGalleryDlFallback(String id, DownloadRequest request) async {

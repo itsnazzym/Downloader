@@ -11,6 +11,7 @@
   "newDownload": "Nouveau téléchargement",
   "pasteUrl": "Collez l'URL ici",
   "xCdnUrlRejected": "Collez le lien du tweet (x.com/.../status/...), pas le fichier vidéo.",
+  "unsupportedDownloadUrl": "Cette page n'est pas une vidéo téléchargeable (invitation ou site non supporté).",
   "startDownload": "Démarrer",
   "cancel": "Annuler",
   "retry": "Réessayer",
@@ -478,5 +479,10 @@
   "notificationYtDlpUpdatedBody": "Mis à jour vers {version}",
   "@notificationYtDlpUpdatedBody": {
     "placeholders": { "version": { "type": "String" } }
-  }
+  },
+
+  "browseX": "Parcourir X",
+  "browseXHint": "Connectez-vous si besoin, puis appuyez sur Télécharger sur une vidéo.",
+  "mobileLibrary": "Bibliothèque",
+  "shareDownloadStarted": "Téléchargement lancé depuis le partage"
 }

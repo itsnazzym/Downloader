@@ -72,6 +72,8 @@
     "background": {
         "scripts": [
             "browser_api.js",
+            "url_policy.js",
+            "badge.js",
             "background.js"
         ]
     },

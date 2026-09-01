@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Hardened download pipeline, X library titles, and the extension feed panel.
+- Extension / X feed: skip Discord invite pages, map quoted videos to the tweet that actually has the video, and fail immediately on suspended or video-less tweets instead of retrying.
 
 ## [1.0.6] - 2026-08-27
 

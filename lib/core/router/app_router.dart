@@ -4,6 +4,7 @@ import 'package:riverpod/riverpod.dart';
 import '../../features/downloader/presentation/views/download_view.dart';
 import '../ui/app_shell.dart';
 import '../ui/settings/general_settings_view.dart';
+import '../../features/browser/x_browser_view.dart';
 import '../ui/settings/output_settings_view.dart';
 import '../ui/settings/advanced_settings_view.dart';
 import '../ui/settings/performance_settings_view.dart';
@@ -29,6 +30,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           GoRoute(path: '/', builder: (context, state) => const DownloadView()),
+          GoRoute(
+            path: '/browse',
+            builder: (context, state) => const XBrowserView(),
+          ),
           GoRoute(
             path: '/stats',
             builder: (context, state) => const StatsView(),

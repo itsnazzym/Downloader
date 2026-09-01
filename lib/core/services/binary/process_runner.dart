@@ -1,19 +1,33 @@
 import 'dart:convert';
 import 'dart:io';
 import '../../logger/logger_service.dart';
+import '../../android/android_engine_bridge.dart';
+import '../../platform/platform_info.dart';
 
 class ProcessRunner {
   Future<Process> start(
     String executable,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
   }) async {
     LoggerService.debug('Starting process: $executable ${arguments.join(' ')}');
+    if (PlatformInfo.isAndroid &&
+        AndroidEngineBridge.isEngineBinary(executable)) {
+      return AndroidEngineBridge.instance.start(
+        executable,
+        arguments,
+        workingDirectory: workingDirectory,
+        environment: environment,
+      );
+    }
     return await Process.start(
       executable,
       arguments,
       workingDirectory: workingDirectory,
       runInShell: false,
+      environment: environment,
+      includeParentEnvironment: true,
     );
   }
 
@@ -24,6 +38,15 @@ class ProcessRunner {
     Map<String, String>? environment,
   }) async {
     LoggerService.debug('Running process: $executable ${arguments.join(' ')}');
+    if (PlatformInfo.isAndroid &&
+        AndroidEngineBridge.isEngineBinary(executable)) {
+      return AndroidEngineBridge.instance.run(
+        executable,
+        arguments,
+        workingDirectory: workingDirectory,
+        environment: environment,
+      );
+    }
     final result = await Process.run(
       executable,
       arguments,

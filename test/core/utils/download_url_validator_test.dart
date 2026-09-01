@@ -50,5 +50,26 @@ void main() {
         isFalse,
       );
     });
+
+    test('rejects Discord invite pages', () {
+      expect(
+        DownloadUrlValidator.isNonMediaPageUrl(
+          'https://discord.com/invite/JoinForbidden',
+        ),
+        isTrue,
+      );
+      expect(
+        DownloadUrlValidator.isAcceptableDownloadUrl(
+          'https://discord.gg/abc123',
+        ),
+        isFalse,
+      );
+      expect(
+        DownloadUrlValidator.isNonMediaPageUrl(
+          'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ),
+        isFalse,
+      );
+    });
   });
 }

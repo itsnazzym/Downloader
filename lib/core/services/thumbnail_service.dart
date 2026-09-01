@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:modern_downloader/core/services/binary/binary_locator.dart';
+import 'package:modern_downloader/core/services/binary/process_runner.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 
 /// Service to generate thumbnails from video files using ffmpeg
 class ThumbnailService {
   final BinaryLocator _binaryLocator;
+  final ProcessRunner _processRunner;
 
-  ThumbnailService(this._binaryLocator);
+  ThumbnailService(this._binaryLocator, [ProcessRunner? processRunner])
+    : _processRunner = processRunner ?? ProcessRunner();
 
   /// Generates a thumbnail for a video file if one doesn't exist
   /// Returns the path to the generated thumbnail, or null if failed
@@ -58,7 +61,7 @@ class ThumbnailService {
         thumbnailPath,
       ];
 
-      final result = await Process.run(ffmpegPath, args);
+      final result = await _processRunner.run(ffmpegPath, args);
 
       if (result.exitCode == 0 && File(thumbnailPath).existsSync()) {
         LoggerService.debug('Generated thumbnail: $thumbnailPath');
@@ -78,7 +81,7 @@ class ThumbnailService {
           thumbnailPath,
         ];
 
-        final retryResult = await Process.run(ffmpegPath, retryArgs);
+        final retryResult = await _processRunner.run(ffmpegPath, retryArgs);
         if (retryResult.exitCode == 0 && File(thumbnailPath).existsSync()) {
           LoggerService.debug('Generated thumbnail (1s): $thumbnailPath');
           return thumbnailPath;

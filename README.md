@@ -4,7 +4,7 @@
 
 # Modern Downloader
 
-**Téléchargeur de médias moderne, fluide et privé pour Windows**  
+**Téléchargeur de médias moderne, fluide et privé pour Windows et Android**  
 *Modern, high-performance, privacy-first media downloader & library manager*
 
 <br />
@@ -12,7 +12,7 @@
 [![CI](https://github.com/itsnazzym/Downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/itsnazzym/Downloader/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/itsnazzym/Downloader?color=orange)](https://github.com/itsnazzym/Downloader/releases)
 [![License](https://img.shields.io/github/license/itsnazzym/Downloader?color=green)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?logo=windows&logoColor=white)](https://github.com/itsnazzym/Downloader/releases)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Android-0078D4?logo=windows&logoColor=white)](https://github.com/itsnazzym/Downloader/releases)
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 
 [Téléchargements / Releases](https://github.com/itsnazzym/Downloader/releases) · [Extensions](#extensions-navigateur--browser-extensions) · [Confidentialité](extension/privacy.md)
@@ -110,10 +110,30 @@ tool/                  # Scripts d'automatisation de build et packaging
 ### 📥 Utilisateur — Installation
 
 1. Téléchargez la dernière version depuis la page **[Releases](https://github.com/itsnazzym/Downloader/releases)** :
-   - **Installeur (`ModernDownloader-Setup-vX.Y.Z.exe`)** : Installe ou met à jour l'application directement à son emplacement existant.
-   - **Version Portable (`ModernDownloader-Windows-Portable.zip`)** : Décompressez et lancez sans installation.
-2. Lancez `modern_downloader.exe`. Les moteurs d'extraction (`yt-dlp`, `FFmpeg`, `aria2c`) sont inclus ou initialisés automatiquement.
-3. *(Optionnel)* Installez l'[extension de navigateur](#extensions-navigateur--browser-extensions) pour capturer les médias en un clic.
+   - **Windows — Installeur (`ModernDownloader-Setup-vX.Y.Z.exe`)** : Installe ou met à jour l'application directement à son emplacement existant.
+   - **Windows — Version Portable (`ModernDownloader-Windows-Portable.zip`)** : Décompressez et lancez sans installation.
+   - **Android — APK (`ModernDownloader-Android-vX.Y.Z.apk`)** : sideload (GitHub Releases). Partagez une vidéo depuis X/Twitter/YouTube/TikTok vers Modern Downloader, ou ouvrez l'onglet **Parcourir X** pour le bouton overlay sur chaque vidéo.
+2. Lancez l'application. Les moteurs d'extraction (`yt-dlp`, `FFmpeg`, `aria2c`) sont inclus ou initialisés automatiquement.
+3. *(Optionnel, Windows)* Installez l'[extension de navigateur](#extensions-navigateur--browser-extensions) pour capturer les médias en un clic.
+
+### Android — capture sans copier-coller
+
+| Contexte | Gestes |
+|---|---|
+| App Twitter/X, YouTube, TikTok… | **Partager → Modern Downloader** (téléchargement immédiat) |
+| Onglet **Parcourir X** dans l'app | Bouton **Download** overlay sur chaque vidéo (1 tap) |
+| Kiwi Browser + extension MV3 | Même overlay que sur Windows, via `127.0.0.1` |
+
+Les fichiers sont enregistrés dans `Download/ModernDownloader/`.
+
+Le moteur Android s'appuie sur [youtubedl-android](https://github.com/yausername/youtubedl-android) (yt-dlp + FFmpeg + aria2c embarqués). L'APK combiné est donc soumis à la GPL-3.0 de cette bibliothèque.
+
+Compilation Android :
+
+```bash
+flutter pub get
+flutter build apk --release
+```
 
 ---
 

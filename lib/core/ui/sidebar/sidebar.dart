@@ -12,9 +12,9 @@ import '../../../../features/downloader/presentation/views/dialogs/add_download_
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import '../../../../features/downloader/presentation/providers/downloader_provider.dart';
+import '../../../../features/downloader/presentation/providers/download_library_counts.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../core/ui/layout/pane_layout_provider.dart';
-import '../../../../features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'dart:ui'; // For ImageFilter
@@ -27,36 +27,16 @@ class AppSidebar extends ConsumerWidget {
     // Watch relevant state
     final statusFilter = ref.watch(downloadStatusFilterProvider);
     final sourceFilter = ref.watch(downloadSourceFilterProvider);
-    final allDownloadsAsync = ref.watch(downloadListProvider);
-    final allDownloads = allDownloadsAsync.valueOrNull ?? [];
+    final libraryCounts = ref.watch(downloadLibraryCountsProvider);
+    final listLoading = ref.watch(
+      downloadListProvider.select((async) => async.isLoading),
+    );
     final settings = ref.watch(settingsProvider);
 
-    // Calculate Counts
-    final countActive = allDownloads
-        .where(
-          (i) =>
-              i.status == DownloadStatus.downloading ||
-              i.status == DownloadStatus.queued ||
-              i.status == DownloadStatus.extracting ||
-              i.status == DownloadStatus.processing,
-        )
-        .length;
-    final countCompleted = allDownloads
-        .where((i) => i.status == DownloadStatus.completed)
-        .length;
-    final countFailed = allDownloads
-        .where(
-          (i) =>
-              i.status == DownloadStatus.failed ||
-              i.status == DownloadStatus.canceled,
-        )
-        .length;
-
-    // Determine Sources
-    final Map<String, int> sourceCounts = {};
-    for (var item in allDownloads) {
-      sourceCounts[item.source] = (sourceCounts[item.source] ?? 0) + 1;
-    }
+    final countActive = libraryCounts.active;
+    final countCompleted = libraryCounts.completed;
+    final countFailed = libraryCounts.failed;
+    final sourceCounts = libraryCounts.sourceCounts;
 
     final List<String> availableSources = [
       'YouTube',
@@ -242,8 +222,8 @@ class AppSidebar extends ConsumerWidget {
                           _NavItem(
                             icon: Icons.inbox_rounded,
                             label: l10n.allDownloads,
-                            count: allDownloads.length,
-                            isLoading: allDownloadsAsync.isLoading,
+                            count: libraryCounts.total,
+                            isLoading: listLoading,
                             isSelected:
                                 statusFilter == DownloadStatusFilter.all &&
                                 sourceFilter == null,
@@ -253,7 +233,7 @@ class AppSidebar extends ConsumerWidget {
                             icon: Icons.downloading_rounded,
                             label: l10n.sidebarActive,
                             count: countActive,
-                            isLoading: allDownloadsAsync.isLoading,
+                            isLoading: listLoading,
                             isSelected:
                                 statusFilter == DownloadStatusFilter.active,
                             onTap: () => setStatus(DownloadStatusFilter.active),
@@ -262,7 +242,7 @@ class AppSidebar extends ConsumerWidget {
                             icon: Icons.check_circle_outline_rounded,
                             label: l10n.sidebarCompleted,
                             count: countCompleted,
-                            isLoading: allDownloadsAsync.isLoading,
+                            isLoading: listLoading,
                             isSelected:
                                 statusFilter == DownloadStatusFilter.completed,
                             onTap: () =>
@@ -272,7 +252,7 @@ class AppSidebar extends ConsumerWidget {
                             icon: Icons.error_outline_rounded,
                             label: l10n.sidebarFailed,
                             count: countFailed,
-                            isLoading: allDownloadsAsync.isLoading,
+                            isLoading: listLoading,
                             isSelected:
                                 statusFilter == DownloadStatusFilter.failed,
                             onTap: () => setStatus(DownloadStatusFilter.failed),
@@ -296,7 +276,7 @@ class AppSidebar extends ConsumerWidget {
                       const Gap(AppSpacing.m),
                       _NavSection(
                         title: l10n.sourcesSection,
-                        children: allDownloadsAsync.isLoading
+                        children: listLoading
                             ? List.generate(
                                 3,
                                 (index) => const Padding(
