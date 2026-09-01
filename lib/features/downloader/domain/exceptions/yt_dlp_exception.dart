@@ -7,9 +7,14 @@ class YtDlpException implements Exception {
   @override
   String toString() => message;
 
-  /// Maps a yt-dlp stderr / log line to a typed exception when possible.
+  /// Maps yt-dlp `ERROR:` lines to a typed exception when possible.
+  ///
+  /// Title / progress text is ignored so words like "copyright" or
+  /// "Sign in to confirm you’re not a bot" in a video title do not match.
   static YtDlpException? fromLog(String data) {
-    final check = data.toLowerCase();
+    final errorLines = _errorLines(data);
+    if (errorLines.isEmpty) return null;
+    final check = errorLines.toLowerCase();
     if (check.contains('video unavailable')) {
       return VideoUnavailableException(log: data);
     }
@@ -39,7 +44,8 @@ class YtDlpException implements Exception {
       return CopyrightException(log: data);
     }
     if (check.contains('age-restricted') ||
-        check.contains('sign in to confirm')) {
+        check.contains('confirm your age') ||
+        check.contains('age confirmation')) {
       return AgeRestrictedException(log: data);
     }
     if (check.contains('live stream') &&
@@ -47,6 +53,20 @@ class YtDlpException implements Exception {
       return LiveStreamOfflineException(log: data);
     }
     return null;
+  }
+
+  static String _errorLines(String data) {
+    final buffer = StringBuffer();
+    for (final line in data.split(RegExp(r'\r?\n'))) {
+      final trimmed = line.trimLeft();
+      if (trimmed.startsWith('ERROR:') ||
+          trimmed.startsWith('ERROR -') ||
+          trimmed.contains('ERROR: ')) {
+        if (buffer.isNotEmpty) buffer.writeln();
+        buffer.write(trimmed);
+      }
+    }
+    return buffer.toString();
   }
 }
 
