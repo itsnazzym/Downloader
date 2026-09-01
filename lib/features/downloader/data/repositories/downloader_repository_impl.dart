@@ -28,7 +28,6 @@ import '../../../../core/download/download_status_guard.dart';
 import '../../../../core/download/download_file_resolver.dart';
 import '../../../../core/download/download_file_cleanup.dart';
 import '../../../../core/download/extraction_placeholders.dart';
-import '../../../../core/download/metadata_probe_limiter.dart';
 import '../../../../core/download/x_download_url.dart';
 import '../../../../core/download/x_tweet_display_title.dart';
 import '../../../../core/services/heartbeat_cookie_locator.dart';
@@ -345,29 +344,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     Future<void> run() async {
       File? tempCookiesFile;
       try {
-        // 1. Prepare Cookies
-        DownloadRequest currentRequest = request;
-        if (request.rawCookies != null && request.rawCookies!.isNotEmpty) {
-          // Check if it's a Header string (Extension) or Netscape file content
-          // Headers usually have "name=value;" and NO tabs. Netscape has tabs.
-          final isHeader =
-              !request.rawCookies!.contains('\t') &&
-              request.rawCookies!.contains('=');
-
-          if (!isHeader) {
-            try {
-              final tempDir = Directory.systemTemp;
-              tempCookiesFile = File('${tempDir.path}/md_cookies_$id.txt');
-              await tempCookiesFile.writeAsString(request.rawCookies!);
-              currentRequest = request.copyWith(
-                cookiesFilePath: tempCookiesFile.path,
-                clearRawCookies: true,
-              );
-            } catch (e) {
-              LoggerService.w('Failed to create temp cookies file: $e');
-            }
-          }
-        }
+        final prepared = await _prepareCookieFile(id, request);
+        DownloadRequest currentRequest = prepared.request;
+        tempCookiesFile = prepared.tempFile;
 
         while (retryCount < maxRetries) {
           if (_activeDownloads[id]?.status == DownloadStatus.canceled ||
@@ -540,21 +519,17 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 }
               }
             } catch (e) {
-              final skipProbe = e is MetadataProbeLimitException;
-              if (!skipProbe) {
-                LoggerService.w(
-                  'Metadata extraction failed (retry possible): $e',
+              LoggerService.w(
+                'Metadata extraction failed (retry possible): $e',
+              );
+              if (DownloadStatusGuard.isNonRetryableError(e)) {
+                throw Exception(
+                  DownloadStatusGuard.userFacingDownloadErrorMessage(e),
                 );
-                if (DownloadStatusGuard.isNonRetryableError(e)) {
-                  throw Exception(
-                    DownloadStatusGuard.userFacingDownloadErrorMessage(e),
-                  );
-                }
-                // If metadata fails, we still try to download with derived title as fallback or retry
-                if (retryCount < maxRetries - 1) {
-                  retryCount++;
-                  continue; // Retry whole loop
-                }
+              }
+              if (retryCount < maxRetries - 1) {
+                retryCount++;
+                continue;
               }
               if (ExtractionPlaceholders.isGenericTitle(finalTitle) ||
                   finalTitle.isEmpty) {
@@ -562,13 +537,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   currentRequest.url,
                 );
               }
-              final tweetId = XDownloadUrl.tweetIdFrom(currentRequest.url);
-              final unique = (tweetId != null && tweetId.isNotEmpty)
-                  ? tweetId
-                  : currentRequest.url.hashCode.toRadixString(36);
-              final stem = TitleCleanerService.filenameStem(finalTitle);
               currentRequest = currentRequest.copyWith(
-                customFilename: '$stem [$unique].%(ext)s',
+                customFilename: _uniqueFilename(
+                  finalTitle,
+                  XDownloadUrl.tweetIdFrom(currentRequest.url),
+                  currentRequest.url,
+                ),
               );
             }
 
@@ -716,18 +690,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             LoggerService.w('Gallery DL fallback failed: $ge');
           }
         }
-        _update(
-          _activeDownloads[id]!.copyWith(
-            status: DownloadStatus.failed,
-            error: DownloadStatusGuard.userFacingDownloadErrorMessage(e),
-          ),
-        );
-        unawaited(
-          NotificationService().showDownloadFailed(
-            _activeDownloads[id]?.title ?? 'Download Failed',
-            DownloadStatusGuard.userFacingDownloadErrorMessage(e),
-          ),
-        );
+        _markDownloadFailed(id, e);
       } finally {
         if (tempCookiesFile?.existsSync() ?? false) {
           tempCookiesFile?.deleteSync();
@@ -736,6 +699,56 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     }
 
     unawaited(run());
+  }
+
+  Future<({DownloadRequest request, File? tempFile})> _prepareCookieFile(
+    String id,
+    DownloadRequest request,
+  ) async {
+    if (request.rawCookies == null || request.rawCookies!.isEmpty) {
+      return (request: request, tempFile: null);
+    }
+    final isHeader =
+        !request.rawCookies!.contains('\t') &&
+        request.rawCookies!.contains('=');
+    if (isHeader) {
+      return (request: request, tempFile: null);
+    }
+    try {
+      final tempFile = File('${Directory.systemTemp.path}/md_cookies_$id.txt');
+      await tempFile.writeAsString(request.rawCookies!);
+      return (
+        request: request.copyWith(
+          cookiesFilePath: tempFile.path,
+          clearRawCookies: true,
+        ),
+        tempFile: tempFile,
+      );
+    } catch (e) {
+      LoggerService.w('Failed to create temp cookies file: $e');
+      return (request: request, tempFile: null);
+    }
+  }
+
+  String _uniqueFilename(String title, String? videoId, String url) {
+    final unique = (videoId != null && videoId.isNotEmpty)
+        ? videoId.replaceAll(RegExp(r'[<>:"/\\|?*]'), '')
+        : url.hashCode.toRadixString(36);
+    final stem = TitleCleanerService.filenameStem(title);
+    return '$stem [$unique].%(ext)s';
+  }
+
+  void _markDownloadFailed(String id, Object error) {
+    final item = _activeDownloads[id];
+    if (item == null) return;
+    final message = DownloadStatusGuard.userFacingDownloadErrorMessage(error);
+    _update(item.copyWith(status: DownloadStatus.failed, error: message));
+    unawaited(
+      NotificationService().showDownloadFailed(
+        item.title ?? 'Download Failed',
+        message,
+      ),
+    );
   }
 
   Future<void> _tryGalleryDlFallback(String id, DownloadRequest request) async {

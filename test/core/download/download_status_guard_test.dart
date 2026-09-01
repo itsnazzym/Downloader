@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/features/downloader/domain/exceptions/yt_dlp_exception.dart';
 
 void main() {
   group('DownloadStatusGuard.shouldRetryAfterError', () {
@@ -49,8 +50,7 @@ void main() {
 
   group('DownloadStatusGuard.isPermanentDownloadError', () {
     test('detects suspended tweets', () {
-      const sample =
-          'ERROR: [twitter] 2091798624661602420: Suspended';
+      const sample = 'ERROR: [twitter] 2091798624661602420: Suspended';
       expect(DownloadStatusGuard.isPermanentDownloadError(sample), isTrue);
       expect(
         DownloadStatusGuard.userFacingDownloadErrorMessage(sample),
@@ -81,6 +81,12 @@ void main() {
     test('does not retry permanent errors', () {
       const sample = 'ERROR: [twitter] 123: Suspended';
       expect(DownloadStatusGuard.isNonRetryableError(sample), isTrue);
+      expect(
+        DownloadStatusGuard.isPermanentDownloadError(
+          SuspendedContentException(log: sample),
+        ),
+        isTrue,
+      );
     });
   });
 }

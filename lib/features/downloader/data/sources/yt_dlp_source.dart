@@ -57,9 +57,7 @@ class YtDlpSource {
     String? cookieBrowser,
     bool useTorProxy = false,
   }) async {
-    if (!metadataProbeLimiter.tryAcquire()) {
-      throw const MetadataProbeLimitException();
-    }
+    await metadataProbeLimiter.acquire();
     try {
       return await _fetchMetadataUnlocked(
         url,
@@ -125,11 +123,12 @@ class YtDlpSource {
       if (result.exitCode != 0) {
         final stderr = result.stderr.toString();
         if (DownloadStatusGuard.isNonRetryableProxyError(stderr)) {
-          throw Exception(
+          throw YtDlpException(
             DownloadStatusGuard.userFacingProxyErrorMessage(stderr),
           );
         }
-        throw Exception('Failed to fetch metadata: $stderr');
+        throw YtDlpException.fromLog(stderr) ??
+            Exception('Failed to fetch metadata: $stderr');
       }
 
       // Sanitize output: sometimes yt-dlp prints empty lines or debug info even with --no-warnings
@@ -540,19 +539,7 @@ class YtDlpSource {
 
     void detectYtDlpException(String data) {
       if (detectedException != null) return;
-      final check = data.toLowerCase();
-      if (check.contains('video unavailable')) {
-        detectedException = VideoUnavailableException(log: data);
-      } else if (check.contains('private video')) {
-        detectedException = PrivateVideoException(log: data);
-      } else if (check.contains('geo-restricted')) {
-        detectedException = GeoBlockedException(log: data);
-      } else if (DownloadStatusGuard.isPermanentDownloadError(data)) {
-        detectedException = YtDlpException(
-          DownloadStatusGuard.userFacingDownloadErrorMessage(data),
-          originalLog: data,
-        );
-      }
+      detectedException = YtDlpException.fromLog(data);
     }
 
     process.stdout
@@ -628,15 +615,10 @@ class YtDlpSource {
             DownloadStatusGuard.userFacingProxyErrorMessage(errText),
           );
         }
-        if (DownloadStatusGuard.isPermanentDownloadError(errText)) {
-          throw YtDlpException(
-            DownloadStatusGuard.userFacingDownloadErrorMessage(errText),
-            originalLog: errText,
-          );
-        }
-        throw YtDlpException(
-          'yt-dlp exited with code $exitCode. Error: $errorBuffer',
-        );
+        throw YtDlpException.fromLog(errText) ??
+            YtDlpException(
+              'yt-dlp exited with code $exitCode. Error: $errorBuffer',
+            );
       }
 
       // Prefer after_move print, then resolve against disk (fragments / remux).

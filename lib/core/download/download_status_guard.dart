@@ -1,4 +1,5 @@
 import '../../features/downloader/domain/enums/download_status.dart';
+import '../../features/downloader/domain/exceptions/yt_dlp_exception.dart';
 
 class DownloadStatusGuard {
   static bool shouldRetryAfterError(DownloadStatus? status) {
@@ -22,6 +23,17 @@ class DownloadStatusGuard {
 
   /// Content-side failures that will not succeed on retry (suspended tweet, etc.).
   static bool isPermanentDownloadError(Object error) {
+    if (error is SuspendedContentException ||
+        error is NoMediaFoundException ||
+        error is UnsupportedUrlException ||
+        error is VideoUnavailableException ||
+        error is PrivateVideoException ||
+        error is GeoBlockedException ||
+        error is CopyrightException ||
+        error is AgeRestrictedException ||
+        error is LiveStreamOfflineException) {
+      return true;
+    }
     final text = error.toString().toLowerCase();
     if (text.contains('unsupported url')) return true;
     if (text.contains('no video could be found')) return true;
@@ -34,6 +46,11 @@ class DownloadStatusGuard {
     }
     if (text.contains('account is suspended') ||
         text.contains('user has been suspended')) {
+      return true;
+    }
+    if (text.contains('video unavailable') ||
+        text.contains('private video') ||
+        text.contains('geo-restricted')) {
       return true;
     }
     return false;
@@ -55,24 +72,11 @@ class DownloadStatusGuard {
     if (isNonRetryableProxyError(error)) {
       return userFacingProxyErrorMessage(error);
     }
-    final text = error.toString().toLowerCase();
-    if (text.contains('unsupported url')) {
-      return 'URL non prise en charge par yt-dlp '
-          '(lien externe, invitation Discord, etc.).';
+    if (error is YtDlpException) {
+      return error.message;
     }
-    if (text.contains('no video could be found')) {
-      return 'Aucune vidéo dans ce tweet '
-          '(texte, image, GIF ou vidéo supprimée).';
-    }
-    if (text.contains(': suspended') ||
-        text.contains('account is suspended') ||
-        text.contains('user has been suspended')) {
-      return 'Tweet ou compte X suspendu — contenu indisponible.';
-    }
-    if (text.contains('tweet is unavailable') ||
-        text.contains('this tweet is unavailable')) {
-      return 'Tweet X supprimé ou indisponible.';
-    }
+    final mapped = YtDlpException.fromLog(error.toString());
+    if (mapped != null) return mapped.message;
     return error.toString();
   }
 }

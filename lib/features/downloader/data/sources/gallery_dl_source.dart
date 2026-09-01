@@ -125,7 +125,7 @@ class GalleryDlSource {
             // This looks like a file path - extract the title from it
             downloadedCount++;
             lastFilePath = line.trim();
-            final fileName = _extractFileNameFromPath(lastFilePath);
+            final fileName = fileNameFromPath(lastFilePath);
             if (fileName != null && fileName.isNotEmpty) {
               extractedTitle = fileName;
               LoggerService.debug('Extracted title from file: $extractedTitle');
@@ -175,7 +175,7 @@ class GalleryDlSource {
   }
 
   /// Extract filename (without extension) from a file path
-  String? _extractFileNameFromPath(String path) {
+  static String? fileNameFromPath(String path) {
     try {
       // Get basename from path (handle both / and \)
       final segments = path.split(RegExp(r'[/\\]'));

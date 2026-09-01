@@ -14,5 +14,25 @@ void main() {
       limiter.reset();
       expect(limiter.inFlight, 0);
     });
+
+    test('acquire waits until a slot is released', () async {
+      final limiter = MetadataProbeLimiter(maxParallel: 1);
+      expect(limiter.tryAcquire(), isTrue);
+
+      var acquired = false;
+      final waiting = limiter.acquire().then((_) {
+        acquired = true;
+      });
+      await Future<void>.delayed(Duration.zero);
+      expect(acquired, isFalse);
+      expect(limiter.waiting, 1);
+
+      limiter.release();
+      await waiting;
+      expect(acquired, isTrue);
+
+      limiter.release();
+      expect(limiter.inFlight, 0);
+    });
   });
 }

@@ -5,7 +5,9 @@ void main() {
   group('DownloadUrlPolicy.isAllowed', () {
     test('allows X/Twitter status permalinks', () {
       expect(
-        DownloadUrlPolicy.isAllowed('https://x.com/alice/status/2093058718350893415'),
+        DownloadUrlPolicy.isAllowed(
+          'https://x.com/alice/status/2093058718350893415',
+        ),
         isTrue,
       );
       expect(
@@ -18,7 +20,9 @@ void main() {
 
     test('allows known video hosts', () {
       expect(
-        DownloadUrlPolicy.isAllowed('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+        DownloadUrlPolicy.isAllowed(
+          'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ),
         isTrue,
       );
       expect(

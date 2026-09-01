@@ -57,7 +57,8 @@ class LocalServerService {
       previous,
       next,
     ) {
-      // Monitor the stream manually since the provider returns the Repo instance
+      if (identical(previous, next)) return;
+      next.downloadUpdateStream.listen(_broadcastProgress);
     });
 
     final repo = _ref.read(downloaderRepositoryProvider);

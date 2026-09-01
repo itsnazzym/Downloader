@@ -65,7 +65,9 @@ class LocalServerDownloadIntake {
     }
 
     if (!DownloadUrlPolicy.isAllowed(downloadUrl)) {
-      LoggerService.w('Rejected unsupported download URL from extension: $downloadUrl');
+      LoggerService.w(
+        'Rejected unsupported download URL from extension: $downloadUrl',
+      );
       return const LocalServerDownloadIntakeResult.error('unsupported_url');
     }
 
