@@ -395,7 +395,7 @@ jobs:
   # -------------------------------------------------------------
   attach-android-release:
     name: 📦 Attach Android APK to GitHub Release
-    if: ${{ needs.version.outputs.publish == 'true' }}
+    if: ${{ needs.version.outputs.publish == 'true' && needs.windows.result == 'success' && needs.android.result == 'success' }}
     needs: [version, windows, android]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -404,11 +404,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: android-apk
+          path: dist
 
       - name: Attach APK to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.version.outputs.tag }}
+          fail_on_unmatched_files: true
           files: |
-            ModernDownloader-Android.apk
+            dist/ModernDownloader-Android.apk
 
