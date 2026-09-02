@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CI Windows release compile on MSVC 14.51 (VS 18): silence STL1011/C2338 from plugin C++/WinRT experimental coroutine headers.
 - CI now builds Windows installer/portable zip and an Android release APK as downloadable artifacts on `pull_request` and `workflow_dispatch` (version bump + GitHub Release stay limited to `push` to main).
+- Android release APK: enable core library desugaring for `flutter_local_notifications`, and skip NDK strip on youtubedl-android `*.zip.so` payloads.
 - Hardened download pipeline, X library titles, and the extension feed panel.
 - Extension / X feed: skip Discord invite pages, map quoted videos to the tweet that actually has the video, and fail immediately on suspended or video-less tweets instead of retrying.
 
