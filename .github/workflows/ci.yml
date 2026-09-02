@@ -250,31 +250,43 @@ jobs:
         env:
           WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          PUBLISH_RELEASE: ${{ needs.version.outputs.publish }}
         run: |
-          if (-not $env:WEB_EXT_API_KEY -or -not $env:WEB_EXT_API_SECRET) {
-            Write-Host "AMO secrets not configured. Creating zip XPI package."
+          $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
+          function New-UnsignedXpi {
+            $dest = Join-Path (Get-Location) "modern_downloader_firefox.xpi"
+            if (Test-Path $dest) { Remove-Item $dest -Force }
             Push-Location extension/firefox
-            Compress-Archive -Path * -DestinationPath "../../modern_downloader_firefox.xpi" -CompressionLevel Optimal
+            Compress-Archive -Path * -DestinationPath $dest -CompressionLevel Optimal
             Pop-Location
-          } else {
-            npm install -g web-ext@8
-            $artifacts = "signed-xpi"
-            New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
-            $signOutput = & web-ext sign `
-              --source-dir extension/firefox `
-              --api-key $env:WEB_EXT_API_KEY `
-              --api-secret $env:WEB_EXT_API_SECRET `
-              --channel unlisted `
-              --artifacts-dir $artifacts 2>&1 | Out-String
-            Write-Host $signOutput
+          }
+          New-UnsignedXpi
+          if ($env:PUBLISH_RELEASE -ne 'true') {
+            Write-Host "Skipping AMO signing (not a main push). Unsigned XPI packaged."
+            exit 0
+          }
+          if (-not $env:WEB_EXT_API_KEY -or -not $env:WEB_EXT_API_SECRET) {
+            Write-Host "AMO secrets not configured. Using zip XPI package."
+            exit 0
+          }
+          npm install -g web-ext@8
+          $artifacts = "signed-xpi"
+          New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
+          & web-ext sign `
+            --source-dir extension/firefox `
+            --api-key $env:WEB_EXT_API_KEY `
+            --api-secret $env:WEB_EXT_API_SECRET `
+            --channel unlisted `
+            --artifacts-dir $artifacts
+          if ($LASTEXITCODE -eq 0) {
             $signed = Get-ChildItem $artifacts -Filter *.xpi -ErrorAction SilentlyContinue | Select-Object -First 1
             if ($signed) {
               Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
-            } else {
-              Push-Location extension/firefox
-              Compress-Archive -Path * -DestinationPath "../../modern_downloader_firefox.xpi" -CompressionLevel Optimal
-              Pop-Location
+              Write-Host "Using AMO-signed XPI."
             }
+          } else {
+            Write-Host "AMO signing failed (exit $LASTEXITCODE). Keeping unsigned zip XPI."
           }
 
       - name: Generate Checksums
