@@ -107,12 +107,69 @@ jobs:
           retention-days: 7
 
   # -------------------------------------------------------------
-  # Job 3: Compilation Windows Release & Packaging (Inno Setup + Portable)
+  # Job 3: Version for binaries (bump only on push to main/master)
   # -------------------------------------------------------------
-  release:
-    name: 🪟 Build & Publish Windows Release
-    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && !startsWith(github.event.head_commit.message, 'chore(release):') }}
-    needs: [quality, extensions]
+  version:
+    name: 🔢 Resolve version
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      semver: ${{ steps.resolve.outputs.semver }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      build_number: ${{ steps.resolve.outputs.build_number }}
+      publish: ${{ steps.resolve.outputs.publish }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force origin || true
+          line=$(grep '^version:' pubspec.yaml)
+          full="${line#version: }"
+          full="${full// /}"
+          name="${full%%+*}"
+          build="${full#*+}"
+          if [[ "$build" == "$name" ]]; then
+            build=0
+          fi
+          IFS=. read -r major minor patch <<< "$name"
+          publish=false
+          if [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/master" ) ]]; then
+            publish=true
+            patch=$((patch + 1))
+            build=$((build + 1))
+            semver="${major}.${minor}.${patch}"
+            while git rev-parse "refs/tags/v${semver}" >/dev/null 2>&1; do
+              echo "Tag v${semver} already exists — incrementing"
+              patch=$((patch + 1))
+              build=$((build + 1))
+              semver="${major}.${minor}.${patch}"
+            done
+          else
+            semver="${name}"
+          fi
+          echo "semver=${semver}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${semver}" >> "$GITHUB_OUTPUT"
+          echo "build_number=${build}" >> "$GITHUB_OUTPUT"
+          echo "publish=${publish}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${semver}+${build} (tag v${semver}, publish=${publish})"
+
+  # -------------------------------------------------------------
+  # Job 4: Compilation Windows Release & Packaging (Inno Setup + Portable)
+  # Runs on push / pull_request / workflow_dispatch. Version bump +
+  # GitHub Release stay limited to push to main/master.
+  # -------------------------------------------------------------
+  windows:
+    name: 🪟 Build Windows Release
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    needs: [quality, extensions, version]
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
@@ -128,37 +185,15 @@ jobs:
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
-      - name: Determine & Bump Version (+0.0.1)
-        id: bump
+      - name: Apply version bump (push to main only)
+        if: ${{ needs.version.outputs.publish == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --tags --force origin || true
-          line=$(grep '^version:' pubspec.yaml)
-          full="${line#version: }"
-          full="${full// /}"
-          name="${full%%+*}"
-          build="${full#*+}"
-          if [[ "$build" == "$name" ]]; then
-            build=0
-          fi
-          IFS=. read -r major minor patch <<< "$name"
-          patch=$((patch + 1))
-          build=$((build + 1))
-          semver="${major}.${minor}.${patch}"
-          while git rev-parse "refs/tags/v${semver}" >/dev/null 2>&1; do
-            echo "Tag v${semver} already exists — incrementing"
-            patch=$((patch + 1))
-            build=$((build + 1))
-            semver="${major}.${minor}.${patch}"
-          done
-          new_version="${semver}+${build}"
+          new_version="${{ needs.version.outputs.semver }}+${{ needs.version.outputs.build_number }}"
           sed -i "s/^version: .*/version: ${new_version}/" pubspec.yaml
-          echo "semver=${semver}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${semver}" >> "$GITHUB_OUTPUT"
-          echo "build_number=${build}" >> "$GITHUB_OUTPUT"
-          echo "Release version: ${new_version} (Tag: v${semver})"
-          dart run tool/build_extension.dart --bump-patch --release-tag "v${semver}"
+          echo "Release version: ${new_version} (Tag: ${{ needs.version.outputs.tag }})"
+          dart run tool/build_extension.dart --bump-patch --release-tag "${{ needs.version.outputs.tag }}"
 
       - name: Install dependencies
         run: flutter pub get
@@ -166,8 +201,8 @@ jobs:
       - name: Compile Windows Release
         run: >
           flutter build windows --release
-          --build-name=${{ steps.bump.outputs.semver }}
-          --build-number=${{ steps.bump.outputs.build_number }}
+          --build-name=${{ needs.version.outputs.semver }}
+          --build-number=${{ needs.version.outputs.build_number }}
 
       - name: Embed browser extensions in Release bundle
         shell: pwsh
@@ -199,7 +234,7 @@ jobs:
         shell: pwsh
         run: |
           $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-          & $iscc /DAppVersion="${{ steps.bump.outputs.tag }}" "installer/setup.iss"
+          & $iscc /DAppVersion="${{ needs.version.outputs.tag }}" "installer/setup.iss"
 
       - name: Package Chrome ZIP
         shell: pwsh
@@ -245,7 +280,7 @@ jobs:
       - name: Generate Checksums
         shell: pwsh
         run: |
-          $tag = "${{ steps.bump.outputs.tag }}"
+          $tag = "${{ needs.version.outputs.tag }}"
           $files = @(
             "ModernDownloader-Windows-Portable.zip",
             "ModernDownloader-Setup-$tag.exe",
@@ -260,7 +295,21 @@ jobs:
           }
           $lines | Set-Content -Encoding utf8 CHECKSUMS.txt
 
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            ModernDownloader-Windows-Portable.zip
+            ModernDownloader-Setup-${{ needs.version.outputs.tag }}.exe
+            modern_downloader_firefox.xpi
+            modern_downloader_chrome.zip
+            CHECKSUMS.txt
+          retention-days: 14
+          if-no-files-found: error
+
       - name: Commit version bump & Tag
+        if: ${{ needs.version.outputs.publish == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -272,21 +321,94 @@ jobs:
             extension/chrome/manifest.json \
             extension/firefox/manifest.json \
             extension_version.json
-          git commit -m "chore(release): ${{ steps.bump.outputs.tag }}" || true
-          git tag "${{ steps.bump.outputs.tag }}" || true
+          git commit -m "chore(release): ${{ needs.version.outputs.tag }}" || true
+          git tag "${{ needs.version.outputs.tag }}" || true
           git push origin "HEAD:${{ github.ref_name }}" --tags || true
 
       - name: Publish GitHub Release
+        if: ${{ needs.version.outputs.publish == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.bump.outputs.tag }}
-          name: ${{ steps.bump.outputs.tag }}
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: ${{ needs.version.outputs.tag }}
           generate_release_notes: true
           files: |
             ModernDownloader-Windows-Portable.zip
-            ModernDownloader-Setup-${{ steps.bump.outputs.tag }}.exe
+            ModernDownloader-Setup-${{ needs.version.outputs.tag }}.exe
             modern_downloader_firefox.xpi
             modern_downloader_chrome.zip
             CHECKSUMS.txt
             extension_version.json
+
+  # -------------------------------------------------------------
+  # Job 5: Android release APK (debug-signed if no keystore secrets)
+  # -------------------------------------------------------------
+  android:
+    name: 🤖 Build Android APK
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    needs: [quality, extensions, version]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Compile Android APK
+        run: >
+          flutter build apk --release
+          --build-name=${{ needs.version.outputs.semver }}
+          --build-number=${{ needs.version.outputs.build_number }}
+
+      - name: Stage APK artifact
+        run: |
+          set -euo pipefail
+          src="build/app/outputs/flutter-apk/app-release.apk"
+          test -f "$src"
+          cp "$src" ModernDownloader-Android.apk
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: ModernDownloader-Android.apk
+          retention-days: 14
+          if-no-files-found: error
+
+  # -------------------------------------------------------------
+  # Job 6: Attach Android APK to the GitHub Release created on push
+  # -------------------------------------------------------------
+  attach-android-release:
+    name: 📦 Attach Android APK to GitHub Release
+    if: ${{ needs.version.outputs.publish == 'true' }}
+    needs: [version, windows, android]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+
+      - name: Attach APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.tag }}
+          files: |
+            ModernDownloader-Android.apk
 
