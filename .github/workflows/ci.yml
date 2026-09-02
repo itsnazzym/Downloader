@@ -52,7 +52,7 @@ jobs:
         run: dart run tool/check_coverage.dart --min 30 coverage/lcov.info
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-lcov
@@ -98,7 +98,7 @@ jobs:
           cd ../..
 
       - name: Upload extensions artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browser-extensions
           path: |
@@ -308,7 +308,7 @@ jobs:
           $lines | Set-Content -Encoding utf8 CHECKSUMS.txt
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-release
           path: |
@@ -395,7 +395,7 @@ jobs:
           cp "$src" ModernDownloader-Android.apk
 
       - name: Upload Android APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk
           path: ModernDownloader-Android.apk
