@@ -32,7 +32,7 @@ flutter analyze
 flutter test
 ```
 
-CI (`.github/workflows/ci.yml`) runs the same format check, `flutter analyze --no-fatal-infos`, `flutter test --coverage`, then a **20% line-coverage floor** (`dart run tool/check_coverage.dart`).
+CI (`.github/workflows/ci.yml`) runs the same format check, `flutter analyze --no-fatal-infos`, `flutter test --coverage`, then a **20% line-coverage floor** (`dart run tool/check_coverage.dart`). On `push` to `main`, `pull_request`, and `workflow_dispatch` it also builds Windows (Inno Setup `.exe` + portable zip) and an Android release `.apk` and uploads them as Actions artifacts. Version bump, git tag, and GitHub Release remain limited to `push` to `main` / `master`.
 
 ### Analyzer
 

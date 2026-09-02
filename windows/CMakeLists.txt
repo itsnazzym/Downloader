@@ -32,6 +32,18 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# MSVC 14.51 (VS 18 / windows-latest) treats <experimental/coroutine> as
+# error C2338 / STL1011. flutter_local_notifications_windows and
+# permission_handler_windows still include that C++/WinRT header.
+# Bumping plugins is not a complete fix: permission_handler_windows has
+# not migrated to C++20 <coroutine>, and flutter_local_notifications 22.x
+# only adds this same silence define behind a breaking Dart API change.
+# Remove when those plugins stop using experimental coroutine headers.
+# Directory-scoped so Flutter plugin subdirectories inherit the define.
+if(MSVC)
+  add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+endif()
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
