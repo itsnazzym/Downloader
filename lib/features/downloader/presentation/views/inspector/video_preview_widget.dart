@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:video_player_win/video_player_win.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:glass/glass.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -11,6 +12,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 class VideoPreviewWidget extends StatefulWidget {
   final String filePath;
   final String? thumbnailUrl;
+  final VoidCallback? onFullscreen;
 
   const VideoPreviewWidget({
     super.key,
@@ -19,14 +21,18 @@ class VideoPreviewWidget extends StatefulWidget {
     this.onFullscreen,
   });
 
-  final VoidCallback? onFullscreen;
-
   @override
   State<VideoPreviewWidget> createState() => _VideoPreviewWidgetState();
 }
 
 class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
-  WinVideoPlayerController? _controller;
+  Player? _player;
+  VideoController? _videoController;
+  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<Duration>? _durationSub;
+
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
   bool _isHovering = false;
   bool _isMuted = true;
   bool _isInitialized = false;
@@ -57,60 +63,79 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       return;
     }
 
-    WinVideoPlayerController? controller;
     try {
-      controller = WinVideoPlayerController.file(file);
-      await controller.initialize();
+      final player = Player();
+      final videoController = VideoController(
+        player,
+        configuration: const VideoControllerConfiguration(
+          enableHardwareAcceleration: true,
+          hwdec: 'auto-copy',
+        ),
+      );
+
+      await player.setVolume(_isMuted ? 0.0 : 100.0);
+      await player.setPlaylistMode(PlaylistMode.loop);
+
+      _positionSub = player.stream.position.listen((pos) {
+        if (mounted && !_isDragging) {
+          setState(() => _position = pos);
+        }
+      });
+      _durationSub = player.stream.duration.listen((dur) {
+        if (mounted) {
+          setState(() => _duration = dur);
+        }
+      });
+
+      await player.open(Media(file.path), play: true);
+
       if (!mounted || token != _initToken || !_isHovering) {
-        await _disposeController(controller);
+        await _disposePlayer(player);
         return;
       }
-      await controller.setVolume(_isMuted ? 0.0 : 1.0);
-      await controller.setLooping(true);
-      if (!mounted || token != _initToken || !_isHovering) {
-        await _disposeController(controller);
-        return;
-      }
-      _controller = controller;
+
+      _player = player;
+      _videoController = videoController;
       setState(() {
         _isInitialized = true;
         _hasError = false;
       });
-      try {
-        await controller.play();
-      } catch (e) {
-        debugPrint("Error playing win_video_player: $e");
-      }
     } catch (e) {
-      debugPrint("Error initializing win_video_player: $e");
-      await _disposeController(controller);
+      debugPrint("Error initializing media_kit player: $e");
       if (!mounted || token != _initToken || !_isHovering) return;
       setState(() {
         _hasError = true;
         _isInitialized = false;
-        _controller = null;
+        _player = null;
+        _videoController = null;
       });
     }
   }
 
-  Future<void> _disposeController(WinVideoPlayerController? controller) async {
-    if (controller == null) return;
+  Future<void> _disposePlayer(Player? player) async {
+    if (player == null) return;
     try {
-      await controller.dispose();
+      await player.dispose();
     } catch (e) {
-      debugPrint("Error disposing win_video_player: $e");
+      debugPrint("Error disposing media_kit player: $e");
     }
   }
 
   void _unmountPlayer({bool notify = true}) {
     _initToken++;
-    final controller = _controller;
-    _controller = null;
+    _positionSub?.cancel();
+    _durationSub?.cancel();
+    final player = _player;
+    _player = null;
+    _videoController = null;
     _isInitialized = false;
     _isDragging = false;
-    if (controller != null) {
+    _position = Duration.zero;
+    _duration = Duration.zero;
+
+    if (player != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        unawaited(_disposeController(controller));
+        unawaited(_disposePlayer(player));
       });
     }
     if (notify && mounted) setState(() {});
@@ -118,128 +143,128 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
 
   void _onHoverEnter() {
     if (_isHovering) return;
-    setState(() {
-      _isHovering = true;
-      _hasError = false;
-    });
-    if (_controller != null && _isInitialized) {
-      try {
-        _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-        _controller!.play();
-      } catch (e) {
-        debugPrint("Error playing win_video_player: $e");
-      }
-      return;
-    }
-    unawaited(_initializeController());
+    setState(() => _isHovering = true);
+    _initializeController();
   }
 
   void _onHoverExit() {
-    if (!_isHovering && _controller == null) return;
-    _isHovering = false;
-    _hasError = false;
+    if (!_isHovering) return;
+    setState(() => _isHovering = false);
     _unmountPlayer();
   }
 
-  @override
-  void dispose() {
-    _initToken++;
-    final controller = _controller;
-    _controller = null;
-    unawaited(_disposeController(controller));
-    super.dispose();
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+      _player?.setVolume(_isMuted ? 0.0 : 100.0);
+    });
   }
 
   @override
   void didUpdateWidget(VideoPreviewWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.filePath != widget.filePath) {
-      _hasError = false;
       _unmountPlayer(notify: false);
       if (_isHovering) {
-        unawaited(_initializeController());
+        _initializeController();
       }
     }
   }
 
-  void _toggleMute() {
-    if (_controller == null) return;
-    setState(() {
-      _isMuted = !_isMuted;
-      _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-    });
+  @override
+  void dispose() {
+    _positionSub?.cancel();
+    _durationSub?.cancel();
+    final player = _player;
+    _player = null;
+    _videoController = null;
+    if (player != null) {
+      unawaited(_disposePlayer(player));
+    }
+    super.dispose();
   }
 
   Widget _buildThumbnailBackground(BuildContext context) {
-    final url = widget.thumbnailUrl;
-    if (url == null) return const SizedBox();
+    final url = widget.thumbnailUrl!;
+    final isNetworkUrl =
+        url.startsWith('http://') || url.startsWith('https://');
 
-    final isNetwork = url.startsWith('http://') || url.startsWith('https://');
-    if (isNetwork) {
-      return Image.network(
+    Widget imageWidget;
+    if (isNetworkUrl) {
+      imageWidget = Image.network(
         url,
-        width: double.infinity,
-        height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+        errorBuilder: (context, _, _) => _placeholderIcon(context),
       );
+    } else {
+      String decodedPath = url;
+      try {
+        decodedPath = Uri.decodeFull(url);
+      } catch (_) {}
+      final file = File(decodedPath);
+      if (file.existsSync()) {
+        imageWidget = Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, _, _) => _placeholderIcon(context),
+        );
+      } else {
+        imageWidget = _placeholderIcon(context);
+      }
     }
 
-    String decodedPath = url;
-    try {
-      decodedPath = Uri.decodeFull(url);
-    } catch (_) {}
-    final file = File(decodedPath);
-    if (!file.existsSync()) return const SizedBox();
-    return Image.file(
-      file,
-      width: double.infinity,
-      height: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => const SizedBox(),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Opacity(opacity: 0.85, child: imageWidget),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.6),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _placeholderIcon(BuildContext context) {
+    return Center(
+      child: Icon(
+        Icons.movie_creation_outlined,
+        size: 48,
+        color: AppColors.of(context).textSecondary,
+      ),
     );
   }
 
   Widget _buildErrorPreview(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       height: 220,
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.of(context).border),
+        border: Border.all(color: AppColors.of(context).error, width: 1.5),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Opacity(opacity: 0.4, child: _buildThumbnailBackground(context)),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.movie_creation_outlined,
-                size: 48,
-                color: AppColors.of(context).textSecondary,
-              ),
-              const Gap(8),
-              Text(
-                context.l10n.previewUnavailable,
-                style: TextStyle(
-                  color: AppColors.of(context).textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-              if (widget.onFullscreen != null) ...[
-                const Gap(12),
-                TextButton.icon(
-                  onPressed: widget.onFullscreen,
-                  icon: const Icon(Icons.fullscreen_rounded, size: 18),
-                  label: Text(context.l10n.openFullscreen),
-                ),
-              ],
-            ],
-          ),
-        ],
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.broken_image_rounded, color: AppColors.of(context).error, size: 36),
+            const Gap(8),
+            Text(
+              l10n.error,
+              style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 13),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -256,8 +281,12 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   }
 
   Widget _buildPreview(BuildContext context) {
-    final controller = _controller;
-    final showPlayer = _isHovering && _isInitialized && controller != null;
+    final videoController = _videoController;
+    final showPlayer = _isHovering && _isInitialized && videoController != null;
+
+    final progress = _duration.inMilliseconds > 0
+        ? (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0)
+        : 0.0;
 
     return Container(
       height: 220,
@@ -278,26 +307,23 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Thumbnail / Background when not playing
+          // Thumbnail when not hovering/playing
           if (widget.thumbnailUrl != null && !showPlayer)
             Positioned.fill(child: _buildThumbnailBackground(context)),
 
-          // Native Windows Player — excluded from semantics to avoid AXTree errors
+          // Video rendered via media_kit libmpv texture
           if (showPlayer)
             ExcludeSemantics(
               child: SizedBox.expand(
-                child: FittedBox(
+                child: Video(
+                  controller: videoController,
+                  controls: NoVideoControls,
                   fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: controller.value.size.width,
-                    height: controller.value.size.height,
-                    child: WinVideoPlayer(controller),
-                  ),
                 ),
               ),
             ),
 
-          // Glassmorphism Overlay (Bottom Scrubber & Mute)
+          // Controls Overlay (Scrubber & Mute)
           if (showPlayer)
             Positioned(
               bottom: 0,
@@ -307,113 +333,85 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                 duration: 300.ms,
                 opacity: _isHovering ? 1.0 : 0.0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Ultra-thin scrubber
-                      ValueListenableBuilder(
-                        valueListenable: controller,
-                        builder: (context, value, child) {
-                          final duration = value.duration.inMilliseconds
-                              .toDouble();
-                          final position = value.position.inMilliseconds
-                              .toDouble();
-                          final progress = duration > 0
-                              ? position / duration
-                              : 0.0;
-
-                          return GestureDetector(
-                            onPanStart: (_) {
-                              setState(() => _isDragging = true);
-                              _controller?.pause();
-                            },
-                            onPanEnd: (_) {
-                              setState(() => _isDragging = false);
-                              if (_isHovering) _controller?.play();
-                            },
-                            onTapDown: (details) =>
-                                _handleSeek(details.localPosition.dx, context),
-                            onPanUpdate: (details) =>
-                                _handleSeek(details.localPosition.dx, context),
-                            child: Container(
-                              height: 20,
-                              width: double.infinity,
-                              color: Colors.transparent,
-                              alignment: Alignment.center,
+                      // Scrubber Bar
+                      GestureDetector(
+                        onPanStart: (_) {
+                          setState(() => _isDragging = true);
+                          _player?.pause();
+                        },
+                        onPanEnd: (_) {
+                          setState(() => _isDragging = false);
+                          if (_isHovering) _player?.play();
+                        },
+                        onTapDown: (details) => _handleSeek(details.localPosition.dx, context),
+                        onPanUpdate: (details) => _handleSeek(details.localPosition.dx, context),
+                        child: Container(
+                          height: 20,
+                          width: double.infinity,
+                          color: Colors.transparent,
+                          alignment: Alignment.center,
+                          child: Container(
+                            height: _isDragging ? 6 : 3,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white10,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: progress,
                               child: Container(
-                                height: _isDragging ? 6 : 3,
-                                width: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: Colors.white10,
+                                  color: AppColors.of(context).primary,
                                   borderRadius: BorderRadius.circular(3),
-                                ),
-                                child: FractionallySizedBox(
-                                  alignment: Alignment.centerLeft,
-                                  widthFactor: progress.clamp(0.0, 1.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: AppColors.of(context).primary,
-                                      borderRadius: BorderRadius.circular(3),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppColors.of(context).primary
-                                              .withValues(
-                                                alpha: _isDragging ? 0.8 : 0.5,
-                                              ),
-                                          blurRadius: _isDragging ? 8 : 4,
-                                        ),
-                                      ],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.of(context).primary.withValues(
+                                        alpha: _isDragging ? 0.8 : 0.5,
+                                      ),
+                                      blurRadius: _isDragging ? 8 : 4,
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ),
                             ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
                       const Gap(8),
                       Row(
                         children: [
-                          // Time info
-                          ValueListenableBuilder(
-                            valueListenable: controller,
-                            builder: (context, value, child) {
-                              return Text(
-                                _formatDuration(value.position),
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 10,
-                                  fontFamily: 'JetBrains Mono',
-                                ),
-                              );
-                            },
+                          Text(
+                            _formatDuration(_position),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                              fontFamily: 'JetBrains Mono',
+                            ),
                           ),
                           const Spacer(),
-                          // Mute Toggle (Glass)
+                          // Mute Toggle
                           Material(
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: _toggleMute,
                               borderRadius: BorderRadius.circular(8),
-                              child:
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    child: Icon(
-                                      _isMuted
-                                          ? Icons.volume_off_rounded
-                                          : Icons.volume_up_rounded,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ).asGlass(
-                                    blurX: 10,
-                                    blurY: 10,
-                                    clipBorderRadius: BorderRadius.circular(8),
-                                  ),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                child: Icon(
+                                  _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ).asGlass(
+                                blurX: 10,
+                                blurY: 10,
+                                clipBorderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                           const Gap(8),
@@ -424,23 +422,20 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                               child: InkWell(
                                 onTap: widget.onFullscreen,
                                 borderRadius: BorderRadius.circular(8),
-                                child:
-                                    Container(
-                                      padding: const EdgeInsets.all(6),
-                                      child: const Icon(
-                                        Icons.fullscreen_rounded,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ).asGlass(
-                                      blurX: 10,
-                                      blurY: 10,
-                                      clipBorderRadius: BorderRadius.circular(
-                                        8,
-                                      ),
-                                    ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  child: const Icon(
+                                    Icons.fullscreen_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ).asGlass(
+                                blurX: 10,
+                                blurY: 10,
+                                clipBorderRadius: BorderRadius.circular(8),
                               ),
                             ),
+                          ),
                         ],
                       ),
                     ],
@@ -453,25 +448,21 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
             Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(
-                  AppColors.of(context).primary,
-                ),
+                valueColor: AlwaysStoppedAnimation(AppColors.of(context).primary),
               ),
             ),
 
-          // Center Play Icon if not hovering
           if (!_isHovering)
             IgnorePointer(
-              child:
-                  Icon(
-                    Icons.play_circle_outline_rounded,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    size: 54,
-                  ).animate().scale(
-                    delay: 100.ms,
-                    duration: 400.ms,
-                    curve: Curves.easeOutBack,
-                  ),
+              child: Icon(
+                Icons.play_circle_outline_rounded,
+                color: Colors.white.withValues(alpha: 0.5),
+                size: 54,
+              ).animate().scale(
+                delay: 100.ms,
+                duration: 400.ms,
+                curve: Curves.easeOutBack,
+              ),
             ),
         ],
       ),
@@ -479,9 +470,8 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   }
 
   void _handleSeek(double localX, BuildContext context) {
-    if (_controller == null || !_isInitialized) return;
+    if (_player == null || !_isInitialized || _duration.inMilliseconds <= 0) return;
 
-    // Throttle seeks to 15fps max to avoid overloading the engine
     final now = DateTime.now();
     if (_lastSeekTime != null &&
         now.difference(_lastSeekTime!) < const Duration(milliseconds: 60)) {
@@ -494,10 +484,8 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     if (width <= 0) return;
 
     final double relative = localX / width;
-    final double targetMs =
-        _controller!.value.duration.inMilliseconds.toDouble() *
-        relative.clamp(0.0, 1.0);
-    _controller!.seekTo(Duration(milliseconds: targetMs.toInt()));
+    final targetMs = (_duration.inMilliseconds * relative.clamp(0.0, 1.0)).toInt();
+    _player?.seek(Duration(milliseconds: targetMs));
   }
 
   String _formatDuration(Duration duration) {

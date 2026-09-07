@@ -89,6 +89,7 @@ class DownloadListNotifier
   final Map<String, DownloadItem> _pendingUpdates = {};
   Timer? _throttleTimer;
   Timer? _duplicateSummaryTimer;
+  bool _flushMicrotaskScheduled = false;
 
   @override
   void dispose() {
@@ -104,9 +105,15 @@ class DownloadListNotifier
       // Queue the update
       _pendingUpdates[item.id] = item;
 
-      // Terminal / queued / paused: flush immediately
+      // Terminal / queued / paused: flush at next microtask turn (coalescing rapid bursts)
       if (isImmediateFlushStatus(item.status)) {
-        _flushUpdates();
+        if (!_flushMicrotaskScheduled) {
+          _flushMicrotaskScheduled = true;
+          scheduleMicrotask(() {
+            _flushMicrotaskScheduled = false;
+            _flushUpdates();
+          });
+        }
       } else {
         // For progress updates (downloading/extracting), throttle
         if (_throttleTimer == null || !_throttleTimer!.isActive) {
@@ -233,6 +240,7 @@ class DownloadListNotifier
     String? userAgent,
     String? cookiesFilePath,
     bool? organizeBySite,
+    bool? organizeByCreator,
     String? cookieBrowser,
     bool? audioOnly,
     String? preferredQuality,
@@ -281,6 +289,7 @@ class DownloadListNotifier
       videoFormatId: videoFormatId,
       cookieBrowser: cookieBrowser,
       organizeBySite: organizeBySite,
+      organizeByCreator: organizeByCreator,
       audioOnly: audioOnly,
       preferredQuality: preferredQuality,
     );
@@ -428,6 +437,49 @@ class DownloadListNotifier
       await _persistQueue();
       await _processQueue();
     });
+  }
+
+  Future<void> pauseAllActive() async {
+    final items = state.valueOrNull ?? _repository.getCurrentDownloads();
+    for (final item in items) {
+      if (item.status == DownloadStatus.downloading ||
+          item.status == DownloadStatus.extracting ||
+          item.status == DownloadStatus.processing) {
+        await _repository.pauseDownload(item.id);
+      }
+    }
+  }
+
+  Future<void> retryAllFailed() async {
+    final items = state.valueOrNull ?? _repository.getCurrentDownloads();
+    final failed = items
+        .where((item) => item.status == DownloadStatus.failed)
+        .toList();
+    for (final item in failed) {
+      await retryDownload(item);
+    }
+  }
+
+  Future<void> clearCompleted() async {
+    final items = state.valueOrNull ?? _repository.getCurrentDownloads();
+    final completed = items
+        .where((item) => item.status == DownloadStatus.completed)
+        .toList();
+    for (final item in completed) {
+      await deleteDownload(item.id);
+    }
+  }
+
+  Future<void> clearFailed() async {
+    final items = state.valueOrNull ?? _repository.getCurrentDownloads();
+    final failed = items
+        .where((item) =>
+            item.status == DownloadStatus.failed ||
+            item.status == DownloadStatus.canceled)
+        .toList();
+    for (final item in failed) {
+      await deleteDownload(item.id);
+    }
   }
 
   Future<void> clearHistory() async {

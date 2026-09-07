@@ -57,12 +57,37 @@ class AutoRenamePlugin extends DownloaderPlugin {
 
     if (cleaned.isEmpty || cleaned == baseName) return null;
 
-    final newPath = '$dir${Platform.pathSeparator}$cleaned$ext';
+    String finalPath = '$dir${Platform.pathSeparator}$cleaned$ext';
+    if (await File(finalPath).exists() && finalPath != file.path) {
+      int counter = 1;
+      while (await File('$dir${Platform.pathSeparator}$cleaned ($counter)$ext').exists()) {
+        counter++;
+      }
+      finalPath = '$dir${Platform.pathSeparator}$cleaned ($counter)$ext';
+    }
 
     try {
-      await file.rename(newPath);
-      debugPrint('[AutoRename] Renamed: $baseName → $cleaned');
-      return PluginModificationResult(newFilePath: newPath);
+      await file.rename(finalPath);
+      debugPrint('[AutoRename] Renamed: $baseName → ${File(finalPath).uri.pathSegments.last}');
+
+      // Rename matching sidecars if they exist
+      final oldSidecars = [
+        File('$dir${Platform.pathSeparator}$baseName.jpg'),
+        File('$dir${Platform.pathSeparator}$baseName.webp'),
+        File('$dir${Platform.pathSeparator}$baseName.en.vtt'),
+        File('$dir${Platform.pathSeparator}$baseName.vtt'),
+      ];
+      final newBase = finalPath.substring(0, finalPath.length - ext.length);
+      for (final sidecar in oldSidecars) {
+        if (await sidecar.exists()) {
+          final sidecarExt = _getExtension(sidecar.path);
+          try {
+            await sidecar.rename('$newBase$sidecarExt');
+          } catch (_) {}
+        }
+      }
+
+      return PluginModificationResult(newFilePath: finalPath);
     } catch (e) {
       debugPrint('[AutoRename] Failed to rename: $e');
       return null;

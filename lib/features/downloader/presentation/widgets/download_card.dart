@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/ui/blur_container.dart';
-import 'package:modern_downloader/theme/ios_theme.dart';
+import 'package:modern_downloader/core/theme/ios_theme.dart';
 import '../../domain/entities/download_item.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
@@ -27,6 +29,69 @@ class DownloadCard extends StatelessWidget {
     this.onTap,
     this.isSelected = false,
   });
+
+  Widget _buildThumbnail(BuildContext context, AppColors colors) {
+    if (ExtractionPlaceholders.showThumbnailSpinner(
+      status: item.status,
+      thumbnailUrl: item.thumbnailUrl,
+    )) {
+      return Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.2,
+            color: colors.primary,
+          ),
+        ),
+      );
+    }
+
+    final thumb = item.thumbnailUrl;
+    if (thumb != null && thumb.trim().isNotEmpty) {
+      final isNetwork =
+          thumb.startsWith('http://') || thumb.startsWith('https://');
+      if (isNetwork) {
+        return CachedNetworkImage(
+          imageUrl: thumb,
+          fit: BoxFit.cover,
+          placeholder: (context, _) => Center(
+            child: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colors.primary,
+              ),
+            ),
+          ),
+          errorWidget: (context, _, _) => Icon(
+            Icons.play_circle_fill_rounded,
+            color: colors.primary,
+            size: 28,
+          ),
+        );
+      }
+      try {
+        final decoded = Uri.decodeFull(thumb);
+        return Image.file(
+          File(decoded),
+          fit: BoxFit.cover,
+          errorBuilder: (context, _, _) => Icon(
+            Icons.play_circle_fill_rounded,
+            color: colors.primary,
+            size: 28,
+          ),
+        );
+      } catch (_) {}
+    }
+
+    return Icon(
+      Icons.play_circle_fill_rounded,
+      color: colors.primary,
+      size: 28,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,26 +126,8 @@ class DownloadCard extends StatelessWidget {
                         color: colors.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child:
-                          ExtractionPlaceholders.showThumbnailSpinner(
-                            status: item.status,
-                            thumbnailUrl: item.thumbnailUrl,
-                          )
-                          ? Center(
-                              child: SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.2,
-                                  color: colors.primary,
-                                ),
-                              ),
-                            )
-                          : Icon(
-                              Icons.play_circle_fill_rounded,
-                              color: colors.primary,
-                              size: 28,
-                            ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _buildThumbnail(context, colors),
                     ),
                     const Gap(14),
                     Expanded(

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../plugin_interface.dart';
@@ -9,10 +8,57 @@ import '../plugin_interface.dart';
 class SmartOrganizerPlugin extends DownloaderPlugin {
   static const String _rulesKey = 'smart_organizer_rules';
   static const String _smartGuessKey = 'smart_organizer_smart_guess';
-  static const String _aiModeKey =
-      'smart_organizer_ai_mode'; // 'offline' or 'ollama'
-  static const String _ollamaUrlKey = 'smart_organizer_ollama_url';
-  static const String _ollamaModelKey = 'smart_organizer_ollama_model';
+
+  static List<OrganizationRule> get defaultPresets => [
+    OrganizationRule(
+      id: 'preset_music',
+      name: 'Musique & Audio',
+      pattern: r'(official audio|lyrics|feat\.|prod\.|remix|\.mp3|\.flac|\.wav|\.m4a)',
+      isRegex: true,
+      targetFolder: 'Musique',
+      active: true,
+    ),
+    OrganizationRule(
+      id: 'preset_series',
+      name: 'Séries TV (SxxExx)',
+      pattern: r'(s\d{1,2}e\d{1,2}|season\s*\d+|episode\s*\d+)',
+      isRegex: true,
+      targetFolder: 'Séries',
+      active: true,
+    ),
+    OrganizationRule(
+      id: 'preset_tutorials',
+      name: 'Tutoriels & Guides',
+      pattern: r'(tuto|tutorial|course|formation|how to|guide)',
+      isRegex: true,
+      targetFolder: 'Tutoriels',
+      active: true,
+    ),
+    OrganizationRule(
+      id: 'preset_platforms_yt',
+      name: 'YouTube',
+      pattern: r'(youtube|youtu\.be)',
+      isRegex: true,
+      targetFolder: 'YouTube',
+      active: false,
+    ),
+    OrganizationRule(
+      id: 'preset_platforms_x',
+      name: 'X / Twitter',
+      pattern: r'(twitter|x\.com)',
+      isRegex: true,
+      targetFolder: 'Twitter',
+      active: false,
+    ),
+    OrganizationRule(
+      id: 'preset_platforms_twitch',
+      name: 'Twitch',
+      pattern: r'(twitch\.tv)',
+      isRegex: true,
+      targetFolder: 'Twitch',
+      active: false,
+    ),
+  ];
 
   @override
   String get id => 'builtin_smart_organizer';
@@ -67,22 +113,10 @@ class SmartOrganizerPlugin extends DownloaderPlugin {
       }
     }
 
-    // 2. Smart Guess / AI
+    // 2. Smart Guess (Offline Heuristics)
     final smartGuessEnabled = prefs.getBool(_smartGuessKey) ?? false;
-    final aiMode = prefs.getString(_aiModeKey) ?? 'offline';
-
     if (smartGuessEnabled) {
-      String? category;
-
-      if (aiMode == 'ollama') {
-        final url = prefs.getString(_ollamaUrlKey) ?? 'http://localhost:11434';
-        final model = prefs.getString(_ollamaModelKey) ?? 'llama3';
-        category = await _askOllama(effectiveTitle, url, model);
-      }
-
-      // Fallback to offline heuristic if Ollama fails or mode is offline
-      category ??= _smartGuessCategory(effectiveTitle, fileName);
-
+      final category = _smartGuessCategory(effectiveTitle, fileName);
       if (category != null) {
         final targetDir =
             '${file.parent.path}${Platform.pathSeparator}$category';
@@ -107,56 +141,6 @@ class SmartOrganizerPlugin extends DownloaderPlugin {
       debugPrint('[SmartOrganizer] Invalid Regex: ${rule.pattern}');
       return false;
     }
-  }
-
-  Future<String?> _askOllama(
-    String filename,
-    String baseUrl,
-    String model,
-  ) async {
-    try {
-      final uri = Uri.parse('$baseUrl/api/generate');
-      debugPrint(
-        '[SmartOrganizer] Asking Ollama ($model) to categorize: $filename',
-      );
-
-      final response = await http
-          .post(
-            uri,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'model': model,
-              'prompt':
-                  'Categorize this filename into a single folder name (e.g. Movies, Series, Music, Software, Archives, Documents). Return ONLY the category name. Filename: "$filename"',
-              'stream': false,
-            }),
-          )
-          .timeout(
-            const Duration(seconds: 120),
-          ); // Allow time for local AI on CPU
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final category = data['response'].toString().trim();
-        // Remove dot at the end if present
-        final cleanCategory = category.replaceAll(RegExp(r'[.\s]+$'), '');
-        debugPrint('[SmartOrganizer] Ollama replied: $cleanCategory');
-
-        // Safety check to avoid weird AI hallucinations creating chaotic folders
-        if (cleanCategory.length > 20 ||
-            cleanCategory.contains(Platform.pathSeparator)) {
-          return null;
-        }
-        return cleanCategory;
-      } else {
-        debugPrint(
-          '[SmartOrganizer] Ollama error ${response.statusCode}: ${response.body}',
-        );
-      }
-    } catch (e) {
-      debugPrint('[SmartOrganizer] Ollama connection failed: $e');
-    }
-    return null;
   }
 
   String? _smartGuessCategory(String title, String fileName) {

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -29,19 +28,9 @@ class _SmartOrganizerSettingsViewState
     extends ConsumerState<SmartOrganizerSettingsView> {
   static const String _rulesKey = 'smart_organizer_rules';
   static const String _smartGuessKey = 'smart_organizer_smart_guess';
-  static const String _aiModeKey = 'smart_organizer_ai_mode';
-  static const String _ollamaUrlKey = 'smart_organizer_ollama_url';
-  static const String _ollamaModelKey = 'smart_organizer_ollama_model';
-
   List<OrganizationRule> _rules = [];
   bool _smartGuessEnabled = false;
-  String _aiMode = 'offline';
-  final TextEditingController _ollamaUrlController = TextEditingController();
-  final TextEditingController _ollamaModelController =
-      TextEditingController(); // Keep as backup or for manual entry
   bool _isLoading = true;
-  List<String> _availableModels = [];
-  bool _isFetchingModels = false;
 
   @override
   void initState() {
@@ -58,16 +47,8 @@ class _SmartOrganizerSettingsViewState
             .map((e) => OrganizationRule.fromJson(jsonDecode(e)))
             .toList();
         _smartGuessEnabled = prefs.getBool(_smartGuessKey) ?? false;
-        _aiMode = prefs.getString(_aiModeKey) ?? 'offline';
-        _ollamaUrlController.text =
-            prefs.getString(_ollamaUrlKey) ?? 'http://localhost:11434';
-        _ollamaModelController.text =
-            prefs.getString(_ollamaModelKey) ?? 'llama3';
         _isLoading = false;
       });
-      if (_aiMode == 'ollama') {
-        await _fetchModels();
-      }
     }
   }
 
@@ -76,9 +57,6 @@ class _SmartOrganizerSettingsViewState
     final rulesJson = _rules.map((e) => jsonEncode(e.toJson())).toList();
     await prefs.setStringList(_rulesKey, rulesJson);
     await prefs.setBool(_smartGuessKey, _smartGuessEnabled);
-    await prefs.setString(_aiModeKey, _aiMode);
-    await prefs.setString(_ollamaUrlKey, _ollamaUrlController.text);
-    await prefs.setString(_ollamaModelKey, _ollamaModelController.text);
   }
 
   Future<void> _addOrUpdateRule(OrganizationRule rule) async {
@@ -230,95 +208,6 @@ class _SmartOrganizerSettingsViewState
     );
   }
 
-  Future<void> _fetchModels() async {
-    setState(() => _isFetchingModels = true);
-    try {
-      final url = _ollamaUrlController.text.trim();
-      final uri = Uri.parse('$url/api/tags');
-      final response = await http.get(uri).timeout(const Duration(seconds: 3));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final models = (data['models'] as List)
-            .map((m) => m['name'].toString())
-            .toList();
-        setState(() => _availableModels = models);
-      }
-    } catch (e) {
-      debugPrint('Error fetching models: $e');
-      // Keep existing models or empty
-    } finally {
-      setState(() => _isFetchingModels = false);
-    }
-  }
-
-  Future<void> _pullModel(String modelName) async {
-    // Basic implementation: fire and forget or simple alert
-    // Improving this would require streaming response
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.requestingOllamaPull(modelName))),
-    );
-    try {
-      final url = _ollamaUrlController.text.trim();
-      await http
-          .post(
-            Uri.parse('$url/api/pull'),
-            body: jsonEncode({'name': modelName, 'stream': false}),
-          )
-          .timeout(
-            const Duration(seconds: 1),
-          ); // We don't wait for full download here in basic version
-      // Wait, if stream is false, it waits until done. That might timeout.
-      // Better to set stream: true and ignore response? Or just let user handle it in terminal.
-
-      // For this "demo", we just show the message.
-      // If user really wants to download, they should use terminal or we implement robust background task.
-    } catch (e) {
-      // Ignore timeout as we expect it to take long
-    }
-  }
-
-  void _showDownloadModelDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.downloadModel),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(context.l10n.selectPopularModel),
-            const Gap(16),
-            Wrap(
-              spacing: 8,
-              children: ['llama3', 'mistral', 'gemma', 'phi3']
-                  .map(
-                    (m) => ActionChip(
-                      label: Text(m),
-                      avatar: const Icon(Icons.download, size: 16),
-                      onPressed: () {
-                        _pullModel(m);
-                        Navigator.pop(context);
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
-            const Gap(16),
-            Text(
-              context.l10n.ollamaPullNote,
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.close),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _organizeFolder() async {
     final dirPath = await FilePicker.platform.getDirectoryPath();
@@ -415,181 +304,12 @@ class _SmartOrganizerSettingsViewState
                     const Divider(height: 1),
                     Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DropdownButtonFormField<String>(
-                            dropdownColor: AppColors.of(context).surface,
-                            style: TextStyle(
-                              color: AppColors.of(context).textPrimary,
-                            ),
-                            decoration: InputDecoration(
-                              labelText: context.l10n.aiMode,
-                              labelStyle: TextStyle(
-                                color: AppColors.of(context).textPrimary,
-                              ),
-                              border: OutlineInputBorder(),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: AppColors.of(context).textSecondary,
-                                ),
-                              ),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                            ),
-                            initialValue: _aiMode,
-                            items: [
-                              DropdownMenuItem(
-                                value: 'offline',
-                                child: Text(
-                                  context.l10n.aiModeOffline,
-                                  style: TextStyle(
-                                    color: AppColors.of(context).textPrimary,
-                                  ),
-                                ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'ollama',
-                                child: Text(
-                                  context.l10n.aiModeOllama,
-                                  style: TextStyle(
-                                    color: AppColors.of(context).textPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            onChanged: (v) async {
-                              if (v != null) {
-                                setState(() => _aiMode = v);
-                                await _saveSettings();
-                              }
-                            },
-                          ),
-                          if (_aiMode == 'ollama') ...[
-                            const Gap(16),
-                            TextField(
-                              controller: _ollamaUrlController,
-                              style: TextStyle(
-                                color: AppColors.of(context).textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                labelText: context.l10n.ollamaApiUrl,
-                                labelStyle: TextStyle(
-                                  color: AppColors.of(context).textPrimary,
-                                ),
-                                hintText: 'http://localhost:11434',
-                                hintStyle: TextStyle(
-                                  color: AppColors.of(context).textSecondary,
-                                ),
-                                border: OutlineInputBorder(),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.of(context).textSecondary,
-                                  ),
-                                ),
-                              ),
-                              onChanged: (_) {
-                                _saveSettings();
-                                _fetchModels(); // Refresh available models
-                              },
-                            ),
-                            const Gap(16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _ollamaModelController,
-                                    style: TextStyle(
-                                      color: AppColors.of(context).textPrimary,
-                                    ),
-                                    decoration: InputDecoration(
-                                      labelText: context.l10n.modelName,
-                                      labelStyle: TextStyle(
-                                        color: AppColors.of(
-                                          context,
-                                        ).textPrimary,
-                                      ),
-                                      border: const OutlineInputBorder(),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: AppColors.of(
-                                            context,
-                                          ).textSecondary,
-                                        ),
-                                      ),
-                                      helperText:
-                                          context.l10n.selectOrTypeModel,
-                                      helperStyle: TextStyle(
-                                        color: AppColors.of(
-                                          context,
-                                        ).textSecondary,
-                                      ),
-                                      suffixIcon: PopupMenuButton<String>(
-                                        icon: Icon(
-                                          Icons.arrow_drop_down,
-                                          color: AppColors.of(
-                                            context,
-                                          ).textPrimary,
-                                        ),
-                                        color: AppColors.of(context).surface,
-                                        onSelected: (String value) {
-                                          _ollamaModelController.text = value;
-                                          _saveSettings();
-                                        },
-                                        itemBuilder: (BuildContext context) {
-                                          return _availableModels.map((
-                                            String choice,
-                                          ) {
-                                            return PopupMenuItem<String>(
-                                              value: choice,
-                                              child: Text(
-                                                choice,
-                                                style: TextStyle(
-                                                  color: AppColors.of(
-                                                    context,
-                                                  ).textPrimary,
-                                                ),
-                                              ),
-                                            );
-                                          }).toList();
-                                        },
-                                      ),
-                                    ),
-                                    onChanged: (_) => _saveSettings(),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: _isFetchingModels
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(Icons.refresh),
-                                  onPressed: _fetchModels,
-                                  tooltip: context.l10n.refreshModels,
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.download),
-                                  onPressed: _showDownloadModelDialog,
-                                  tooltip: context.l10n.downloadModel,
-                                ),
-                              ],
-                            ),
-                            const Gap(8),
-                            Text(
-                              context.l10n.ollamaMustRun,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ],
+                      child: Text(
+                        context.l10n.aiModeOffline,
+                        style: TextStyle(
+                          color: AppColors.of(context).textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -601,10 +321,28 @@ class _SmartOrganizerSettingsViewState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SectionTitle(context.l10n.customRules),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () => _showRuleDialog(),
-                  tooltip: context.l10n.addRule,
+                Row(
+                  children: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.playlist_add_check_rounded, size: 18),
+                      label: const Text('Règles recommandées'),
+                      onPressed: () async {
+                        for (final preset in SmartOrganizerPlugin.defaultPresets) {
+                          if (!_rules.any((r) => r.id == preset.id)) {
+                            _rules.add(preset);
+                          }
+                        }
+                        await _saveSettings();
+                        if (mounted) setState(() {});
+                      },
+                    ),
+                    const Gap(8),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () => _showRuleDialog(),
+                      tooltip: context.l10n.addRule,
+                    ),
+                  ],
                 ),
               ],
             ),

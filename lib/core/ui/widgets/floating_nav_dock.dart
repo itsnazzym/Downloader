@@ -60,6 +60,13 @@ class FloatingNavDock extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 _DockItem(
+                  icon: Icons.ios_share_rounded,
+                  label: l10n.transferTitle,
+                  selected: currentLocation == '/transfer',
+                  onTap: () => context.go('/transfer'),
+                ),
+                const SizedBox(width: 6),
+                _DockItem(
                   icon: Icons.settings_rounded,
                   label: l10n.settings,
                   selected: currentLocation.startsWith('/settings'),

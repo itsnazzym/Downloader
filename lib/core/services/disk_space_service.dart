@@ -26,8 +26,10 @@ class DiskSpaceService {
 
   /// Returns the free disk space in bytes for the target drive [path], or null if unavailable.
   static Future<int?> getFreeDiskSpace([String? targetPath]) async {
-    if (!Platform.isWindows) return null;
-    final path = targetPath ?? Platform.environment['USERPROFILE'] ?? 'C:\\';
+    final path = targetPath ??
+        (Platform.isWindows
+            ? (Platform.environment['USERPROFILE'] ?? 'C:\\')
+            : (Platform.environment['HOME'] ?? '/'));
     final rootKey = _extractDriveKey(path);
 
     final now = DateTime.now();
@@ -58,12 +60,26 @@ class DiskSpaceService {
   }
 
   static String _extractDriveKey(String path) {
-    final normalized = path.replaceAll('/', '\\');
-    final match = RegExp(
-      r'^([a-zA-Z]:)',
-      caseSensitive: false,
-    ).firstMatch(normalized);
-    return match != null ? match.group(1)!.toUpperCase() : 'C:';
+    if (Platform.isWindows) {
+      final normalized = path.replaceAll('/', '\\');
+      final match = RegExp(
+        r'^([a-zA-Z]:)',
+        caseSensitive: false,
+      ).firstMatch(normalized);
+      return match != null ? match.group(1)!.toUpperCase() : 'C:';
+    }
+
+    if (path.startsWith('/storage')) {
+      final segments =
+          path.split('/').where((s) => s.isNotEmpty).take(3).toList();
+      return '/${segments.join('/')}';
+    }
+    if (path.startsWith('/Volumes')) {
+      final segments =
+          path.split('/').where((s) => s.isNotEmpty).take(2).toList();
+      return '/${segments.join('/')}';
+    }
+    return '/';
   }
 
   static Future<int?> _probeFreeDiskSpace(String path) async {
@@ -71,17 +87,25 @@ class DiskSpaceService {
       final diskSpace = DiskSpace();
       await diskSpace.scan();
       final disks = diskSpace.disks;
-      final normalized = path.replaceAll('/', '\\').toUpperCase();
+      if (disks.isEmpty) return null;
+
+      final normalized = Platform.isWindows
+          ? path.replaceAll('/', '\\').toUpperCase()
+          : path;
 
       Disk? targetDisk;
       for (final disk in disks) {
-        if (normalized.startsWith(disk.devicePath.toUpperCase())) {
+        final devicePath = Platform.isWindows
+            ? disk.devicePath.toUpperCase()
+            : disk.devicePath;
+        if (normalized.startsWith(devicePath) ||
+            normalized.startsWith(disk.mountPath)) {
           targetDisk = disk;
           break;
         }
       }
-      targetDisk ??= disks.isNotEmpty ? disks.first : null;
-      return targetDisk?.availableSpace;
+      targetDisk ??= disks.first;
+      return targetDisk.availableSpace;
     } catch (e) {
       LoggerService.w('Failed to check disk space via native API: $e');
     }

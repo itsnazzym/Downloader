@@ -11,6 +11,7 @@ import 'package:modern_downloader/core/ui/media_player/media_playlist.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 
@@ -31,6 +32,41 @@ void main() {
 
     test('empty length returns 0', () {
       expect(wrapIndex(0, 1, 0), 0);
+    });
+  });
+
+  group('itemsForMediaPlaylist', () {
+    DownloadItem tt(String id, String handle) {
+      return DownloadItem(
+        id: id,
+        request: DownloadRequest(
+          url: 'https://www.tiktok.com/@$handle/video/$id',
+        ),
+      );
+    }
+
+    test('keeps the full list outside folder mode', () {
+      final items = [tt('a', 'neo'), tt('b', 'other')];
+      expect(
+        itemsForMediaPlaylist(
+          items: items,
+          viewMode: DownloadViewMode.list,
+          openedFolderKey: 'neo',
+        ).map((e) => e.id),
+        ['a', 'b'],
+      );
+    });
+
+    test('keeps only the opened creator when a folder is open', () {
+      final items = [tt('a', 'neo'), tt('b', 'other'), tt('c', 'neo')];
+      expect(
+        itemsForMediaPlaylist(
+          items: items,
+          viewMode: DownloadViewMode.folders,
+          openedFolderKey: 'neo',
+        ).map((e) => e.id),
+        ['a', 'c'],
+      );
     });
   });
 
@@ -112,6 +148,50 @@ void main() {
       expect(playlist.map((e) => e.filePath).toList(), [
         videoA.path,
         videoB.path,
+      ]);
+    });
+
+    test('next/prev stay inside the opened creator folder', () {
+      late File videoC;
+      videoC = File('${tempDir.path}${Platform.pathSeparator}c.mp4')
+        ..writeAsBytesSync([0]);
+
+      DownloadItem tt({
+        required String id,
+        required String path,
+        required String handle,
+      }) {
+        return DownloadItem(
+          id: id,
+          request: DownloadRequest(
+            url: 'https://www.tiktok.com/@$handle/video/$id',
+          ),
+          status: DownloadStatus.completed,
+          title: id,
+          filePath: path,
+        );
+      }
+
+      final container = ProviderContainer(
+        overrides: [
+          filteredDownloadsProvider.overrideWith(
+            (ref) => AsyncValue.data([
+              tt(id: 'a', path: videoA.path, handle: 'neo'),
+              tt(id: 'b', path: videoB.path, handle: 'other'),
+              tt(id: 'c', path: videoC.path, handle: 'neo'),
+            ]),
+          ),
+          downloadViewModeProvider.overrideWith(
+            (ref) => DownloadViewMode.folders,
+          ),
+          openedCreatorFolderKeyProvider.overrideWith((ref) => 'neo'),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(mediaPlaylistProvider).map((e) => e.id).toList(), [
+        'a',
+        'c',
       ]);
     });
   });

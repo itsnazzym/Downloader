@@ -45,6 +45,21 @@ class YtDlpProgressParser {
   static final RegExp mergerRegex = RegExp(
     r'\[Merger\] Merging formats into "(.*?)(?:\.\w+)?"',
   );
+  static final RegExp _mergerIntoRegex = RegExp(
+    r'Merging formats into "(.*)"',
+  );
+  static final RegExp _destinationPathRegex = RegExp(
+    r'Destination: (.*)$',
+  );
+  static final RegExp _fixupRegex = RegExp(
+    r'of "(.*?)"|to "(.*?)"',
+  );
+  static final RegExp _alreadyDownloadedRegex = RegExp(
+    r': (.*)$',
+  );
+  static final RegExp _quotedWinPathRegex = RegExp(
+    r'"([a-zA-Z]:[\\/][^"]+)"',
+  );
 
   final String baseFolder;
   final String preferredExt;
@@ -98,7 +113,7 @@ class YtDlpProgressParser {
     if (line.contains('Already downloaded') ||
         line.contains('has already been downloaded')) {
       hasProgress = true;
-      final match = RegExp(r': (.*)$').firstMatch(line);
+      final match = _alreadyDownloadedRegex.firstMatch(line);
       if (match != null) {
         currentFilePath = match.group(1);
       }
@@ -170,14 +185,12 @@ class YtDlpProgressParser {
   }
 
   void _captureAfterMovePath(String trimmedLine) {
-    final exists = fileExistsSync ?? (String p) => File(p).existsSync();
     final looksAbsoluteWindows = DownloadFileResolver.absoluteWindowsPath
         .hasMatch(trimmedLine);
     final looksAbsoluteUnix =
         trimmedLine.startsWith('/') &&
         !trimmedLine.startsWith('--') &&
-        trimmedLine.contains('/') &&
-        exists(trimmedLine);
+        trimmedLine.contains('/');
 
     if (!looksAbsoluteWindows && !looksAbsoluteUnix) return;
 
@@ -208,7 +221,7 @@ class YtDlpProgressParser {
 
   YtDlpProgressUpdate? _captureFilePathFromLine(String line) {
     if (line.contains('[Merger] Merging formats into')) {
-      final match = RegExp(r'Merging formats into "(.*)"').firstMatch(line);
+      final match = _mergerIntoRegex.firstMatch(line);
       if (match != null) {
         currentFilePath = _toAbsolutePath(match.group(1)!);
         return YtDlpProgressUpdate(
@@ -221,7 +234,7 @@ class YtDlpProgressParser {
     } else if (line.contains('[download] Destination:') ||
         line.contains('[VideoConvertor] Destination:') ||
         line.contains('[VideoRemuxer] Destination:')) {
-      final match = RegExp(r'Destination: (.*)$').firstMatch(line);
+      final match = _destinationPathRegex.firstMatch(line);
       if (match != null) {
         var rawPath = match.group(1)!;
         rawPath = rawPath.replaceAll('.part', '');
@@ -239,7 +252,7 @@ class YtDlpProgressParser {
     }
 
     if (line.contains('[Fixup') || line.contains('[EmbedThumbnail]')) {
-      final match = RegExp(r'of "(.*?)"|to "(.*?)"').firstMatch(line);
+      final match = _fixupRegex.firstMatch(line);
       if (match != null) {
         final detected = match.group(1) ?? match.group(2);
         if (detected != null) {
@@ -255,17 +268,17 @@ class YtDlpProgressParser {
     }
 
     if (currentFilePath == null || currentFilePath!.contains('.part')) {
-      final absolutePathMatch = RegExp(
-        r'"([a-zA-Z]:[\\/][^"]+)"',
-      ).firstMatch(line);
-      if (absolutePathMatch != null) {
-        final detected = absolutePathMatch.group(1);
-        final exists = fileExistsSync ?? (String p) => File(p).existsSync();
-        if (detected != null &&
-            exists(detected) &&
-            !detected.endsWith('.part') &&
-            !detected.endsWith('.ytdl')) {
-          currentFilePath = detected;
+      if (line.contains('[download]') ||
+          line.contains('[Merger]') ||
+          line.contains('Destination')) {
+        final absolutePathMatch = _quotedWinPathRegex.firstMatch(line);
+        if (absolutePathMatch != null) {
+          final detected = absolutePathMatch.group(1);
+          if (detected != null &&
+              !detected.endsWith('.part') &&
+              !detected.endsWith('.ytdl')) {
+            currentFilePath = detected;
+          }
         }
       }
     }

@@ -7,21 +7,21 @@ import 'package:flutter/foundation.dart';
 class LoggerService {
   static void i(String message, [String? name]) {
     if (!kReleaseMode) {
-      print('ℹ️ [${name ?? 'INFO'}] $message');
+      print('[${name ?? 'INFO'}] $message');
     }
     developer.log(message, name: name ?? 'INFO', level: 800);
   }
 
   static void w(String message, [String? name]) {
     if (!kReleaseMode) {
-      print('⚠️ [${name ?? 'WARN'}] $message');
+      print('[${name ?? 'WARN'}] $message');
     }
     developer.log(message, name: name ?? 'WARN', level: 900);
   }
 
   static void e(String message, [Object? error, StackTrace? stackTrace]) {
     if (!kReleaseMode) {
-      print('❌ [ERROR] $message');
+      print('[ERROR] $message');
       if (stackTrace != null) print(stackTrace);
     }
     developer.log(
@@ -35,7 +35,7 @@ class LoggerService {
 
   static void debug(String message) {
     if (!kDebugMode) return;
-    print('🐞 [DEBUG] $message');
+    print('[DEBUG] $message');
     developer.log(message, name: 'DEBUG', level: 500);
   }
 }

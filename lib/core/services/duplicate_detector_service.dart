@@ -20,7 +20,7 @@ class DuplicateDetectorService {
   Future<DuplicateResult> findAndRemoveDuplicates(
     String basePath, {
     void Function(String status, int current, int total)? onProgress,
-    bool dryRun = false,
+    bool dryRun = true,
   }) async {
     final result = DuplicateResult();
     final baseDir = Directory(basePath);

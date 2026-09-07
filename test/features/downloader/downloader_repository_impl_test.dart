@@ -245,7 +245,7 @@ void main() {
     expect(await part.exists(), isFalse);
   });
 
-  Future<DownloadItem> _waitFailed(DownloaderRepositoryImpl repo) {
+  Future<DownloadItem> waitFailed(DownloaderRepositoryImpl repo) {
     final failed = Completer<DownloadItem>();
     repo.downloadUpdateStream.listen((item) {
       if (item.status == DownloadStatus.failed && !failed.isCompleted) {
@@ -262,7 +262,7 @@ void main() {
       final repo = buildRepo(source);
       await loaded.future.timeout(const Duration(seconds: 3));
 
-      final failed = _waitFailed(repo);
+      final failed = waitFailed(repo);
       await repo.startDownload(
         const DownloadRequest(
           url: 'https://x.com/alice/status/2093058718350893415',
@@ -284,7 +284,7 @@ void main() {
     final repo = buildRepo(source);
     await loaded.future.timeout(const Duration(seconds: 3));
 
-    final failed = _waitFailed(repo);
+    final failed = waitFailed(repo);
     await repo.startDownload(
       const DownloadRequest(
         url: 'https://x.com/alice/status/2091798624661602420',

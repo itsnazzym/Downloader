@@ -14,8 +14,13 @@ class LibraryKeysSnapshot {
 
   final List<String> tweetIds;
   final List<String> mediaIds;
+  final List<String> tikTokIds;
 
-  const LibraryKeysSnapshot({required this.tweetIds, required this.mediaIds});
+  const LibraryKeysSnapshot({
+    required this.tweetIds,
+    required this.mediaIds,
+    this.tikTokIds = const <String>[],
+  });
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -23,6 +28,7 @@ class LibraryKeysSnapshot {
       'ok': true,
       'tweetIds': List<String>.from(tweetIds),
       'mediaIds': List<String>.from(mediaIds),
+      'tikTokIds': List<String>.from(tikTokIds),
     };
   }
 
@@ -33,6 +39,8 @@ class LibraryKeysSnapshot {
     final exists = fileExists ?? _defaultFileExists;
     final tweets = <String>{};
     final media = <String>{};
+    final tikToks = <String>{};
+    final tikTokRegExp = RegExp(r'/video/(\d{15,25})');
 
     for (final item in items) {
       if (!_includeItem(item, exists)) continue;
@@ -41,14 +49,22 @@ class LibraryKeysSnapshot {
         if (tweetId != null) tweets.add(tweetId);
         final mediaId = XDownloadUrl.mediaAssetIdFrom(source);
         if (mediaId != null) media.add(mediaId);
+        if (source != null) {
+          final ttMatch = tikTokRegExp.firstMatch(source);
+          if (ttMatch != null) {
+            tikToks.add(ttMatch.group(1)!);
+          }
+        }
       }
     }
 
     final tweetList = tweets.toList()..sort();
     final mediaList = media.toList()..sort();
+    final tikTokList = tikToks.toList()..sort();
     return LibraryKeysSnapshot(
       tweetIds: _cap(tweetList),
       mediaIds: _cap(mediaList),
+      tikTokIds: _cap(tikTokList),
     );
   }
 

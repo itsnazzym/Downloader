@@ -2,55 +2,33 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "short_name": "__MSG_extShortName__",
-  "version": "2.1.5",
+  "version": "2.1.14",
   "default_locale": "en",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://github.com/itsnazzym/Downloader",
   "permissions": [
+    "tabs",
     "activeTab",
     "cookies",
     "contextMenus",
     "storage",
-    "alarms"
+    "alarms",
+    "webRequest"
   ],
   "optional_host_permissions": [
     "*://*.pornhub.com/*"
   ],
   "host_permissions": [
-    "*://*.youtube.com/*",
-    "*://youtu.be/*",
-    "*://*.instagram.com/*",
-    "*://twitter.com/*",
-    "*://*.twitter.com/*",
-    "*://x.com/*",
-    "*://*.x.com/*",
-    "*://*.tiktok.com/*",
-    "*://*.twitch.tv/*",
-    "*://kick.com/*",
-    "*://*.kick.com/*",
-    "*://*.facebook.com/*",
-    "*://*.fb.watch/*"
+    "*://*/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "*://*.youtube.com/*",
-        "*://youtu.be/*",
-        "*://*.instagram.com/*",
-        "*://twitter.com/*",
-        "*://*.twitter.com/*",
-        "*://x.com/*",
-        "*://*.x.com/*",
-        "*://*.tiktok.com/*",
-        "*://*.twitch.tv/*",
-        "*://kick.com/*",
-        "*://*.kick.com/*",
-        "*://*.facebook.com/*",
-        "*://*.fb.watch/*"
+        "*://*/*"
       ],
-      "js": ["content.js"],
+      "js": ["url_policy.js", "content.js"],
       "run_at": "document_idle",
-      "all_frames": false
+      "all_frames": true
     }
   ],
   "action": {
@@ -68,7 +46,7 @@
     "default_panel": "feed_panel.html"
   },
   "background": {
-    "scripts": ["browser_api.js", "url_policy.js", "badge.js", "background.js"]
+    "scripts": ["browser_api.js", "url_policy.js", "badge.js", "stream_sniffer.js", "background.js"]
   },
   "commands": {
     "send-current-tab": {
@@ -80,7 +58,7 @@
     }
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https://pbs.twimg.com https://video.twimg.com; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:*;"
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https://pbs.twimg.com https://video.twimg.com https://*.tiktokcdn.com https://*.tiktokcdn-eu.com https://*.tiktokcdn-us.com https://*.cdninstagram.com https://*.ytimg.com https://*.fbcdn.net https://*.akamaihd.net; media-src 'self' blob: data: https://*.tiktokcdn.com https://*.tiktokcdn-eu.com https://*.tiktokcdn-us.com https://video.twimg.com https://*.cdninstagram.com; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:*;"
   },
   "browser_specific_settings": {
     "gecko": {

@@ -1,10 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:modern_downloader/core/theme/app_theme.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/inspector/video_preview_widget.dart';
-import 'package:video_player_win/video_player_win.dart';
 
 void main() {
   Widget wrapPreview(Widget child) {
@@ -28,7 +28,7 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 600));
 
-      expect(find.byType(WinVideoPlayer), findsNothing);
+      expect(find.byType(Video), findsNothing);
       expect(find.byIcon(Icons.play_circle_outline_rounded), findsOneWidget);
       expect(find.text('Preview unavailable'), findsNothing);
     },
@@ -50,7 +50,7 @@ void main() {
     await gesture.moveTo(tester.getCenter(find.byType(VideoPreviewWidget)));
     await tester.pump();
 
-    expect(find.byType(WinVideoPlayer), findsNothing);
+    expect(find.byType(Video), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     final rect = tester.getRect(find.byType(VideoPreviewWidget));
@@ -58,7 +58,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
 
-    expect(find.byType(WinVideoPlayer), findsNothing);
+    expect(find.byType(Video), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byIcon(Icons.play_circle_outline_rounded), findsOneWidget);
   });

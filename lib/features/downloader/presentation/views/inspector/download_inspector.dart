@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
@@ -61,11 +62,6 @@ class DownloadInspector extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Preview
-                  // Preview
-                  // Preview
-                  // Preview
-                  // Preview
                   // Preview
                   (() {
                     final validPath = DownloadFileResolver.resolvePlayablePath(
@@ -166,6 +162,71 @@ class DownloadInspector extends ConsumerWidget {
                     label: l10n.inspectorId,
                     value: item.id,
                     isMono: true,
+                  ),
+                  _InfoRow(
+                    label: 'URL source',
+                    value: item.request.url,
+                    isMono: true,
+                  ),
+                  if (DownloadFileResolver.resolvePlayablePath(
+                        item.filePath,
+                        title: item.title,
+                        outputFolder: item.request.outputFolder,
+                      ) !=
+                      null)
+                    _InfoRow(
+                      label: 'Fichier local',
+                      value: DownloadFileResolver.resolvePlayablePath(
+                        item.filePath,
+                        title: item.title,
+                        outputFolder: item.request.outputFolder,
+                      )!,
+                      isMono: true,
+                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: item.request.url),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('URL copiée dans le presse-papier'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.link_rounded, size: 16),
+                          label: const Text('Copier URL'),
+                        ),
+                      ),
+                      if (DownloadFileResolver.resolvePlayablePath(
+                            item.filePath,
+                            title: item.title,
+                            outputFolder: item.request.outputFolder,
+                          ) !=
+                          null) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              final path =
+                                  DownloadFileResolver.resolvePlayablePath(
+                                    item.filePath,
+                                    title: item.title,
+                                    outputFolder: item.request.outputFolder,
+                                  );
+                              if (path != null) _openInFolder(path);
+                            },
+                            icon: const Icon(Icons.folder_open_rounded, size: 16),
+                            label: const Text('Explorer'),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
 
                   if (item.error != null) ...[
@@ -371,9 +432,30 @@ class DownloadInspector extends ConsumerWidget {
 
   void _openFile(String path) {
     try {
-      Process.run('explorer', [path]);
+      if (Platform.isWindows) {
+        Process.run('explorer', [path]);
+      } else if (Platform.isMacOS) {
+        Process.run('open', [path]);
+      } else if (Platform.isLinux) {
+        Process.run('xdg-open', [path]);
+      }
     } catch (e) {
       debugPrint("Error opening file: $e");
+    }
+  }
+
+  void _openInFolder(String path) {
+    try {
+      if (Platform.isWindows) {
+        Process.run('explorer', ['/select,', path]);
+      } else if (Platform.isMacOS) {
+        Process.run('open', ['-R', path]);
+      } else if (Platform.isLinux) {
+        final parent = File(path).parent.path;
+        Process.run('xdg-open', [parent]);
+      }
+    } catch (e) {
+      debugPrint("Error revealing file: $e");
     }
   }
 

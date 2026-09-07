@@ -31,15 +31,19 @@ void main() {
       );
     });
 
-    test('rejects Discord invites and other external links', () {
+    test('allows any public http(s) host including tube sites', () {
       expect(
-        DownloadUrlPolicy.isAllowed('https://discord.com/invite/JoinForbidden'),
-        isFalse,
+        DownloadUrlPolicy.isAllowed('https://spankbang.com/7xq0k/video/clip'),
+        isTrue,
       );
       expect(
         DownloadUrlPolicy.isAllowed('https://example.com/video.mp4'),
-        isFalse,
+        isTrue,
       );
+    });
+
+    test('rejects localhost', () {
+      expect(DownloadUrlPolicy.isAllowed('http://127.0.0.1:8080/v'), isFalse);
     });
 
     test('rejects bare X CDN URLs without a status permalink', () {

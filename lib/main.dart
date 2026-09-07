@@ -29,25 +29,17 @@ import 'package:modern_downloader/features/downloader/data/datasources/startup_c
 import 'dart:async';
 import 'dart:io';
 import 'package:media_kit/media_kit.dart';
+import 'package:modern_downloader/core/logger/logger_service.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized();
-  // Initialize SharedPreferences BEFORE anything else
+  LoggerService.i(
+    'Initializing Modern Downloader on ${Platform.operatingSystem} (${Platform.operatingSystemVersion})',
+  );
+
   final prefsInstance = await SharedPreferences.getInstance();
-  initPrefs(prefsInstance); // Initialize global prefs holder
+  initPrefs(prefsInstance);
 
-  // Init Notifications
-  await NotificationService().init();
-
-  // Protocol Handler Setup
-  try {
-    await protocolHandler.register('moderndownloader');
-  } catch (e) {
-    debugPrint('Protocol handler register skipped: $e');
-  }
-
-  // Single Instance Check
   final container = ProviderContainer();
   final alreadyRunning = await SingleInstanceService.check(args, container);
   if (alreadyRunning) {
@@ -56,14 +48,7 @@ void main(List<String> args) async {
   }
 
   String? initialUrl;
-  try {
-    final initialUrlStr = await protocolHandler.getInitialUrl();
-    if (initialUrlStr != null) initialUrl = _extractUrlFromUri(initialUrlStr);
-  } catch (e) {
-    debugPrint('Protocol initial URL skipped: $e');
-  }
-
-  if (initialUrl == null && args.isNotEmpty) {
+  if (args.isNotEmpty) {
     final protocolArg = args.firstWhere(
       (arg) => arg.contains('moderndownloader://'),
       orElse: () => '',
@@ -98,11 +83,11 @@ void main(List<String> args) async {
 
   if (PlatformInfo.isDesktop) {
     await windowManager.ensureInitialized();
-    WindowOptions windowOptions = const WindowOptions(
+    const windowOptions = WindowOptions(
       size: Size(AppConfig.initialWindowWidth, AppConfig.initialWindowHeight),
       minimumSize: Size(AppConfig.minWindowWidth, AppConfig.minWindowHeight),
       center: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Color(0xFF18181C),
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
       windowButtonVisibility: false,
@@ -112,14 +97,10 @@ void main(List<String> args) async {
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
+      LoggerService.i(
+        'Desktop window ready and shown (${AppConfig.initialWindowWidth}x${AppConfig.initialWindowHeight})',
+      );
     });
-  }
-
-  // Listen for deep links
-  try {
-    protocolHandler.addListener(_ProtocolListener(container));
-  } catch (e) {
-    debugPrint('Protocol listener skipped: $e');
   }
 
   runApp(
@@ -128,6 +109,49 @@ void main(List<String> args) async {
       child: const ModernDownloaderApp(),
     ),
   );
+
+  unawaited(_initAfterFirstFrame(container));
+}
+
+Future<void> _initAfterFirstFrame(ProviderContainer container) async {
+  try {
+    MediaKit.ensureInitialized();
+  } catch (e) {
+    LoggerService.e('MediaKit init skipped', e);
+  }
+
+  try {
+    await NotificationService().init();
+  } catch (e) {
+    LoggerService.e('NotificationService init skipped', e);
+  }
+
+  try {
+    await protocolHandler.register('moderndownloader');
+  } catch (e) {
+    debugPrint('Protocol handler register skipped: $e');
+  }
+
+  try {
+    final initialUrlStr = await protocolHandler.getInitialUrl();
+    if (initialUrlStr != null) {
+      final extracted = _extractUrlFromUri(initialUrlStr);
+      if (extracted != null && container.read(launchDataProvider) == null) {
+        container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
+          extracted,
+          shouldAutoStart: PlatformInfo.isMobile,
+        );
+      }
+    }
+  } catch (e) {
+    debugPrint('Protocol initial URL skipped: $e');
+  }
+
+  try {
+    protocolHandler.addListener(_ProtocolListener(container));
+  } catch (e) {
+    debugPrint('Protocol listener skipped: $e');
+  }
 }
 
 String? _extractUrlFromUri(String uriString) {
@@ -219,8 +243,11 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       ref.read(localServerServiceProvider).start();
       final settings = ref.read(settingsProvider);
       unawaited(StartupCleanupService.cleanup(settings.outputFolder));
+      LoggerService.i(
+        'Post-bootstrap services initialized (Clipboard, LocalServer, Cleanup)',
+      );
     } catch (e) {
-      debugPrint('Post-bootstrap startup failed: $e');
+      LoggerService.e('Post-bootstrap startup failed', e);
     }
   }
 
@@ -251,12 +278,22 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   }
 
   void _handleClipboardUrl(String url) {
-    final resolved = XDownloadUrl.resolveForDownload(url);
-    if (resolved == null) {
-      final l10n = _l10nForLocale(ref.read(settingsProvider).locale);
-      NotificationService().showError(l10n.needTweetLink, l10n.xCdnUrlRejected);
+    final effectiveUrl = url.trim();
+    if (effectiveUrl.isEmpty) return;
+
+    if (XDownloadUrl.isCdnUrl(effectiveUrl)) {
+      final resolved = XDownloadUrl.resolveForDownload(effectiveUrl);
+      if (resolved == null) {
+        final l10n = _l10nForLocale(ref.read(settingsProvider).locale);
+        NotificationService().showError(l10n.needTweetLink, l10n.xCdnUrlRejected);
+        return;
+      }
+      NotificationService().showClipboardDetected(resolved);
+      ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(resolved);
       return;
     }
+
+    final resolved = XDownloadUrl.resolveForDownload(effectiveUrl) ?? effectiveUrl;
     NotificationService().showClipboardDetected(resolved);
     ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(resolved);
   }

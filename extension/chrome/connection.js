@@ -40,7 +40,7 @@
   }
 
     // ==========================================
-  // Full connection (offscreen / Firefox)
+  // Full connection (Chrome SW / Firefox)
   // ==========================================
   var serverPort = 6969;
   var apiToken = '';
@@ -104,6 +104,21 @@
     socket = null;
   }
 
+  function logDiag(event, data) {
+    try {
+      api.storage.local.get(['_mdDiag']).then(function (res) {
+        var logs = (res && res._mdDiag) || [];
+        logs.push({
+          t: new Date().toISOString().substring(11, 19),
+          e: event,
+          d: String(data || ''),
+        });
+        if (logs.length > 40) logs = logs.slice(logs.length - 40);
+        api.storage.local.set({ _mdDiag: logs });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   function connect() {
     api.storage.local.get(['serverPort', 'apiToken', 'adultSitesEnabled']).then(function (res) {
       serverPort = parseInt(res.serverPort, 10) || 6969;
@@ -115,6 +130,7 @@
       adultSitesEnabled = res.adultSitesEnabled === true;
 
       closeSocketQuietly();
+      logDiag('CONNECT_START', 'port=' + serverPort + ' tokenLen=' + apiToken.length);
       console.log('Connecting to Modern Downloader on 127.0.0.1:' + serverPort + '...');
 
       try {
@@ -123,13 +139,15 @@
 
         var helloTimer = setTimeout(function () {
           if (!isConnected && socket) {
+            logDiag('HELLO_TIMEOUT', 'No HELLO_OK received');
             console.warn('HELLO handshake timed out');
             try { socket.close(); } catch (e) { /* ignore */ }
           }
-        }, HELLO_TIMEOUT_MS + 500);
+        }, HELLO_TIMEOUT_MS + 1000);
 
         socket.onopen = function () {
           clearTimeout(helloTimer);
+          logDiag('WS_OPEN', 'Sending HELLO');
           var version = getManifestVersion();
           socket.send(JSON.stringify({
             type: 'HELLO',
@@ -138,8 +156,9 @@
           }));
         };
 
-        socket.onclose = function () {
+        socket.onclose = function (event) {
           clearTimeout(helloTimer);
+          logDiag('WS_CLOSE', 'code=' + (event ? event.code : 'unknown'));
           console.log('Disconnected from App. Reconnecting...');
           isConnected = false;
           socket = null;
@@ -157,13 +176,16 @@
         };
 
         socket.onerror = function () {
+          logDiag('WS_ERROR', 'ReadyState=' + (socket ? socket.readyState : 'null'));
           console.error('WebSocket error');
         };
       } catch (e) {
+        logDiag('CRITICAL_WS_ERR', (e && e.message) || String(e));
         console.error('Critical WebSocket error', e);
         scheduleReconnect();
       }
     }).catch(function (e) {
+      logDiag('SETTINGS_ERR', (e && e.message) || String(e));
       console.error('Failed to read settings for connect', e);
       scheduleReconnect();
     });
@@ -175,7 +197,9 @@
     if (message.type === 'HELLO_OK') {
       isConnected = true;
       clearReconnect();
+      api.storage.local.remove(['lastAuthError']);
       publishConnectionState();
+      logDiag('HELLO_OK', 'Connected successfully');
       console.log('Connected to Modern Downloader App');
       requestLibraryKeys();
       api.storage.local.get(['autoSendCookies']).then(function (cookieRes) {
@@ -189,7 +213,9 @@
     if (message.type === 'AUTH_FAILED') {
       isConnected = false;
       publishConnectionState();
-      api.storage.local.set({ lastAuthError: message.reason || 'auth_failed' });
+      var reason = message.reason || 'auth_failed';
+      api.storage.local.set({ lastAuthError: reason });
+      logDiag('AUTH_FAILED', reason);
       console.warn('Auth failed — check token in extension popup');
       try { if (socket) socket.close(); } catch (e) { /* ignore */ }
       return;
@@ -224,7 +250,7 @@
 
     if (message.type === 'LIBRARY_KEYS_RESULT') {
       if (message.ok !== false) {
-        mergeDownloadedKeys(message.tweetIds, message.mediaIds);
+        mergeDownloadedKeys(message.tweetIds, message.mediaIds, message.tikTokIds);
       }
       return;
     }
@@ -243,9 +269,24 @@
         eta: item.eta,
         error: item.error,
         url: item.url,
+        tweetId: item.tweetId,
+        mediaId: item.mediaId,
+        tikTokId: item.tikTokId,
       };
       updateBadgeFromProgress(sanitized);
       recordProgressDownloadKeys(item);
+
+      // Notify feed panel / UI in real time
+      try {
+        var progressPromise = api.runtime.sendMessage({
+          type: 'MD_DOWNLOAD_PROGRESS',
+          data: sanitized,
+        });
+        if (progressPromise && typeof progressPromise.catch === 'function') {
+          progressPromise.catch(function () {});
+        }
+      } catch (e) {}
+
       api.storage.local.get(['recentDownloads']).then(function (result) {
         var recents = result.recentDownloads || [];
         var idx = recents.findIndex(function (r) { return r.id === sanitized.id; });
@@ -282,6 +323,22 @@
     return match ? match[1] : null;
   }
 
+  function tikTokIdFromUrl(value) {
+    if (!value || typeof value !== 'string') return null;
+    try {
+      var match = value.match(/(?:video|v)\/(\d{15,25})/);
+      if (match) return match[1];
+      var xgMatch = value.match(/xgwrapper-\d+-(\d{15,25})/);
+      if (xgMatch) return xgMatch[1];
+      var ttPrefix = value.match(/^tt-(\d{15,25})$/);
+      if (ttPrefix) return ttPrefix[1];
+      if (/^\d{15,25}$/.test(value.trim())) return value.trim();
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function uniqueCap(values, cap) {
     var seen = {};
     var out = [];
@@ -301,12 +358,7 @@
 
   function broadcastDownloadState(payload) {
     if (!api.tabs || !api.tabs.query) return;
-    var query = { url: [
-      '*://x.com/*',
-      '*://*.x.com/*',
-      '*://twitter.com/*',
-      '*://*.twitter.com/*',
-    ] };
+    var query = { url: ['http://*/*', 'https://*/*'] };
     var send = function (tabs) {
       (tabs || []).forEach(function (tab) {
         if (typeof tab.id !== 'number') return;
@@ -332,10 +384,11 @@
     }
   }
 
-  function mergeDownloadedKeys(tweetIds, mediaIds) {
+  function mergeDownloadedKeys(tweetIds, mediaIds, tikTokIds) {
     var addedTweets = sanitizeIdList(tweetIds);
     var addedMedia = sanitizeIdList(mediaIds);
-    if (addedTweets.length === 0 && addedMedia.length === 0) {
+    var addedTikToks = sanitizeIdList(tikTokIds);
+    if (addedTweets.length === 0 && addedMedia.length === 0 && addedTikToks.length === 0) {
       return Promise.resolve();
     }
     return api.storage.local.get(['downloadedKeys']).then(function (result) {
@@ -349,13 +402,19 @@
           [].concat(current.mediaIds || [], addedMedia),
           DOWNLOADED_KEYS_CAP,
         ),
+        tikTokIds: uniqueCap(
+          [].concat(current.tikTokIds || [], addedTikToks),
+          DOWNLOADED_KEYS_CAP,
+        ),
       };
       return api.storage.local.set({ downloadedKeys: next }).then(function () {
         broadcastDownloadState({
           type: 'MD_DOWNLOAD_STATE',
           tweetIds: addedTweets,
           mediaIds: addedMedia,
+          tikTokIds: addedTikToks,
           removedTweetIds: [],
+          removedTikTokIds: [],
         });
       });
     }).catch(function (e) {
@@ -376,13 +435,46 @@
       var next = {
         tweetIds: nextTweets,
         mediaIds: current.mediaIds || [],
+        tikTokIds: current.tikTokIds || [],
       };
       return api.storage.local.set({ downloadedKeys: next }).then(function () {
         broadcastDownloadState({
           type: 'MD_DOWNLOAD_STATE',
           tweetIds: [],
           mediaIds: [],
+          tikTokIds: [],
           removedTweetIds: removed,
+          removedTikTokIds: [],
+        });
+      });
+    }).catch(function (e) {
+      console.warn('Could not update downloaded keys', e && e.message);
+    });
+  }
+
+  function removeDownloadedTikTokIds(tikTokIds) {
+    var removed = sanitizeIdList(tikTokIds);
+    if (removed.length === 0) return Promise.resolve();
+    var removedSet = {};
+    removed.forEach(function (id) { removedSet[id] = true; });
+    return api.storage.local.get(['downloadedKeys']).then(function (result) {
+      var current = result.downloadedKeys || {};
+      var nextTikToks = (current.tikTokIds || []).filter(function (id) {
+        return !removedSet[id];
+      });
+      var next = {
+        tweetIds: current.tweetIds || [],
+        mediaIds: current.mediaIds || [],
+        tikTokIds: nextTikToks,
+      };
+      return api.storage.local.set({ downloadedKeys: next }).then(function () {
+        broadcastDownloadState({
+          type: 'MD_DOWNLOAD_STATE',
+          tweetIds: [],
+          mediaIds: [],
+          tikTokIds: [],
+          removedTweetIds: [],
+          removedTikTokIds: removed,
         });
       });
     }).catch(function (e) {
@@ -394,15 +486,18 @@
     var status = item && item.status;
     var tweetId = item.tweetId || tweetIdFromUrl(item.url);
     var mediaId = item.mediaId || mediaAssetIdFrom(item.url);
+    var tikTokId = item.tikTokId || tikTokIdFromUrl(item.url);
     if (status === DOWNLOAD_STATUS_COMPLETED || status === DOWNLOAD_STATUS_DUPLICATE) {
       mergeDownloadedKeys(
         tweetId ? [tweetId] : [],
         mediaId ? [mediaId] : [],
+        tikTokId ? [tikTokId] : [],
       );
       return;
     }
     if (status === DOWNLOAD_STATUS_FAILED || status === DOWNLOAD_STATUS_CANCELED) {
       if (tweetId) removeDownloadedTweetIds([tweetId]);
+      if (tikTokId) removeDownloadedTikTokIds([tikTokId]);
     }
   }
 
@@ -666,9 +761,13 @@
         var mediaId = extra.mediaId ||
           mediaAssetIdFrom(extra.thumbnailUrl) ||
           mediaAssetIdFrom(downloadUrl);
+        var tikTokId = extra.tikTokId ||
+          tikTokIdFromUrl(downloadUrl) ||
+          tikTokIdFromUrl(safePage);
         mergeDownloadedKeys(
           tweetId ? [tweetId] : [],
           mediaId ? [mediaId] : [],
+          tikTokId ? [tikTokId] : [],
         );
       }
       return ack;
@@ -830,15 +929,24 @@
       var url = String(item.url || '');
       if (!id || seen[id] || !isSafeHttpUrl(url)) return;
       seen[id] = true;
+      var platform = item.platform || (typeof MDUrl !== 'undefined' && MDUrl.detectPlatform ? MDUrl.detectPlatform(url) : 'x');
+      var isHttpThumb = isSafeHttpUrl(item.thumbnailUrl);
+      var isDataThumb = typeof item.thumbnailUrl === 'string' && item.thumbnailUrl.indexOf('data:image/') === 0;
+      var safeThumb = (isHttpThumb || isDataThumb) ? item.thumbnailUrl : null;
+      var isDirectVideo = (isSafeHttpUrl(item.videoSrc) || (typeof item.videoSrc === 'string' && item.videoSrc.indexOf('blob:') === 0));
+
       safeItems.push({
         id: id,
         url: url,
         pageUrl: isSafeHttpUrl(item.pageUrl) ? item.pageUrl : url,
-        title: String(item.title || 'X video'),
-        author: String(item.author || 'X user'),
-        thumbnailUrl: isSafeHttpUrl(item.thumbnailUrl)
-          ? item.thumbnailUrl
-          : null,
+        title: String(item.title || (platform.toUpperCase() + ' video')),
+        author: String(item.author || (platform.toUpperCase() + ' user')),
+        platform: platform,
+        music: item.music ? String(item.music) : null,
+        avatarUrl: isSafeHttpUrl(item.avatarUrl) ? item.avatarUrl : null,
+        thumbnailUrl: safeThumb,
+        videoSrc: isDirectVideo ? item.videoSrc : null,
+        isActive: Boolean(item.isActive),
         durationSeconds: Number.isFinite(item.durationSeconds)
           ? item.durationSeconds
           : null,
@@ -851,13 +959,14 @@
     return safeItems;
   }
 
-  function broadcastXFeedItems(items) {
+  function broadcastXFeedItems(items, senderTabId) {
     var safeItems = sanitizeXFeedItems(items);
     if (safeItems.length === 0) return;
     try {
       var pending = api.runtime.sendMessage({
         type: 'MD_X_FEED_UPDATE',
         items: safeItems,
+        senderTabId: senderTabId,
       });
       if (pending && typeof pending.catch === 'function') {
         pending.catch(function () {
@@ -872,8 +981,19 @@
   api.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (!message || !message.type) return false;
 
-    if (message.type === 'MD_X_FEED_ITEMS') {
-      broadcastXFeedItems(message.items);
+    var senderTabId = sender && sender.tab && sender.tab.id;
+
+    if (message.type === 'MD_DEEP_SCAN_PROGRESS' || message.type === 'MD_PAGE_NAVIGATED') {
+      try {
+        var forwardMsg = Object.assign({}, message, { senderTabId: senderTabId });
+        api.runtime.sendMessage(forwardMsg).catch(function () {});
+      } catch (e) {}
+      sendResponse({ ok: true });
+      return false;
+    }
+
+    if (message.type === 'MD_X_FEED_ITEMS' || message.type === 'MD_FEED_ITEMS') {
+      broadcastXFeedItems(message.items, senderTabId);
       sendResponse({ ok: true });
       return false;
     }
@@ -888,10 +1008,17 @@
       return false;
     }
 
+    if (message.type === 'GET_TAB_URL') {
+      var tabUrl = sender && sender.tab && sender.tab.url;
+      sendResponse({ ok: !!tabUrl, url: tabUrl || null });
+      return false;
+    }
+
     if (message.type === 'DOWNLOAD_BTN_CLICK') {
       handleDownloadRequest(message.url, message.pageUrl, message.options, {
         tweetId: message.tweetId,
         mediaId: message.mediaId,
+        tikTokId: message.tikTokId,
         thumbnailUrl: message.thumbnailUrl,
       }).then(sendResponse);
       return true;
@@ -951,17 +1078,42 @@
     }
 
     if (message.type === 'TEST_CONNECTION') {
-      if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
-        sendResponse({ ok: false, error: 'app_offline' });
+      logDiag('TEST_CONN_REQ', 'isConnected=' + isConnected + ' readyState=' + (socket ? socket.readyState : 'none'));
+      if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
+        try {
+          socket.send(JSON.stringify({ type: 'PING' }));
+        } catch (e) {}
+        sendResponse({ ok: true, connected: true });
         return false;
       }
-      try {
-        socket.send(JSON.stringify({ type: 'PING' }));
-        sendResponse({ ok: true, connected: true });
-      } catch (e) {
-        sendResponse({ ok: false, error: 'send_failed' });
-      }
-      return false;
+
+      // If disconnected or connecting, trigger connect and wait up to 3 seconds for HELLO_OK
+      connect();
+      var checkStart = Date.now();
+      var checkInterval = setInterval(function () {
+        if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
+          clearInterval(checkInterval);
+          try { socket.send(JSON.stringify({ type: 'PING' })); } catch (e) {}
+          logDiag('TEST_CONN_RES', 'ok=true');
+          sendResponse({ ok: true, connected: true });
+          return;
+        }
+        if (Date.now() - checkStart > 3000) {
+          clearInterval(checkInterval);
+          api.storage.local.get(['lastAuthError']).then(function (res) {
+            if (res && res.lastAuthError) {
+              logDiag('TEST_CONN_RES', 'auth_failed');
+              sendResponse({ ok: false, error: 'auth_failed', detail: res.lastAuthError });
+            } else {
+              logDiag('TEST_CONN_RES', 'app_offline');
+              sendResponse({ ok: false, error: 'app_offline' });
+            }
+          }).catch(function () {
+            sendResponse({ ok: false, error: 'app_offline' });
+          });
+        }
+      }, 100);
+      return true;
     }
 
     if (message.type === 'GET_CONNECTION_STATE') {
@@ -970,13 +1122,28 @@
     }
 
     if (message.type === 'CONFIG_UPDATED') {
-      clearReconnect();
-      closeSocketQuietly();
-      isConnected = false;
-      publishConnectionState();
-      connect();
-      sendResponse({ ok: true });
-      return false;
+      api.storage.local.get(['serverPort', 'apiToken']).then(function (res) {
+        var newPort = parseInt(res.serverPort, 10) || 6969;
+        var newToken = res.apiToken || '';
+        // If already connected with the same port and token, keep the connection intact!
+        if (isConnected && socket && socket.readyState === WebSocket.OPEN &&
+            newPort === serverPort && newToken === apiToken) {
+          logDiag('CONFIG_UPDATED', 'unchanged; keeping socket');
+          sendResponse({ ok: true, unchanged: true });
+          return;
+        }
+        logDiag('CONFIG_UPDATED', 'reconnecting with new config');
+        clearReconnect();
+        closeSocketQuietly();
+        isConnected = false;
+        publishConnectionState();
+        connect();
+        sendResponse({ ok: true });
+      }).catch(function () {
+        connect();
+        sendResponse({ ok: true });
+      });
+      return true;
     }
 
     return false;
@@ -990,11 +1157,23 @@
     });
   }
 
-  // Firefox background owns menus; Chrome offscreen leaves menus to the SW shell.
-  var runningInOffscreenDoc = typeof document !== 'undefined' &&
-    /offscreen\.html/i.test(String((typeof location !== 'undefined' && location.href) || ''));
-  if (!runningInOffscreenDoc) {
-    setupContextMenusFull();
+  setupContextMenusFull();
+
+  if (api.alarms) {
+    try {
+      api.alarms.create('md-keepalive', { periodInMinutes: 0.4 });
+      api.alarms.onAlarm.addListener(function (alarm) {
+        if (alarm.name === 'md-keepalive') {
+          if (!socket || socket.readyState !== WebSocket.OPEN) {
+            connect();
+          } else if (isConnected) {
+            try { socket.send(JSON.stringify({ type: 'PING' })); } catch (e) { /* ignore */ }
+          }
+        }
+      });
+    } catch (e) {
+      /* alarms optional */
+    }
   }
 
   connect();

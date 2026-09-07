@@ -264,6 +264,12 @@ class AppSidebar extends ConsumerWidget {
                             isSelected: location == '/stats',
                             onTap: () => context.go('/stats'),
                           ),
+                          _NavItem(
+                            icon: Icons.ios_share_rounded,
+                            label: l10n.transferTitle,
+                            isSelected: location == '/transfer',
+                            onTap: () => context.go('/transfer'),
+                          ),
                         ],
                       ),
                       const Gap(AppSpacing.m),

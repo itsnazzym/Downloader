@@ -152,7 +152,15 @@
       "count": { "type": "int" }
     }
   },
-  "searchDownloads": "Search downloads...",
+  "searchDownloads": "Filter titles or URLs",
+  "searchClear": "Clear search",
+  "searchMatchCount": "{visible} / {total}",
+  "@searchMatchCount": {
+    "placeholders": {
+      "visible": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "clearHistoryConfirm": "Remove all completed, failed, and canceled downloads? Active downloads will remain.",
   "refreshLibrary": "Refresh library",
   "yourListIsEmpty": "Your download list is empty.",
@@ -163,9 +171,16 @@
   "sortDateOldest": "Date (oldest)",
   "sortNameAsc": "Name (A-Z)",
   "sortSizeLargest": "Size (largest)",
+  "sortVideoCount": "Video count",
   "viewMode": "View mode",
   "viewList": "List",
   "viewDetailed": "Detailed",
+  "viewFolders": "Folders",
+  "folderUnknownCreator": "Unknown",
+  "folderBack": "Back to folders",
+  "folderOpenHint": "Open folder",
+  "folderVideoCount": "{count} videos",
+  "@folderVideoCount": { "placeholders": { "count": { "type": "int" } } },
 
   "playlistDetected": "Playlist detected ({count} videos)",
   "@playlistDetected": { "placeholders": { "count": { "type": "int" } } },
@@ -178,6 +193,8 @@
   "selectFolder": "Select folder...",
   "organizeBySite": "Organize by site",
   "organizeBySiteDesc": "Create subfolders like Downloads/YouTube/",
+  "organizeByCreator": "Organize by creator",
+  "organizeByCreatorDesc": "Create subfolders per account (e.g. TikTok/userxxx/, YouTube/channel/)",
   "formatLabel": "Format",
   "adultSites": "Adult sites",
   "adultSitesDesc": "Enable support for age-restricted content",
@@ -484,5 +501,60 @@
   "browseX": "Browse X",
   "browseXHint": "Sign in if needed, then tap Download on any video.",
   "mobileLibrary": "Library",
-  "shareDownloadStarted": "Download started from share"
+  "shareDownloadStarted": "Download started from share",
+
+  "transferTitle": "Transfer",
+  "transferSubtitle": "Same Wi-Fi. Scan the QR or tap a device.",
+  "transferPortBusy": "Port 53317 is taken. QR still works; LocalSend inbound on this PC may fail.",
+  "transferMe": "This PC",
+  "transferDevices": "Devices",
+  "transferPayload": "What to send",
+  "transferSearchCreator": "Search a creator…",
+  "transferEntireLibrary": "Entire library",
+  "transferClearSelection": "Clear",
+  "transferSelectedFolders": "{count, plural, =1{{count} folder} other{{count} folders}}",
+  "@transferSelectedFolders": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transferNoCreatorMatch": "No creator matches",
+  "transferNoDevices": "No device yet — scan the QR on your phone.",
+  "transferWaitingNetwork": "Waiting for a LAN address…",
+  "transferKnown": "Known device",
+  "transferSend": "Send",
+  "transferOtherFolder": "Another folder…",
+  "transferSending": "Sending…",
+  "transferPreparing": "Preparing files…",
+  "transferCompressing": "Creating ZIP archive…",
+  "transferWaitingPeer": "Waiting for LocalSend to accept…",
+  "transferNeedPayload": "Pick a creator or Entire library first.",
+  "transferErrorHttp": "Can't reach the phone. Same Wi-Fi, LocalSend Receive on, encryption on. If it asks for a PIN, enter it.",
+  "transferErrorBusy": "The phone is busy with another transfer.",
+  "transferErrorRejected": "The phone refused the transfer.",
+  "transferDone": "Sent.",
+  "transferIncomingTitle": "Incoming transfer",
+  "transferIncomingBody": "{alias} wants to send {count} files ({size})",
+  "@transferIncomingBody": {
+    "placeholders": {
+      "alias": { "type": "String" },
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "transferAccept": "Accept",
+  "transferReject": "Decline",
+  "transferPeerPinTitle": "Device PIN",
+  "transferPeerPinHint": "PIN shown on the other device",
+  "transferTabSend": "Send",
+  "transferTabReceive": "Receive",
+  "transferDirectIpTitle": "Direct IP Connection",
+  "transferDirectIpHint": "E.g. 192.168.1.122",
+  "transferDirectIpAction": "Connect",
+  "transferScanSubnet": "Scan network",
+  "transferScanningSubnet": "Scanning subnet…",
+  "transferRetry": "Retry",
+  "transferCancel": "Cancel",
+  "transferDirectBrowserUrl": "Web browser link",
+  "transferCopyLink": "Copy link",
+  "transferCopied": "Copied!",
+  "transferListeningOn": "Listening on network"
 }

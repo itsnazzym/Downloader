@@ -162,6 +162,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                 userAgent: widget.userAgent,
                 cookiesFilePath: settings.cookiesFilePath,
                 organizeBySite: settings.organizeBySite,
+                organizeByCreator: settings.organizeByCreator,
                 cookieBrowser: _selectedBrowser,
                 videoFormatId: selectedFormatId == 'best'
                     ? null

@@ -405,7 +405,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get searchDownloads => 'Rechercher des téléchargements...';
+  String get searchDownloads => 'Filtrer titres ou URLs';
+
+  @override
+  String get searchClear => 'Effacer la recherche';
+
+  @override
+  String searchMatchCount(int visible, int total) {
+    return '$visible / $total';
+  }
 
   @override
   String get clearHistoryConfirm =>
@@ -436,6 +444,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sortSizeLargest => 'Taille (plus grand)';
 
   @override
+  String get sortVideoCount => 'Nombre de vidéos';
+
+  @override
   String get viewMode => 'Mode d\'affichage';
 
   @override
@@ -443,6 +454,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get viewDetailed => 'Détaillé';
+
+  @override
+  String get viewFolders => 'Dossier';
+
+  @override
+  String get folderUnknownCreator => 'Sans auteur';
+
+  @override
+  String get folderBack => 'Retour aux dossiers';
+
+  @override
+  String get folderOpenHint => 'Ouvrir le dossier';
+
+  @override
+  String folderVideoCount(int count) {
+    return '$count vidéos';
+  }
 
   @override
   String playlistDetected(int count) {
@@ -471,6 +499,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get organizeBySiteDesc =>
       'Créer des sous-dossiers comme Téléchargements/YouTube/';
+
+  @override
+  String get organizeByCreator => 'Organiser par créateur';
+
+  @override
+  String get organizeByCreatorDesc =>
+      'Créer des sous-dossiers par compte (ex: TikTok/userxxx/, YouTube/chaine/)';
 
   @override
   String get formatLabel => 'Format';
@@ -1242,4 +1277,152 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shareDownloadStarted => 'Téléchargement lancé depuis le partage';
+
+  @override
+  String get transferTitle => 'Transfert';
+
+  @override
+  String get transferSubtitle =>
+      'Même Wi-Fi. Scanne le QR ou appuie sur un appareil.';
+
+  @override
+  String get transferPortBusy =>
+      'Le port 53317 est pris. Le QR marche encore ; LocalSend vers ce PC peut échouer.';
+
+  @override
+  String get transferMe => 'Ce PC';
+
+  @override
+  String get transferDevices => 'Appareils';
+
+  @override
+  String get transferPayload => 'Quoi envoyer';
+
+  @override
+  String get transferSearchCreator => 'Rechercher un créateur…';
+
+  @override
+  String get transferEntireLibrary => 'Toute la bibliothèque';
+
+  @override
+  String get transferClearSelection => 'Retirer';
+
+  @override
+  String transferSelectedFolders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dossiers',
+      one: '$count dossier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferNoCreatorMatch => 'Aucun créateur';
+
+  @override
+  String get transferNoDevices =>
+      'Aucun appareil — scanne le QR sur le téléphone.';
+
+  @override
+  String get transferWaitingNetwork => 'En attente d’une adresse LAN…';
+
+  @override
+  String get transferKnown => 'Appareil connu';
+
+  @override
+  String get transferSend => 'Envoyer';
+
+  @override
+  String get transferOtherFolder => 'Autre dossier…';
+
+  @override
+  String get transferSending => 'Envoi…';
+
+  @override
+  String get transferPreparing => 'Préparation des fichiers…';
+
+  @override
+  String get transferCompressing => 'Création de l’archive ZIP…';
+
+  @override
+  String get transferWaitingPeer => 'En attente de l’acceptation LocalSend…';
+
+  @override
+  String get transferNeedPayload =>
+      'Choisis un créateur ou Toute la bibliothèque d’abord.';
+
+  @override
+  String get transferErrorHttp =>
+      'Téléphone injoignable. Même Wi-Fi, LocalSend en Recevoir, chiffrement activé. S’il demande un PIN, saisis-le.';
+
+  @override
+  String get transferErrorBusy =>
+      'Le téléphone est occupé par un autre transfert.';
+
+  @override
+  String get transferErrorRejected => 'Le téléphone a refusé le transfert.';
+
+  @override
+  String get transferDone => 'Envoyé.';
+
+  @override
+  String get transferIncomingTitle => 'Transfert entrant';
+
+  @override
+  String transferIncomingBody(String alias, int count, String size) {
+    return '$alias veut envoyer $count fichiers ($size)';
+  }
+
+  @override
+  String get transferAccept => 'Accepter';
+
+  @override
+  String get transferReject => 'Refuser';
+
+  @override
+  String get transferPeerPinTitle => 'PIN de l’appareil';
+
+  @override
+  String get transferPeerPinHint => 'PIN affiché sur l’autre appareil';
+
+  @override
+  String get transferTabSend => 'Envoyer';
+
+  @override
+  String get transferTabReceive => 'Recevoir';
+
+  @override
+  String get transferDirectIpTitle => 'Connexion par IP';
+
+  @override
+  String get transferDirectIpHint => 'Ex: 192.168.1.122';
+
+  @override
+  String get transferDirectIpAction => 'Connecter';
+
+  @override
+  String get transferScanSubnet => 'Scanner le réseau';
+
+  @override
+  String get transferScanningSubnet => 'Recherche en cours…';
+
+  @override
+  String get transferRetry => 'Réessayer';
+
+  @override
+  String get transferCancel => 'Annuler';
+
+  @override
+  String get transferDirectBrowserUrl => 'Lien navigateur web';
+
+  @override
+  String get transferCopyLink => 'Copier le lien';
+
+  @override
+  String get transferCopied => 'Copié !';
+
+  @override
+  String get transferListeningOn => 'En écoute sur le réseau';
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/download/creator_folder_key.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
@@ -21,11 +22,21 @@ enum DownloadStatusFilter {
   failed, // Failed, Canceled
 }
 
-enum DownloadSort { dateDesc, dateAsc, nameAsc, nameDesc, sizeDesc, sizeAsc }
+enum DownloadSort {
+  dateDesc,
+  dateAsc,
+  nameAsc,
+  nameDesc,
+  sizeDesc,
+  sizeAsc,
+  countDesc,
+  countAsc,
+}
 
 enum DownloadViewMode {
   list,
   detailed, // Grid-like cards
+  folders, // Grouped by creator username
 }
 
 // Changed to String for dynamic source support
@@ -69,7 +80,10 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
         if (query.isNotEmpty) {
           final title = (item.title ?? '').toLowerCase();
           final url = item.request.url.toLowerCase();
-          if (!title.contains(query) && !url.contains(query)) {
+          final handle = (CreatorFolderKey.of(item).handle ?? '').toLowerCase();
+          if (!title.contains(query) &&
+              !url.contains(query) &&
+              !handle.contains(query)) {
             return false;
           }
         }
@@ -135,6 +149,9 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
             return compareDownloadSize(a, b);
           case DownloadSort.sizeDesc:
             return compareDownloadSize(b, a);
+          case DownloadSort.countDesc:
+          case DownloadSort.countAsc:
+            return b.sortOrder.compareTo(a.sortOrder);
         }
       });
 

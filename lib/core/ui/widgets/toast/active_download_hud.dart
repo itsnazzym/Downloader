@@ -24,6 +24,33 @@ bool _isActiveDownload(DownloadItem item) {
   }
 }
 
+@immutable
+class ActiveDownloadList {
+  const ActiveDownloadList(this.items);
+  final List<DownloadItem> items;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ActiveDownloadList) return false;
+    if (items.length != other.items.length) return false;
+    for (int i = 0; i < items.length; i++) {
+      final a = items[i];
+      final b = other.items[i];
+      if (a.id != b.id ||
+          a.status != b.status ||
+          (a.progress * 100).round() != (b.progress * 100).round() ||
+          a.title != b.title) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(items.map((i) => i.id));
+}
+
 class ActiveDownloadHud extends ConsumerWidget {
   const ActiveDownloadHud({super.key});
 
@@ -31,14 +58,16 @@ class ActiveDownloadHud extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final active = ref.watch(
+    final activeSnapshot = ref.watch(
       downloadListProvider.select((async) {
-        return async.maybeWhen(
+        final list = async.maybeWhen(
           data: (items) => items.where(_isActiveDownload).toList(),
-          orElse: () => <DownloadItem>[],
+          orElse: () => const <DownloadItem>[],
         );
+        return ActiveDownloadList(list);
       }),
     );
+    final active = activeSnapshot.items;
     final duplicatesSkipped = ref.watch(duplicateBatchCountProvider);
 
     ref.listen(downloadListProvider, (previous, next) {

@@ -11,6 +11,7 @@ void main() {
       outputFormat: 'mp4',
       cookieBrowser: 'firefox',
       organizeBySite: true,
+      organizeByCreator: true,
     );
 
     final request = DownloadRequestFactory.fromSettings(
@@ -27,6 +28,14 @@ void main() {
     expect(request.preferredQuality, '1080p');
     expect(request.cookieBrowser, 'firefox');
     expect(request.organizeBySite, isTrue);
+    expect(request.organizeByCreator, isTrue);
     expect(request.rawCookies, 'auth_token\tvalue');
+
+    final overrideRequest = DownloadRequestFactory.fromSettings(
+      settings: settings,
+      url: 'https://www.tiktok.com/@tiktok/video/123456789',
+      organizeByCreator: false,
+    );
+    expect(overrideRequest.organizeByCreator, isFalse);
   });
 }

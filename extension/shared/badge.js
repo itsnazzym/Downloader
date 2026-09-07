@@ -17,22 +17,30 @@
     } catch (e) {
       /* ignore */
     }
-    if (!action || !action.setBadgeText) return;
-    if (connected) {
-      action.setBadgeBackgroundColor({ color: '#6C5DD3' });
-    } else {
-      action.setBadgeText({ text: 'OFF' });
-      action.setBadgeBackgroundColor({ color: '#FF4757' });
+    try {
+      if (!action || !action.setBadgeText) return;
+      if (connected) {
+        action.setBadgeBackgroundColor({ color: '#6C5DD3' });
+      } else {
+        action.setBadgeText({ text: 'OFF' });
+        action.setBadgeBackgroundColor({ color: '#FF4757' });
+      }
+    } catch (e) {
+      /* chrome.action is restricted outside service workers */
     }
   }
 
   function updateActiveBadge(count) {
-    if (!action || !action.setBadgeText) return;
-    if (count > 0) {
-      action.setBadgeText({ text: String(count > 99 ? '99+' : count) });
-      action.setBadgeBackgroundColor({ color: '#4CAF50' });
-    } else {
-      action.setBadgeText({ text: '' });
+    try {
+      if (!action || !action.setBadgeText) return;
+      if (count > 0) {
+        action.setBadgeText({ text: String(count > 99 ? '99+' : count) });
+        action.setBadgeBackgroundColor({ color: '#4CAF50' });
+      } else {
+        action.setBadgeText({ text: '' });
+      }
+    } catch (e) {
+      /* chrome.action is restricted outside service workers */
     }
   }
 

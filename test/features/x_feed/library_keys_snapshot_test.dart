@@ -89,5 +89,19 @@ void main() {
 
       expect(snapshot.tweetIds, isEmpty);
     });
+
+    test('includes tikTok ids for completed TikTok downloads', () {
+      final snapshot = LibraryKeysSnapshot.fromDownloads(<DownloadItem>[
+        _item(
+          id: 'tt1',
+          status: DownloadStatus.completed,
+          url: 'https://www.tiktok.com/@creator/video/7412345678901234567?is_from_webapp=1',
+          filePath: r'C:\Videos\tiktok_video.mp4',
+        ),
+      ], fileExists: (path) => true);
+
+      expect(snapshot.tikTokIds, <String>['7412345678901234567']);
+      expect(snapshot.toJson()['tikTokIds'], <String>['7412345678901234567']);
+    });
   });
 }

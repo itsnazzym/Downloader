@@ -77,7 +77,7 @@ class LocalServerDownloadIntake {
       return const LocalServerDownloadIntakeResult.error('unsupported_url');
     }
 
-    LoggerService.i('📥 Received download request: $downloadUrl');
+    LoggerService.i('Received download request: $downloadUrl');
     if (cookies != null) {
       LoggerService.debug('With Cookies: ${cookies.length} chars');
     }

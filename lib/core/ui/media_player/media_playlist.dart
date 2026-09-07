@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/download/creator_folder_key.dart';
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 
 /// One playable item in the fullscreen queue (filtered downloads order).
@@ -24,10 +27,31 @@ int wrapIndex(int index, int delta, int length) {
   return ((i % length) + length) % length;
 }
 
+/// When a creator folder is open, next/prev stay inside that folder.
+List<DownloadItem> itemsForMediaPlaylist({
+  required List<DownloadItem> items,
+  required DownloadViewMode viewMode,
+  required String? openedFolderKey,
+}) {
+  if (viewMode != DownloadViewMode.folders ||
+      openedFolderKey == null ||
+      openedFolderKey.isEmpty) {
+    return items;
+  }
+  return [
+    for (final item in items)
+      if (CreatorFolderKey.of(item).key == openedFolderKey) item,
+  ];
+}
+
 /// Visible filtered downloads that resolve to an on-disk playable file.
 final mediaPlaylistProvider = Provider<List<PlaylistEntry>>((ref) {
   final filtered = ref.watch(filteredDownloadsProvider);
-  final items = filtered.valueOrNull ?? const [];
+  final items = itemsForMediaPlaylist(
+    items: filtered.valueOrNull ?? const [],
+    viewMode: ref.watch(downloadViewModeProvider),
+    openedFolderKey: ref.watch(openedCreatorFolderKeyProvider),
+  );
   final entries = <PlaylistEntry>[];
 
   for (final item in items) {
@@ -63,18 +87,24 @@ class MediaPlaylistController {
       final playlist = _ref.read(mediaPlaylistProvider);
       if (playlist.isEmpty) return;
 
-      final currentFile = _ref.read(mediaPlayerProvider).currentFile;
       var index = -1;
-      if (currentFile != null && currentFile.isNotEmpty) {
-        final normalizedCurrent = DownloadFileResolver.normalizePath(
-          currentFile,
-        );
-        index = playlist.indexWhere(
-          (e) =>
-              e.filePath == currentFile ||
-              DownloadFileResolver.normalizePath(e.filePath) ==
-                  normalizedCurrent,
-        );
+      final selectedId = _ref.read(selectedDownloadIdProvider);
+      if (selectedId != null && selectedId.isNotEmpty) {
+        index = playlist.indexWhere((e) => e.id == selectedId);
+      }
+      if (index < 0) {
+        final currentFile = _ref.read(mediaPlayerProvider).currentFile;
+        if (currentFile != null && currentFile.isNotEmpty) {
+          final normalizedCurrent = DownloadFileResolver.normalizePath(
+            currentFile,
+          );
+          index = playlist.indexWhere(
+            (e) =>
+                e.filePath == currentFile ||
+                DownloadFileResolver.normalizePath(e.filePath) ==
+                    normalizedCurrent,
+          );
+        }
       }
       if (index < 0) index = 0;
 

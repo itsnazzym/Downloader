@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import '../../logger/logger_service.dart';
 import '../../android/android_engine_bridge.dart';
@@ -21,7 +22,7 @@ class ProcessRunner {
         environment: environment,
       );
     }
-    return await Process.start(
+    final process = await Process.start(
       executable,
       arguments,
       workingDirectory: workingDirectory,
@@ -29,6 +30,12 @@ class ProcessRunner {
       environment: environment,
       includeParentEnvironment: true,
     );
+
+    if (Platform.isWindows) {
+      _setBelowNormalPriority(process.pid);
+    }
+
+    return process;
   }
 
   Future<ProcessResult> run(
@@ -83,6 +90,34 @@ class ProcessRunner {
       }
     } else {
       process.kill();
+    }
+  }
+
+  static void _setBelowNormalPriority(int pid) {
+    if (!Platform.isWindows) return;
+    try {
+      final kernel32 = DynamicLibrary.open('kernel32.dll');
+      final openProcess = kernel32.lookupFunction<
+          IntPtr Function(Uint32, Int32, Uint32),
+          int Function(int, int, int)>('OpenProcess');
+      final setPriorityClass = kernel32.lookupFunction<
+          Int32 Function(IntPtr, Uint32),
+          int Function(int, int)>('SetPriorityClass');
+      final closeHandle = kernel32.lookupFunction<
+          Int32 Function(IntPtr),
+          int Function(int)>('CloseHandle');
+
+      const processSetInformation = 0x0200;
+      const belowNormalPriorityClass = 0x00004000;
+
+      final handle = openProcess(processSetInformation, 0, pid);
+      if (handle != 0) {
+        setPriorityClass(handle, belowNormalPriorityClass);
+        closeHandle(handle);
+        LoggerService.debug('Set BELOW_NORMAL_PRIORITY_CLASS for PID $pid');
+      }
+    } catch (e) {
+      LoggerService.debug('Failed to set process priority for PID $pid: $e');
     }
   }
 }

@@ -399,7 +399,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get searchDownloads => 'البحث في التنزيلات...';
+  String get searchDownloads => 'تصفية العناوين أو الروابط';
+
+  @override
+  String get searchClear => 'مسح البحث';
+
+  @override
+  String searchMatchCount(int visible, int total) {
+    return '$visible / $total';
+  }
 
   @override
   String get clearHistoryConfirm =>
@@ -430,6 +438,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sortSizeLargest => 'الحجم (الأكبر)';
 
   @override
+  String get sortVideoCount => 'عدد الفيديوهات';
+
+  @override
   String get viewMode => 'وضع العرض';
 
   @override
@@ -437,6 +448,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get viewDetailed => 'مفصل';
+
+  @override
+  String get viewFolders => 'مجلدات';
+
+  @override
+  String get folderUnknownCreator => 'غير معروف';
+
+  @override
+  String get folderBack => 'العودة إلى المجلدات';
+
+  @override
+  String get folderOpenHint => 'فتح المجلد';
+
+  @override
+  String folderVideoCount(int count) {
+    return '$count فيديو';
+  }
 
   @override
   String playlistDetected(int count) {
@@ -464,6 +492,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get organizeBySiteDesc => 'إنشاء مجلدات فرعية مثل Downloads/YouTube/';
+
+  @override
+  String get organizeByCreator => 'تنظيم حسب المنشئ';
+
+  @override
+  String get organizeByCreatorDesc =>
+      'إنشاء مجلدات فرعية لكل حساب (مثل TikTok/userxxx/)';
 
   @override
   String get formatLabel => 'الصيغة';
@@ -1216,4 +1251,148 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shareDownloadStarted => 'بدأ التنزيل من المشاركة';
+
+  @override
+  String get transferTitle => 'نقل';
+
+  @override
+  String get transferSubtitle => 'نفس Wi-Fi. امسح رمز QR أو اضغط على جهاز.';
+
+  @override
+  String get transferPortBusy =>
+      'المنفذ 53317 مشغول. رمز QR يعمل؛ قد يفشل LocalSend نحو هذا الجهاز.';
+
+  @override
+  String get transferMe => 'هذا الجهاز';
+
+  @override
+  String get transferDevices => 'الأجهزة';
+
+  @override
+  String get transferPayload => 'ما الذي يُرسل';
+
+  @override
+  String get transferSearchCreator => 'ابحث عن منشئ…';
+
+  @override
+  String get transferEntireLibrary => 'المكتبة بالكامل';
+
+  @override
+  String get transferClearSelection => 'مسح';
+
+  @override
+  String transferSelectedFolders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجلدات',
+      one: '$count مجلد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferNoCreatorMatch => 'لا نتيجة';
+
+  @override
+  String get transferNoDevices => 'لا جهاز بعد — امسح رمز QR على الهاتف.';
+
+  @override
+  String get transferWaitingNetwork => 'بانتظار عنوان الشبكة…';
+
+  @override
+  String get transferKnown => 'جهاز معروف';
+
+  @override
+  String get transferSend => 'إرسال';
+
+  @override
+  String get transferOtherFolder => 'مجلد آخر…';
+
+  @override
+  String get transferSending => 'جارٍ الإرسال…';
+
+  @override
+  String get transferPreparing => 'جارٍ تجهيز الملفات…';
+
+  @override
+  String get transferCompressing => 'جارٍ إنشاء أرشيف ZIP…';
+
+  @override
+  String get transferWaitingPeer => 'في انتظار قبول LocalSend…';
+
+  @override
+  String get transferNeedPayload => 'اختر منشئًا أو المكتبة بالكامل أولًا.';
+
+  @override
+  String get transferErrorHttp =>
+      'تعذر الوصول للهاتف. نفس Wi-Fi ووضع استقبال LocalSend.';
+
+  @override
+  String get transferErrorBusy => 'الهاتف مشغول بنقل آخر.';
+
+  @override
+  String get transferErrorRejected => 'رفض الهاتف النقل.';
+
+  @override
+  String get transferDone => 'تم الإرسال.';
+
+  @override
+  String get transferIncomingTitle => 'نقل وارد';
+
+  @override
+  String transferIncomingBody(String alias, int count, String size) {
+    return '$alias يريد إرسال $count ملفات ($size)';
+  }
+
+  @override
+  String get transferAccept => 'قبول';
+
+  @override
+  String get transferReject => 'رفض';
+
+  @override
+  String get transferPeerPinTitle => 'رمز الجهاز';
+
+  @override
+  String get transferPeerPinHint => 'الرمز الظاهر على الجهاز الآخر';
+
+  @override
+  String get transferTabSend => 'إرسال';
+
+  @override
+  String get transferTabReceive => 'استقبال';
+
+  @override
+  String get transferDirectIpTitle => 'الاتصال عبر IP';
+
+  @override
+  String get transferDirectIpHint => 'مثال: 192.168.1.122';
+
+  @override
+  String get transferDirectIpAction => 'اتصال';
+
+  @override
+  String get transferScanSubnet => 'مسح الشبكة';
+
+  @override
+  String get transferScanningSubnet => 'جاري المسح…';
+
+  @override
+  String get transferRetry => 'إعادة المحاولة';
+
+  @override
+  String get transferCancel => 'إلغاء';
+
+  @override
+  String get transferDirectBrowserUrl => 'رابط المتصفح';
+
+  @override
+  String get transferCopyLink => 'نسخ الرابط';
+
+  @override
+  String get transferCopied => 'تم النسخ!';
+
+  @override
+  String get transferListeningOn => 'جاهز على الشبكة';
 }

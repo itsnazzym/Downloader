@@ -4,54 +4,134 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import '../launch/protocol_url_parser.dart';
+import '../logger/logger_service.dart';
 import '../providers/launch_provider.dart';
+import 'windows_desktop_window_probe.dart';
+
+class SingleInstanceDependencies {
+  const SingleInstanceDependencies({
+    required this.bind,
+    required this.notifyPrimary,
+    required this.hasVisiblePeerWindow,
+    required this.stalePeerPid,
+    required this.terminatePid,
+    this.currentPid,
+  });
+
+  final Future<ServerSocket> Function() bind;
+  final Future<void> Function(String payload) notifyPrimary;
+  final bool Function() hasVisiblePeerWindow;
+  final Future<int?> Function() stalePeerPid;
+  final bool Function(int processId) terminatePid;
+  final int? currentPid;
+
+  factory SingleInstanceDependencies.production({int port = SingleInstanceService.port}) {
+    return SingleInstanceDependencies(
+      bind: () => ServerSocket.bind(InternetAddress.loopbackIPv4, port),
+      notifyPrimary: (payload) async {
+        final client = await Socket.connect(
+          InternetAddress.loopbackIPv4,
+          port,
+          timeout: const Duration(seconds: 1),
+        );
+        try {
+          client.write(payload);
+          await client.flush();
+        } finally {
+          await client.close();
+        }
+      },
+      hasVisiblePeerWindow: () {
+        if (!Platform.isWindows) return true;
+        return WindowsDesktopWindowProbe.hasOtherAppWindow(currentPid: pid);
+      },
+      stalePeerPid: () => WindowsDesktopWindowProbe.listenerPidOnPort(port),
+      terminatePid: WindowsDesktopWindowProbe.terminatePid,
+      currentPid: pid,
+    );
+  }
+}
 
 class SingleInstanceService {
-  static const int _port = 61425; // Random high port for local sync
+  static const int port = 61425;
   static ServerSocket? _server;
 
+  @visibleForTesting
+  static Future<void> resetForTest() async {
+    await _server?.close();
+    _server = null;
+  }
+
   /// Initializes the single instance check.
-  /// If an instance is already running, sends [args] to it and returns true (indicating this instance should exit).
+  /// If an instance is already running *and visible on this desktop*, sends
+  /// [args] to it and returns true (this instance should exit).
+  /// A listener on another Win32 desktop is treated as stale and reclaimed.
   static Future<bool> check(
     List<String> args,
-    ProviderContainer container,
-  ) async {
+    ProviderContainer container, {
+    SingleInstanceDependencies? dependencies,
+  }) async {
     if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
       return false;
     }
+    final deps = dependencies ?? SingleInstanceDependencies.production();
     try {
-      // Try to bind - if this works, we are the primary instance
-      _server = await ServerSocket.bind(InternetAddress.loopbackIPv4, _port);
-
-      _server!.listen((client) {
-        client.cast<List<int>>().transform(utf8.decoder).listen((data) {
-          debugPrint('Received data from secondary instance: $data');
-          _handleReceivedData(data, container);
-        });
-      });
-
-      return false; // Primary instance
+      _server = await deps.bind();
+      _attachListener(container);
+      return false;
     } catch (e) {
-      // Bind failed - an instance is likely already running
       debugPrint('Another instance is running, sending args...');
       try {
-        final client = await Socket.connect(
-          InternetAddress.loopbackIPv4,
-          _port,
+        await deps.notifyPrimary(args.join(' '));
+        if (deps.hasVisiblePeerWindow()) {
+          return true;
+        }
+        LoggerService.w(
+          'Primary instance has no window on this desktop; reclaiming single-instance port',
         );
-        // Send the protocol URL if it exists in args
-        client.write(args.join(' '));
-        await client.flush();
-        await client.close();
+        final stalePid = await deps.stalePeerPid();
+        final selfPid = deps.currentPid ?? pid;
+        if (stalePid != null && stalePid != selfPid) {
+          deps.terminatePid(stalePid);
+        }
+        _server = await _rebind(deps);
+        if (_server != null) {
+          _attachListener(container);
+          LoggerService.i('Reclaimed single-instance port $port');
+          return false;
+        }
+        return false;
       } catch (sendError) {
         debugPrint('Failed to send args to primary instance: $sendError');
+        return false;
       }
-      return true; // Secondary instance should exit
     }
   }
 
-  static void _handleReceivedData(String data, ProviderContainer container) {
-    // Look for our protocol in the received string
+  static Future<ServerSocket?> _rebind(SingleInstanceDependencies deps) async {
+    for (var attempt = 0; attempt < 5; attempt++) {
+      try {
+        return await deps.bind();
+      } catch (_) {
+        await Future<void>.delayed(Duration(milliseconds: 80 * (attempt + 1)));
+      }
+    }
+    return null;
+  }
+
+  static void _attachListener(ProviderContainer container) {
+    _server!.listen((client) {
+      client.cast<List<int>>().transform(utf8.decoder).listen((data) {
+        debugPrint('Received data from secondary instance: $data');
+        _handleReceivedData(data, container);
+      });
+    });
+  }
+
+  static Future<void> _handleReceivedData(
+    String data,
+    ProviderContainer container,
+  ) async {
     if (data.contains('moderndownloader://')) {
       final parts = data.split(' ');
       final protocolUrl = parts.firstWhere(
@@ -66,19 +146,27 @@ class SingleInstanceService {
           container.read(launchDataProvider.notifier).state =
               LaunchData.fromUrl(finalUrl);
 
-          // Re-focus original window
           try {
-            windowManager.show();
-            windowManager.focus();
+            await windowManager.show();
+            if (await windowManager.isMinimized()) {
+              await windowManager.restore();
+            }
+            await windowManager.focus();
           } catch (e) {
             debugPrint('Failed to focus window: $e');
           }
         }
       }
     } else {
-      // Just focus the window anyway if someone tries to launch
-      windowManager.show();
-      windowManager.focus();
+      try {
+        await windowManager.show();
+        if (await windowManager.isMinimized()) {
+          await windowManager.restore();
+        }
+        await windowManager.focus();
+      } catch (e) {
+        debugPrint('Failed to focus window: $e');
+      }
     }
   }
 }

@@ -5,7 +5,7 @@
 # Modern Downloader
 
 **Téléchargeur de médias moderne, fluide et privé pour Windows et Android**  
-*Modern, high-performance, privacy-first media downloader & library manager*
+*Modern, high-performance, privacy-first media downloader, library manager & LAN transfer*
 
 <br />
 
@@ -15,9 +15,25 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Android-0078D4?logo=windows&logoColor=white)](https://github.com/itsnazzym/Downloader/releases)
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 
-[Téléchargements / Releases](https://github.com/itsnazzym/Downloader/releases) · [Extensions](#extensions-navigateur--browser-extensions) · [Confidentialité](extension/privacy.md)
+**App `v1.0.8`** · **Extension `v2.1.14`**
+
+[Téléchargements / Releases](https://github.com/itsnazzym/Downloader/releases) · [Extensions](#-extensions-navigateur-universelles--browser-extensions) · [Transfert LAN](#-transfert-réseau-local-lan-sync) · [Démarrage rapide](#-démarrage-rapide--quick-start) · [Confidentialité](extension/privacy.md)
 
 </div>
+
+---
+
+## Sommaire / Table of Contents
+
+- [Fonctionnalités clés](#-fonctionnalités-clés--key-features)
+- [Architecture](#-architecture)
+- [Démarrage rapide](#-démarrage-rapide--quick-start)
+- [Extensions navigateur](#-extensions-navigateur-universelles--browser-extensions)
+- [Transfert réseau local](#-transfert-réseau-local-lan-sync)
+- [Paramètres importants](#-paramètres-importants--settings)
+- [Dépannage](#-dépannage--troubleshooting)
+- [Commandes développeur](#-commandes-utiles--tests-de-validation)
+- [Contribution](#-contribution)
 
 ---
 
@@ -25,14 +41,16 @@
 
 | Fonctionnalité | Description |
 |---|---|
-| **1000+ plateformes** | Téléchargement universel vidéo, audio & galeries via `yt-dlp` et `gallery-dl`. |
-| **Vitesse Maximale** | Téléchargement multi-connexions accéléré par **aria2c** et conversion/remuxage sans perte avec **FFmpeg**. |
-| **File d'attente Intelligente** | Gestion stricte de la concurrence (`maxConcurrent` personnalisable), rotation automatique et statut `En attente` fluide. |
-| **Tri Bidirectionnel Interactif** | Classement instantané par **Date**, **Nom (A-Z)** et **Taille** avec flèches ascendante/descendante (⬆️ / ⬇️) toggleables en 1 clic. |
-| **Performance 60 FPS Anti-Freeze** | Architecture non bloquante, vérification d'espace disque Win32 native ultra-rapide et pagination optimisée pour des milliers de vidéos. |
-| **Extensions Navigateur MV3** | Capture en 1 clic depuis Chrome, Firefox, Edge et Brave via WebSocket local sécurisé (`127.0.0.1:6969`). |
-| **Respect de la vie privée** | Zéro télémétrie, cookies gérés localement, support Tor SOCKS5 et stockage local 100% autonome. |
-| **Interface Glassmorphism** | Design sombre premium, prévisualisation vidéo intégrée, barre d'état dynamique et inspecteur de détails. |
+| **1 800+ plateformes & flux directs** | Téléchargement via `yt-dlp`, `gallery-dl` et moteur direct (HLS `.m3u8`, DASH `.mpd`, MP4). Toute URL HTTP(S) publique est acceptée côté app — pas seulement une liste fermée de sites. |
+| **Extension universelle (tous sites)** | Overlay sur **100 % des pages web** : détection DOM générique (miniatures, `<video>`, iframes, plein écran), stream sniffer réseau MV3 et envoi vers l'app via WebSocket local. |
+| **Organisation par dossiers créateurs** | Bibliothèque regroupée par créateur / chaîne avec vignettes, compteurs, tri et recherche dédiée. |
+| **Smart Organizer & auto-rename** | Plugins intégrés pour renommer et classer automatiquement les fichiers téléchargés selon vos règles. |
+| **Transfert LAN (LocalSend)** | Envoi de fichiers ou dossiers entiers (bibliothèque, dossiers créateurs) vers un PC ou mobile sur le réseau local, compatible protocole LocalSend. |
+| **Barre d'actions intelligente** | Play/Pause global, compteur actif, relance des échecs en 1 clic, nettoyage terminés / échoués. |
+| **Vitesse multi-connexions** | Accélération **aria2c**, remux **FFmpeg** sans perte de qualité. |
+| **File d'attente robuste** | Concurrence paramétrable, reprise après crash, pagination fluide pour des milliers d'entrées. |
+| **Confidentialité** | Zéro télémétrie, cookies locaux isolés, support Tor SOCKS5, serveur local limité à `127.0.0.1`. |
+| **Interface glassmorphism** | Thème sombre, lecteur intégré, inspecteur détaillé, HUD de téléchargement actif. |
 
 ---
 
@@ -40,37 +58,31 @@
 
 ```mermaid
 flowchart TB
-    subgraph Browser["🌐 Navigateur"]
-        EXT["Extension MV3<br/>Chrome · Firefox · Edge · Brave"]
+    subgraph Browser["🌐 Navigateur (*://*/*)"]
+        EXT["Extension MV3<br/>Overlay DOM · Stream Sniffer · iframes"]
     end
 
-    subgraph App["🖥️ Modern Downloader · Flutter (Desktop)"]
-        UI["Interface Glass UI (60 FPS)"]
-        WS["Serveur local sécurisé<br/>WebSocket · 127.0.0.1:6969"]
-        REPO["Download Manager & Repository<br/>Riverpod · Crash Recovery"]
-        DISK_SRV["DiskSpaceService<br/>Native Win32"]
+    subgraph App["🖥️ Modern Downloader · Flutter"]
+        UI["UI Glass · Dossiers créateurs · Transfert LAN"]
+        WS["Serveur local 127.0.0.1:6969<br/>WebSocket + intake HTTP"]
+        REPO["Download Manager · Riverpod · Recovery"]
+        LAN["LocalSend client · découverte mDNS · zip bundle"]
     end
 
-    subgraph Engines["⚙️ Moteurs & Binaires Externes"]
+    subgraph Engines["⚙️ Binaires"]
         YT["yt-dlp"]
         GD["gallery-dl"]
         A2["aria2c"]
-        FF["FFmpeg / FFprobe"]
+        FF["FFmpeg"]
     end
 
-    subgraph XFeed["🧪 Module Fil X Optionnel"]
-        GOBIRD["gobird<br/>lecture seule"]
-    end
-
-    EXT -->|"URL + Authentification"| WS
+    EXT -->|"URL / flux HLS / DASH"| WS
     UI --> REPO
     WS --> REPO
-    WS <-->|"X_FEED_REQUEST"| GOBIRD
-    REPO --> DISK_SRV
     REPO --> YT & GD
-    YT & GD --> A2
-    A2 --> FF
-    FF --> DEST[("📁 Dossier Bibliothèque (ex: E:\Videos)")]
+    YT & GD --> A2 --> FF --> DEST[("📁 Bibliothèque")]
+    UI --> LAN
+    LAN <-->|"Wi-Fi / LAN"| PEER["📱 Autre appareil LocalSend"]
 
     style App fill:#1a1a2e,stroke:#6366f1,color:#e2e8f0
     style Browser fill:#0f172a,stroke:#3b82f6,color:#e2e8f0
@@ -78,27 +90,32 @@ flowchart TB
 ```
 
 <details>
-<summary><strong>📁 Structure détaillée du projet</strong></summary>
+<summary><strong>📁 Structure du projet</strong></summary>
 
 ```
 lib/
 ├── core/
-│   ├── download/      # Algorithmes de file d'attente, reprise après crash, arguments
-│   ├── logger/        # Système de journalisation local
-│   ├── providers/     # Paramètres globaux, thèmes, état du système
-│   ├── services/      # Espace disque Win32, serveur WebSocket, notifications
-│   ├── theme/         # Design Glassmorphism, tokens de couleurs
-│   └── ui/            # Vues de paramètres, composants d'interface partagés
+│   ├── download/       # File d'attente, politique URL, cookies, chemins
+│   ├── plugins/        # auto-rename, smart-organizer
+│   ├── services/       # WebSocket local, espace disque Win32, instance unique
+│   └── ui/             # Shell, lecteur, paramètres, widgets partagés
 ├── features/
-│   ├── downloader/    # Gestion des téléchargements (domain, data, presentation)
-│   └── x_feed/        # Analyseur et lecteur de flux X / Twitter
-└── l10n/              # Fichiers de localisation (FR, EN, AR)
+│   ├── browser/        # WebView intégré (X / TikTok)
+│   ├── downloader/     # Moteur principal + vue dossiers créateurs
+│   ├── transfer/       # Transfert LAN LocalSend (client, zip, QR, découverte)
+│   └── x_feed/         # Flux médias X / Twitter
+└── l10n/               # FR · EN · AR
+
 extension/
-├── shared/            # Code source JavaScript commun Manifest V3
-├── chrome/            # Package prêt pour Chrome / Edge / Brave
-└── firefox/           # Package prêt pour Firefox
-installer/             # Script Inno Setup (mise à jour directe sans doublons)
-tool/                  # Scripts d'automatisation de build et packaging
+├── shared/             # Source JS MV3 (content, sniffer, connection, url_policy)
+├── chrome/             # Build Chrome / Edge / Brave
+└── firefox/            # Build Firefox
+
+tool/
+├── build_extension.dart
+├── launch_desktop.py   # Lance l'exe Release/Debug sans terminal bloquant
+├── package_windows.ps1 # ZIP portable + installeur Inno Setup
+└── sign_firefox_xpi.ps1
 ```
 
 </details>
@@ -109,107 +126,197 @@ tool/                  # Scripts d'automatisation de build et packaging
 
 ### 📥 Utilisateur — Installation
 
-1. Téléchargez la dernière version depuis la page **[Releases](https://github.com/itsnazzym/Downloader/releases)** :
-   - **Windows — Installeur (`ModernDownloader-Setup-vX.Y.Z.exe`)** : Installe ou met à jour l'application directement à son emplacement existant.
-   - **Windows — Version Portable (`ModernDownloader-Windows-Portable.zip`)** : Décompressez et lancez sans installation.
-   - **Android — APK (`ModernDownloader-Android-vX.Y.Z.apk`)** : sideload (GitHub Releases). Partagez une vidéo depuis X/Twitter/YouTube/TikTok vers Modern Downloader, ou ouvrez l'onglet **Parcourir X** pour le bouton overlay sur chaque vidéo.
-2. Lancez l'application. Les moteurs d'extraction (`yt-dlp`, `FFmpeg`, `aria2c`) sont inclus ou initialisés automatiquement.
-3. *(Optionnel, Windows)* Installez l'[extension de navigateur](#extensions-navigateur--browser-extensions) pour capturer les médias en un clic.
+1. **[Releases](https://github.com/itsnazzym/Downloader/releases)** — choisissez votre artefact :
+   | Fichier | Usage |
+   |---|---|
+   | `ModernDownloader-Setup-vX.Y.Z.exe` | Installeur Windows (mise à jour in-place) |
+   | `ModernDownloader-Windows-Portable.zip` | Portable, sans admin |
+   | `ModernDownloader-Android-vX.Y.Z.apk` | Android |
+   | `modern_downloader_firefox.xpi` | Extension Firefox signée AMO |
+2. Lancez l'app — `yt-dlp`, `FFmpeg` et `aria2c` sont embarqués ou auto-configurés.
+3. *(Recommandé)* Installez l'[extension navigateur](#-extensions-navigateur-universelles--browser-extensions) pour capturer les vidéos en 1 clic.
 
-### Android — capture sans copier-coller
+### 📱 Android — sans copier-coller
 
-| Contexte | Gestes |
+| Méthode | Usage |
 |---|---|
-| App Twitter/X, YouTube, TikTok… | **Partager → Modern Downloader** (téléchargement immédiat) |
-| Onglet **Parcourir X** dans l'app | Bouton **Download** overlay sur chaque vidéo (1 tap) |
-| Kiwi Browser + extension MV3 | Même overlay que sur Windows, via `127.0.0.1` |
+| **Partager → Modern Downloader** | Depuis X, YouTube, TikTok, Instagram… |
+| **Navigateur intégré** | Overlay sur chaque vidéo |
+| **Kiwi Browser + extension** | Extension Chrome MV3 → `127.0.0.1:6969` |
 
-Les fichiers sont enregistrés dans `Download/ModernDownloader/`.
+> Fichiers Android : `Download/ModernDownloader/` · moteur [youtubedl-android](https://github.com/yausername/youtubedl-android)
 
-Le moteur Android s'appuie sur [youtubedl-android](https://github.com/yausername/youtubedl-android) (yt-dlp + FFmpeg + aria2c embarqués). L'APK combiné est donc soumis à la GPL-3.0 de cette bibliothèque.
+### 💻 Développeur — build complet
 
-Compilation Android :
+**Prérequis :** Flutter stable, Git, PowerShell (Windows), Node.js (signature Firefox optionnelle)
 
-```bash
-flutter pub get
-flutter build apk --release
-```
-
----
-
-### 💻 Développeur — Compilation depuis les sources
-
-**Prérequis :** Windows 10/11 · [Flutter SDK](https://docs.flutter.dev/get-started/install/windows) stable · Git · Python 3.10+
-
-```bash
-# 1. Cloner le dépôt
+```powershell
 git clone https://github.com/itsnazzym/Downloader.git
 cd Downloader
-
-# 2. Récupérer les dépendances
 flutter pub get
 
-# 3. Lancer en mode développement
-flutter run -d windows
+# Extensions Chrome + Firefox (depuis extension/shared/)
+dart run tool/build_extension.dart
 
-# 4. Compiler la version Release Windows
+# App desktop — debug ou release
+flutter run -d windows
 flutter build windows --release
 
-# 5. Créer l'installeur Setup et le ZIP Portable
-python tool/package_release.py
+# Lancer l'exe sans terminal bloquant (Windows)
+python tool/launch_desktop.py
+
+# Packaging release (ZIP portable + installeur Inno Setup)
+powershell -ExecutionPolicy Bypass -File tool/package_windows.ps1
+
+# Signature Firefox AMO (nécessite .env avec AMO_JWT_ISSUER / AMO_JWT_SECRET)
+powershell -ExecutionPolicy Bypass -File tool/sign_firefox_xpi.ps1
 ```
 
----
+**Charger l'extension en dev :**
+- Chrome/Edge/Brave → `chrome://extensions` → mode développeur → dossier `extension/chrome/`
+- Firefox → `about:debugging` → module temporaire → `extension/firefox/manifest.json`
 
-## 🧩 Extensions Navigateur / Browser Extensions
-
-Les extensions **Manifest V3** détectent les vidéos/médias sur l'onglet actif et les transmettent instantanément à l'application via WebSocket (`127.0.0.1:6969`).
-
-### Installation manuelle développeur :
-
-- **Chrome / Edge / Brave :**
-  1. Ouvrez `chrome://extensions` (ou `edge://extensions`).
-  2. Activez le **Mode développeur** (en haut à droite).
-  3. Cliquez sur **Charger l'extension non empaquetée** et sélectionnez le dossier `extension/chrome/`.
-- **Firefox :**
-  1. Ouvrez `about:debugging` → **Ce Firefox**.
-  2. Cliquez sur **Charger un module complémentaire temporaire...** et sélectionnez `extension/firefox/manifest.json`.
+> Rechargez l'extension après chaque `dart run tool/build_extension.dart`.
 
 ---
 
-## 🧪 Module Fil X & gobird (Optionnel)
+## 🧩 Extensions Navigateur Universelles / Browser Extensions
 
-Le module **Fil X** permet de prévisualiser et télécharger des flux vidéo depuis X / Twitter :
-- **Mode DOM local (par défaut)** : Collecte les vidéos chargées dans l'onglet actif du navigateur en temps réel.
-- **Mode gobird (expérimental)** : Extraction directe en lecture seule (bornée à 10 000 tweets) activable volontairement dans les *Réglages avancés*.
+Manifest V3 · permission `*://*/*` · `all_frames: true`
+
+### Détection multi-couche
+
+| Couche | Rôle |
+|---|---|
+| **Overlay DOM** | Bouton Download sur `<video>`, miniatures type carte vidéo, lecteurs plein écran |
+| **Iframes** | Injection dans les sous-documents (embeds, players tiers) |
+| **Stream Sniffer** | `webRequest` — capture `.m3u8`, `.mpd`, `.mp4` au premier octet réseau |
+| **URL fallback** | Si aucun flux direct : envoi de l'URL canonique de la page à l'app |
+| **Filtre IAB** | Ignore pubs vidéo et contenus sponsorisés |
+
+### Panneau latéral « Flux Médias »
+
+Filtres **Tous les sites**, **Onglet actif**, **Flux réseau** — envoi vers l'app via WebSocket sécurisé `127.0.0.1:6969`.
+
+### Sites adultes (+18)
+
+Par défaut, l'app et l'extension peuvent filtrer les domaines adultes. Activez **Sites adultes** dans *Paramètres → Téléchargement* si nécessaire.
+
+### Installation
+
+| Navigateur | Procédure |
+|---|---|
+| **Chrome / Brave / Edge** | `chrome://extensions` → Charger `extension/chrome/` |
+| **Firefox (dev)** | `about:debugging` → `extension/firefox/manifest.json` |
+| **Firefox (prod)** | Installer le `.xpi` depuis [Releases](https://github.com/itsnazzym/Downloader/releases) |
 
 ---
 
-## 🛠️ Commandes Utiles & Tests
+## 📡 Transfert Réseau Local (LAN Sync)
+
+Module **Transfert** dans l'app — compatible **LocalSend** (protocole v2).
+
+### Fonctionnement
+
+1. Ouvrez **Transfert** dans la sidebar.
+2. Sélectionnez fichiers, dossiers créateurs ou bibliothèque entière.
+3. Scannez le QR ou choisissez un appareil découvert sur le LAN.
+4. L'app compresse en ZIP (multi-fichiers) puis envoie via LocalSend avec barre de progression honnête.
+
+### Phases affichées
+
+| Phase | Signification |
+|---|---|
+| **Compression…** | Création du ZIP en arrière-plan (isolate) |
+| **En attente du pair…** | Handshake LocalSend — le récepteur doit accepter |
+| **Envoi…** | Transfert en cours |
+
+### Prérequis réseau
+
+- PC et cible sur le **même réseau Wi-Fi / LAN**
+- LocalSend installé sur le récepteur (ou autre client compatible)
+- Pare-feu Windows : autoriser Modern Downloader sur réseau privé
+- Port **53317** utilisé par LocalSend — un conflit affiche un avertissement mais le QR reste utilisable
+
+---
+
+## ⚙️ Paramètres importants / Settings
+
+| Paramètre | Effet |
+|---|---|
+| **Dossier de sortie** | Racine de la bibliothèque et des dossiers créateurs |
+| **Sites adultes** | Autorise les domaines +18 (app + extension) |
+| **Concurrence max** | Nombre de téléchargements simultanés |
+| **Smart Organizer** | Règles de classement automatique post-téléchargement |
+| **Tor / SOCKS5** | Proxy pour yt-dlp |
+| **Cookies navigateur** | Import isolé pour sites authentifiés |
+
+---
+
+## 🔧 Dépannage / Troubleshooting
+
+| Problème | Solution |
+|---|---|
+| Extension : pas de bouton Download | Recharger l'extension · vérifier que l'app tourne · site en iframe → `all_frames` actif |
+| « Connexion refusée » extension → app | Lancer Modern Downloader · port 6969 libre · antivirus / pare-feu |
+| Site adulte bloqué | Activer **Sites adultes** dans les paramètres |
+| Transfert LAN bloqué sur « En attente… » | Accepter sur l'appareil récepteur · même réseau · désactiver VPN |
+| Transfert lent au démarrage | Normal si compression ZIP — la barre indique « Compression… » |
+| Téléchargement échoue sur un site | Mettre à jour yt-dlp embarqué · tester avec cookies · vérifier l'URL dans l'inspecteur |
+| `flutter build windows` échoue | `flutter doctor` · Visual Studio Build Tools · `flutter clean && flutter pub get` |
+
+Logs locaux : consultables depuis l'app (Paramètres → Journal) — jamais envoyés en ligne.
+
+---
+
+## 🛠️ Commandes Utiles & Tests de Validation
 
 | Commande | Description |
 |---|---|
-| `flutter test` | Exécute la suite complète de 286+ tests unitaires |
-| `dart analyze` | Analyse statique et vérification de conformité du code Dart |
-| `dart run tool/build_extension.dart` | Compile et synchronise les extensions Chrome et Firefox |
-| `flutter build windows --release` | Génère l'exécutable Windows optimisé |
-| `python tool/package_release.py` | Package le setup Inno Setup et l'archive ZIP portable |
+| `flutter test` | Suite de tests unitaires |
+| `flutter analyze` | Analyse statique Dart |
+| `dart run tool/build_extension.dart` | Build extensions Chrome + Firefox |
+| `powershell tool/sign_firefox_xpi.ps1` | Signe et publie le `.xpi` Firefox (AMO) |
+| `flutter build windows --release` | Binaire desktop optimisé |
+| `python tool/launch_desktop.py` | Lance l'app desktop (Windows) |
+| `powershell tool/package_windows.ps1` | ZIP portable + installeur Inno Setup |
+
+### Variables d'environnement (signature Firefox)
+
+Créez un fichier `.env` à la racine (non versionné) :
+
+```env
+AMO_JWT_ISSUER=votre-issuer
+AMO_JWT_SECRET=votre-secret
+```
+
+Le script `sign_firefox_xpi.ps1` incrémente automatiquement la version en cas de conflit AMO.
+
+---
+
+## 🔒 Confidentialité & Sécurité
+
+- Serveur local lié à **127.0.0.1** uniquement — inaccessible depuis Internet
+- Aucune analytics, crash reporter ou télémétrie
+- Cookies et tokens restent sur la machine locale
+- Politique extension : [extension/privacy.md](extension/privacy.md)
+- Ne commitez jamais `.env`, cookies ou clés AMO
 
 ---
 
 ## 🤝 Contribution
 
-1. Forkez le projet.
-2. Créez une branche de fonctionnalité (`git checkout -b feature/ma-fonctionnalite`).
-3. Vérifiez la conformité du code : `dart analyze && flutter test`.
-4. Committez vos modifications (`git commit -m 'feat: description de la fonctionnalite'`).
-5. Poussez sur votre branche (`git push origin feature/ma-fonctionnalite`) et ouvrez une **Pull Request**.
+1. Forkez le dépôt
+2. Branche dédiée : `git checkout -b feature/ma-fonctionnalite`
+3. Validez : `flutter analyze && flutter test`
+4. Commit descriptif : `feat: …` / `fix: …`
+5. Pull Request avec contexte et plan de test
 
 ---
 
 <div align="center">
 
-**Modern Downloader** · Conçu pour la vitesse, la fluidité et la vie privée.  
+**Modern Downloader** · v1.0.8 · Extension v2.1.14  
 *Open Source · MIT License*
 
 </div>

@@ -399,7 +399,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get searchDownloads => 'Search downloads...';
+  String get searchDownloads => 'Filter titles or URLs';
+
+  @override
+  String get searchClear => 'Clear search';
+
+  @override
+  String searchMatchCount(int visible, int total) {
+    return '$visible / $total';
+  }
 
   @override
   String get clearHistoryConfirm =>
@@ -430,6 +438,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sortSizeLargest => 'Size (largest)';
 
   @override
+  String get sortVideoCount => 'Video count';
+
+  @override
   String get viewMode => 'View mode';
 
   @override
@@ -437,6 +448,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewDetailed => 'Detailed';
+
+  @override
+  String get viewFolders => 'Folders';
+
+  @override
+  String get folderUnknownCreator => 'Unknown';
+
+  @override
+  String get folderBack => 'Back to folders';
+
+  @override
+  String get folderOpenHint => 'Open folder';
+
+  @override
+  String folderVideoCount(int count) {
+    return '$count videos';
+  }
 
   @override
   String playlistDetected(int count) {
@@ -464,6 +492,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get organizeBySiteDesc => 'Create subfolders like Downloads/YouTube/';
+
+  @override
+  String get organizeByCreator => 'Organize by creator';
+
+  @override
+  String get organizeByCreatorDesc =>
+      'Create subfolders per account (e.g. TikTok/userxxx/, YouTube/channel/)';
 
   @override
   String get formatLabel => 'Format';
@@ -1224,4 +1259,148 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareDownloadStarted => 'Download started from share';
+
+  @override
+  String get transferTitle => 'Transfer';
+
+  @override
+  String get transferSubtitle => 'Same Wi-Fi. Scan the QR or tap a device.';
+
+  @override
+  String get transferPortBusy =>
+      'Port 53317 is taken. QR still works; LocalSend inbound on this PC may fail.';
+
+  @override
+  String get transferMe => 'This PC';
+
+  @override
+  String get transferDevices => 'Devices';
+
+  @override
+  String get transferPayload => 'What to send';
+
+  @override
+  String get transferSearchCreator => 'Search a creator…';
+
+  @override
+  String get transferEntireLibrary => 'Entire library';
+
+  @override
+  String get transferClearSelection => 'Clear';
+
+  @override
+  String transferSelectedFolders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folders',
+      one: '$count folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferNoCreatorMatch => 'No creator matches';
+
+  @override
+  String get transferNoDevices => 'No device yet — scan the QR on your phone.';
+
+  @override
+  String get transferWaitingNetwork => 'Waiting for a LAN address…';
+
+  @override
+  String get transferKnown => 'Known device';
+
+  @override
+  String get transferSend => 'Send';
+
+  @override
+  String get transferOtherFolder => 'Another folder…';
+
+  @override
+  String get transferSending => 'Sending…';
+
+  @override
+  String get transferPreparing => 'Preparing files…';
+
+  @override
+  String get transferCompressing => 'Creating ZIP archive…';
+
+  @override
+  String get transferWaitingPeer => 'Waiting for LocalSend to accept…';
+
+  @override
+  String get transferNeedPayload => 'Pick a creator or Entire library first.';
+
+  @override
+  String get transferErrorHttp =>
+      'Can\'t reach the phone. Same Wi-Fi, LocalSend Receive on, encryption on. If it asks for a PIN, enter it.';
+
+  @override
+  String get transferErrorBusy => 'The phone is busy with another transfer.';
+
+  @override
+  String get transferErrorRejected => 'The phone refused the transfer.';
+
+  @override
+  String get transferDone => 'Sent.';
+
+  @override
+  String get transferIncomingTitle => 'Incoming transfer';
+
+  @override
+  String transferIncomingBody(String alias, int count, String size) {
+    return '$alias wants to send $count files ($size)';
+  }
+
+  @override
+  String get transferAccept => 'Accept';
+
+  @override
+  String get transferReject => 'Decline';
+
+  @override
+  String get transferPeerPinTitle => 'Device PIN';
+
+  @override
+  String get transferPeerPinHint => 'PIN shown on the other device';
+
+  @override
+  String get transferTabSend => 'Send';
+
+  @override
+  String get transferTabReceive => 'Receive';
+
+  @override
+  String get transferDirectIpTitle => 'Direct IP Connection';
+
+  @override
+  String get transferDirectIpHint => 'E.g. 192.168.1.122';
+
+  @override
+  String get transferDirectIpAction => 'Connect';
+
+  @override
+  String get transferScanSubnet => 'Scan network';
+
+  @override
+  String get transferScanningSubnet => 'Scanning subnet…';
+
+  @override
+  String get transferRetry => 'Retry';
+
+  @override
+  String get transferCancel => 'Cancel';
+
+  @override
+  String get transferDirectBrowserUrl => 'Web browser link';
+
+  @override
+  String get transferCopyLink => 'Copy link';
+
+  @override
+  String get transferCopied => 'Copied!';
+
+  @override
+  String get transferListeningOn => 'Listening on network';
 }

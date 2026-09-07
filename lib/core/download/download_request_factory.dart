@@ -14,6 +14,7 @@ class DownloadRequestFactory {
     String? videoFormatId,
     String? cookieBrowser,
     bool? organizeBySite,
+    bool? organizeByCreator,
     bool? audioOnly,
     String? preferredQuality,
   }) {
@@ -39,6 +40,7 @@ class DownloadRequestFactory {
       videoFormatId: videoFormatId,
       cookieBrowser: cookieBrowser ?? settings.cookieBrowser,
       organizeBySite: organizeBySite ?? settings.organizeBySite,
+      organizeByCreator: organizeByCreator ?? settings.organizeByCreator,
       userAgent: userAgent,
     );
   }

@@ -57,7 +57,10 @@
             </div>
             <div class="setting-item grow">
                 <label for="token-input" data-i18n="token">Token</label>
-                <input type="password" id="token-input" placeholder="From app settings" autocomplete="off">
+                <div class="token-input-wrapper">
+                    <input type="password" id="token-input" placeholder="From app settings" autocomplete="off">
+                    <button type="button" id="toggle-token-btn" class="token-toggle-btn" title="Afficher / Masquer">👁</button>
+                </div>
             </div>
             <div class="setting-item checkbox-item">
                 <input type="checkbox" id="cookies-toggle" checked>

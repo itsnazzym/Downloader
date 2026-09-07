@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/downloader/presentation/views/download_view.dart';
 import '../ui/app_shell.dart';
 import '../ui/settings/general_settings_view.dart';
@@ -14,6 +14,7 @@ import '../ui/settings/appearance_settings_view.dart';
 import '../ui/settings/plugins_settings_view.dart';
 import '../ui/settings/smart_organizer_settings_view.dart';
 import '../ui/stats/stats_view.dart';
+import '../../features/transfer/presentation/transfer_view.dart';
 
 // Keys for navigation
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -38,6 +39,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/stats',
             builder: (context, state) => const StatsView(),
+          ),
+          GoRoute(
+            path: '/transfer',
+            builder: (context, state) => const TransferView(),
           ),
           GoRoute(
             path: '/settings',

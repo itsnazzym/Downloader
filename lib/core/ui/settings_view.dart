@@ -192,6 +192,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           onChanged: settingsNotifier.setOrganizeBySite,
                           icon: Icons.folder_copy_rounded,
                         ),
+                        SwitchTile(
+                          title: l10n.organizeByCreator,
+                          subtitle: l10n.organizeByCreatorDesc,
+                          value: settings.organizeByCreator,
+                          onChanged: settingsNotifier.setOrganizeByCreator,
+                          icon: Icons.person_rounded,
+                        ),
 
                         const Gap(AppSpacing.xl),
                         SectionTitle(l10n.settingsAdvanced),
@@ -634,6 +641,7 @@ class ActionTile extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
   final Widget? trailing;
+  final int subtitleMaxLines;
 
   const ActionTile({
     super.key,
@@ -642,6 +650,7 @@ class ActionTile extends StatelessWidget {
     required this.icon,
     this.onTap,
     this.trailing,
+    this.subtitleMaxLines = 2,
   });
 
   @override
@@ -689,7 +698,7 @@ class ActionTile extends StatelessWidget {
                           color: AppColors.of(context).textSecondary,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
+                        maxLines: subtitleMaxLines,
                       ),
                     ],
                   ),

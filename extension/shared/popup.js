@@ -81,7 +81,12 @@
   }
 
   function updateStatus() {
-    api.storage.local.get(['isConnected', 'lastAuthError']).then(function (res) {
+    api.storage.local.get(['isConnected', 'lastAuthError', 'apiToken']).then(function (res) {
+      var rawToken = (res.apiToken || '').trim();
+      if (rawToken && (rawToken.indexOf('\\') >= 0 || rawToken.indexOf('/') >= 0 || /^[a-zA-Z]:/.test(rawToken))) {
+        setConnectionUi(false, t('tokenIsPathError', 'Chemin de dossier détecté au lieu du jeton API !'));
+        return;
+      }
       var connected = res.isConnected === true;
       var detail = null;
       if (!connected && res.lastAuthError) {
@@ -97,6 +102,14 @@
   applyI18n();
   updateStatus();
   setInterval(updateStatus, 2000);
+
+  try {
+    api.runtime.sendMessage({ type: 'GET_CONNECTION_STATE' }, function (res) {
+      if (!api.runtime.lastError && res && res.ok && typeof res.connected === 'boolean') {
+        setConnectionUi(res.connected);
+      }
+    });
+  } catch (e) { /* ignore */ }
 
   api.storage.local.get([
     'serverPort', 'autoSendCookies', 'preferredBrowser', 'apiToken',
@@ -169,7 +182,26 @@
 
   portInput.addEventListener('change', saveSettings);
   cookiesToggle.addEventListener('change', saveSettings);
-  if (tokenInput) tokenInput.addEventListener('change', saveSettings);
+  if (tokenInput) {
+    var tokenDebounce = null;
+    tokenInput.addEventListener('input', function () {
+      clearTimeout(tokenDebounce);
+      tokenDebounce = setTimeout(saveSettings, 300);
+    });
+    tokenInput.addEventListener('change', saveSettings);
+  }
+  var toggleTokenBtn = document.getElementById('toggle-token-btn');
+  if (toggleTokenBtn && tokenInput) {
+    toggleTokenBtn.addEventListener('click', function () {
+      if (tokenInput.type === 'password') {
+        tokenInput.type = 'text';
+        toggleTokenBtn.textContent = '🙈';
+      } else {
+        tokenInput.type = 'password';
+        toggleTokenBtn.textContent = '👁';
+      }
+    });
+  }
   if (browserSelect) browserSelect.addEventListener('change', saveSettings);
   if (btnColor) btnColor.addEventListener('change', saveSettings);
   if (btnPosition) btnPosition.addEventListener('change', saveSettings);
@@ -315,14 +347,29 @@
 
   if (testBtn) {
     testBtn.addEventListener('click', function () {
+      var rawToken = tokenInput ? tokenInput.value.trim() : '';
+      if (rawToken && (rawToken.indexOf('\\') >= 0 || rawToken.indexOf('/') >= 0 || /^[a-zA-Z]:/.test(rawToken))) {
+        setConnectionUi(false, t('tokenIsPathError', 'Chemin de dossier détecté au lieu du jeton API !'));
+        return;
+      }
       testBtn.disabled = true;
-      api.runtime.sendMessage({ type: 'TEST_CONNECTION' }, function (response) {
-        testBtn.disabled = false;
-        if (api.runtime.lastError || !response || !response.ok) {
-          setConnectionUi(false, t('testFailed', 'Connection test failed'));
-          return;
-        }
-        setConnectionUi(true, t('testOk', 'PING/PONG OK'));
+      connectionMsg.textContent = t('connecting', 'Connecting...');
+      connectionMsg.style.color = '#FFA000';
+      persistSettings().then(function () {
+        api.runtime.sendMessage({ type: 'TEST_CONNECTION' }, function (response) {
+          testBtn.disabled = false;
+          if (api.runtime.lastError || !response || !response.ok) {
+            var reason = (response && response.error);
+            var msg = reason === 'auth_failed'
+              ? t('authFailed', 'Auth failed — check token')
+              : (reason === 'app_offline'
+                  ? t('appOffline', 'App offline')
+                  : t('testFailed', 'Connection test failed'));
+            setConnectionUi(false, msg);
+            return;
+          }
+          setConnectionUi(true, t('testOk', 'PING/PONG OK'));
+        });
       });
     });
   }

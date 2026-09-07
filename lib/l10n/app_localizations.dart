@@ -859,8 +859,20 @@ abstract class AppLocalizations {
   /// No description provided for @searchDownloads.
   ///
   /// In en, this message translates to:
-  /// **'Search downloads...'**
+  /// **'Filter titles or URLs'**
   String get searchDownloads;
+
+  /// No description provided for @searchClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get searchClear;
+
+  /// No description provided for @searchMatchCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{visible} / {total}'**
+  String searchMatchCount(int visible, int total);
 
   /// No description provided for @clearHistoryConfirm.
   ///
@@ -916,6 +928,12 @@ abstract class AppLocalizations {
   /// **'Size (largest)'**
   String get sortSizeLargest;
 
+  /// No description provided for @sortVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Video count'**
+  String get sortVideoCount;
+
   /// No description provided for @viewMode.
   ///
   /// In en, this message translates to:
@@ -933,6 +951,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Detailed'**
   String get viewDetailed;
+
+  /// No description provided for @viewFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get viewFolders;
+
+  /// No description provided for @folderUnknownCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get folderUnknownCreator;
+
+  /// No description provided for @folderBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to folders'**
+  String get folderBack;
+
+  /// No description provided for @folderOpenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open folder'**
+  String get folderOpenHint;
+
+  /// No description provided for @folderVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos'**
+  String folderVideoCount(int count);
 
   /// No description provided for @playlistDetected.
   ///
@@ -975,6 +1023,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create subfolders like Downloads/YouTube/'**
   String get organizeBySiteDesc;
+
+  /// No description provided for @organizeByCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize by creator'**
+  String get organizeByCreator;
+
+  /// No description provided for @organizeByCreatorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create subfolders per account (e.g. TikTok/userxxx/, YouTube/channel/)'**
+  String get organizeByCreatorDesc;
 
   /// No description provided for @formatLabel.
   ///
@@ -2307,6 +2367,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download started from share'**
   String get shareDownloadStarted;
+
+  /// No description provided for @transferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transferTitle;
+
+  /// No description provided for @transferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Same Wi-Fi. Scan the QR or tap a device.'**
+  String get transferSubtitle;
+
+  /// No description provided for @transferPortBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Port 53317 is taken. QR still works; LocalSend inbound on this PC may fail.'**
+  String get transferPortBusy;
+
+  /// No description provided for @transferMe.
+  ///
+  /// In en, this message translates to:
+  /// **'This PC'**
+  String get transferMe;
+
+  /// No description provided for @transferDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices'**
+  String get transferDevices;
+
+  /// No description provided for @transferPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'What to send'**
+  String get transferPayload;
+
+  /// No description provided for @transferSearchCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a creator…'**
+  String get transferSearchCreator;
+
+  /// No description provided for @transferEntireLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Entire library'**
+  String get transferEntireLibrary;
+
+  /// No description provided for @transferClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get transferClearSelection;
+
+  /// No description provided for @transferSelectedFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} folder} other{{count} folders}}'**
+  String transferSelectedFolders(int count);
+
+  /// No description provided for @transferNoCreatorMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No creator matches'**
+  String get transferNoCreatorMatch;
+
+  /// No description provided for @transferNoDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'No device yet — scan the QR on your phone.'**
+  String get transferNoDevices;
+
+  /// No description provided for @transferWaitingNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for a LAN address…'**
+  String get transferWaitingNetwork;
+
+  /// No description provided for @transferKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'Known device'**
+  String get transferKnown;
+
+  /// No description provided for @transferSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get transferSend;
+
+  /// No description provided for @transferOtherFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Another folder…'**
+  String get transferOtherFolder;
+
+  /// No description provided for @transferSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get transferSending;
+
+  /// No description provided for @transferPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing files…'**
+  String get transferPreparing;
+
+  /// No description provided for @transferCompressing.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating ZIP archive…'**
+  String get transferCompressing;
+
+  /// No description provided for @transferWaitingPeer.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for LocalSend to accept…'**
+  String get transferWaitingPeer;
+
+  /// No description provided for @transferNeedPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a creator or Entire library first.'**
+  String get transferNeedPayload;
+
+  /// No description provided for @transferErrorHttp.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the phone. Same Wi-Fi, LocalSend Receive on, encryption on. If it asks for a PIN, enter it.'**
+  String get transferErrorHttp;
+
+  /// No description provided for @transferErrorBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone is busy with another transfer.'**
+  String get transferErrorBusy;
+
+  /// No description provided for @transferErrorRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone refused the transfer.'**
+  String get transferErrorRejected;
+
+  /// No description provided for @transferDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent.'**
+  String get transferDone;
+
+  /// No description provided for @transferIncomingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming transfer'**
+  String get transferIncomingTitle;
+
+  /// No description provided for @transferIncomingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{alias} wants to send {count} files ({size})'**
+  String transferIncomingBody(String alias, int count, String size);
+
+  /// No description provided for @transferAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get transferAccept;
+
+  /// No description provided for @transferReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get transferReject;
+
+  /// No description provided for @transferPeerPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device PIN'**
+  String get transferPeerPinTitle;
+
+  /// No description provided for @transferPeerPinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN shown on the other device'**
+  String get transferPeerPinHint;
+
+  /// No description provided for @transferTabSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get transferTabSend;
+
+  /// No description provided for @transferTabReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get transferTabReceive;
+
+  /// No description provided for @transferDirectIpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct IP Connection'**
+  String get transferDirectIpTitle;
+
+  /// No description provided for @transferDirectIpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. 192.168.1.122'**
+  String get transferDirectIpHint;
+
+  /// No description provided for @transferDirectIpAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get transferDirectIpAction;
+
+  /// No description provided for @transferScanSubnet.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan network'**
+  String get transferScanSubnet;
+
+  /// No description provided for @transferScanningSubnet.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning subnet…'**
+  String get transferScanningSubnet;
+
+  /// No description provided for @transferRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get transferRetry;
+
+  /// No description provided for @transferCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get transferCancel;
+
+  /// No description provided for @transferDirectBrowserUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Web browser link'**
+  String get transferDirectBrowserUrl;
+
+  /// No description provided for @transferCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get transferCopyLink;
+
+  /// No description provided for @transferCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied!'**
+  String get transferCopied;
+
+  /// No description provided for @transferListeningOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening on network'**
+  String get transferListeningOn;
 }
 
 class _AppLocalizationsDelegate

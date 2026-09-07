@@ -116,6 +116,8 @@ class DownloadItem {
         XDownloadUrl.mediaAssetIdFrom(request.forceThumbnailUrl) ??
         XDownloadUrl.mediaAssetIdFrom(thumbnailUrl) ??
         XDownloadUrl.mediaAssetIdFrom(request.url);
+    final tikTokMatch = RegExp(r'/video/(\d+)').firstMatch(request.url);
+    final tikTokId = tikTokMatch?.group(1);
     return {
       'id': id,
       'title': title,
@@ -129,6 +131,7 @@ class DownloadItem {
       'url': request.url,
       if (tweetId != null) 'tweetId': tweetId,
       if (mediaId != null) 'mediaId': mediaId,
+      if (tikTokId != null) 'tikTokId': tikTokId,
     };
   }
 

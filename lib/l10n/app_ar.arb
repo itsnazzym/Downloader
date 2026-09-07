@@ -152,7 +152,15 @@
       "count": { "type": "int" }
     }
   },
-  "searchDownloads": "البحث في التنزيلات...",
+  "searchDownloads": "تصفية العناوين أو الروابط",
+  "searchClear": "مسح البحث",
+  "searchMatchCount": "{visible} / {total}",
+  "@searchMatchCount": {
+    "placeholders": {
+      "visible": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "clearHistoryConfirm": "هل تريد حذف التنزيلات المكتملة والفاشلة والملغاة؟ ستبقى التنزيلات النشطة.",
   "refreshLibrary": "تحديث المكتبة",
   "yourListIsEmpty": "قائمة التنزيلات فارغة.",
@@ -163,9 +171,16 @@
   "sortDateOldest": "التاريخ (الأقدم)",
   "sortNameAsc": "الاسم (أ-ي)",
   "sortSizeLargest": "الحجم (الأكبر)",
+  "sortVideoCount": "عدد الفيديوهات",
   "viewMode": "وضع العرض",
   "viewList": "قائمة",
   "viewDetailed": "مفصل",
+  "viewFolders": "مجلدات",
+  "folderUnknownCreator": "غير معروف",
+  "folderBack": "العودة إلى المجلدات",
+  "folderOpenHint": "فتح المجلد",
+  "folderVideoCount": "{count} فيديو",
+  "@folderVideoCount": { "placeholders": { "count": { "type": "int" } } },
 
   "playlistDetected": "تم اكتشاف قائمة تشغيل ({count} فيديو)",
   "@playlistDetected": { "placeholders": { "count": { "type": "int" } } },
@@ -178,6 +193,8 @@
   "selectFolder": "اختر مجلداً...",
   "organizeBySite": "تنظيم حسب الموقع",
   "organizeBySiteDesc": "إنشاء مجلدات فرعية مثل Downloads/YouTube/",
+  "organizeByCreator": "تنظيم حسب المنشئ",
+  "organizeByCreatorDesc": "إنشاء مجلدات فرعية لكل حساب (مثل TikTok/userxxx/)",
   "formatLabel": "الصيغة",
   "adultSites": "مواقع للبالغين",
   "adultSitesDesc": "تفعيل المحتوى المقيد بالعمر",
@@ -484,5 +501,60 @@
   "browseX": "تصفح X",
   "browseXHint": "سجّل الدخول إن لزم، ثم اضغط تنزيل على أي فيديو.",
   "mobileLibrary": "المكتبة",
-  "shareDownloadStarted": "بدأ التنزيل من المشاركة"
+  "shareDownloadStarted": "بدأ التنزيل من المشاركة",
+
+  "transferTitle": "نقل",
+  "transferSubtitle": "نفس Wi-Fi. امسح رمز QR أو اضغط على جهاز.",
+  "transferPortBusy": "المنفذ 53317 مشغول. رمز QR يعمل؛ قد يفشل LocalSend نحو هذا الجهاز.",
+  "transferMe": "هذا الجهاز",
+  "transferDevices": "الأجهزة",
+  "transferPayload": "ما الذي يُرسل",
+  "transferSearchCreator": "ابحث عن منشئ…",
+  "transferEntireLibrary": "المكتبة بالكامل",
+  "transferClearSelection": "مسح",
+  "transferSelectedFolders": "{count, plural, =1{{count} مجلد} other{{count} مجلدات}}",
+  "@transferSelectedFolders": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transferNoCreatorMatch": "لا نتيجة",
+  "transferNoDevices": "لا جهاز بعد — امسح رمز QR على الهاتف.",
+  "transferWaitingNetwork": "بانتظار عنوان الشبكة…",
+  "transferKnown": "جهاز معروف",
+  "transferSend": "إرسال",
+  "transferOtherFolder": "مجلد آخر…",
+  "transferSending": "جارٍ الإرسال…",
+  "transferPreparing": "جارٍ تجهيز الملفات…",
+  "transferCompressing": "جارٍ إنشاء أرشيف ZIP…",
+  "transferWaitingPeer": "في انتظار قبول LocalSend…",
+  "transferNeedPayload": "اختر منشئًا أو المكتبة بالكامل أولًا.",
+  "transferErrorHttp": "تعذر الوصول للهاتف. نفس Wi-Fi ووضع استقبال LocalSend.",
+  "transferErrorBusy": "الهاتف مشغول بنقل آخر.",
+  "transferErrorRejected": "رفض الهاتف النقل.",
+  "transferDone": "تم الإرسال.",
+  "transferIncomingTitle": "نقل وارد",
+  "transferIncomingBody": "{alias} يريد إرسال {count} ملفات ({size})",
+  "@transferIncomingBody": {
+    "placeholders": {
+      "alias": { "type": "String" },
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "transferAccept": "قبول",
+  "transferReject": "رفض",
+  "transferPeerPinTitle": "رمز الجهاز",
+  "transferPeerPinHint": "الرمز الظاهر على الجهاز الآخر",
+  "transferTabSend": "إرسال",
+  "transferTabReceive": "استقبال",
+  "transferDirectIpTitle": "الاتصال عبر IP",
+  "transferDirectIpHint": "مثال: 192.168.1.122",
+  "transferDirectIpAction": "اتصال",
+  "transferScanSubnet": "مسح الشبكة",
+  "transferScanningSubnet": "جاري المسح…",
+  "transferRetry": "إعادة المحاولة",
+  "transferCancel": "إلغاء",
+  "transferDirectBrowserUrl": "رابط المتصفح",
+  "transferCopyLink": "نسخ الرابط",
+  "transferCopied": "تم النسخ!",
+  "transferListeningOn": "جاهز على الشبكة"
 }

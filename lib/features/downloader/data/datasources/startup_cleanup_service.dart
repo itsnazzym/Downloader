@@ -6,7 +6,7 @@ class StartupCleanupService {
     if (outputFolder.isEmpty) return;
 
     final dir = Directory(outputFolder);
-    if (!dir.existsSync()) return;
+    if (!await dir.exists()) return;
 
     LoggerService.i('Starting startup cleanup in: $outputFolder');
     int deletedCount = 0;

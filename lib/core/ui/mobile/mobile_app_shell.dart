@@ -17,8 +17,9 @@ class MobileAppShell extends ConsumerWidget {
 
   int _indexFor(String location) {
     if (location.startsWith('/browse')) return 1;
-    if (location.startsWith('/stats')) return 2;
-    if (location.startsWith('/settings')) return 3;
+    if (location.startsWith('/transfer')) return 2;
+    if (location.startsWith('/stats')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
@@ -28,9 +29,12 @@ class MobileAppShell extends ConsumerWidget {
         context.go('/browse');
         break;
       case 2:
-        context.go('/stats');
+        context.go('/transfer');
         break;
       case 3:
+        context.go('/stats');
+        break;
+      case 4:
         context.go('/settings');
         break;
       default:
@@ -78,6 +82,11 @@ class MobileAppShell extends ConsumerWidget {
             icon: const Icon(Icons.travel_explore_outlined),
             selectedIcon: const Icon(Icons.travel_explore),
             label: l10n.browseX,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.ios_share_outlined),
+            selectedIcon: const Icon(Icons.ios_share),
+            label: l10n.transferTitle,
           ),
           NavigationDestination(
             icon: const Icon(Icons.bar_chart_outlined),

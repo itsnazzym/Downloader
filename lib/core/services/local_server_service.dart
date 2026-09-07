@@ -49,28 +49,35 @@ class LocalServerService {
     );
   }
 
+  StreamSubscription<DownloadItem>? _repoStreamSub;
+  ProviderSubscription<IDownloaderRepository>? _repoProviderSub;
+
   Future<void> start() async {
     final settings = _ref.read(settingsProvider);
     final port = settings.serverPort;
 
-    _ref.listen<IDownloaderRepository>(downloaderRepositoryProvider, (
-      previous,
-      next,
-    ) {
-      if (identical(previous, next)) return;
-      next.downloadUpdateStream.listen(_broadcastProgress);
-    });
+    unawaited(_repoStreamSub?.cancel());
+    _repoProviderSub?.close();
+
+    _repoProviderSub = _ref.listen<IDownloaderRepository>(
+      downloaderRepositoryProvider,
+      (previous, next) {
+        if (identical(previous, next)) return;
+        unawaited(_repoStreamSub?.cancel());
+        _repoStreamSub = next.downloadUpdateStream.listen(_broadcastProgress);
+      },
+    );
 
     final repo = _ref.read(downloaderRepositoryProvider);
-    repo.downloadUpdateStream.listen(_broadcastProgress);
+    _repoStreamSub = repo.downloadUpdateStream.listen(_broadcastProgress);
 
     try {
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
       LoggerService.i('''
 ==================================================
-🚀 Local Server running on http://127.0.0.1:$port
-🔌 WebSocket Mode: ENABLED (Zero-Config)
-✅ Ready for Extension Connection
+Local Server running on http://127.0.0.1:$port
+WebSocket Mode: ENABLED (Zero-Config)
+Ready for Extension Connection
 ==================================================
 ''');
 
@@ -83,6 +90,11 @@ class LocalServerService {
   }
 
   Future<void> stop() async {
+    await _repoStreamSub?.cancel();
+    _repoStreamSub = null;
+    _repoProviderSub?.close();
+    _repoProviderSub = null;
+
     try {
       _downloadBatcher.flush();
       _downloadBatcher.dispose();
@@ -134,7 +146,7 @@ class LocalServerService {
 
   void _handleWebSocket(WebSocket socket, HttpRequest request) {
     LoggerService.i(
-      '🔌 Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}',
+      'Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}',
     );
 
     // Token must arrive via HELLO message body — never from the URL query.
@@ -164,7 +176,7 @@ class LocalServerService {
           if (type == 'HELLO') {
             final messageToken = LocalServerAuth.tokenFromMessage(data);
             authorized = _isAuthorized(messageToken);
-            LoggerService.i('👋 Extension Hello received');
+            LoggerService.i('Extension Hello received');
             if (authorized) {
               helloTimer?.cancel();
               _acceptClient(socket);
@@ -231,7 +243,7 @@ class LocalServerService {
       },
       onDone: () {
         helloTimer?.cancel();
-        LoggerService.i('🔌 Extension Disconnected');
+        LoggerService.i('Extension Disconnected');
         _clients.remove(socket);
       },
       onError: (e) {
@@ -376,7 +388,7 @@ class LocalServerService {
 
       if (!cookies.contains('\t') && cookies.contains('=')) {
         LoggerService.w(
-          '❤️ Heartbeat: Received cookies for $domain in Header format (not Netscape). Ignoring to prevent yt-dlp errors.',
+          'Heartbeat: Received cookies for $domain in Header format (not Netscape). Ignoring to prevent yt-dlp errors.',
         );
         return;
       }
@@ -386,7 +398,7 @@ class LocalServerService {
       final cookieFile = File('${appDir.path}/heartbeat_cookies_$safeName.txt');
       await cookieFile.writeAsString(cookies);
       LoggerService.i(
-        '❤️ Heartbeat: Updated cookies for $domain → ${cookieFile.path}',
+        'Heartbeat: Updated cookies for $domain -> ${cookieFile.path}',
       );
       // Do not overwrite settings.cookiesFilePath — keep per-domain heartbeat files
       // and resolve the right one at download start via heartbeatCookiePathForUrl.

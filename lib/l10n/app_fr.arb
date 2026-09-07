@@ -152,7 +152,15 @@
       "count": { "type": "int" }
     }
   },
-  "searchDownloads": "Rechercher des téléchargements...",
+  "searchDownloads": "Filtrer titres ou URLs",
+  "searchClear": "Effacer la recherche",
+  "searchMatchCount": "{visible} / {total}",
+  "@searchMatchCount": {
+    "placeholders": {
+      "visible": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "clearHistoryConfirm": "Supprimer les téléchargements terminés, échoués et annulés ? Les téléchargements actifs restent.",
   "refreshLibrary": "Actualiser la bibliothèque",
   "yourListIsEmpty": "Votre liste de téléchargements est vide.",
@@ -163,9 +171,16 @@
   "sortDateOldest": "Date (plus ancien)",
   "sortNameAsc": "Nom (A-Z)",
   "sortSizeLargest": "Taille (plus grand)",
+  "sortVideoCount": "Nombre de vidéos",
   "viewMode": "Mode d'affichage",
   "viewList": "Liste",
   "viewDetailed": "Détaillé",
+  "viewFolders": "Dossier",
+  "folderUnknownCreator": "Sans auteur",
+  "folderBack": "Retour aux dossiers",
+  "folderOpenHint": "Ouvrir le dossier",
+  "folderVideoCount": "{count} vidéos",
+  "@folderVideoCount": { "placeholders": { "count": { "type": "int" } } },
 
   "playlistDetected": "Playlist détectée ({count} vidéos)",
   "@playlistDetected": { "placeholders": { "count": { "type": "int" } } },
@@ -178,6 +193,8 @@
   "selectFolder": "Choisir un dossier...",
   "organizeBySite": "Organiser par site",
   "organizeBySiteDesc": "Créer des sous-dossiers comme Téléchargements/YouTube/",
+  "organizeByCreator": "Organiser par créateur",
+  "organizeByCreatorDesc": "Créer des sous-dossiers par compte (ex: TikTok/userxxx/, YouTube/chaine/)",
   "formatLabel": "Format",
   "adultSites": "Sites pour adultes",
   "adultSitesDesc": "Activer le contenu soumis à restriction d'âge",
@@ -484,5 +501,60 @@
   "browseX": "Parcourir X",
   "browseXHint": "Connectez-vous si besoin, puis appuyez sur Télécharger sur une vidéo.",
   "mobileLibrary": "Bibliothèque",
-  "shareDownloadStarted": "Téléchargement lancé depuis le partage"
+  "shareDownloadStarted": "Téléchargement lancé depuis le partage",
+
+  "transferTitle": "Transfert",
+  "transferSubtitle": "Même Wi-Fi. Scanne le QR ou appuie sur un appareil.",
+  "transferPortBusy": "Le port 53317 est pris. Le QR marche encore ; LocalSend vers ce PC peut échouer.",
+  "transferMe": "Ce PC",
+  "transferDevices": "Appareils",
+  "transferPayload": "Quoi envoyer",
+  "transferSearchCreator": "Rechercher un créateur…",
+  "transferEntireLibrary": "Toute la bibliothèque",
+  "transferClearSelection": "Retirer",
+  "transferSelectedFolders": "{count, plural, =1{{count} dossier} other{{count} dossiers}}",
+  "@transferSelectedFolders": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "transferNoCreatorMatch": "Aucun créateur",
+  "transferNoDevices": "Aucun appareil — scanne le QR sur le téléphone.",
+  "transferWaitingNetwork": "En attente d’une adresse LAN…",
+  "transferKnown": "Appareil connu",
+  "transferSend": "Envoyer",
+  "transferOtherFolder": "Autre dossier…",
+  "transferSending": "Envoi…",
+  "transferPreparing": "Préparation des fichiers…",
+  "transferCompressing": "Création de l’archive ZIP…",
+  "transferWaitingPeer": "En attente de l’acceptation LocalSend…",
+  "transferNeedPayload": "Choisis un créateur ou Toute la bibliothèque d’abord.",
+  "transferErrorHttp": "Téléphone injoignable. Même Wi-Fi, LocalSend en Recevoir, chiffrement activé. S’il demande un PIN, saisis-le.",
+  "transferErrorBusy": "Le téléphone est occupé par un autre transfert.",
+  "transferErrorRejected": "Le téléphone a refusé le transfert.",
+  "transferDone": "Envoyé.",
+  "transferIncomingTitle": "Transfert entrant",
+  "transferIncomingBody": "{alias} veut envoyer {count} fichiers ({size})",
+  "@transferIncomingBody": {
+    "placeholders": {
+      "alias": { "type": "String" },
+      "count": { "type": "int" },
+      "size": { "type": "String" }
+    }
+  },
+  "transferAccept": "Accepter",
+  "transferReject": "Refuser",
+  "transferPeerPinTitle": "PIN de l’appareil",
+  "transferPeerPinHint": "PIN affiché sur l’autre appareil",
+  "transferTabSend": "Envoyer",
+  "transferTabReceive": "Recevoir",
+  "transferDirectIpTitle": "Connexion par IP",
+  "transferDirectIpHint": "Ex: 192.168.1.122",
+  "transferDirectIpAction": "Connecter",
+  "transferScanSubnet": "Scanner le réseau",
+  "transferScanningSubnet": "Recherche en cours…",
+  "transferRetry": "Réessayer",
+  "transferCancel": "Annuler",
+  "transferDirectBrowserUrl": "Lien navigateur web",
+  "transferCopyLink": "Copier le lien",
+  "transferCopied": "Copié !",
+  "transferListeningOn": "En écoute sur le réseau"
 }

@@ -14,10 +14,8 @@ import '../sources/kick/kick_hls.dart';
 import '../services/library_scanner_service.dart';
 import '../../../../core/logger/logger_service.dart';
 import '../../../../core/services/notification_service.dart';
-import '../../../../core/services/duplicate_detector_service.dart';
 import '../../../../core/services/disk_space_service.dart';
 import '../../../../core/services/media_fingerprint_service.dart';
-import '../../../../core/utils/format_utils.dart';
 import '../datasources/persistence_service.dart';
 import '../../../../core/services/title_cleaner_service.dart';
 import '../../../../core/plugins/plugin_manager.dart';
@@ -108,25 +106,38 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         return;
       }
 
-      final fixedItems = await _libraryScanner.scanAndFix(
-        _activeDownloads.values.toList(),
-        downloadPath,
-      );
-      for (final item in fixedItems) {
-        final existing = _activeDownloads[item.id];
-        if (existing == null ||
-            existing.status != item.status ||
-            existing.filePath != item.filePath ||
-            existing.thumbnailUrl != item.thumbnailUrl ||
-            existing.title != item.title) {
-          _activeDownloads[item.id] = item;
-          _controller.add(item);
-        }
-      }
+      // Run library disk synchronization in the background after UI renders
+      unawaited(
+        Future.delayed(const Duration(milliseconds: 600), () async {
+          try {
+            final fixedItems = await _libraryScanner.scanAndFix(
+              _activeDownloads.values.toList(),
+              downloadPath,
+            );
+            bool hasChanges = false;
+            for (final item in fixedItems) {
+              final existing = _activeDownloads[item.id];
+              if (existing == null ||
+                  existing.status != item.status ||
+                  existing.filePath != item.filePath ||
+                  existing.thumbnailUrl != item.thumbnailUrl ||
+                  existing.title != item.title) {
+                _activeDownloads[item.id] = item;
+                _controller.add(item);
+                hasChanges = true;
+              }
+            }
 
-      await _scanLibrary(downloadPath);
-      _saveToDisk();
-      unawaited(_repairBrokenXLibraryTitles());
+            await _scanLibrary(downloadPath);
+            if (hasChanges) {
+              _saveToDisk();
+            }
+            unawaited(_repairBrokenXLibraryTitles());
+          } catch (e) {
+            LoggerService.e('Background library scan failed', e);
+          }
+        }),
+      );
     } catch (e) {
       LoggerService.e('Failed to load initial download data', e);
     } finally {
@@ -237,38 +248,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     final downloadPath = await _getDownloadPath();
     if (downloadPath == null) return;
 
-    // 1. Remove duplicate files from filesystem
-    final duplicateDetector = DuplicateDetectorService();
-    final dupResult = await duplicateDetector.findAndRemoveDuplicates(
-      downloadPath,
-    );
-
-    if (dupResult.duplicatesRemoved > 0) {
-      LoggerService.i(
-        'Removed ${dupResult.duplicatesRemoved} duplicate files, '
-        'recovered ${_formatBytes(dupResult.bytesRecovered)}',
-      );
-    }
-
-    // 2. Remove entries from app state that reference deleted duplicates
-    final removedPaths = dupResult.duplicateDetails
-        .map((d) => d.removed)
-        .toSet();
-    final itemsToRemove = <String>[];
-
-    for (final entry in _activeDownloads.entries) {
-      final item = entry.value;
-      if (item.filePath != null && removedPaths.contains(item.filePath)) {
-        itemsToRemove.add(entry.key);
-      }
-    }
-
-    for (final id in itemsToRemove) {
-      _activeDownloads.remove(id);
-      LoggerService.debug('Removed duplicate entry from app: $id');
-    }
-
-    // 3. Re-scan and fix existing items
+    // 1. Re-scan and fix existing items
     final currentItems = _activeDownloads.values.toList();
     final fixedItems = await _libraryScanner.scanAndFix(
       currentItems,
@@ -282,19 +262,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     final keptIds = fixedItems.map((item) => item.id).toSet();
     _activeDownloads.removeWhere((id, _) => !keptIds.contains(id));
 
-    // 4. Scan for new files
+    // 2. Scan for new files
     await _scanLibrary(downloadPath);
     _saveToDisk();
     unawaited(_repairBrokenXLibraryTitles());
 
-    LoggerService.i(
-      'Library refresh complete. Duplicates removed: ${dupResult.duplicatesRemoved}',
-    );
+    LoggerService.i('Library refresh complete.');
   }
 
-  String _formatBytes(int bytes) {
-    return FormatUtils.formatBytes(bytes);
-  }
 
   @override
   List<DownloadItem> getCurrentDownloads() {
@@ -874,15 +849,32 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     unawaited(_startDownloadProcess(id, current.request));
   }
 
-  void _update(DownloadItem item) {
+  DateTime _lastDiskSave = DateTime.fromMillisecondsSinceEpoch(0);
+
+  void _update(DownloadItem item, {bool persist = false}) {
+    final previous = _activeDownloads[item.id];
     _activeDownloads[item.id] = item;
     _controller.add(item);
-    _saveToDisk();
+
+    final statusChanged = previous == null || previous.status != item.status;
+    final titleChanged = previous?.title != item.title;
+    final pathChanged = previous?.filePath != item.filePath;
+    final periodicSaveDue =
+        DateTime.now().difference(_lastDiskSave).inSeconds >= 30;
+
+    if (persist ||
+        statusChanged ||
+        titleChanged ||
+        pathChanged ||
+        periodicSaveDue) {
+      _saveToDisk();
+    }
   }
 
   void _saveToDisk() {
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 500), () {
+      _lastDiskSave = DateTime.now();
       unawaited(
         _persistenceService.saveDownloads(_activeDownloads.values.toList()),
       );

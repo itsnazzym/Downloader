@@ -36,6 +36,7 @@ class AppSettings {
 
   final String cookieBrowser; // 'firefox', 'chrome', 'edge', etc.
   final bool organizeBySite; // Create subfolders per site
+  final bool organizeByCreator; // Create subfolders per creator/account
   final bool autoUpdateYtDlp; // Auto-update yt-dlp on startup
   final String locale; // 'en', 'fr', 'ar'
   final String
@@ -74,6 +75,7 @@ class AppSettings {
     this.doNotDisturb = false,
     this.cookieBrowser = 'firefox',
     this.organizeBySite = false,
+    this.organizeByCreator = false,
     this.autoUpdateYtDlp = true,
     this.locale = 'en',
     this.themePreset = 'midnight',
@@ -108,6 +110,7 @@ class AppSettings {
     bool? doNotDisturb,
     String? cookieBrowser,
     bool? organizeBySite,
+    bool? organizeByCreator,
     bool? autoUpdateYtDlp,
     String? locale,
     String? themePreset,
@@ -143,6 +146,7 @@ class AppSettings {
       doNotDisturb: doNotDisturb ?? this.doNotDisturb,
       cookieBrowser: cookieBrowser ?? this.cookieBrowser,
       organizeBySite: organizeBySite ?? this.organizeBySite,
+      organizeByCreator: organizeByCreator ?? this.organizeByCreator,
       autoUpdateYtDlp: autoUpdateYtDlp ?? this.autoUpdateYtDlp,
       locale: locale ?? this.locale,
       themePreset: themePreset ?? this.themePreset,
@@ -180,6 +184,7 @@ const _kApiToken = 'api_token';
 const _kDND = 'do_not_disturb';
 const _kCookieBrowser = 'cookie_browser';
 const _kOrganizeBySite = 'organize_by_site';
+const _kOrganizeByCreator = 'organize_by_creator';
 const _kAutoUpdateYtDlp = 'auto_update_ytdlp';
 const _kLocale = 'locale';
 const _kThemePreset = 'theme_preset';
@@ -236,6 +241,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       doNotDisturb: prefs.getBool(_kDND) ?? false,
       cookieBrowser: prefs.getString(_kCookieBrowser) ?? 'firefox',
       organizeBySite: prefs.getBool(_kOrganizeBySite) ?? false,
+      organizeByCreator: prefs.getBool(_kOrganizeByCreator) ?? false,
       autoUpdateYtDlp: prefs.getBool(_kAutoUpdateYtDlp) ?? true,
       locale: prefs.getString(_kLocale) ?? 'en',
       themePreset: prefs.getString(_kThemePreset) ?? 'midnight',
@@ -379,6 +385,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setOrganizeBySite(bool value) {
     state = state.copyWith(organizeBySite: value);
     prefs.setBool(_kOrganizeBySite, value);
+  }
+
+  void setOrganizeByCreator(bool value) {
+    state = state.copyWith(organizeByCreator: value);
+    prefs.setBool(_kOrganizeByCreator, value);
   }
 
   void setAutoUpdateYtDlp(bool value) {

@@ -11,7 +11,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   protocol_handler_windows
   screen_retriever_windows
   tray_manager
-  video_player_win
   volume_controller
   window_manager
 )

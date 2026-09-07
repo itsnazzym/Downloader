@@ -13,6 +13,7 @@ import '../../download/download_path_resolver.dart';
 
 import 'widgets/storage_chart.dart';
 import 'widgets/library_migration_dialog.dart';
+import 'widgets/reorganize_library_dialog.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -137,6 +138,13 @@ class OutputSettingsView extends ConsumerWidget {
                           onTap: () =>
                               LibraryMigrationDialog.show(context, ref),
                         ),
+                        ActionTile(
+                          title: 'Réorganiser les vidéos existantes',
+                          subtitle:
+                              'Classer les vidéos déjà téléchargées dans des sous-dossiers par créateur (avec simulation)',
+                          icon: Icons.folder_shared_rounded,
+                          onTap: () => ReorganizeLibraryDialog.show(context),
+                        ),
                         DropdownTile(
                           title: l10n.formatLabel,
                           value: settings.outputFormat,
@@ -150,6 +158,13 @@ class OutputSettingsView extends ConsumerWidget {
                           value: settings.organizeBySite,
                           onChanged: settingsNotifier.setOrganizeBySite,
                           icon: Icons.folder_copy_rounded,
+                        ),
+                        SwitchTile(
+                          title: l10n.organizeByCreator,
+                          subtitle: l10n.organizeByCreatorDesc,
+                          value: settings.organizeByCreator,
+                          onChanged: settingsNotifier.setOrganizeByCreator,
+                          icon: Icons.person_rounded,
                         ),
                       ]
                       .animate(interval: 50.ms)

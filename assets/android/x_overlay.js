@@ -37,6 +37,51 @@
       hostname.endsWith('.twitter.com');
   }
 
+  function currentPlatform() {
+    var host = String(window.location.hostname || '').toLowerCase();
+    if (host === 'x.com' || host.endsWith('.x.com') || host === 'twitter.com' || host.endsWith('.twitter.com')) return 'x';
+    if (host.indexOf('tiktok.com') !== -1) return 'tiktok';
+    if (host.indexOf('instagram.com') !== -1) return 'instagram';
+    if (host.indexOf('youtube.com') !== -1 || host.indexOf('youtu.be') !== -1) return 'youtube';
+    if (host.indexOf('facebook.com') !== -1 || host.indexOf('fb.watch') !== -1) return 'facebook';
+    if (host.indexOf('kick.com') !== -1) return 'kick';
+    return 'generic';
+  }
+
+  function isSponsoredContent(element) {
+    if (!element) return false;
+    var curr = element;
+    var depth = 0;
+    var adRegex = /\b(sponsoris[ée]|sponsored|commandit[ée]|partenariat r[ée]mun[ée]r[ée]|paid partnership|promoted|publicit[ée])\b/i;
+
+    while (curr && depth < 12) {
+      if (curr.nodeType === 1) {
+        if (curr.getAttribute && curr.getAttribute('data-e2e') === 'ad-tag') return true;
+        if (curr.getAttribute && curr.getAttribute('data-ad') === 'true') return true;
+        if (curr.querySelector && curr.querySelector('[data-e2e="ad-tag"], [data-ad="true"]')) return true;
+        if (curr.querySelector && curr.querySelector('a[href*="/ads/"], [aria-label*="Sponsored"], [aria-label*="Sponsorisé"]')) return true;
+        var tag = curr.tagName ? curr.tagName.toLowerCase() : '';
+        if (tag === 'ytd-ad-slot-renderer' || tag === 'ytd-in-feed-ad-layout-renderer' || tag === 'ytd-promoted-video-renderer') return true;
+        if (curr.classList && (curr.classList.contains('ad-showing') || curr.classList.contains('ad-interrupting'))) return true;
+        if (curr.getAttribute && curr.getAttribute('data-testid') === 'placementTracking') return true;
+        if (curr.querySelector && curr.querySelector('[data-testid="placementTracking"]')) return true;
+
+        var labels = curr.querySelectorAll ? curr.querySelectorAll('span, div, p, a') : [];
+        for (var i = 0; i < Math.min(labels.length, 10); i++) {
+          var txt = labels[i].textContent ? labels[i].textContent.trim() : '';
+          if (txt.length > 0 && txt.length < 35 && adRegex.test(txt)) {
+            var cls = String(labels[i].className || '');
+            var aria = String(labels[i].getAttribute('aria-label') || '');
+            if (/badge|label|sponsor|promot|ad/i.test(cls) || /sponsor|promot|ad/i.test(aria)) return true;
+          }
+        }
+      }
+      curr = curr.parentElement;
+      depth++;
+    }
+    return false;
+  }
+
   function parseXStatusLink(href) {
     try {
       var url = new URL(href, window.location.href);
@@ -150,11 +195,12 @@
     if (element.tagName === 'VIDEO') {
       var deepLink = findNearestPermalink(element);
       if (deepLink) return deepLink;
+      var mediaUrl = element.currentSrc || element.src;
+      if (mediaUrl && mediaUrl.indexOf('blob:') !== 0 && mediaUrl.indexOf('preview') === -1) {
+        return mediaUrl;
+      }
     }
-    if (VIDEO_PATTERNS.some(function (p) { return pageUrl.indexOf(p) !== -1; })) {
-      return pageUrl.split('?')[0];
-    }
-    return null;
+    return pageUrl;
   }
 
   function xTweetIdFromUrl(url) {
@@ -191,29 +237,52 @@
     }
   }
 
-  function createButtonUI(targetUrl, tweetId) {
+  function createButtonUI(targetUrl, tweetId, container) {
     var host = document.createElement('div');
     host.className = 'md-dl-host';
     Object.assign(host.style, {
       position: 'absolute',
       zIndex: '2147483647',
-      top: '8px',
-      right: '8px',
       pointerEvents: 'none',
     });
+
+    var isVerticalVideo = false;
+    if (container) {
+      var rect = container.getBoundingClientRect ? container.getBoundingClientRect() : null;
+      if (rect && rect.height > rect.width * 1.05) {
+        isVerticalVideo = true;
+      }
+    }
+    if (!isVerticalVideo && (window.location.pathname.indexOf('/shorts') !== -1 || window.location.pathname.indexOf('/reel') !== -1 || window.location.href.indexOf('tiktok.com') !== -1)) {
+      isVerticalVideo = true;
+    }
+
+    var isLeftAligned = false;
+    if (isVerticalVideo) {
+      host.style.top = '16px';
+      host.style.left = '16px';
+      host.style.right = 'auto';
+      host.style.bottom = 'auto';
+      isLeftAligned = true;
+    } else {
+      host.style.top = '8px';
+      host.style.right = '8px';
+    }
+
+    var menuAlign = isLeftAligned ? 'left:0;right:auto;' : 'right:0;left:auto;';
 
     var shadow = host.attachShadow({ mode: 'closed' });
     var style = document.createElement('style');
     style.textContent =
       ':host{all:initial}' +
-      '.wrap{display:flex;align-items:center;pointer-events:auto;font-family:Segoe UI,Helvetica,sans-serif}' +
+      '.wrap{display:flex;align-items:center;pointer-events:auto;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;opacity:0.9;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.4)}' +
       'button{border:none;color:#fff;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}' +
       'button:disabled{cursor:default}' +
-      '.main{background:#6C5DD3;border-radius:6px 0 0 6px;padding:8px 12px;font-size:13px}' +
-      '.toggle{background:#6C5DD3;filter:brightness(0.9);border-radius:0 6px 6px 0;padding:8px 8px;border-left:1px solid rgba(255,255,255,.2)}' +
-      '.menu{position:absolute;top:100%;right:0;display:none;flex-direction:column;min-width:120px;background:#1E1E24;border:1px solid #333;border-radius:6px;overflow:hidden}' +
+      '.main{background:#6C5DD3;border-radius:6px 0 0 6px;padding:8px 14px;font-size:13px;line-height:1.3}' +
+      '.toggle{background:#6C5DD3;filter:brightness(0.9);border-radius:0 6px 6px 0;padding:8px 10px;border-left:1px solid rgba(255,255,255,.2);line-height:1.3}' +
+      '.menu{position:absolute;top:100%;' + menuAlign + 'display:none;flex-direction:column;min-width:120px;background:#1E1E24;border:1px solid #333;border-radius:6px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.5);margin-top:4px;z-index:100}' +
       '.menu.open{display:flex}' +
-      '.item{padding:8px 12px;color:#eee;font-size:12px;cursor:pointer}' +
+      '.item{padding:10px 14px;color:#eee;font-size:13px;cursor:pointer}' +
       '.item:hover{background:#6C5DD3}' +
       '.ok{background:#4CAF50!important}' +
       '.err{background:#F44336!important}';
@@ -294,10 +363,11 @@
 
   function injectButton(container, targetUrl) {
     if (!container || PROCESSED.has(container)) return;
+    if (isSponsoredContent(container)) return;
     var style = window.getComputedStyle(container);
     if (style.position === 'static') container.style.position = 'relative';
     var tweetId = xTweetIdFromUrl(targetUrl);
-    container.appendChild(createButtonUI(targetUrl, tweetId));
+    container.appendChild(createButtonUI(targetUrl, tweetId, container));
     PROCESSED.add(container);
   }
 
@@ -305,6 +375,7 @@
     if (!document.body) return;
     document.querySelectorAll('video').forEach(function (video) {
       if (!video.parentElement) return;
+      if (isSponsoredContent(video) || isSponsoredContent(video.parentElement)) return;
       var rect = video.getBoundingClientRect();
       if (rect.width < 80 || rect.height < 45) return;
       var url = findPlatformSpecificUrl(video);

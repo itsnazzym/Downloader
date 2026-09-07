@@ -15,12 +15,16 @@
   var injectedButtons = [];
   var downloadedTweetIds = Object.create(null);
   var downloadedMediaIds = Object.create(null);
+  var downloadedTikTokIds = Object.create(null);
 
   var VIDEO_PATTERNS = [
     '/watch?v=',
+    '/watch/',
     '/reels/',
     '/reel/',
     '/status/',
+    '/video/',
+    '/videos/',
     'tiktok.com',
     'instagram.com/p/',
     'instagram.com/reel',
@@ -31,6 +35,14 @@
     'facebook.com/watch',
     'fb.watch/',
   ];
+
+  var inIframe = false;
+  try {
+    inIframe = window.self !== window.top;
+  } catch (e) {
+    inIframe = true;
+  }
+  var tabPageUrl = window.location.href;
 
   var SETTINGS = {
     btnColor: '#6C5DD3',
@@ -67,14 +79,19 @@
   if (api.storage && api.storage.onChanged) {
     api.storage.onChanged.addListener(function (changes, areaName) {
       if (areaName !== 'local' && areaName !== 'sync') return;
-      if (changes.btnColor) SETTINGS.btnColor = changes.btnColor.newValue;
-      if (changes.btnPosition) SETTINGS.btnPosition = changes.btnPosition.newValue;
-      if (changes.btnSize) SETTINGS.btnSize = changes.btnSize.newValue;
+      var needsRefresh = false;
+      if (changes.btnColor) { SETTINGS.btnColor = changes.btnColor.newValue; needsRefresh = true; }
+      if (changes.btnPosition) { SETTINGS.btnPosition = changes.btnPosition.newValue; needsRefresh = true; }
+      if (changes.btnSize) { SETTINGS.btnSize = changes.btnSize.newValue; needsRefresh = true; }
       if (changes.showQualitySelector) {
         SETTINGS.showQualitySelector = changes.showQualitySelector.newValue;
+        needsRefresh = true;
       }
       if (changes.downloadedKeys) {
         applyStoredKeys(changes.downloadedKeys.newValue);
+        needsRefresh = true;
+      }
+      if (needsRefresh) {
         refreshInjectedButtons();
       }
     });
@@ -95,6 +112,67 @@
       hostname.endsWith('.twitter.com');
   }
 
+  function currentPlatform() {
+    var host = String(window.location.hostname || '').toLowerCase();
+    if (host === 'x.com' || host.endsWith('.x.com') || host === 'twitter.com' || host.endsWith('.twitter.com')) return 'x';
+    if (host.indexOf('tiktok.com') !== -1) return 'tiktok';
+    if (host.indexOf('instagram.com') !== -1) return 'instagram';
+    if (host.indexOf('youtube.com') !== -1 || host.indexOf('youtu.be') !== -1) return 'youtube';
+    if (host.indexOf('facebook.com') !== -1 || host.indexOf('fb.watch') !== -1) return 'facebook';
+    if (host.indexOf('kick.com') !== -1) return 'kick';
+    return 'generic';
+  }
+
+  function isSponsoredContent(element) {
+    if (!element) return false;
+    var curr = element;
+    var depth = 0;
+    var adRegex = /\b(sponsoris[ée]|sponsored|commandit[ée]|partenariat r[ée]mun[ée]r[ée]|paid partnership|promoted|publicit[ée]|advertisement|annonce)\b/i;
+    var adClassRegex = /(^|\b)(ad|ads|advert|banner|sponsor|promot|commercial|pub|sponsorise|ad-slot|ad-container|ad-wrapper|video-ad)($|\b)/i;
+
+    while (curr && depth < 12) {
+      if (curr.nodeType === 1) {
+        var className = typeof curr.className === 'string' ? curr.className : '';
+        var idName = typeof curr.id === 'string' ? curr.id : '';
+        if (adClassRegex.test(className) || adClassRegex.test(idName)) return true;
+
+        if (curr.hasAttribute && (
+          curr.hasAttribute('data-ad') ||
+          curr.hasAttribute('data-ad-slot') ||
+          curr.hasAttribute('data-ad-client') ||
+          curr.hasAttribute('data-google-query-id') ||
+          curr.getAttribute('data-e2e') === 'ad-tag' ||
+          curr.getAttribute('data-ad') === 'true' ||
+          curr.getAttribute('data-testid') === 'placementTracking'
+        )) return true;
+
+        if (curr.tagName === 'IFRAME') {
+          var src = (curr.src || '').toLowerCase();
+          if (/doubleclick|googlesyndication|adsystem|outbrain|taboola|criteo|adnxs|adroll/.test(src)) return true;
+        }
+
+        var tag = curr.tagName ? curr.tagName.toLowerCase() : '';
+        if (tag.indexOf('ad-') === 0 || tag.indexOf('-ad') !== -1 || tag === 'ins' || tag === 'ytd-ad-slot-renderer') return true;
+        if (curr.classList && (curr.classList.contains('ad-showing') || curr.classList.contains('ad-interrupting'))) return true;
+
+        var labels = curr.querySelectorAll ? curr.querySelectorAll('span, div, p, a') : [];
+        for (var i = 0; i < Math.min(labels.length, 12); i++) {
+          var txt = labels[i].textContent ? labels[i].textContent.trim() : '';
+          if (txt.length > 0 && txt.length < 35 && adRegex.test(txt)) {
+            var cls = String(labels[i].className || '');
+            var aria = String(labels[i].getAttribute('aria-label') || '');
+            if (adClassRegex.test(cls) || adRegex.test(aria) || labels[i].closest('article') || labels[i].closest('[class*="video"]')) {
+              return true;
+            }
+          }
+        }
+      }
+      curr = curr.parentElement;
+      depth++;
+    }
+    return false;
+  }
+
   function cleanText(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();
   }
@@ -108,6 +186,93 @@
     } catch (e) {
       return null;
     }
+  }
+
+  function isAdFrameHost() {
+    var host = String(window.location.hostname || '').toLowerCase();
+    return /doubleclick|googlesyndication|adsystem|outbrain|taboola|criteo|adnxs|adroll|moatads|innovid|amazon-adsystem/.test(host);
+  }
+
+  function isJunkPath(pathname) {
+    return /\/(tag|tags|search|login|signup|register|account|settings|privacy|terms|about|contact|category|categories|channels?|models?|pornstars?|playlist|feed|trending)(\/|$)/i.test(
+      pathname || '',
+    );
+  }
+
+  function isSameOriginHttp(href) {
+    try {
+      var u = new URL(href, window.location.href);
+      return (u.protocol === 'http:' || u.protocol === 'https:') &&
+        u.origin === window.location.origin;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function looksLikeContentLink(href) {
+    try {
+      var u = new URL(href, window.location.href);
+      if (!isSameOriginHttp(u.href)) return false;
+      var path = u.pathname || '';
+      if (path === '/' || path.length < 3) return false;
+      if (isJunkPath(path)) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function looksLikeVideoCard(anchor) {
+    if (!anchor || !anchor.href || PROCESSED.has(anchor)) return false;
+    if (!looksLikeContentLink(anchor.href)) return false;
+    var rect = anchor.getBoundingClientRect();
+    if (rect.width < 120 || rect.height < 70) return false;
+    if (rect.width > 1100 && rect.height > 800) return false;
+    if (anchor.querySelector('img, video, source, picture')) return true;
+    var bg = '';
+    try {
+      bg = window.getComputedStyle(anchor).backgroundImage || '';
+    } catch (e) {
+      bg = '';
+    }
+    return bg && bg !== 'none';
+  }
+
+  function findGenericPermalink(el) {
+    var curr = el;
+    var depth = 0;
+    while (curr && depth < 14) {
+      if (curr.tagName === 'A' && looksLikeContentLink(curr.href)) {
+        return curr.href.split('#')[0];
+      }
+      depth++;
+      curr = curr.parentElement;
+    }
+    var card = el.closest
+      ? el.closest('a, article, li, figure, [class*="thumb"], [class*="video"], [class*="item"], [class*="card"]')
+      : null;
+    if (!card) return null;
+    if (card.tagName === 'A' && looksLikeContentLink(card.href)) {
+      return card.href.split('#')[0];
+    }
+    var links = card.querySelectorAll ? card.querySelectorAll('a[href]') : [];
+    for (var i = 0; i < links.length; i++) {
+      if (looksLikeContentLink(links[i].href) && links[i].href.indexOf('preview') === -1) {
+        return links[i].href.split('#')[0];
+      }
+    }
+    return null;
+  }
+
+  function isUsableVideo(video) {
+    if (!video) return false;
+    var rect = video.getBoundingClientRect();
+    if (rect.width >= 80 && rect.height >= 45) return true;
+    return video.videoWidth >= 160 && video.videoHeight >= 90;
+  }
+
+  function pageUrlFallback() {
+    return tabPageUrl || window.location.href;
   }
 
   function parseXStatusLink(href) {
@@ -170,6 +335,7 @@
   function applyStoredKeys(keys) {
     downloadedTweetIds = Object.create(null);
     downloadedMediaIds = Object.create(null);
+    downloadedTikTokIds = Object.create(null);
     if (!keys || typeof keys !== 'object') return;
     (keys.tweetIds || []).forEach(function (id) {
       if (id) downloadedTweetIds[String(id)] = true;
@@ -177,23 +343,33 @@
     (keys.mediaIds || []).forEach(function (id) {
       if (id) downloadedMediaIds[String(id)] = true;
     });
+    (keys.tikTokIds || []).forEach(function (id) {
+      if (id) downloadedTikTokIds[String(id)] = true;
+    });
   }
 
-  function mergeLocalKeys(tweetIds, mediaIds, removedTweetIds) {
+  function mergeLocalKeys(tweetIds, mediaIds, removedTweetIds, tikTokIds, removedTikTokIds) {
     (tweetIds || []).forEach(function (id) {
       if (id) downloadedTweetIds[String(id)] = true;
     });
     (mediaIds || []).forEach(function (id) {
       if (id) downloadedMediaIds[String(id)] = true;
     });
+    (tikTokIds || []).forEach(function (id) {
+      if (id) downloadedTikTokIds[String(id)] = true;
+    });
     (removedTweetIds || []).forEach(function (id) {
       if (id) delete downloadedTweetIds[String(id)];
     });
+    (removedTikTokIds || []).forEach(function (id) {
+      if (id) delete downloadedTikTokIds[String(id)];
+    });
   }
 
-  function isKnownDownloaded(tweetId, mediaId) {
+  function isKnownDownloaded(tweetId, mediaId, tikTokId) {
     return (!!tweetId && !!downloadedTweetIds[tweetId]) ||
-      (!!mediaId && !!downloadedMediaIds[mediaId]);
+      (!!mediaId && !!downloadedMediaIds[mediaId]) ||
+      (!!tikTokId && !!downloadedTikTokIds[tikTokId]);
   }
 
   function findMediaAssetIdNear(container) {
@@ -217,7 +393,8 @@
       return entry.host && entry.host.isConnected;
     });
     injectedButtons.forEach(function (entry) {
-      if (isKnownDownloaded(entry.tweetId, entry.mediaId)) {
+      if (typeof entry.applyStyles === 'function') entry.applyStyles();
+      if (isKnownDownloaded(entry.tweetId, entry.mediaId, entry.tikTokId)) {
         entry.setDownloaded();
       } else {
         entry.setIdle();
@@ -374,6 +551,440 @@
     return details;
   }
 
+  function extractTikTokFeed(limit, seenIds, items) {
+    var candidates = [];
+    var seenContainers = new Set();
+
+    function addCandidate(el) {
+      if (!el || seenContainers.has(el)) return;
+      seenContainers.add(el);
+      candidates.push(el);
+    }
+
+    // Direct video links: essential for collection, playlist, and profile grid views
+    document.querySelectorAll('a[href*="/video/"]').forEach(function (a) {
+      var tile = (a.closest && a.closest('[data-e2e="user-post-item"], div[class*="DivItemContainer"], div[class*="Card"], div[class*="Item"]')) || a.parentElement || a;
+      addCandidate(tile);
+    });
+
+    // Standard feed containers
+    var selectors = [
+      '[data-e2e="recommend-list-item-container"]',
+      'div[data-e2e="feed-item"]',
+      'section[data-e2e="feed-item"]',
+      'div[class*="DivItemContainer"]',
+      'div[class*="DivVideoWrapper"]',
+      'div[class*="DivBasicPlayerWrapper"]',
+      '[data-e2e="feed-video"]',
+      '[data-e2e="browse-video"]',
+      '[data-e2e="user-post-item"]',
+    ];
+    document.querySelectorAll(selectors.join(', ')).forEach(addCandidate);
+
+    // Fallback: check all video elements on TikTok
+    document.querySelectorAll('video').forEach(function (v) {
+      var parent = (v.closest && v.closest('article, section, div[class*="Item"], div[class*="Container"], div[tabindex]')) || v.parentElement;
+      if (parent) addCandidate(parent);
+    });
+
+    candidates.forEach(function (container) {
+      if (items.length >= limit) return;
+      if (isSponsoredContent(container)) return;
+      var video = container.querySelector ? (container.querySelector('video') || (container.tagName === 'VIDEO' ? container : null)) : null;
+
+      var link = (container.tagName === 'A' && container.href.indexOf('/video/') !== -1)
+        ? container
+        : (container.querySelector ? container.querySelector('a[href*="/video/"]') : null);
+      var url = link ? link.href : window.location.href;
+      var canonical = (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl)
+        ? MDUrl.canonicalMediaUrl(url)
+        : url.split('?')[0];
+
+      // If missing video link inside container, try finding nearest anchor or xgwrapper ID
+      if ((!canonical || canonical.indexOf('/video/') === -1) && container.parentElement) {
+        var nearbyLink = container.parentElement.querySelector('a[href*="/video/"]');
+        if (nearbyLink) {
+          canonical = (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl)
+            ? MDUrl.canonicalMediaUrl(nearbyLink.href)
+            : nearbyLink.href.split('?')[0];
+        }
+      }
+
+      if (!canonical || canonical.indexOf('/video/') === -1) {
+        var xgFeed = container.querySelector ? (container.querySelector('[id^="xgwrapper-"]') || (container.id && container.id.indexOf('xgwrapper-') === 0 ? container : null)) : null;
+        if (xgFeed) {
+          var xgMatchFeed = xgFeed.id.match(/xgwrapper-\d+-(\d+)/);
+          if (xgMatchFeed) {
+            var feedAuthorEl = container.querySelector('a[href*="/@"]');
+            var feedAuthorMatch = feedAuthorEl ? feedAuthorEl.href.match(/@([a-zA-Z0-9_.-]+)/) : null;
+            var feedAuthor = feedAuthorMatch ? '@' + feedAuthorMatch[1] : '';
+            canonical = feedAuthor ? 'https://www.tiktok.com/' + feedAuthor + '/video/' + xgMatchFeed[1] : 'https://www.tiktok.com/video/' + xgMatchFeed[1];
+          }
+        }
+      }
+
+      if ((!canonical || canonical.indexOf('/video/') === -1) && window.location.href.indexOf('/video/') !== -1) {
+        canonical = window.location.href.split('?')[0];
+      }
+
+      if (!canonical || canonical.indexOf('/video/') === -1) {
+        var awemeId = null;
+        var idNodes = container.querySelectorAll
+          ? container.querySelectorAll('[id*="xgwrapper"], [id*="xgplayer"], [id*="video"]')
+          : [];
+        for (var xi = 0; xi < idNodes.length; xi++) {
+          var idm = String(idNodes[xi].id || '').match(/(\d{8,})/);
+          if (idm) {
+            awemeId = idm[1];
+            break;
+          }
+        }
+        if (!awemeId && video) {
+          var src = String(video.currentSrc || video.src || '');
+          var srcm = src.match(/item_id=(\d+)/) || src.match(/\/(\d{15,})(?:\/|\?|$)/);
+          if (srcm) awemeId = srcm[1];
+        }
+        if (awemeId) {
+          var authorHref = container.querySelector ? container.querySelector('a[href*="/@"]') : null;
+          var am = authorHref ? String(authorHref.href).match(/@([a-zA-Z0-9_.-]+)/) : null;
+          canonical = am
+            ? 'https://www.tiktok.com/@' + am[1] + '/video/' + awemeId
+            : 'https://www.tiktok.com/video/' + awemeId;
+        }
+      }
+
+      if (!canonical || canonical.indexOf('/video/') === -1) return;
+
+      var matchId = canonical.match(/\/video\/(\d+)/);
+      var itemId = matchId ? 'tt-' + matchId[1] : 'tt-' + canonical;
+      if (seenIds[itemId]) return;
+      seenIds[itemId] = true;
+
+      // Extract author (@handle or nickname)
+      var authorEl = container.querySelector ? container.querySelector(
+        '[data-e2e="feed-author-nickname"], [data-e2e="feed-author-uniqueid"], [data-e2e="video-author-uniqueid"], [data-e2e="browse-username"], a[href^="/@"]',
+      ) : null;
+      var author = cleanText(authorEl && authorEl.textContent);
+      if (!author || author.indexOf('@') === -1) {
+        var userMatch = canonical.match(/@([a-zA-Z0-9_.-]+)/);
+        if (userMatch) {
+          author = '@' + userMatch[1];
+        } else {
+          var pageUserMatch = window.location.pathname.match(/@([a-zA-Z0-9_.-]+)/);
+          if (pageUserMatch) {
+            author = '@' + pageUserMatch[1];
+            if (canonical.indexOf('/@') === -1 && matchId) {
+              canonical = 'https://www.tiktok.com/@' + pageUserMatch[1] + '/video/' + matchId[1];
+            }
+          } else if (!author) {
+            author = 'Créateur TikTok';
+          }
+        }
+      }
+      if (author && author.charAt(0) !== '@' && !author.includes(' ')) {
+        author = '@' + author;
+      }
+
+      // Extract description / caption
+      var descEl = container.querySelector ? container.querySelector(
+        '[data-e2e="feed-video-desc"], [data-e2e="video-desc"], [data-e2e="browse-video-desc"], [data-e2e="user-post-item-desc"], div[class*="DivText"], span[class*="SpanText"], h1, div[title]',
+      ) : null;
+      var title = cleanText(descEl && (descEl.getAttribute('title') || descEl.textContent));
+      if (!title && link) {
+        title = cleanText(link.getAttribute('title') || link.getAttribute('aria-label'));
+      }
+      if (!title && container.querySelector) {
+        var imgAlt = container.querySelector('img[alt]');
+        if (imgAlt) title = cleanText(imgAlt.getAttribute('alt'));
+      }
+      if (!title || title.indexOf('Collection ') === 0) {
+        title = 'TikTok — ' + author;
+      }
+
+      // Extract music / audio
+      var musicEl = container.querySelector ? container.querySelector(
+        '[data-e2e="feed-video-music"], [data-e2e="video-music"], [data-e2e="browse-music"], h4[class*="H4Music"], a[href*="/music/"]',
+      ) : null;
+      var music = cleanText(musicEl && musicEl.textContent) || null;
+
+      // Extract creator avatar
+      var avatarImg = container.querySelector ? container.querySelector(
+        '[data-e2e="feed-author-avatar"] img, img[class*="ImgAvatar"], img[src*="avatar"]',
+      ) : null;
+      var avatarUrl = avatarImg ? safeHttpUrl(avatarImg.currentSrc || avatarImg.src) : null;
+      if (!avatarUrl && typeof document !== 'undefined') {
+        var profileHeaderAvatar = document.querySelector('[data-e2e="user-avatar"] img, [class*="AvatarContainer"] img, [data-e2e="user-title"] ~ * img, header img');
+        if (profileHeaderAvatar) {
+          avatarUrl = safeHttpUrl(profileHeaderAvatar.currentSrc || profileHeaderAvatar.src);
+        }
+      }
+
+      // Extract HD thumbnail (video poster, largest img preview, or live canvas frame)
+      var thumb = (video && safeHttpUrl(video.poster)) || null;
+      if (!thumb && container.querySelector) {
+        var posterImg = container.querySelector('img[class*="ImgPoster"], img[src*="tiktokcdn"], img[src*="tos-"], img[src*="byteoversea"], img[src*="muscdn"]');
+        if (posterImg) {
+          var pSrc = posterImg.currentSrc || posterImg.src || posterImg.getAttribute('data-src') || posterImg.getAttribute('src');
+          thumb = safeHttpUrl(pSrc);
+        }
+      }
+      if (!thumb && container.querySelectorAll) {
+        var anyImgs = Array.from(container.querySelectorAll('img'));
+        for (var im = 0; im < anyImgs.length; im++) {
+          var iSrc = anyImgs[im].currentSrc || anyImgs[im].src || anyImgs[im].getAttribute('data-src') || anyImgs[im].getAttribute('src');
+          if (iSrc && iSrc.indexOf('avatar') === -1 && (anyImgs[im].width > 40 || anyImgs[im].naturalWidth > 40 || iSrc.indexOf('tiktokcdn') !== -1 || iSrc.indexOf('tos-') !== -1 || iSrc.indexOf('byteoversea') !== -1)) {
+            thumb = safeHttpUrl(iSrc);
+            if (thumb) break;
+          }
+        }
+      }
+      var durationSec = null;
+      var width = null;
+      var height = null;
+      var isActive = false;
+      if (video) {
+        if (Number.isFinite(video.duration) && video.duration > 0) {
+          durationSec = Math.round(video.duration);
+        }
+        if (video.videoWidth > 0) width = video.videoWidth;
+        if (video.videoHeight > 0) height = video.videoHeight;
+        if (!video.paused && video.currentTime > 0) {
+          isActive = true;
+        }
+      }
+      if (matchId && window.location.href.indexOf(matchId[1]) !== -1) {
+        isActive = true;
+      }
+
+      var rawTikTokId = matchId ? matchId[1] : null;
+      var isDownloaded = Boolean(rawTikTokId && downloadedTikTokIds[rawTikTokId]);
+
+      items.push({
+        id: itemId,
+        tikTokId: rawTikTokId,
+        url: canonical,
+        pageUrl: canonical,
+        title: title,
+        author: author,
+        music: music,
+        avatarUrl: avatarUrl,
+        platform: 'tiktok',
+        thumbnailUrl: thumb,
+        videoSrc: video ? (video.currentSrc || video.src) : null,
+        isActive: isActive,
+        isDownloaded: isDownloaded,
+        durationSeconds: durationSec,
+        width: width,
+        height: height,
+        sizeBytes: null,
+        source: 'dom',
+        sourceLabel: 'TikTok HD Sans Filigrane',
+      });
+    });
+  }
+
+  function extractInstagramFeed(limit, seenIds, items) {
+    var containers = document.querySelectorAll('article, div[role="dialog"], [class*="Reels"], div[style*="aspect-ratio"]');
+    containers.forEach(function (container) {
+      if (items.length >= limit) return;
+      if (isSponsoredContent(container)) return;
+      var video = container.querySelector('video');
+      if (!video) return;
+      var link = container.querySelector('a[href*="/reel/"], a[href*="/reels/"], a[href*="/p/"]');
+      var url = link ? link.href : window.location.href;
+      var canonical = (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl)
+        ? MDUrl.canonicalMediaUrl(url)
+        : url.split('?')[0];
+      if (!canonical) return;
+
+      var matchId = canonical.match(/\/(?:reels?|p)\/([A-Za-z0-9_-]+)/);
+      var itemId = matchId ? 'ig-' + matchId[1] : 'ig-' + canonical;
+      if (seenIds[itemId]) return;
+      seenIds[itemId] = true;
+
+      var authorEl = container.querySelector('header a, a[role="link"]');
+      var author = cleanText(authorEl && authorEl.textContent) || 'Instagram user';
+      var descEl = container.querySelector('h1, span[class*="Caption"], span[dir="auto"]');
+      var title = cleanText(descEl && descEl.textContent) || ('Instagram Reel — ' + author);
+      var thumb = safeHttpUrl(video.poster);
+
+      items.push({
+        id: itemId,
+        url: canonical,
+        pageUrl: window.location.href,
+        title: title,
+        author: author,
+        platform: 'instagram',
+        thumbnailUrl: thumb,
+        durationSeconds: Number.isFinite(video.duration) && video.duration > 0 ? Math.round(video.duration) : null,
+        width: video.videoWidth || null,
+        height: video.videoHeight || null,
+        sizeBytes: null,
+        source: 'dom',
+        sourceLabel: 'Instagram — Reel',
+      });
+    });
+  }
+
+  function extractShortsFeed(limit, seenIds, items) {
+    var containers = document.querySelectorAll('ytd-reel-video-renderer');
+    containers.forEach(function (container) {
+      if (items.length >= limit) return;
+      if (isSponsoredContent(container)) return;
+      var video = container.querySelector('video');
+      var link = container.querySelector('a[href*="/shorts/"]');
+      var url = link ? link.href : window.location.href;
+      var canonical = (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl)
+        ? MDUrl.canonicalMediaUrl(url)
+        : url.split('?')[0];
+      if (!canonical) return;
+
+      var matchId = canonical.match(/\/shorts\/([A-Za-z0-9_-]+)/);
+      var itemId = matchId ? 'yt-' + matchId[1] : 'yt-' + canonical;
+      if (seenIds[itemId]) return;
+      seenIds[itemId] = true;
+
+      var authorEl = container.querySelector('#channel-name, .ytd-channel-name, ytd-reel-player-header-renderer a');
+      var author = cleanText(authorEl && authorEl.textContent) || 'YouTube creator';
+      var titleEl = container.querySelector('.title, #video-title, ytd-reel-player-header-renderer h2');
+      var title = cleanText(titleEl && titleEl.textContent) || ('YouTube Shorts — ' + author);
+      var thumb = video ? safeHttpUrl(video.poster) : null;
+
+      items.push({
+        id: itemId,
+        url: canonical,
+        pageUrl: window.location.href,
+        title: title,
+        author: author,
+        platform: 'youtube',
+        thumbnailUrl: thumb,
+        durationSeconds: video && Number.isFinite(video.duration) && video.duration > 0 ? Math.round(video.duration) : null,
+        width: video ? video.videoWidth : null,
+        height: video ? video.videoHeight : null,
+        sizeBytes: null,
+        source: 'dom',
+        sourceLabel: 'YouTube — Shorts',
+      });
+    });
+  }
+
+  function extractUniversalFeed(maxItems) {
+    var platform = currentPlatform();
+    if (platform === 'x') {
+      return extractXFeed(maxItems);
+    }
+
+    var limit = parseInt(maxItems, 10);
+    if (!Number.isFinite(limit) || limit < 1) limit = X_FEED_MAX_ITEMS;
+    limit = Math.min(limit, X_FEED_MAX_ITEMS);
+
+    var items = [];
+    var seenIds = {};
+
+    if (platform === 'tiktok') {
+      extractTikTokFeed(limit, seenIds, items);
+    } else if (platform === 'instagram') {
+      extractInstagramFeed(limit, seenIds, items);
+    } else if (platform === 'youtube') {
+      extractShortsFeed(limit, seenIds, items);
+    }
+
+    // Universal DOM Video Scanner: works on Reddit, Vimeo, Twitch, Dailymotion, news sites, video blogs, etc.
+    // Guard: Only run for generic sites so we don't pollute TikTok/Instagram/Shorts with document.title dummy items
+    if (platform === 'generic' && items.length < limit) {
+      document.querySelectorAll('video').forEach(function (video) {
+        if (items.length >= limit) return;
+        if (isSponsoredContent(video) || (video.parentElement && isSponsoredContent(video.parentElement))) return;
+        if (!isUsableVideo(video)) return;
+
+        var url = findPlatformSpecificUrl(video);
+        if (!url) return;
+        var canonical = (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl)
+          ? MDUrl.canonicalMediaUrl(url)
+          : url.split('?')[0];
+        if (!canonical) canonical = url;
+
+        var cleanKey = canonical.replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+        var itemId = 'media-' + cleanKey;
+        if (seenIds[itemId]) return;
+        seenIds[itemId] = true;
+
+        var hostClean = window.location.hostname.replace(/^www\./, '');
+        var title = cleanText(video.title || video.getAttribute('aria-label') || document.title) || (hostClean + ' video');
+        var thumb = safeHttpUrl(video.poster) || null;
+
+        items.push({
+          id: itemId,
+          url: canonical,
+          pageUrl: pageUrlFallback(),
+          title: title,
+          author: hostClean,
+          platform: platform,
+          thumbnailUrl: thumb,
+          durationSeconds: Number.isFinite(video.duration) && video.duration > 0 ? Math.round(video.duration) : null,
+          width: video.videoWidth || null,
+          height: video.videoHeight || null,
+          sizeBytes: null,
+          source: 'dom',
+          sourceLabel: hostClean,
+        });
+      });
+
+      if (!inIframe) {
+        document.querySelectorAll('a[href]').forEach(function (anchor) {
+          if (items.length >= limit) return;
+          if (!looksLikeVideoCard(anchor)) return;
+          if (isSponsoredContent(anchor)) return;
+          var href = anchor.href.split('#')[0];
+          var canonical = (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl)
+            ? (MDUrl.canonicalMediaUrl(href) || href)
+            : href.split('?')[0];
+          var cleanKey = canonical.replace(/[^a-zA-Z0-9]/g, '').substring(0, 40);
+          var itemId = 'card-' + cleanKey;
+          if (seenIds[itemId]) return;
+          seenIds[itemId] = true;
+          var img = anchor.querySelector('img');
+          var thumb = img
+            ? safeHttpUrl(img.currentSrc || img.src || img.getAttribute('data-src'))
+            : null;
+          var title = cleanText(
+            (img && (img.alt || img.title)) ||
+              anchor.getAttribute('title') ||
+              anchor.getAttribute('aria-label') ||
+              '',
+          ) || canonical;
+          var hostClean = window.location.hostname.replace(/^www\./, '');
+          items.push({
+            id: itemId,
+            url: canonical,
+            pageUrl: canonical,
+            title: title,
+            author: hostClean,
+            platform: platform,
+            thumbnailUrl: thumb,
+            durationSeconds: null,
+            width: null,
+            height: null,
+            sizeBytes: null,
+            source: 'dom',
+            sourceLabel: hostClean,
+          });
+        });
+      }
+    }
+
+    return {
+      ok: true,
+      source: 'dom',
+      mode: 'universal-feed',
+      platform: platform,
+      pageUrl: window.location.href,
+      scannedArticles: items.length,
+      truncated: false,
+      items: items,
+    };
+  }
+
   function extractXFeed(maxItems) {
     if (!isXPage()) return { ok: false, error: 'not_x_page' };
 
@@ -387,6 +998,7 @@
     var videoPostsFound = 0;
 
     articles.forEach(function (article) {
+      if (isSponsoredContent(article)) return;
       var videoElements = findXVideoElements(article);
       if (videoElements.length === 0) return;
 
@@ -414,6 +1026,7 @@
           pageUrl: window.location.href,
           title: title,
           author: author || 'X user',
+          platform: 'x',
           thumbnailUrl: findXPreviewUrl(article, videoElement),
           durationSeconds: details.durationSeconds,
           width: details.width,
@@ -456,9 +1069,10 @@
 
   function publishNewXFeedItems() {
     xFeedUpdateTimer = null;
-    if (!isXPage()) return;
+    var platform = currentPlatform();
+    if (platform === 'generic' || platform === 'kick') return;
 
-    var result = extractXFeed(X_FEED_MAX_ITEMS);
+    var result = extractUniversalFeed(X_FEED_MAX_ITEMS);
     if (!result || result.ok !== true || !Array.isArray(result.items)) return;
     rememberXFeedItems(result.items);
 
@@ -471,21 +1085,26 @@
     if (newItems.length === 0) return;
 
     try {
-      var pending = api.runtime.sendMessage({
-        type: 'MD_X_FEED_ITEMS',
-        items: newItems,
-        pageUrl: window.location.href,
-      });
       var markAsEmitted = function () {
         newItems.forEach(function (item) {
           var id = String(item && item.id || '');
           if (id) X_FEED_EMITTED_IDS[id] = true;
         });
       };
-      if (pending && typeof pending.then === 'function') {
-        pending.then(markAsEmitted).catch(function () {
-          /* The panel may not be open yet. */
-        });
+      var p1 = api.runtime.sendMessage({
+        type: 'MD_X_FEED_ITEMS',
+        items: newItems,
+        pageUrl: window.location.href,
+        platform: platform,
+      });
+      var p2 = api.runtime.sendMessage({
+        type: 'MD_FEED_ITEMS',
+        items: newItems,
+        pageUrl: window.location.href,
+        platform: platform,
+      });
+      if (p1 && typeof p1.then === 'function') {
+        p1.then(markAsEmitted).catch(function () {});
       } else {
         markAsEmitted();
       }
@@ -494,24 +1113,599 @@
     }
   }
 
-  function scheduleXFeedUpdate() {
-    if (!isXPage() || xFeedUpdateTimer) return;
-    xFeedUpdateTimer = setTimeout(publishNewXFeedItems, 180);
+  function scheduleXFeedUpdate(delay) {
+    var platform = currentPlatform();
+    if (platform === 'generic' || xFeedUpdateTimer) return;
+    var wait = (typeof delay === 'number') ? delay : (platform === 'tiktok' ? 1200 : 250);
+    xFeedUpdateTimer = setTimeout(publishNewXFeedItems, wait);
   }
+
+  var deepScanActive = false;
+  var deepScanTimer = null;
+  var deepScanTarget = 1000;
+  var deepScanLastCount = 0;
+  var deepScanStagnantRounds = 0;
+  var deepScanTotalRounds = 0;
+  var deepScanBusy = false;
+  var deepScanEpoch = 0;
+
+  function injectPageEnvironmentHook() {
+    if (document.getElementById('__md_bg_hook__')) return;
+    try {
+      var script = document.createElement('script');
+      script.id = '__md_bg_hook__';
+      script.textContent = '(' + function () {
+        window.__MD_FORCE_VISIBLE__ = false;
+
+        // 1. Spoof document.hidden & document.visibilityState
+        try {
+          var proto = Document.prototype;
+          var origHiddenDesc = Object.getOwnPropertyDescriptor(proto, 'hidden');
+          var origVisDesc = Object.getOwnPropertyDescriptor(proto, 'visibilityState');
+          Object.defineProperty(proto, 'hidden', {
+            get: function () {
+              if (window.__MD_FORCE_VISIBLE__) return false;
+              return origHiddenDesc && origHiddenDesc.get ? origHiddenDesc.get.call(this) : false;
+            },
+            configurable: true
+          });
+          Object.defineProperty(proto, 'visibilityState', {
+            get: function () {
+              if (window.__MD_FORCE_VISIBLE__) return 'visible';
+              return origVisDesc && origVisDesc.get ? origVisDesc.get.call(this) : 'visible';
+            },
+            configurable: true
+          });
+        } catch (e) {}
+
+        // 2. Intercept IntersectionObserver so we can trigger callbacks in background tabs
+        try {
+          var OrigIO = window.IntersectionObserver;
+          if (OrigIO) {
+            var records = [];
+            window.__MD_IO_RECORDS__ = records;
+            window.IntersectionObserver = function (callback, options) {
+              var inst = new OrigIO(callback, options);
+              var rec = { inst: inst, cb: callback, targets: new Set() };
+              records.push(rec);
+
+              var origObs = inst.observe.bind(inst);
+              inst.observe = function (t) {
+                if (t) rec.targets.add(t);
+                return origObs(t);
+              };
+              var origUnobs = inst.unobserve.bind(inst);
+              inst.unobserve = function (t) {
+                if (t) rec.targets.delete(t);
+                return origUnobs(t);
+              };
+              var origDisc = inst.disconnect.bind(inst);
+              inst.disconnect = function () {
+                rec.targets.clear();
+                var i = records.indexOf(rec);
+                if (i !== -1) records.splice(i, 1);
+                return origDisc();
+              };
+              return inst;
+            };
+            window.IntersectionObserver.prototype = OrigIO.prototype;
+          }
+        } catch (e) {}
+
+        // 3. Listener to trigger all observers on background scan pulse
+        window.addEventListener('__MD_PULSE_OBSERVERS__', function () {
+          window.__MD_FORCE_VISIBLE__ = true;
+          try { document.dispatchEvent(new Event('visibilitychange')); } catch (e) {}
+          if (Array.isArray(window.__MD_IO_RECORDS__)) {
+            window.__MD_IO_RECORDS__.forEach(function (rec) {
+              if (!rec || !rec.targets || rec.targets.size === 0) return;
+              var entries = [];
+              rec.targets.forEach(function (t) {
+                if (t && t.isConnected) {
+                  var r = t.getBoundingClientRect();
+                  entries.push({
+                    target: t,
+                    isIntersecting: true,
+                    intersectionRatio: 1,
+                    boundingClientRect: r,
+                    intersectionRect: r,
+                    rootBounds: { top: 0, left: 0, width: window.innerWidth || 1920, height: window.innerHeight || 1080 },
+                    time: performance.now()
+                  });
+                }
+              });
+              if (entries.length > 0) {
+                try { rec.cb(entries, rec.inst); } catch (e) {}
+              }
+            });
+          }
+        });
+
+        window.addEventListener('__MD_STOP_BG_FORCE__', function () {
+          window.__MD_FORCE_VISIBLE__ = false;
+        });
+
+        window.addEventListener('__MD_SNAP_ADVANCE__', function () {
+          var item = document.querySelector(
+            '[data-e2e="recommend-list-item-container"], [data-e2e="feed-video"]',
+          );
+          var target = item;
+          if (item) {
+            var node = item.parentElement;
+            var hops = 0;
+            while (node && hops < 14) {
+              if (node === document.body || node === document.documentElement) break;
+              if (node.scrollHeight > node.clientHeight + 24) {
+                target = node;
+                break;
+              }
+              node = node.parentElement;
+              hops += 1;
+            }
+          }
+          if (!target) target = document.scrollingElement || document.body;
+          var unit = Math.max(56, Math.round((window.innerHeight || 700) / 8));
+          var ticks = 0;
+          function tick() {
+            if (ticks++ >= 6) return;
+            try {
+              target.dispatchEvent(new WheelEvent('wheel', {
+                bubbles: true,
+                cancelable: true,
+                deltaY: unit,
+                deltaMode: 0,
+                view: window,
+              }));
+            } catch (e) {}
+            if (typeof requestAnimationFrame === 'function') requestAnimationFrame(tick);
+            else setTimeout(tick, 16);
+          }
+          tick();
+        });
+      }.toString() + ')();';
+
+      (document.head || document.documentElement).appendChild(script);
+      script.remove();
+    } catch (e) {}
+  }
+
+  function isTikTokSnapFeedPage() {
+    if (currentPlatform() !== 'tiktok') return false;
+    var path = String(window.location.pathname || '/');
+    if (
+      path.indexOf('/collection/') !== -1 ||
+      path.indexOf('/playlist/') !== -1 ||
+      path.indexOf('/tag/') !== -1 ||
+      path.indexOf('/music/') !== -1
+    ) {
+      return false;
+    }
+    if (/^\/@[^/]+\/?$/.test(path)) return false;
+    if (document.querySelector('[data-e2e="recommend-list-item-container"]')) {
+      return true;
+    }
+    if (path === '/' || path.indexOf('/foryou') === 0 || path.indexOf('/following') === 0) {
+      return true;
+    }
+    return path.indexOf('/video/') !== -1;
+  }
+
+  function findScrollableAncestor(el) {
+    var node = el;
+    var hops = 0;
+    while (node && hops < 18) {
+      if (node === document.body || node === document.documentElement) break;
+      try {
+        var style = window.getComputedStyle(node);
+        var overflowY = style.overflowY;
+        if (
+          (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') &&
+          node.scrollHeight > node.clientHeight + 40
+        ) {
+          return node;
+        }
+      } catch (e) {}
+      node = node.parentElement;
+      hops += 1;
+    }
+    var scrolling = document.scrollingElement;
+    if (scrolling && scrolling.scrollHeight > scrolling.clientHeight + 40) {
+      return scrolling;
+    }
+    return null;
+  }
+
+  function isElementDisplayed(el) {
+    if (!el || el.nodeType !== 1) return false;
+    try {
+      var style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return false;
+    } catch (e) {}
+    return true;
+  }
+
+  function tiktokControlFingerprint(el) {
+    if (!el) return '';
+    return [
+      el.getAttribute && el.getAttribute('data-e2e'),
+      el.getAttribute && el.getAttribute('aria-label'),
+      el.getAttribute && el.getAttribute('title'),
+      el.textContent,
+    ].join(' ').toLowerCase();
+  }
+
+  function isUnsafeTikTokControl(el) {
+    var text = tiktokControlFingerprint(el);
+    return /like|comment|share|partag|bookmark|favorite|music|follow|suivre|search|inbox|download|t[eé]l[eé]charg|report|copy link|copier le lien|not interested/.test(text);
+  }
+
+  function dismissShareIfOpen() {
+    var share = document.querySelector(
+      '[data-e2e="share-board"], [data-e2e="video-share-container"], [data-e2e="bottom-share-board"]',
+    );
+    if (!share) return;
+    try {
+      document.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape',
+        code: 'Escape',
+        keyCode: 27,
+        which: 27,
+        bubbles: true,
+        cancelable: true,
+      }));
+    } catch (e) {}
+    var close = document.querySelector(
+      '[data-e2e="modal-close-inner-button"], [data-e2e="bottom-close"]',
+    );
+    if (close && typeof close.click === 'function') {
+      try { close.click(); } catch (e) {}
+    }
+  }
+
+  function findSnapScroller(fromEl) {
+    var node = fromEl;
+    var hops = 0;
+    var minHeight = Math.min(240, (window.innerHeight || 600) * 0.35);
+    while (node && hops < 24) {
+      if (node === document.body || node === document.documentElement) break;
+      try {
+        var style = window.getComputedStyle(node);
+        var overflowY = String(style.overflowY || '');
+        var snap = String(style.scrollSnapType || '');
+        var canScroll = node.scrollHeight > node.clientHeight + 24;
+        var overflowOk =
+          overflowY === 'auto' ||
+          overflowY === 'scroll' ||
+          overflowY === 'overlay' ||
+          overflowY === 'hidden';
+        var snapOk =
+          snap.indexOf('y') !== -1 ||
+          snap.indexOf('mandatory') !== -1 ||
+          snap.indexOf('proximity') !== -1;
+        if (canScroll && (overflowOk || snapOk)) {
+          var rect = node.getBoundingClientRect();
+          if (rect.height >= minHeight) return node;
+        }
+      } catch (e) {}
+      node = node.parentElement;
+      hops += 1;
+    }
+    return findScrollableAncestor(fromEl);
+  }
+
+  function findPrimaryFeedScroller() {
+    var seeds = [
+      document.querySelector('[data-e2e="user-post-item-list"]'),
+      document.querySelector('[data-e2e="playlist-video-list"]'),
+      document.querySelector('[class*="DivItemContainerList"]'),
+      document.querySelector('[class*="DivThreeColumnContainer"]'),
+      document.querySelector('[class*="DivVideoFeed"]'),
+      document.querySelector('main'),
+    ];
+    for (var i = 0; i < seeds.length; i++) {
+      if (!seeds[i]) continue;
+      var scroller = findScrollableAncestor(seeds[i]);
+      if (scroller) return scroller;
+    }
+    var se = document.scrollingElement || document.documentElement;
+    if (se && se.scrollHeight > se.clientHeight + 40) return se;
+    return null;
+  }
+
+  function scrollPrimaryFeed(delta, smooth) {
+    var el = findPrimaryFeedScroller();
+    if (!el) return false;
+    var amount = Math.round(delta || window.innerHeight * 0.82 || 640);
+    try {
+      el.scrollBy({ top: amount, behavior: smooth ? 'smooth' : 'auto' });
+    } catch (e) {
+      el.scrollTop += amount;
+    }
+    return true;
+  }
+
+  function clickTikTokNextControl() {
+    var nodes = document.querySelectorAll(
+      '[data-e2e="arrow-down"], button[data-e2e="arrow-down"]',
+    );
+    for (var i = 0; i < nodes.length; i++) {
+      var btn = nodes[i];
+      if (!btn || typeof btn.click !== 'function' || !isElementDisplayed(btn)) continue;
+      if (isUnsafeTikTokControl(btn)) continue;
+      try {
+        btn.click();
+        return true;
+      } catch (e) {}
+    }
+    return false;
+  }
+
+  function visibleSnapItem() {
+    var items = document.querySelectorAll(
+      '[data-e2e="recommend-list-item-container"], [data-e2e="feed-video"]',
+    );
+    if (!items.length) return null;
+    var mid = window.innerHeight * 0.45;
+    for (var i = 0; i < items.length; i++) {
+      var box = items[i].getBoundingClientRect();
+      if (box.top <= mid && box.bottom > mid) {
+        return { items: items, index: i, el: items[i] };
+      }
+    }
+    return { items: items, index: 0, el: items[0] };
+  }
+
+  function advanceTikTokSnapFeed() {
+    dismissShareIfOpen();
+    if (clickTikTokNextControl()) return true;
+
+    var vis = visibleSnapItem();
+    if (vis && vis.index + 1 < vis.items.length) {
+      var next = vis.items[vis.index + 1];
+      try {
+        next.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      } catch (e) {
+        try { next.scrollIntoView(true); } catch (e2) {}
+      }
+      return true;
+    }
+
+    var column = (vis && vis.el) || document.querySelector('video') || document.body;
+    var scroller = findSnapScroller(column);
+    if (scroller) {
+      var step = Math.round(
+        (vis && vis.el ? vis.el.getBoundingClientRect().height : 0) ||
+        scroller.clientHeight ||
+        window.innerHeight ||
+        800,
+      );
+      var before = scroller.scrollTop;
+      try {
+        scroller.scrollBy({ top: step, behavior: 'smooth' });
+      } catch (e) {
+        scroller.scrollTop = before + step;
+      }
+      if (Math.abs(scroller.scrollTop - before) > 4) return true;
+    }
+
+    try { window.dispatchEvent(new CustomEvent('__MD_SNAP_ADVANCE__')); } catch (e) {}
+    return true;
+  }
+
+  function scrollAllFeedContainers(amount) {
+    scrollPrimaryFeed(amount, true);
+  }
+
+  function performDeepScanStep() {
+    if (!deepScanActive || deepScanBusy) return;
+    deepScanBusy = true;
+    var epoch = deepScanEpoch;
+
+    var snapFeed = isTikTokSnapFeedPage();
+    var isBg = typeof document !== 'undefined' && document.hidden;
+
+    if (!snapFeed && deepScanTotalRounds % 3 === 0) {
+      try { window.dispatchEvent(new CustomEvent('__MD_PULSE_OBSERVERS__')); } catch (e) {}
+    }
+
+    document.querySelectorAll('[data-e2e="load-more-btn"]').forEach(function (btn) {
+      if (btn && typeof btn.click === 'function') {
+        try { btn.click(); } catch (e) {}
+      }
+    });
+
+    if (snapFeed) {
+      advanceTikTokSnapFeed();
+    } else {
+      var lastTile = document.querySelector(
+        'div[data-e2e="user-post-item"]:last-of-type, [data-e2e="loading-more"]',
+      );
+      if (lastTile && typeof lastTile.scrollIntoView === 'function' && deepScanTotalRounds % 4 === 0) {
+        try {
+          lastTile.scrollIntoView({ behavior: isBg ? 'auto' : 'smooth', block: 'end' });
+        } catch (e) {}
+      } else {
+        scrollPrimaryFeed(Math.round(window.innerHeight * 0.82) || 640, !isBg);
+      }
+    }
+
+    publishNewXFeedItems();
+    var count = X_FEED_CACHE.length;
+
+    try {
+      api.runtime.sendMessage({
+        type: 'MD_DEEP_SCAN_PROGRESS',
+        count: count,
+        target: deepScanTarget,
+        done: false,
+      });
+    } catch (e) {}
+
+    if (count >= deepScanTarget) {
+      finishDeepScan(count);
+      return;
+    }
+
+    if (count === deepScanLastCount) {
+      deepScanStagnantRounds++;
+    } else {
+      deepScanStagnantRounds = 0;
+      deepScanLastCount = count;
+    }
+
+    // FYP advances 1 video per tick; allow a longer stall before giving up.
+    var maxStagnant = snapFeed ? (isBg ? 120 : 60) : (isBg ? 80 : 30);
+    if (deepScanStagnantRounds >= maxStagnant || deepScanTotalRounds >= 500) {
+      finishDeepScan(count);
+      return;
+    }
+
+    deepScanTotalRounds++;
+    setTimeout(function () {
+      if (epoch === deepScanEpoch) deepScanBusy = false;
+    }, snapFeed ? 720 : 480);
+  }
+
+  function startDeepScan(targetMax) {
+    stopDeepScan();
+    injectPageEnvironmentHook();
+    deepScanActive = true;
+    deepScanTarget = Math.min(parseInt(targetMax, 10) || 1000, 2000);
+    deepScanLastCount = 0;
+    deepScanStagnantRounds = 0;
+    deepScanTotalRounds = 0;
+
+    performDeepScanStep();
+
+    if (deepScanTimer) clearInterval(deepScanTimer);
+    var stepMs = isTikTokSnapFeedPage() ? 1300 : 1100;
+    deepScanTimer = setInterval(function () {
+      if (!deepScanActive) {
+        clearInterval(deepScanTimer);
+        deepScanTimer = null;
+        return;
+      }
+      performDeepScanStep();
+    }, stepMs);
+  }
+
+  function finishDeepScan(finalCount) {
+    deepScanEpoch += 1;
+    deepScanActive = false;
+    deepScanBusy = false;
+    if (deepScanTimer) {
+      clearInterval(deepScanTimer);
+      deepScanTimer = null;
+    }
+    try { window.dispatchEvent(new CustomEvent('__MD_STOP_BG_FORCE__')); } catch (e) {}
+    try {
+      api.runtime.sendMessage({
+        type: 'MD_DEEP_SCAN_PROGRESS',
+        count: finalCount,
+        target: deepScanTarget,
+        done: true,
+      });
+    } catch (e) {}
+  }
+
+  function stopDeepScan() {
+    deepScanEpoch += 1;
+    deepScanActive = false;
+    deepScanBusy = false;
+    if (deepScanTimer) {
+      clearInterval(deepScanTimer);
+      deepScanTimer = null;
+    }
+    try { window.dispatchEvent(new CustomEvent('__MD_STOP_BG_FORCE__')); } catch (e) {}
+  }
+
+  var lastObservedUrl = window.location.href;
+  function checkUrlChange() {
+    if (window.location.href !== lastObservedUrl) {
+      lastObservedUrl = window.location.href;
+      X_FEED_CACHE = [];
+      X_FEED_CACHE_INDEX = Object.create(null);
+      X_FEED_EMITTED_IDS = {};
+      try {
+        api.runtime.sendMessage({
+          type: 'MD_PAGE_NAVIGATED',
+          pageUrl: window.location.href,
+          title: document.title,
+        });
+      } catch (e) {}
+      setTimeout(publishNewXFeedItems, 350);
+    }
+  }
+  window.addEventListener('popstate', checkUrlChange);
+  setInterval(checkUrlChange, 1200);
 
   function findPlatformSpecificUrl(element) {
     var pageUrl = window.location.href;
-    var hostname = window.location.hostname || '';
-    if (isXPage()) {
+    var platform = currentPlatform();
+
+    if (platform === 'x') {
       var permalink = resolveXPermalinkFromElement(element);
       if (permalink) return permalink;
       return null;
     }
-    if (hostname.indexOf('kick.com') !== -1) {
+
+    if (platform === 'tiktok') {
+      var ttContainer = (element.closest && element.closest('[data-e2e="recommend-list-item-container"], div[class*="DivItemContainer"], [data-e2e="feed-video"], section')) || element.parentElement;
+      if (ttContainer) {
+        var ttLink = ttContainer.querySelector('a[href*="/video/"]');
+        if (ttLink && ttLink.href) {
+          return (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl) ? MDUrl.canonicalMediaUrl(ttLink.href) : ttLink.href.split('?')[0];
+        }
+        var xgEl = ttContainer.querySelector('[id^="xgwrapper-"]') || (ttContainer.id && ttContainer.id.indexOf('xgwrapper-') === 0 ? ttContainer : null);
+        if (!xgEl && element.closest) xgEl = element.closest('[id^="xgwrapper-"]');
+        if (xgEl) {
+          var xgMatch = xgEl.id.match(/xgwrapper-\d+-(\d+)/);
+          if (xgMatch) {
+            var authorEl = ttContainer.querySelector('a[href*="/@"]');
+            var authorM = authorEl ? authorEl.href.match(/@([a-zA-Z0-9_.-]+)/) : null;
+            var authorHandle = authorM ? '@' + authorM[1] : '';
+            return authorHandle ? 'https://www.tiktok.com/' + authorHandle + '/video/' + xgMatch[1] : 'https://www.tiktok.com/video/' + xgMatch[1];
+          }
+        }
+      }
+      if (pageUrl.indexOf('/video/') !== -1) {
+        return (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl) ? MDUrl.canonicalMediaUrl(pageUrl) : pageUrl.split('?')[0];
+      }
+    }
+
+    if (platform === 'instagram') {
+      var igContainer = (element.closest && element.closest('article, div[role="dialog"], [class*="Reels"], div[style*="aspect-ratio"]')) || element.parentElement;
+      if (igContainer) {
+        var igLink = igContainer.querySelector('a[href*="/reel/"], a[href*="/reels/"], a[href*="/p/"]');
+        if (igLink && igLink.href) {
+          return (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl) ? MDUrl.canonicalMediaUrl(igLink.href) : igLink.href.split('?')[0];
+        }
+      }
+      if (pageUrl.indexOf('/reel/') !== -1 || pageUrl.indexOf('/reels/') !== -1 || pageUrl.indexOf('/p/') !== -1) {
+        return (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl) ? MDUrl.canonicalMediaUrl(pageUrl) : pageUrl.split('?')[0];
+      }
+    }
+
+    if (platform === 'youtube') {
+      var ytContainer = (element.closest && element.closest('ytd-reel-video-renderer, ytd-rich-item-renderer, ytd-video-renderer, #player')) || element.parentElement;
+      if (ytContainer) {
+        var ytLink = ytContainer.querySelector('a[href*="/shorts/"], a[href*="/watch?v="]');
+        if (ytLink && ytLink.href) {
+          return (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl) ? MDUrl.canonicalMediaUrl(ytLink.href) : ytLink.href.split('&')[0];
+        }
+      }
+      if (pageUrl.indexOf('/shorts/') !== -1 || pageUrl.indexOf('/watch?v=') !== -1) {
+        return (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl) ? MDUrl.canonicalMediaUrl(pageUrl) : pageUrl.split('&')[0];
+      }
+    }
+
+    if (platform === 'kick') {
       return pageUrl.split('?')[0];
     }
 
     function findNearestPermalink(el) {
+      var generic = findGenericPermalink(el);
+      if (generic) return generic;
       if (el.tagName === 'A' && el.href && VIDEO_PATTERNS.some(function (p) { return el.href.indexOf(p) !== -1; })) {
         return el.href;
       }
@@ -540,7 +1734,7 @@
       var twitterLink = container.querySelector('a[href*="/status/"]');
       if (twitterLink) return twitterLink.href;
       var link = container.querySelector(
-        'a[href*="/watch?v="], a[href*="/reel/"], a[href*="/reels/"]',
+        'a[href*="/watch?v="], a[href*="/reel/"], a[href*="/reels/"], a[href*="/video/"]',
       );
       if (link) return link.href;
       return null;
@@ -555,41 +1749,69 @@
       if (mediaUrl && mediaUrl.indexOf('blob:') !== 0 && mediaUrl.indexOf('preview') === -1) {
         return mediaUrl;
       }
+      var sources = element.querySelectorAll ? element.querySelectorAll('source[src]') : [];
+      for (var s = 0; s < sources.length; s++) {
+        var sUrl = sources[s].src;
+        if (sUrl && sUrl.indexOf('blob:') !== 0) return sUrl;
+      }
+      return pageUrlFallback();
     } else if (element.tagName === 'A') {
       return element.href;
     }
 
-    if (VIDEO_PATTERNS.some(function (p) { return pageUrl.indexOf(p) !== -1; })) {
-      return pageUrl;
+    return pageUrlFallback();
+  }
+
+  function resolveBestDownloadUrl(targetUrl, callback) {
+    if (targetUrl && targetUrl.indexOf('blob:') !== 0 && targetUrl.indexOf('http') === 0) {
+      callback(targetUrl);
+      return;
     }
-    return null;
+    if (api.runtime && api.runtime.sendMessage) {
+      try {
+        api.runtime.sendMessage({ type: 'GET_SNIFFED_STREAMS' }, function (res) {
+          if (!api.runtime.lastError && res && res.ok && Array.isArray(res.streams) && res.streams.length > 0) {
+            var latest = res.streams[res.streams.length - 1];
+            if (latest && latest.url) {
+              callback(latest.url);
+              return;
+            }
+          }
+          callback(targetUrl || window.location.href);
+        });
+        return;
+      } catch (e) {}
+    }
+    callback(targetUrl || window.location.href);
   }
 
   function sendDownload(targetUrl, opts, extra, onResult) {
-    try {
-      api.runtime.sendMessage(
-        {
-          type: 'DOWNLOAD_BTN_CLICK',
-          url: targetUrl,
-          pageUrl: window.location.href,
-          options: opts || {},
-          tweetId: extra && extra.tweetId ? extra.tweetId : null,
-          mediaId: extra && extra.mediaId ? extra.mediaId : null,
-        },
-        function (response) {
-          if (api.runtime.lastError) {
-            onResult({ ok: false, error: 'app_offline' });
-            return;
-          }
-          onResult(response || { ok: false, error: 'no_response' });
-        },
-      );
-    } catch (e) {
-      onResult({ ok: false, error: 'send_failed' });
-    }
+    resolveBestDownloadUrl(targetUrl, function (resolvedUrl) {
+      try {
+        api.runtime.sendMessage(
+          {
+            type: 'DOWNLOAD_BTN_CLICK',
+            url: resolvedUrl,
+            pageUrl: pageUrlFallback(),
+            options: opts || {},
+            tweetId: extra && extra.tweetId ? extra.tweetId : null,
+            mediaId: extra && extra.mediaId ? extra.mediaId : null,
+          },
+          function (response) {
+            if (api.runtime.lastError) {
+              onResult({ ok: false, error: 'app_offline' });
+              return;
+            }
+            onResult(response || { ok: false, error: 'no_response' });
+          },
+        );
+      } catch (e) {
+        onResult({ ok: false, error: 'send_failed' });
+      }
+    });
   }
 
-  function createButtonUI(targetUrl, tweetId, mediaId) {
+  function createButtonUI(targetUrl, tweetId, mediaId, container) {
     var host = document.createElement('div');
     host.className = 'md-dl-host';
     if (tweetId) host.dataset.tweetId = tweetId;
@@ -599,38 +1821,64 @@
       zIndex: '2147483647',
       pointerEvents: 'none',
     });
-    var offset = '8px';
-    if (SETTINGS.btnPosition === 'top-right') {
-      host.style.top = offset;
-      host.style.right = offset;
-    } else if (SETTINGS.btnPosition === 'top-left') {
-      host.style.top = offset;
-      host.style.left = offset;
-    } else if (SETTINGS.btnPosition === 'bottom-right') {
-      host.style.bottom = offset;
-      host.style.right = offset;
-    } else {
-      host.style.bottom = offset;
-      host.style.left = offset;
+
+    var isVerticalVideo = false;
+    if (container) {
+      var rect = container.getBoundingClientRect ? container.getBoundingClientRect() : null;
+      if (rect && rect.height > rect.width * 1.05) {
+        isVerticalVideo = true;
+      }
+    }
+    if (!isVerticalVideo && typeof MDUrl !== 'undefined' && MDUrl.isReelOrShortsUrl && MDUrl.isReelOrShortsUrl(targetUrl || window.location.href)) {
+      isVerticalVideo = true;
     }
 
     var shadow = host.attachShadow({ mode: 'closed' });
     var style = document.createElement('style');
-    style.textContent =
-      ':host{all:initial}' +
-      '.wrap{display:flex;align-items:center;gap:0;pointer-events:auto;font-family:Segoe UI,Helvetica,sans-serif}' +
-      'button{border:none;color:#fff;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}' +
-      'button:disabled{cursor:default}' +
-      '.main{background:' + SETTINGS.btnColor + ';border-radius:6px 0 0 6px;padding:6px 12px;font-size:13px}' +
-      '.main.solo{border-radius:6px}' +
-      '.toggle{background:' + SETTINGS.btnColor + ';filter:brightness(0.9);border-radius:0 6px 6px 0;padding:6px 8px;border-left:1px solid rgba(255,255,255,.2)}' +
-      '.menu{position:absolute;top:100%;right:0;display:none;flex-direction:column;min-width:120px;background:#1E1E24;border:1px solid #333;border-radius:6px;overflow:hidden}' +
-      '.menu.open{display:flex}' +
-      '.item{padding:8px 12px;color:#eee;font-size:12px;cursor:pointer}' +
-      '.item:hover{background:' + SETTINGS.btnColor + '}' +
-      '.ok{background:#4CAF50!important}' +
-      '.err{background:#F44336!important}';
     shadow.appendChild(style);
+
+    function applyStyles() {
+      var sizeMap = {
+        small: { pad: '4px 8px', font: '11px', togglePad: '4px 6px' },
+        normal: { pad: '6px 12px', font: '13px', togglePad: '6px 8px' },
+        large: { pad: '8px 16px', font: '15px', togglePad: '8px 10px' },
+      };
+      var sz = sizeMap[SETTINGS.btnSize] || sizeMap.normal;
+
+      var isLeftAligned = false;
+      if (isVerticalVideo) {
+        host.style.top = '16px';
+        host.style.left = '16px';
+        host.style.right = 'auto';
+        host.style.bottom = 'auto';
+        isLeftAligned = true;
+      } else {
+        var offset = '8px';
+        host.style.top = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('top') >= 0) ? offset : 'auto';
+        host.style.bottom = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('bottom') >= 0) ? offset : 'auto';
+        host.style.left = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('left') >= 0) ? offset : 'auto';
+        host.style.right = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('right') >= 0) ? offset : 'auto';
+        isLeftAligned = SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('left') >= 0;
+      }
+
+      var menuPosCss = isLeftAligned ? 'left:0;right:auto;' : 'right:0;left:auto;';
+      style.textContent =
+        ':host{all:initial}' +
+        '.wrap{display:flex;align-items:center;gap:0;pointer-events:auto;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,sans-serif;opacity:0.92;transition:opacity 0.2s ease,transform 0.2s ease,box-shadow 0.2s ease;box-shadow:0 4px 14px rgba(0,0,0,0.4);border-radius:6px;background:rgba(20,20,28,0.75)}' +
+        '.wrap:hover{opacity:1;transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,0.45)}' +
+        'button{border:none;color:#fff;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;user-select:none}' +
+        'button:disabled{cursor:default}' +
+        '.main{background:' + SETTINGS.btnColor + ';border-radius:6px 0 0 6px;padding:' + sz.pad + ';font-size:' + sz.font + ';line-height:1.4}' +
+        '.main.solo{border-radius:6px}' +
+        '.toggle{background:' + SETTINGS.btnColor + ';filter:brightness(0.9);border-radius:0 6px 6px 0;padding:' + sz.togglePad + ';border-left:1px solid rgba(255,255,255,.2);line-height:1.4}' +
+        '.menu{position:absolute;top:100%;' + menuPosCss + 'display:none;flex-direction:column;min-width:120px;background:#1E1E24;border:1px solid #333;border-radius:6px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.5);margin-top:4px;z-index:100}' +
+        '.menu.open{display:flex}' +
+        '.item{padding:8px 12px;color:#eee;font-size:12px;cursor:pointer}' +
+        '.item:hover{background:' + SETTINGS.btnColor + '}' +
+        '.ok{background:#4CAF50!important}' +
+        '.err{background:#F44336!important}';
+    }
+    applyStyles();
 
     var wrap = document.createElement('div');
     wrap.className = 'wrap';
@@ -755,31 +2003,76 @@
       mediaId: mediaId,
       setDownloaded: setDownloaded,
       setIdle: setIdle,
+      applyStyles: applyStyles,
     };
   }
 
+  function findVideoContainer(video) {
+    if (!video || !video.parentElement) return null;
+    var platform = currentPlatform();
+
+    if (platform === 'tiktok') {
+      var ttWrapper = video.closest(
+        '[class*="DivBasicPlayerWrapper"], [class*="DivContainer"], [class*="PlayerContainer"], [data-e2e="recommend-list-item-container"], [data-e2e="feed-video"]'
+      );
+      if (ttWrapper) {
+        var ttRect = ttWrapper.getBoundingClientRect();
+        if (ttRect.height > 80) return ttWrapper;
+      }
+    }
+
+    if (platform === 'instagram') {
+      var igWrapper = video.closest('article, div[role="dialog"], [class*="Reels"], div[style*="aspect-ratio"]');
+      if (igWrapper) {
+        var igRect = igWrapper.getBoundingClientRect();
+        if (igRect.height > 80) return igWrapper;
+      }
+    }
+
+    if (platform === 'youtube') {
+      var ytWrapper = video.closest('ytd-reel-video-renderer, ytd-player, #player, .html5-video-player');
+      if (ytWrapper) {
+        var ytRect = ytWrapper.getBoundingClientRect();
+        if (ytRect.height > 80) return ytWrapper;
+      }
+    }
+
+    // Generic fallback:
+    // If video is position:absolute or parent has zero height, search upwards for nearest positioned ancestor with real height
+    var parent = video.parentElement;
+    var vPos = window.getComputedStyle(video).position;
+    var pRect = parent.getBoundingClientRect();
+    if (vPos === 'absolute' || pRect.height < 30) {
+      var curr = parent;
+      while (curr && curr !== document.body && curr !== document.documentElement) {
+        var cPos = window.getComputedStyle(curr).position;
+        var cRect = curr.getBoundingClientRect();
+        if (cPos !== 'static' && cRect.height > 40) {
+          return curr;
+        }
+        curr = curr.parentElement;
+      }
+    }
+
+    return parent;
+  }
+
   function ensureRelative(container) {
-    // Do not mutate host position permanently — use a fixed overlay wrapper if static.
+    if (!container) return;
+    var rect = container.getBoundingClientRect();
+    // NEVER mutate a 0-height container: it would collapse absolute children to 0px height!
+    if (rect.height <= 0 || rect.width <= 0) return;
     var style = window.getComputedStyle(container);
     if (style.position === 'static') {
-      var overlay = container.querySelector(':scope > .md-dl-overlay-root');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'md-dl-overlay-root';
-        Object.assign(overlay.style, {
-          position: 'absolute',
-          inset: '0',
-          pointerEvents: 'none',
-          zIndex: '2147483646',
-        });
-        // Parent may still be static — set relative only on a wrapper we own.
-        var wrap = document.createElement('div');
-        wrap.className = 'md-dl-position-host';
-        Object.assign(wrap.style, {
-          position: 'relative',
-          display: 'contents',
-        });
-        // Safer: just set relative on container (minimal) when needed for absolute children.
+      // Do not change position if container has absolute video children that rely on outer container
+      var hasAbsVideo = false;
+      for (var i = 0; i < container.children.length; i++) {
+        if (container.children[i].tagName === 'VIDEO' && window.getComputedStyle(container.children[i]).position === 'absolute') {
+          hasAbsVideo = true;
+          break;
+        }
+      }
+      if (!hasAbsVideo) {
         container.style.position = 'relative';
       }
     }
@@ -787,10 +2080,11 @@
 
   function injectButton(container, targetUrl) {
     if (!container || PROCESSED.has(container)) return;
+    if (isSponsoredContent(container)) return;
     ensureRelative(container);
     var tweetId = xTweetIdFromUrl(targetUrl);
     var mediaId = findMediaAssetIdNear(container);
-    var ui = createButtonUI(targetUrl, tweetId, mediaId);
+    var ui = createButtonUI(targetUrl, tweetId, mediaId, container);
     container.appendChild(ui.host);
     injectedButtons.push(ui);
     PROCESSED.add(container);
@@ -801,27 +2095,75 @@
 
   function scan() {
     if (!document.body) return;
+    if (isAdFrameHost()) return;
 
     document.querySelectorAll('video').forEach(function (video) {
       if (!video.parentElement) return;
-      // Skip tiny / ad-like videos
-      var rect = video.getBoundingClientRect();
-      if (rect.width < 80 || rect.height < 45) return;
+      if (isSponsoredContent(video) || isSponsoredContent(video.parentElement)) return;
+      if (!isUsableVideo(video)) return;
       var url = findPlatformSpecificUrl(video);
-      if (url) injectButton(video.parentElement, url);
+      if (!url) return;
+      var targetContainer = findVideoContainer(video);
+      if (targetContainer) injectButton(targetContainer, url);
     });
 
-    document.querySelectorAll('a').forEach(function (a) {
-      if (PROCESSED.has(a)) return;
-      var href = a.href;
-      if (!href || !VIDEO_PATTERNS.some(function (p) { return href.indexOf(p) !== -1; })) return;
-      var rect = a.getBoundingClientRect();
-      if (rect.width > 100 && rect.height > 60) {
-        injectButton(a, href);
-      }
-    });
+    var platform = currentPlatform();
+    if (platform === 'x' || platform === 'facebook') {
+      document.querySelectorAll('a').forEach(function (a) {
+        if (PROCESSED.has(a)) return;
+        if (isSponsoredContent(a)) return;
+        var href = a.href;
+        if (!href || !VIDEO_PATTERNS.some(function (p) { return href.indexOf(p) !== -1; })) return;
+        var rect = a.getBoundingClientRect();
+        if (rect.width > 100 && rect.height > 60) {
+          injectButton(a, href);
+        }
+      });
+    } else if (!inIframe && (platform === 'generic' || platform === 'kick')) {
+      document.querySelectorAll('a[href]').forEach(function (a) {
+        if (!looksLikeVideoCard(a)) return;
+        if (isSponsoredContent(a)) return;
+        injectButton(a, a.href);
+      });
+    }
 
     scheduleXFeedUpdate();
+  }
+
+  function clearFullscreenOverlay() {
+    var old = document.querySelector('.md-dl-fs-host');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+  }
+
+  function injectFullscreenButton() {
+    clearFullscreenOverlay();
+    var fs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (!fs) return;
+    var video = fs.tagName === 'VIDEO' ? fs : (fs.querySelector ? fs.querySelector('video') : null);
+    if (!video) return;
+    if (isSponsoredContent(video)) return;
+    var url = findPlatformSpecificUrl(video) || pageUrlFallback();
+    if (fs.tagName === 'VIDEO') {
+      var mount = fs.parentElement;
+      if (!mount || mount === document.body) return;
+      var ui = createButtonUI(url, xTweetIdFromUrl(url), findMediaAssetIdNear(video), mount);
+      ui.host.classList.add('md-dl-fs-host');
+      ui.host.style.position = 'fixed';
+      ui.host.style.top = '16px';
+      ui.host.style.right = '16px';
+      ui.host.style.left = 'auto';
+      ui.host.style.bottom = 'auto';
+      try {
+        fs.appendChild(ui.host);
+      } catch (e) {
+        mount.appendChild(ui.host);
+      }
+      injectedButtons.push(ui);
+      return;
+    }
+    injectButton(fs, url);
+    var hosts = fs.querySelectorAll ? fs.querySelectorAll('.md-dl-host') : [];
+    if (hosts.length) hosts[hosts.length - 1].classList.add('md-dl-fs-host');
   }
 
   function scheduleScan() {
@@ -835,27 +2177,81 @@
   }
 
   function start() {
+    if (isAdFrameHost()) return;
     if (!document.body) {
       document.addEventListener('DOMContentLoaded', start, { once: true });
       return;
     }
+    if (inIframe && api.runtime && api.runtime.sendMessage) {
+      try {
+        api.runtime.sendMessage({ type: 'GET_TAB_URL' }, function (res) {
+          if (!api.runtime.lastError && res && res.url) {
+            tabPageUrl = res.url;
+          }
+        });
+      } catch (e) {}
+    }
     scan();
-    var observer = new MutationObserver(function () {
+    document.addEventListener('fullscreenchange', function () {
+      injectFullscreenButton();
+    });
+    document.addEventListener('webkitfullscreenchange', function () {
+      injectFullscreenButton();
+    });
+    var observer = new MutationObserver(function (mutations) {
+      var hasNodes = false;
+      for (var i = 0; i < mutations.length; i++) {
+        if (mutations[i].addedNodes && mutations[i].addedNodes.length > 0) {
+          hasNodes = true;
+          break;
+        }
+      }
+      if (!hasNodes) return;
       scheduleScan();
-      scheduleXFeedUpdate();
+      scheduleXFeedUpdate(1200);
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    document.addEventListener('scroll', scheduleXFeedUpdate, true);
+
+    window.addEventListener('scroll', function () {
+      scheduleXFeedUpdate(1200);
+    }, { passive: true });
   }
 
   if (api.runtime && api.runtime.onMessage) {
     api.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       if (!message || typeof message.type !== 'string') return false;
+      if (message.type === 'MD_CLEAR_CACHE') {
+        stopDeepScan();
+        X_FEED_CACHE = [];
+        X_FEED_CACHE_INDEX = Object.create(null);
+        X_FEED_EMITTED_IDS = {};
+        sendResponse({ ok: true });
+        return false;
+      }
+      if (message.type === 'MD_START_DEEP_SCAN') {
+        startDeepScan(message.maxTarget || 1000);
+        sendResponse({ ok: true });
+        return false;
+      }
+      if (message.type === 'MD_DEEP_SCAN_PULSE') {
+        if (!deepScanActive) {
+          startDeepScan(message.maxTarget || 1000);
+        }
+        sendResponse({ ok: true, active: deepScanActive });
+        return false;
+      }
+      if (message.type === 'MD_STOP_DEEP_SCAN') {
+        stopDeepScan();
+        sendResponse({ ok: true });
+        return false;
+      }
       if (message.type === 'MD_DOWNLOAD_STATE') {
         mergeLocalKeys(
           message.tweetIds,
           message.mediaIds,
           message.removedTweetIds,
+          message.tikTokIds,
+          message.removedTikTokIds,
         );
         refreshInjectedButtons();
         sendResponse({ ok: true });
@@ -873,24 +2269,25 @@
         }
         return false;
       }
-      if (message.type !== 'MD_EXTRACT_X_FEED') return false;
-      try {
-        var result = extractXFeed(message.maxItems);
-        if (result && result.ok === true && Array.isArray(result.items)) {
-          rememberXFeedItems(result.items);
-          result.items = X_FEED_CACHE.map(function (id) {
-            return X_FEED_CACHE_INDEX[id];
-          });
-          result.items.forEach(function (item) {
-            var id = String(item && item.id || '');
-            if (id) X_FEED_EMITTED_IDS[id] = true;
-          });
+      if (message.type === 'MD_EXTRACT_X_FEED' || message.type === 'MD_EXTRACT_FEED') {
+        try {
+          var result = extractUniversalFeed(message.maxItems);
+          if (result && result.ok === true && Array.isArray(result.items)) {
+            rememberXFeedItems(result.items);
+            result.items = X_FEED_CACHE.map(function (id) {
+              return X_FEED_CACHE_INDEX[id];
+            }).filter(Boolean);
+            result.items.forEach(function (item) {
+              var id = String(item && item.id || '');
+              if (id) X_FEED_EMITTED_IDS[id] = true;
+            });
+          }
+          sendResponse(result);
+        } catch (e) {
+          sendResponse({ ok: false, error: 'extract_failed' });
         }
-        sendResponse(result);
-      } catch (e) {
-        sendResponse({ ok: false, error: 'extract_failed' });
+        return false;
       }
-      return false;
     });
   }
 

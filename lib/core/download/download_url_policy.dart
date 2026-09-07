@@ -1,8 +1,9 @@
 import 'package:modern_downloader/core/download/x_download_url.dart';
 
-/// Host allowlist for extension / manual download URLs.
+/// URL gate for extension / manual downloads.
 ///
-/// Keep [allowedDomains] / [adultDomains] in sync with
+/// Any public http(s) page is allowed (yt-dlp generic extractor). Known
+/// [adultDomains] stay behind [includeAdult]. Keep list names in sync with
 /// `ALLOWED_DOWNLOAD_DOMAINS` / `ADULT_DOMAINS` in `extension/shared/url_policy.js`.
 class DownloadUrlPolicy {
   DownloadUrlPolicy._();
@@ -23,6 +24,10 @@ class DownloadUrlPolicy {
     'vimeo.com',
     'dailymotion.com',
     'soundcloud.com',
+    'bilibili.com',
+    'rumble.com',
+    'threads.net',
+    'bsky.app',
   };
 
   static const Set<String> adultDomains = {
@@ -47,15 +52,15 @@ class DownloadUrlPolicy {
     if (XDownloadUrl.isCdnHost(uri.host)) return false;
 
     final host = uri.host.toLowerCase();
-    for (final domain in allowedDomains) {
-      if (_hostMatches(host, domain)) return true;
+    if (host == 'localhost' || host == '127.0.0.1' || host == '::1' || host.endsWith('.local')) {
+      return false;
     }
-    if (includeAdult) {
+    if (!includeAdult) {
       for (final domain in adultDomains) {
-        if (_hostMatches(host, domain)) return true;
+        if (_hostMatches(host, domain)) return false;
       }
     }
-    return false;
+    return true;
   }
 
   static bool _hostMatches(String host, String domain) {

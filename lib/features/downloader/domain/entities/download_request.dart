@@ -28,6 +28,7 @@ class DownloadRequest {
 
   final String? cookieBrowser;
   final bool organizeBySite;
+  final bool organizeByCreator;
   final String? userAgent;
 
   // Direct Stream Override (Bypassing fetch)
@@ -57,6 +58,7 @@ class DownloadRequest {
     this.rawCookies,
     this.cookieBrowser,
     this.organizeBySite = false,
+    this.organizeByCreator = false,
     this.userAgent,
   });
 
@@ -84,6 +86,7 @@ class DownloadRequest {
     bool clearRawCookies = false,
     String? cookieBrowser,
     bool? organizeBySite,
+    bool? organizeByCreator,
     String? userAgent,
   }) {
     return DownloadRequest(
@@ -110,6 +113,7 @@ class DownloadRequest {
       rawCookies: clearRawCookies ? null : (rawCookies ?? this.rawCookies),
       cookieBrowser: cookieBrowser ?? this.cookieBrowser,
       organizeBySite: organizeBySite ?? this.organizeBySite,
+      organizeByCreator: organizeByCreator ?? this.organizeByCreator,
       userAgent: userAgent ?? this.userAgent,
     );
   }
@@ -138,6 +142,7 @@ class DownloadRequest {
       'rawCookies': rawCookies,
       'cookieBrowser': cookieBrowser,
       'organizeBySite': organizeBySite,
+      'organizeByCreator': organizeByCreator,
       'userAgent': userAgent,
     };
   }
@@ -166,6 +171,7 @@ class DownloadRequest {
       rawCookies: json['rawCookies'] as String?,
       cookieBrowser: json['cookieBrowser'] as String?,
       organizeBySite: json['organizeBySite'] as bool? ?? false,
+      organizeByCreator: json['organizeByCreator'] as bool? ?? false,
       userAgent: json['userAgent'] as String?,
     );
   }

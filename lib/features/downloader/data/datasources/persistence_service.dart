@@ -14,15 +14,9 @@ class PersistenceService {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$_fileName');
-
       final data = downloads.map((e) => e.toJson()).toList();
       final jsonString = jsonEncode(data);
-      final tmp = File('${file.path}.tmp');
-      await tmp.writeAsString(jsonString, flush: true);
-      if (await file.exists()) {
-        await file.delete();
-      }
-      await tmp.rename(file.path);
+      await _atomicWrite(file, jsonString);
       LoggerService.debug('Saved ${downloads.length} downloads to disk.');
     } catch (e) {
       LoggerService.e('Failed to save downloads', e);
@@ -33,15 +27,32 @@ class PersistenceService {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$_fileName');
+      final bakFile = File('${dir.path}/$_fileName.bak');
 
+      File effectiveFile = file;
       if (!await file.exists()) {
-        LoggerService.i('No saved downloads found.');
-        return [];
+        if (await bakFile.exists()) {
+          LoggerService.w('Primary downloads file missing, recovering from backup: ${bakFile.path}');
+          effectiveFile = bakFile;
+        } else {
+          LoggerService.i('No saved downloads found.');
+          return [];
+        }
       }
 
-      final jsonString = await file.readAsString();
-      final List<dynamic> jsonList = jsonDecode(jsonString);
+      String jsonString;
+      try {
+        jsonString = await effectiveFile.readAsString();
+      } catch (e) {
+        if (effectiveFile != bakFile && await bakFile.exists()) {
+          LoggerService.w('Failed reading primary file, falling back to backup: $e');
+          jsonString = await bakFile.readAsString();
+        } else {
+          rethrow;
+        }
+      }
 
+      final List<dynamic> jsonList = jsonDecode(jsonString);
       final downloads = jsonList
           .map((e) => DownloadItem.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -58,12 +69,7 @@ class PersistenceService {
     try {
       final file = await _queueFile();
       final jsonString = DownloadQueueCodec.encode(queue);
-      final tmp = File('${file.path}.tmp');
-      await tmp.writeAsString(jsonString, flush: true);
-      if (await file.exists()) {
-        await file.delete();
-      }
-      await tmp.rename(file.path);
+      await _atomicWrite(file, jsonString);
       LoggerService.debug('Saved ${queue.length} queued downloads to disk.');
     } catch (e) {
       LoggerService.e('Failed to save download queue', e);
@@ -90,12 +96,7 @@ class PersistenceService {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$_mediaFingerprintFileName');
-      final tmp = File('${file.path}.tmp');
-      await tmp.writeAsString(jsonEncode(index), flush: true);
-      if (await file.exists()) {
-        await file.delete();
-      }
-      await tmp.rename(file.path);
+      await _atomicWrite(file, jsonEncode(index));
     } catch (e) {
       LoggerService.e('Failed to save media fingerprint index', e);
     }
@@ -124,5 +125,43 @@ class PersistenceService {
   Future<File> _queueFile() async {
     final dir = await getApplicationDocumentsDirectory();
     return File('${dir.path}/queue_v1.json');
+  }
+
+  Future<void> _atomicWrite(File targetFile, String content) async {
+    final tmp = File('${targetFile.path}.tmp');
+    final bak = File('${targetFile.path}.bak');
+    await tmp.writeAsString(content, flush: true);
+
+    if (await targetFile.exists()) {
+      try {
+        if (await bak.exists()) {
+          await bak.delete();
+        }
+        await targetFile.copy(bak.path);
+      } catch (e) {
+        LoggerService.debug('Persistence backup copy non-fatal error: $e');
+      }
+
+      try {
+        await targetFile.delete();
+      } catch (e) {
+        // Direct copy over targetFile if delete fails on Windows locks
+        await tmp.copy(targetFile.path);
+        try {
+          await tmp.delete();
+        } catch (_) {}
+        return;
+      }
+    }
+
+    try {
+      await tmp.rename(targetFile.path);
+    } catch (e) {
+      // Fallback copy if rename fails across partitions or due to Windows flags
+      await tmp.copy(targetFile.path);
+      try {
+        await tmp.delete();
+      } catch (_) {}
+    }
   }
 }

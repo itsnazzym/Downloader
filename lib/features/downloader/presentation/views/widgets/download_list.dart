@@ -11,6 +11,7 @@ import '../../../../../core/design_system/foundation/typography.dart';
 import '../../../../../core/design_system/components/app_card.dart';
 import '../../widgets/download_card.dart';
 import '../../widgets/download_item_context_menu.dart';
+import '../../widgets/progress_bar.dart';
 
 import '../../../../../core/design_system/components/status_badge.dart';
 import '../../../../../core/download/download_file_resolver.dart';
@@ -19,7 +20,9 @@ import '../../../domain/entities/download_item.dart';
 import '../../../domain/enums/download_status.dart';
 import '../../providers/filtered_downloads_provider.dart';
 import '../../providers/downloader_provider.dart';
+import '../../providers/creator_folders_provider.dart';
 import '../../widgets/download_item_display.dart';
+import 'creator_folder_grid.dart';
 import 'download_item_skeleton.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
@@ -38,6 +41,19 @@ class DownloadList extends ConsumerWidget {
         searchQuery.isEmpty &&
         statusFilter == DownloadStatusFilter.all &&
         idList.ids.length <= 50;
+
+    ref.listen(downloadViewModeProvider, (previous, next) {
+      if (next != DownloadViewMode.folders) {
+        ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
+      }
+    });
+    ref.listen(creatorFoldersProvider, (previous, next) {
+      final opened = ref.read(openedCreatorFolderKeyProvider);
+      if (opened == null) return;
+      if (!next.folders.any((folder) => folder.key == opened)) {
+        ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
+      }
+    });
 
     return listPhase.when(
       loading: () => ListView.separated(
@@ -87,6 +103,53 @@ class DownloadList extends ConsumerWidget {
 
         final ids = idList.ids;
 
+        if (viewMode == DownloadViewMode.folders) {
+          final opened = ref.watch(openedCreatorFolderProvider);
+          if (opened == null) {
+            return const CreatorFolderGrid();
+          }
+          final folderIds = ref.watch(openedCreatorFolderItemIdsProvider).ids;
+          final contentsMode = ref.watch(folderContentsViewModeProvider);
+          final useGrid = contentsMode == DownloadViewMode.detailed;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              CreatorFolderOpenHeader(folder: opened),
+              Expanded(
+                child: useGrid
+                    ? GridView.builder(
+                        padding: const EdgeInsets.all(AppSpacing.m),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 300,
+                              mainAxisExtent: 280,
+                              crossAxisSpacing: AppSpacing.m,
+                              mainAxisSpacing: AppSpacing.m,
+                            ),
+                        itemCount: folderIds.length,
+                        itemBuilder: (context, index) {
+                          final id = folderIds[index];
+                          return DownloadRowHost(
+                            key: ValueKey(id),
+                            id: id,
+                            useGridCard: true,
+                          );
+                        },
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(AppSpacing.m),
+                        itemCount: folderIds.length,
+                        separatorBuilder: (ctx, i) => const Gap(AppSpacing.s),
+                        itemBuilder: (context, index) {
+                          final id = folderIds[index];
+                          return DownloadRowHost(key: ValueKey(id), id: id);
+                        },
+                      ),
+              ),
+            ],
+          );
+        }
+
         if (viewMode == DownloadViewMode.detailed) {
           return GridView.builder(
             padding: const EdgeInsets.all(AppSpacing.m),
@@ -99,7 +162,7 @@ class DownloadList extends ConsumerWidget {
             itemCount: ids.length,
             itemBuilder: (context, index) {
               final id = ids[index];
-              return _DownloadRowHost(
+              return DownloadRowHost(
                 key: ValueKey(id),
                 id: id,
                 useGridCard: true,
@@ -115,7 +178,7 @@ class DownloadList extends ConsumerWidget {
             separatorBuilder: (ctx, i) => const Gap(AppSpacing.s),
             itemBuilder: (context, index) {
               final id = ids[index];
-              return _DownloadRowHost(key: ValueKey(id), id: id);
+              return DownloadRowHost(key: ValueKey(id), id: id);
             },
           );
         }
@@ -150,7 +213,7 @@ class DownloadList extends ConsumerWidget {
             return Container(
               key: ValueKey(id),
               margin: const EdgeInsets.only(bottom: AppSpacing.s),
-              child: _DownloadRowHost(id: id),
+              child: DownloadRowHost(id: id),
             );
           },
         );
@@ -159,8 +222,8 @@ class DownloadList extends ConsumerWidget {
   }
 }
 
-class _DownloadRowHost extends ConsumerWidget {
-  const _DownloadRowHost({
+class DownloadRowHost extends ConsumerWidget {
+  const DownloadRowHost({
     super.key,
     required this.id,
     this.useGridCard = false,
@@ -356,13 +419,9 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                             bottom: 0,
                             left: 0,
                             right: 0,
-                            child: LinearProgressIndicator(
-                              value: widget.item.progress > 0
-                                  ? widget.item.progress
-                                  : null,
-                              backgroundColor: Colors.transparent,
-                              color: AppColors.of(context).primary,
-                              minHeight: 4,
+                            child: ProgressBar(
+                              progress: widget.item.progress,
+                              height: 3,
                             ),
                           ),
                       ],
@@ -414,7 +473,12 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
                                             context,
                                             widget.item,
                                           ),
-                                    style: AppTypography.caption,
+                                    style: AppTypography.mono.copyWith(
+                                      fontSize: 11,
+                                      color: AppColors.of(
+                                        context,
+                                      ).textSecondary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -480,25 +544,14 @@ class _DownloadItemGridCardState extends State<_DownloadItemGridCard> {
       decodedPath = Uri.decodeFull(url);
     } catch (_) {}
 
-    final file = File(decodedPath);
-    if (file.existsSync()) {
-      return Image.file(
-        file,
-        fit: BoxFit.cover,
-        errorBuilder: (context, _, _) => Center(
-          child: Icon(
-            Icons.movie_outlined,
-            color: AppColors.of(context).textSecondary,
-          ),
+    return Image.file(
+      File(decodedPath),
+      fit: BoxFit.cover,
+      errorBuilder: (context, _, _) => Center(
+        child: Icon(
+          Icons.movie_outlined,
+          color: AppColors.of(context).textSecondary,
         ),
-      );
-    }
-
-    // File doesn't exist - show placeholder
-    return Center(
-      child: Icon(
-        Icons.movie_outlined,
-        color: AppColors.of(context).textSecondary,
       ),
     );
   }
@@ -617,17 +670,7 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
                       if (isDownloading ||
                           widget.item.status == DownloadStatus.extracting) ...[
                         const Gap(4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: widget.item.progress > 0
-                                ? widget.item.progress
-                                : null,
-                            backgroundColor: AppColors.of(context).background,
-                            color: AppColors.of(context).primary,
-                            minHeight: 4,
-                          ),
-                        ),
+                        ProgressBar(progress: widget.item.progress, height: 4),
                         const Gap(6),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -770,26 +813,16 @@ class _DownloadItemCardState extends State<_DownloadItemCard> {
       decodedPath = Uri.decodeFull(url);
     } catch (_) {}
 
-    final file = File(decodedPath);
-    if (file.existsSync()) {
-      return Image.file(
-        file,
-        fit: BoxFit.cover,
-        width: 48,
-        height: 48,
-        errorBuilder: (context, _, _) => Icon(
-          Icons.movie_outlined,
-          color: AppColors.of(context).textSecondary,
-          size: 24,
-        ),
-      );
-    }
-
-    // File doesn't exist - show placeholder
-    return Icon(
-      Icons.movie_outlined,
-      color: AppColors.of(context).textSecondary,
-      size: 24,
+    return Image.file(
+      File(decodedPath),
+      fit: BoxFit.cover,
+      width: 48,
+      height: 48,
+      errorBuilder: (context, _, _) => Icon(
+        Icons.movie_outlined,
+        color: AppColors.of(context).textSecondary,
+        size: 24,
+      ),
     );
   }
 }

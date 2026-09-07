@@ -39,9 +39,7 @@ Keys: https://addons.mozilla.org/developers/addon/api/key/
 "@
 }
 
-if (-not (Test-Path "extension/firefox/manifest.json")) {
-    dart run tool/build_extension.dart
-}
+dart run tool/build_extension.dart
 
 $artifacts = "signed-xpi"
 if (Test-Path $artifacts) { Remove-Item $artifacts -Recurse -Force }
@@ -49,6 +47,9 @@ New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 
 $signed = $null
 for ($attempt = 1; $attempt -le 20; $attempt++) {
+    Remove-Item "extension/firefox/.amo-upload-uuid" -Force -ErrorAction SilentlyContinue
+    Remove-Item "extension/firefox/.web-extension-id" -Force -ErrorAction SilentlyContinue
+
     $manifest = Get-Content "extension/firefox/manifest.json" -Raw | ConvertFrom-Json
     Write-Host "Signing Firefox add-on version $($manifest.version) (attempt $attempt)"
     $prevEap = $ErrorActionPreference
@@ -66,10 +67,17 @@ for ($attempt = 1; $attempt -le 20; $attempt++) {
     Write-Host $signOutput
     $signed = Get-ChildItem $artifacts -Filter *.xpi -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($signed) { break }
-    if ($signOutput -match 'already exists') {
-        Write-Host "AMO already has version $($manifest.version) - bumping patch"
+    if ($signOutput -match 'already exists' -or $signOutput -match 'already been submitted') {
+        Write-Host "AMO already has version $($manifest.version) or upload was submitted - bumping patch"
+        Remove-Item "extension/firefox/.amo-upload-uuid" -Force -ErrorAction SilentlyContinue
         dart run tool/build_extension.dart --bump-patch
         if ($LASTEXITCODE -ne 0) { throw "Failed to bump add-on version after AMO conflict" }
+        continue
+    }
+    if ($signOutput -match 'throttled.*?Expected available in (\d+) seconds') {
+        $waitSec = [int]$Matches[1] + 3
+        Write-Host "AMO rate limited (429). Waiting $waitSec seconds before retrying..."
+        Start-Sleep -Seconds $waitSec
         continue
     }
     throw "web-ext sign failed without producing an XPI"
@@ -77,5 +85,9 @@ for ($attempt = 1; $attempt -le 20; $attempt++) {
 
 if (-not $signed) { throw "web-ext sign produced no XPI" }
 
+if (Test-Path modern_downloader_firefox.xpi) {
+    Move-Item modern_downloader_firefox.xpi modern_downloader_firefox.xpi.old -Force -ErrorAction SilentlyContinue
+}
 Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
+Remove-Item modern_downloader_firefox.xpi.old -Force -ErrorAction SilentlyContinue
 Write-Host ("Signed: modern_downloader_firefox.xpi ({0} bytes)" -f $signed.Length)

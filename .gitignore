@@ -1,16 +1,34 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Modern Downloader — .gitignore
+# Keep source, manifests, and installer scripts tracked.
+# Ignore build artifacts, secrets, local data, and AI scratch files.
+# ═══════════════════════════════════════════════════════════════════════
+
 # ── OS & System ───────────────────────────────────────────────────────
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
 Thumbs.db
-Desktop.ini
+Thumbs.db:encryptable
 ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+Folder.jpg
+AlbumArtSmall.jpg
+$RECYCLE.BIN/
 *.class
 
-# ── IDEs & Editors ───────────────────────────────────────────────────
+# ── IDEs, Editors & LSP ───────────────────────────────────────────────
 .idea/
 *.iml
 *.ipr
 *.iws
 .vscode/
+.clangd
+.clangd/
+.ccls-cache/
+compile_commands.json
 *.swp
 *.swo
 *~
@@ -19,11 +37,48 @@ ehthumbs.db
 .history/
 .svn/
 
-# ── AI, Local Tooling & Caches ────────────────────────────────────────
+# ── AI Tools, Agent Memory & Scratch Plans ─────────────────────────────
 .cursor/
+.cursor/**
 .firecrawl/
 .superpowers/
 .gemini/
+.agents/
+.ag-kit-backups/
+agent-tools/
+*-plan.md
+*-fix.md
+*-optimization.md
+*-organizer.md
+*-transfer.md
+lan-folder-transfer.md
+*-hd.md
+*-notes.md
+*-audit.md
+
+# ── Secrets, Credentials & Cookies (Strict Security) ──────────────────
+.env
+.env.*
+!.env.example
+cookies.txt
+cookies*.txt
+*.cookies
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.der
+key.properties
+*.jwt
+jwt.json
+auth.json
+credentials.json
+client_secrets.json
+token.json
+tokens.json
+amo_credentials.json
 
 # ── Flutter & Dart ───────────────────────────────────────────────────
 .dart_tool/
@@ -33,9 +88,12 @@ ehthumbs.db
 .pub-cache/
 .pub/
 /build/
+build/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 migrate_working_dir/
+devtools_options.yaml
+*.g.dart.bak
 
 # ── Windows / C++ Build Artifacts ─────────────────────────────────────
 **/windows/flutter/ephemeral/
@@ -46,6 +104,16 @@ migrate_working_dir/
 *.vcxproj.user
 *.VC.db
 *.VC.opendb
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.obj
+*.iobj
+*.ipdb
+*.dmp
+*.dump
+*.crash
 
 # ── Android (local & generated) ──────────────────────────────────────
 **/android/local.properties
@@ -69,65 +137,107 @@ migrate_working_dir/
 **/ios/Runner/GeneratedPluginRegistrant.*
 **/macos/Flutter/ephemeral/
 **/macos/Runner/Configs/AppInfo.xcconfig
+Pods/
+Podfile.lock
 
 # ── Linux (generated) ────────────────────────────────────────────────
 **/linux/flutter/ephemeral/
 
-# ── Python & Scripts ─────────────────────────────────────────────────
+# ── Python, Node & Script Caches ────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 venv/
 env/
+node_modules/
+web-ext-artifacts/
+.web-extension-id
+npm-cache/
+.npx/
 
 # ── Database, Local Data & Backups ───────────────────────────────────
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
+*.sqlite-shm
+*.sqlite-wal
 downloads_v1.json
 downloads_v1.json.bak*
 downloads_v1.backup*
 downloads.json
+downloads*.json
 queue.json
+queue*.json
 settings.json
+settings*.json
 history_export_*.json
 
-# ── Secrets & Environment ────────────────────────────────────────────
-.env
-.env.*
-!.env.example
-
-# ── Release & Packaging Artifacts ────────────────────────────────────
-/ModernDownloader*.zip
-/ModernDownloader*.exe
-/*.zip
-/*.exe
-/*.xpi
-/*.msi
+# ── Release & Packaging Binaries (no heavy binaries in Git) ───────────
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.exe
+*.msi
+*.xpi
+*.crx
+*.apk
+*.aab
+ModernDownloader-*
+modern_downloader_firefox.xpi
 /bin/
+bin/
 /Release/
+Release/
 /dist/
+dist/
 /out/
-/signed-xpi/
+out/
+signed-xpi/
+third_party/gobird/
+third_party/bin/
 
-# ── Logs & Temporary Files ───────────────────────────────────────────
+# ── Scratch Files, Debug Captures & Logs ───────────────────────────────
+tool/_*
+tool/*.png
+tool/*.bmp
+tool/*.jpg
+*.bmp
+_preview*
+*_preview*
+test_results/
+test-results/
+coverage/
+*.lcov
 *.log
 *.bak
 *.orig
 *.rej
 *.tmp
+*.pid
 *.amo-upload-uuid
-coverage/
 analysis_output.txt
 README.bak.md
-devtools_options.yaml
 
-# ── Tracked Exceptions ───────────────────────────────────────────────
+# ── Tracked Exceptions (explicit keep) ───────────────────────────────
 !extension_version.json
 !extension/firefox/
 !extension/chrome/
+!extension/shared/
 !installer/
 !installer/setup.iss
+!assets/
+!assets/**
+!tool/build_extension.dart
+!tool/launch_desktop.py
+!tool/package_windows.ps1
+!tool/sign_firefox_xpi.ps1

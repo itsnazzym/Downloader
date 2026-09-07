@@ -335,7 +335,15 @@ class YtDlpSource {
     // yt-dlp extracts the same generic title for different videos on unknown sites.
     // The ID is unique per video (e.g. YouTube video ID, tweet status ID, etc.)
     final filename = request.customFilename ?? '%(title)s [%(id)s].%(ext)s';
-    outputPath = p.join(baseFolder, filename);
+    if (request.organizeByCreator) {
+      final isTikTok = request.url.contains('tiktok.com');
+      final creatorFolder = isTikTok
+          ? '%(uploader,channel|Inconnu)s'
+          : '%(uploader,channel,uploader_id|Inconnu)s';
+      outputPath = p.join(baseFolder, creatorFolder, filename);
+    } else {
+      outputPath = p.join(baseFolder, filename);
+    }
 
     args.add('-o');
     args.add(outputPath);
@@ -358,12 +366,39 @@ class YtDlpSource {
     }
     // === VIDEO MODE ===
     else {
+      final isTikTok = request.url.contains('tiktok.com');
+      final isTwitch = request.url.contains('twitch.tv');
+
       // Quality selection
       if (request.videoFormatId != null) {
         args.add('-f');
         args.add(
           '${request.videoFormatId}+bestaudio/best[format_id=${request.videoFormatId}]',
         );
+      } else if (isTikTok) {
+        // SnapTik-grade no-watermark prioritization:
+        // Exclude any formats flagged as 'watermark' (like the 'download' format).
+        // Prefer original MP4 pristine bytevc1/h264 1080p or highest available stream.
+        args.add('-f');
+        if (request.preferredQuality == 'worst') {
+          args.add('worst[format_note!*=watermark]/worst');
+        } else if (request.preferredQuality == 'best' ||
+            request.preferredQuality == 'manual' ||
+            request.preferredQuality == 'manual+') {
+          args.add(
+            'best[format_note!*=watermark][ext=mp4]/best[format_note!*=watermark]/bestvideo[format_note!*=watermark]+bestaudio/best',
+          );
+        } else {
+          final height = request.preferredQuality.replaceAll('p', '');
+          args.add(
+            'best[format_note!*=watermark][height<=$height][ext=mp4]/best[format_note!*=watermark][height<=$height]/bestvideo[format_note!*=watermark][height<=$height]+bestaudio/best',
+          );
+        }
+        // Force TikTok mobile API extractor args for clean streams
+        args.addAll([
+          '--extractor-args',
+          'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com;app_info=7355',
+        ]);
       } else if (request.preferredQuality == 'best' ||
           request.preferredQuality == 'manual' ||
           request.preferredQuality == 'manual+') {
@@ -378,14 +413,13 @@ class YtDlpSource {
         args.add('bestvideo[height<=$height]+bestaudio/best[height<=$height]');
       }
 
-      final isTwitch = request.url.contains('twitch.tv');
       if (isTwitch && request.videoFormatId == null) {
         final twitchHeight = request.twitchQuality.replaceAll(
           RegExp(r'[^0-9].*'),
           '',
         );
         if (twitchHeight.isNotEmpty) {
-          args.add('-f');
+          args.removeLast(); // remove format string
           args.add(
             'bestvideo[height<=$twitchHeight]+bestaudio/best[height<=$twitchHeight]',
           );
@@ -397,13 +431,9 @@ class YtDlpSource {
       args.add('--merge-output-format');
       args.add(request.outputFormat); // mp4, mkv, webm
 
-      // --remux-video is much faster than --recode-video (no re-encoding).
-      // In max speed mode, always remux; otherwise recode for max compatibility.
-      if (request.maxSpeedMode) {
-        args.add('--remux-video');
-      } else {
-        args.add('--recode-video');
-      }
+      // --remux-video performs fast container remuxing without re-encoding video streams.
+      // Always remux to keep CPU usage low and eliminate UI freezing during conversions.
+      args.add('--remux-video');
       args.add(request.outputFormat);
 
       // For MP4: Re-encode audio to AAC if merging for max compatibility
@@ -523,6 +553,13 @@ class YtDlpSource {
     YtDlpException? detectedException;
     final errorBuffer = StringBuffer();
     final outputBuffer = StringBuffer();
+    const maxBufferChars = 50000;
+
+    void appendCapped(StringBuffer buf, String text) {
+      if (buf.length < maxBufferChars) {
+        buf.writeln(text);
+      }
+    }
 
     final preferredExt = request.audioOnly
         ? '.${request.audioFormat}'
@@ -558,7 +595,7 @@ class YtDlpSource {
         .transform(const LineSplitter())
         .listen(
           (line) {
-            outputBuffer.writeln(line);
+            appendCapped(outputBuffer, line);
             if (!lineController.isClosed) {
               lineController.add(line);
             }
@@ -578,8 +615,8 @@ class YtDlpSource {
         .transform(const LineSplitter())
         .listen(
           (line) {
-            errorBuffer.writeln(line);
-            outputBuffer.writeln(line);
+            appendCapped(errorBuffer, line);
+            appendCapped(outputBuffer, line);
             detectYtDlpException(line);
             if (!lineController.isClosed) {
               lineController.add(line);
@@ -595,19 +632,37 @@ class YtDlpSource {
           cancelOnError: false,
         );
 
+    DateTime lastYieldTime = DateTime.fromMillisecondsSinceEpoch(0);
+    double lastYieldProgress = -1.0;
+    String lastYieldStep = '';
+
     await for (final line in lineController.stream) {
       for (final update in parser.onLine(line)) {
-        yield DownloadProgressEvent(
-          progress: update.progress,
-          totalSize: update.totalSize,
-          downloadedSize: update.downloadedSize,
-          speed: update.speed,
-          eta: update.eta,
-          title: update.title,
-          step: update.step,
-          filePath: update.filePath,
-          isDuplicate: update.isDuplicate,
-        );
+        final now = DateTime.now();
+        final isSignificant = update.isDuplicate ||
+            update.filePath != null ||
+            (update.title != null && update.title!.isNotEmpty) ||
+            update.step != lastYieldStep ||
+            update.progress >= 1.0 ||
+            (update.progress - lastYieldProgress).abs() >= 0.05 ||
+            now.difference(lastYieldTime).inMilliseconds >= 250;
+
+        if (isSignificant) {
+          lastYieldTime = now;
+          lastYieldProgress = update.progress;
+          lastYieldStep = update.step;
+          yield DownloadProgressEvent(
+            progress: update.progress,
+            totalSize: update.totalSize,
+            downloadedSize: update.downloadedSize,
+            speed: update.speed,
+            eta: update.eta,
+            title: update.title,
+            step: update.step,
+            filePath: update.filePath,
+            isDuplicate: update.isDuplicate,
+          );
+        }
       }
     }
 
