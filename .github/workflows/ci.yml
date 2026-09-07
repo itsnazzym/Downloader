@@ -413,7 +413,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Download Android APK
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-apk
           path: dist
