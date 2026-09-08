@@ -1002,22 +1002,45 @@
   function syncTikTokCollections() {
     logDiag('TIKTOK_SYNC_TRIGGERED', 'Looking for tiktok tabs');
     api.tabs.query({ url: '*://*.tiktok.com/*' }).then(function (tabs) {
-      if (tabs && tabs.length > 0) {
-        var targetTab = tabs.find(function (t) { return t.active; }) || tabs[0];
-        api.tabs.sendMessage(targetTab.id, { type: 'MD_SYNC_TIKTOK_COLLECTIONS' }).then(function (res) {
-          if (res && res.ok && res.collections && Object.keys(res.collections).length > 0) {
-            sendTikTokCollectionsToApp(res.collections, res.collectionTotals);
-          } else {
-            fetchTikTokCollectionsDirectly();
-          }
-        }).catch(function () {
-          fetchTikTokCollectionsDirectly();
-        });
-      } else {
-        fetchTikTokCollectionsDirectly();
+      if (!tabs || tabs.length === 0) {
+        // No TikTok tab open — inform the app so it can show a proper message.
+        logDiag('TIKTOK_SYNC_NO_TAB', 'No TikTok tab available');
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          try {
+            socket.send(JSON.stringify({
+              type: 'TIKTOK_COLLECTIONS_SYNC',
+              collections: {},
+              collectionTotals: {},
+              error: 'no_tiktok_tab',
+            }));
+          } catch (e) { /* ignore */ }
+        }
+        return;
       }
-    }).catch(function () {
-      fetchTikTokCollectionsDirectly();
+      var targetTab = tabs.find(function (t) { return t.active; }) || tabs[0];
+      api.tabs.sendMessage(targetTab.id, { type: 'MD_SYNC_TIKTOK_COLLECTIONS' }).then(function (res) {
+        if (res && res.ok && res.collections && Object.keys(res.collections).length > 0) {
+          sendTikTokCollectionsToApp(res.collections, res.collectionTotals);
+        } else {
+          // Content script returned empty — could mean API returned nothing or user not logged in.
+          logDiag('TIKTOK_SYNC_EMPTY', 'Content script returned no collections');
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            try {
+              socket.send(JSON.stringify({
+                type: 'TIKTOK_COLLECTIONS_SYNC',
+                collections: {},
+                collectionTotals: {},
+                error: 'empty_response',
+              }));
+            } catch (e) { /* ignore */ }
+          }
+        }
+      }).catch(function (err) {
+        logDiag('TIKTOK_SYNC_TAB_ERR', (err && err.message) || String(err));
+        console.warn('MD_SYNC_TIKTOK_COLLECTIONS failed on tab', targetTab.id, err);
+      });
+    }).catch(function (err) {
+      logDiag('TIKTOK_SYNC_QUERY_ERR', (err && err.message) || String(err));
     });
   }
 
@@ -1038,83 +1061,12 @@
     }
   }
 
-  function fetchCollectionItemsRecursive(collectionId, totalDeclared) {
-    return new Promise(function (resolve) {
-      var allIds = [];
-      var cursor = 0;
-      var hasMore = true;
-      var maxLoops = 20;
-
-      function fetchNextPage() {
-        if (!hasMore || (totalDeclared && allIds.length >= totalDeclared) || maxLoops <= 0) {
-          resolve(allIds);
-          return;
-        }
-        maxLoops--;
-        var url = 'https://www.tiktok.com/api/collection/item_list/?collectionId=' + collectionId + '&count=50&cursor=' + cursor;
-        fetch(url, {
-          credentials: 'include',
-          headers: { 'Accept': 'application/json' },
-        }).then(function (r) {
-          return r.json();
-        }).then(function (res) {
-          if (!res || !Array.isArray(res.itemList) || res.itemList.length === 0) {
-            resolve(allIds);
-            return;
-          }
-          res.itemList.forEach(function (item) {
-            var vid = item.id || item.videoId;
-            if (vid && allIds.indexOf(String(vid)) === -1) {
-              allIds.push(String(vid));
-            }
-          });
-          hasMore = res.hasMore === true;
-          cursor = res.cursor || (cursor + res.itemList.length);
-          if (hasMore && res.itemList.length > 0) {
-            setTimeout(fetchNextPage, 200);
-          } else {
-            resolve(allIds);
-          }
-        }).catch(function () {
-          resolve(allIds);
-        });
-      }
-
-      fetchNextPage();
-    });
-  }
-
-  function fetchTikTokCollectionsDirectly() {
-    fetch('https://www.tiktok.com/api/user/collection/list/?count=50&cursor=0', {
-      credentials: 'include',
-      headers: { 'Accept': 'application/json' },
-    }).then(function (r) {
-      return r.json();
-    }).then(function (data) {
-      if (!data || !Array.isArray(data.collectionList) || data.collectionList.length === 0) {
-        logDiag('TIKTOK_SYNC_DIRECT_EMPTY', 'No collections returned via direct API');
-        return;
-      }
-      var collections = {};
-      var collectionTotals = {};
-      var promises = data.collectionList.map(function (col) {
-        var id = col.collectionId || col.id;
-        var name = col.collectionName || col.name || ('Collection ' + id);
-        var declaredTotal = parseInt(col.total, 10) || 0;
-        collectionTotals[name] = declaredTotal;
-
-        return fetchCollectionItemsRecursive(id, declaredTotal).then(function (items) {
-          collections[name] = items;
-        });
-      });
-
-      Promise.all(promises).then(function () {
-        sendTikTokCollectionsToApp(collections, collectionTotals);
-      });
-    }).catch(function (err) {
-      logDiag('TIKTOK_SYNC_DIRECT_FAIL', (err && err.message) || String(err));
-    });
-  }
+  // NOTE: TikTok API fetches are intentionally NOT done here.
+  // The Service Worker runs under the extension CSP which only permits
+  // ws://127.0.0.1:* in connect-src. Fetching https://www.tiktok.com from
+  // the SW is a CSP violation (blocked by Chrome). All TikTok API calls must
+  // happen inside the content script (extension/shared/content.js) which runs
+  // in the page context and is subject to TikTok's own CSP, not the extension's.
 
   api.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (!message || !message.type) return false;

@@ -2898,21 +2898,10 @@
       var collections = {};
       var collectionTotals = {};
 
-      try {
-        var links = document.querySelectorAll('a[href*="/video/"]');
-        if (links && links.length > 0) {
-          var currentTitle = document.title || '';
-          var colNameMatch = currentTitle.match(/^(.*?)\s*[-|]\s*TikTok/i);
-          var activeCol = (colNameMatch && colNameMatch[1]) ? colNameMatch[1].trim() : 'Collection Active';
-          collections[activeCol] = [];
-          links.forEach(function (a) {
-            var m = (a.href || '').match(/\/video\/(\d+)/);
-            if (m && m[1] && collections[activeCol].indexOf(m[1]) === -1) {
-              collections[activeCol].push(m[1]);
-            }
-          });
-        }
-      } catch (e) {}
+      // NOTE: We intentionally do NOT scrape DOM links (a[href*="/video/"]) here.
+      // On the TikTok home/feed page those links are random videos from other users
+      // and would pollute the user's collections with wrong IDs.
+      // The API is the only reliable source of truth.
 
       fetch('https://www.tiktok.com/api/user/collection/list/?count=50&cursor=0', {
         credentials: 'include',
@@ -2921,7 +2910,7 @@
         return res.json();
       }).then(function (data) {
         if (!data || !Array.isArray(data.collectionList) || data.collectionList.length === 0) {
-          resolve({ ok: Object.keys(collections).length > 0, collections: collections, collectionTotals: collectionTotals });
+          resolve({ ok: false, collections: collections, collectionTotals: collectionTotals, error: 'no_collections' });
           return;
         }
 
@@ -2939,8 +2928,9 @@
         Promise.all(promises).then(function () {
           resolve({ ok: true, collections: collections, collectionTotals: collectionTotals });
         });
-      }).catch(function () {
-        resolve({ ok: Object.keys(collections).length > 0, collections: collections, collectionTotals: collectionTotals });
+      }).catch(function (err) {
+        // API fetch failed — likely not on TikTok page or not logged in.
+        resolve({ ok: false, collections: collections, collectionTotals: collectionTotals, error: (err && err.message) || 'fetch_failed' });
       });
     });
   }
