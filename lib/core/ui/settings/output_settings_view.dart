@@ -16,8 +16,10 @@ import 'widgets/library_migration_dialog.dart';
 import 'widgets/reorganize_library_dialog.dart';
 import '../../../features/onboarding/presentation/onboarding_targets.dart';
 import '../../providers/settings_provider.dart';
-import '../settings_view.dart';
+import 'widgets/settings_tiles.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+
+import 'widgets/settings_app_bar_leading.dart';
 
 class OutputSettingsView extends ConsumerWidget {
   const OutputSettingsView({super.key});
@@ -32,7 +34,7 @@ class OutputSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: const SettingsAppBarLeading(),
         backgroundColor: AppColors.of(
           context,
         ).background.withValues(alpha: 0.8),

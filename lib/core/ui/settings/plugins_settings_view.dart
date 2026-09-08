@@ -32,6 +32,8 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
+import 'widgets/settings_app_bar_leading.dart';
+
 class PluginsSettingsView extends ConsumerWidget {
   const PluginsSettingsView({super.key});
 
@@ -49,7 +51,7 @@ class PluginsSettingsView extends ConsumerWidget {
       backgroundColor: AppColors.of(context).background,
 
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: const SettingsAppBarLeading(),
 
         backgroundColor: AppColors.of(
           context,

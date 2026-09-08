@@ -6,7 +6,8 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
-import '../settings_view.dart';
+import 'widgets/settings_tiles.dart';
+import 'widgets/settings_app_bar_leading.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class PerformanceSettingsView extends ConsumerWidget {
@@ -22,7 +23,7 @@ class PerformanceSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: const SettingsAppBarLeading(),
         backgroundColor: AppColors.of(
           context,
         ).background.withValues(alpha: 0.8),

@@ -47,7 +47,6 @@ dependencies:
   http: ^1.2.0
   archive: ^4.0.7
   google_fonts: ^7.1.0
-  glass: ^2.0.0+2
   gap: ^3.0.1
   flutter_animate: ^4.5.2
   package_info_plus: ^9.0.0

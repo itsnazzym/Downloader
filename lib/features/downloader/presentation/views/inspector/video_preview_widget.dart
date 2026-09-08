@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'dart:ui';
 import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:glass/glass.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -34,6 +34,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
   bool _isHovering = false;
+  bool _userActivated = false;
   bool _isMuted = true;
   bool _isInitialized = false;
   bool _hasError = false;
@@ -41,12 +42,14 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   bool _isDragging = false;
   int _initToken = 0;
 
+  bool get _shouldPlay => _isHovering || _userActivated;
+
   Future<void> _initializeController() async {
     final token = ++_initToken;
     final file = File(widget.filePath);
     try {
       if (!await file.exists()) {
-        if (!mounted || token != _initToken || !_isHovering) return;
+        if (!mounted || token != _initToken || !_shouldPlay) return;
         setState(() {
           _hasError = true;
           _isInitialized = false;
@@ -55,7 +58,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       }
     } catch (e) {
       debugPrint("Error checking video file: $e");
-      if (!mounted || token != _initToken || !_isHovering) return;
+      if (!mounted || token != _initToken || !_shouldPlay) return;
       setState(() {
         _hasError = true;
         _isInitialized = false;
@@ -89,7 +92,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
 
       await player.open(Media(file.path), play: true);
 
-      if (!mounted || token != _initToken || !_isHovering) {
+      if (!mounted || token != _initToken || !_shouldPlay) {
         await _disposePlayer(player);
         return;
       }
@@ -102,7 +105,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       });
     } catch (e) {
       debugPrint("Error initializing media_kit player: $e");
-      if (!mounted || token != _initToken || !_isHovering) return;
+      if (!mounted || token != _initToken || !_shouldPlay) return;
       setState(() {
         _hasError = true;
         _isInitialized = false;
@@ -271,18 +274,33 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => _onHoverEnter(),
-      onExit: (_) => _onHoverExit(),
-      child: _isHovering && _hasError
-          ? _buildErrorPreview(context)
-          : _buildPreview(context),
+    final videoController = _videoController;
+    final showPlayer = _shouldPlay && _isInitialized && videoController != null;
+
+    return GestureDetector(
+      onTap: () {
+        if (!showPlayer) {
+          if (widget.onFullscreen != null) {
+            widget.onFullscreen!();
+          } else {
+            setState(() => _userActivated = true);
+            _initializeController();
+          }
+        }
+      },
+      child: MouseRegion(
+        onEnter: (_) => _onHoverEnter(),
+        onExit: (_) => _onHoverExit(),
+        child: _shouldPlay && _hasError
+            ? _buildErrorPreview(context)
+            : _buildPreview(context),
+      ),
     );
   }
 
   Widget _buildPreview(BuildContext context) {
     final videoController = _videoController;
-    final showPlayer = _isHovering && _isInitialized && videoController != null;
+    final showPlayer = _shouldPlay && _isInitialized && videoController != null;
 
     final progress = _duration.inMilliseconds > 0
         ? (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0)
@@ -310,6 +328,38 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
           // Thumbnail when not hovering/playing
           if (widget.thumbnailUrl != null && !showPlayer)
             Positioned.fill(child: _buildThumbnailBackground(context)),
+
+          if (!showPlayer)
+            Center(
+              child: IconButton(
+                iconSize: 52,
+                tooltip: 'Lire la vidéo',
+                icon: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.of(context).primary.withValues(alpha: 0.8),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    color: AppColors.of(context).primary,
+                    size: 36,
+                  ),
+                ),
+                onPressed: () {
+                  if (widget.onFullscreen != null) {
+                    widget.onFullscreen!();
+                  } else {
+                    setState(() => _userActivated = true);
+                    _initializeController();
+                  }
+                },
+              ),
+            ),
 
           // Video rendered via media_kit libmpv texture
           if (showPlayer)
@@ -394,23 +444,26 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                             ),
                           ),
                           const Spacer(),
-                          // Mute Toggle
+                          // Volume / Mute Button
                           Material(
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: _toggleMute,
                               borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                child: Icon(
-                                  _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                                  color: Colors.white,
-                                  size: 16,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    color: Colors.black.withValues(alpha: 0.35),
+                                    child: Icon(
+                                      _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
                                 ),
-                              ).asGlass(
-                                blurX: 10,
-                                blurY: 10,
-                                clipBorderRadius: BorderRadius.circular(8),
                               ),
                             ),
                           ),
@@ -422,20 +475,23 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                               child: InkWell(
                                 onTap: widget.onFullscreen,
                                 borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  child: const Icon(
-                                    Icons.fullscreen_rounded,
-                                    color: Colors.white,
-                                    size: 20,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      color: Colors.black.withValues(alpha: 0.35),
+                                      child: const Icon(
+                                        Icons.fullscreen_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
                                   ),
-                                ).asGlass(
-                                blurX: 10,
-                                blurY: 10,
-                                clipBorderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ],

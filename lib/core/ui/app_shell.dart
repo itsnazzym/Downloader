@@ -10,7 +10,6 @@ import 'package:modern_downloader/features/downloader/presentation/providers/dow
 import 'package:modern_downloader/core/services/hotkey_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_view.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
-import 'package:modern_downloader/core/ui/widgets/toast/custom_toast.dart';
 import 'package:modern_downloader/core/ui/widgets/drag_drop_overlay.dart';
 import 'package:modern_downloader/core/ui/widgets/floating_nav_dock.dart';
 import 'package:modern_downloader/core/ui/widgets/mesh_gradient_background.dart';
@@ -132,7 +131,6 @@ class AppShell extends ConsumerWidget {
             const OnboardingOverlay(),
             if (ref.watch(mediaPlayerProvider.select((s) => s.isOpen)))
               const Positioned.fill(child: MediaPlayerView()),
-            const ToastOverlay(),
           ],
         ),
       ),

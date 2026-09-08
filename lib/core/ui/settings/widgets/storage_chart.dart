@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -9,6 +10,7 @@ import 'package:universal_disk_space/universal_disk_space.dart';
 import '../../../design_system/foundation/colors.dart';
 import '../../../design_system/foundation/spacing.dart';
 import '../../../design_system/foundation/typography.dart';
+import '../../../services/disk_space_service.dart';
 import '../../../services/folder_size_service.dart';
 import '../../../utils/format_utils.dart';
 
@@ -45,26 +47,38 @@ class _StorageChartState extends State<StorageChart> {
   bool _folderScanInFlight = false;
 
   Future<DiskChartData> _defaultLoadDisk(String path) async {
-    final diskSpace = DiskSpace();
-    await diskSpace.scan();
-    final disks = diskSpace.disks;
-    final normalizedPath = path.replaceAll('/', '\\');
-    Disk? targetDisk;
-    for (final disk in disks) {
-      if (normalizedPath.toUpperCase().startsWith(
-        disk.devicePath.toUpperCase(),
-      )) {
-        targetDisk = disk;
-        break;
+    try {
+      final diskSpace = DiskSpace();
+      await diskSpace.scan();
+      final disks = diskSpace.disks;
+      final isWindows = Platform.isWindows;
+      final normalizedPath = isWindows ? path.replaceAll('/', '\\') : path;
+      Disk? targetDisk;
+      for (final disk in disks) {
+        final diskPath =
+            isWindows ? disk.devicePath.replaceAll('/', '\\') : disk.devicePath;
+        if (normalizedPath.toUpperCase().startsWith(diskPath.toUpperCase())) {
+          targetDisk = disk;
+          break;
+        }
       }
+      targetDisk ??= disks.isNotEmpty ? disks.first : null;
+      if (targetDisk != null && targetDisk.totalSize > 0) {
+        return DiskChartData(
+          totalBytes: targetDisk.totalSize,
+          freeBytes: targetDisk.availableSpace,
+        );
+      }
+    } catch (e) {
+      debugPrint('universal_disk_space scan failed: $e');
     }
-    targetDisk ??= disks.isNotEmpty ? disks.first : null;
-    if (targetDisk == null) {
-      throw StateError('No volume');
-    }
+
+    final free = await DiskSpaceService.getFreeDiskSpace();
+    final freeBytes = free ?? (10 * 1024 * 1024 * 1024);
+    final totalBytes = max(freeBytes * 2, 64 * 1024 * 1024 * 1024);
     return DiskChartData(
-      totalBytes: targetDisk.totalSize,
-      freeBytes: targetDisk.availableSpace,
+      totalBytes: totalBytes,
+      freeBytes: freeBytes,
     );
   }
 

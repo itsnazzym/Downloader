@@ -150,6 +150,7 @@ void main() {
     final port = await server.start(
       preferredPort: 0,
       address: InternetAddress.loopbackIPv4,
+      secure: false,
     );
     addTearDown(server.stop);
 

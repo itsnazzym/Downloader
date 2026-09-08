@@ -19,6 +19,9 @@ import '../../features/x_feed/gobird_x_feed_service.dart';
 import '../../features/x_feed/library_keys_snapshot.dart';
 import '../../features/x_feed/x_feed_ws_contract.dart';
 import 'binary/binary_locator.dart';
+import '../../features/archive/presentation/providers/tiktok_archive_provider.dart';
+
+final extensionConnectedClientsProvider = StateProvider<int>((ref) => 0);
 
 final localServerServiceProvider = Provider<LocalServerService>((ref) {
   return LocalServerService(ref);
@@ -105,6 +108,7 @@ Ready for Extension Connection
       unawaited(client.close());
     }
     _clients.clear();
+    _ref.read(extensionConnectedClientsProvider.notifier).state = 0;
     await _server?.close();
     _server = null;
   }
@@ -141,6 +145,7 @@ Ready for Extension Connection
   void _acceptClient(WebSocket socket) {
     if (_clients.contains(socket)) return;
     _clients.add(socket);
+    _ref.read(extensionConnectedClientsProvider.notifier).state = _clients.length;
     unawaited(NotificationService().showExtensionConnected());
   }
 
@@ -236,6 +241,8 @@ Ready for Extension Connection
             _sendLibraryKeys(socket);
           } else if (type == XFeedWsContract.requestType) {
             unawaited(_handleXFeedRequest(socket, data));
+          } else if (type == 'TIKTOK_COLLECTIONS_SYNC') {
+            unawaited(_handleTikTokCollectionsSync(socket, data));
           }
         } catch (e) {
           LoggerService.e('Error parsing WS message', e);
@@ -245,11 +252,13 @@ Ready for Extension Connection
         helloTimer?.cancel();
         LoggerService.i('Extension Disconnected');
         _clients.remove(socket);
+        _ref.read(extensionConnectedClientsProvider.notifier).state = _clients.length;
       },
       onError: (e) {
         helloTimer?.cancel();
         LoggerService.e('WebSocket Error', e);
         _clients.remove(socket);
+        _ref.read(extensionConnectedClientsProvider.notifier).state = _clients.length;
       },
     );
   }
@@ -437,4 +446,94 @@ Ready for Extension Connection
       _ref.read(downloadListProvider.notifier).startExtensionDownloads(batch),
     );
   }
+
+  Future<void> _handleTikTokCollectionsSync(
+    WebSocket socket,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final rawCollections = data['collections'];
+      if (rawCollections is! Map) {
+        if (socket.readyState == WebSocket.open) {
+          socket.add(
+            jsonEncode({
+              'type': 'TIKTOK_COLLECTIONS_SYNC_ACK',
+              'ok': false,
+              'error': 'Invalid or missing "collections" map',
+            }),
+          );
+        }
+        return;
+      }
+
+      final mapping = <String, List<String>>{};
+      for (final entry in rawCollections.entries) {
+        final key = entry.key.toString();
+        final val = entry.value;
+        if (val is List) {
+          mapping[key] = val.map((e) => e.toString()).toList();
+        }
+      }
+
+      final rawTotals = data['collectionTotals'];
+      final totals = <String, int>{};
+      if (rawTotals is Map) {
+        for (final entry in rawTotals.entries) {
+          final key = entry.key.toString();
+          final val = entry.value;
+          if (val is num) {
+            totals[key] = val.toInt();
+          } else if (val is String) {
+            final parsed = int.tryParse(val);
+            if (parsed != null) totals[key] = parsed;
+          }
+        }
+      }
+
+      await _ref
+          .read(tikTokArchiveProvider.notifier)
+          .updateCollectionMapping(mapping, collectionTotals: totals);
+
+      if (socket.readyState == WebSocket.open) {
+        socket.add(
+          jsonEncode({
+            'type': 'TIKTOK_COLLECTIONS_SYNC_ACK',
+            'ok': true,
+            'collectionCount': mapping.length,
+          }),
+        );
+      }
+      LoggerService.i(
+        'Synced ${mapping.length} TikTok collections from browser extension',
+      );
+    } catch (e, st) {
+      LoggerService.e('Failed to process TikTok collections sync', e, st);
+      if (socket.readyState == WebSocket.open) {
+        socket.add(
+          jsonEncode({
+            'type': 'TIKTOK_COLLECTIONS_SYNC_ACK',
+            'ok': false,
+            'error': e.toString(),
+          }),
+        );
+      }
+    }
+  }
+
+  /// Sends a request to all connected browser extensions to extract TikTok collections.
+  void requestTikTokCollectionsSync() {
+    final payload = jsonEncode({
+      'type': 'REQUEST_TIKTOK_COLLECTIONS_SYNC',
+    });
+    for (final client in _clients) {
+      if (client.readyState == WebSocket.open) {
+        try {
+          client.add(payload);
+        } catch (e) {
+          LoggerService.w('Failed to send REQUEST_TIKTOK_COLLECTIONS_SYNC: $e');
+        }
+      }
+    }
+  }
 }
+

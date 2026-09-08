@@ -13,6 +13,7 @@ import 'package:modern_downloader/core/download/download_url_policy.dart';
 import 'package:modern_downloader/core/utils/download_url_validator.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/core/ui/widgets/animated_input_field.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'quality_selection_dialog.dart';
 
 class AddDownloadDialog extends ConsumerStatefulWidget {
@@ -408,130 +409,132 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
                       onSubmitted: (_) => _submit(),
                       autofocus: true,
                     ),
-              const Gap(AppSpacing.m),
-              DropdownButtonFormField<String?>(
-                dropdownColor: AppColors.of(context).surface,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.of(context).textPrimary,
-                ),
-                icon: Icon(
-                  Icons.arrow_drop_down,
-                  color: AppColors.of(context).textSecondary,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.cookiesFromBrowser,
-                  labelStyle: AppTypography.label.copyWith(
+              if (!PlatformInfo.isMobile) ...[
+                const Gap(AppSpacing.m),
+                DropdownButtonFormField<String?>(
+                  dropdownColor: AppColors.of(context).surface,
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.of(context).textPrimary,
+                  ),
+                  icon: Icon(
+                    Icons.arrow_drop_down,
                     color: AppColors.of(context).textSecondary,
                   ),
-                  filled: true,
-                  fillColor: AppColors.of(context).surface,
-                  border: OutlineInputBorder(
-                    borderRadius: AppRadius.mediumBorder,
-                    borderSide: BorderSide(color: AppColors.of(context).border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: AppRadius.mediumBorder,
-                    borderSide: BorderSide(color: AppColors.of(context).border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: AppRadius.mediumBorder,
-                    borderSide: BorderSide(
-                      color: AppColors.of(context).primary,
+                  decoration: InputDecoration(
+                    labelText: l10n.cookiesFromBrowser,
+                    labelStyle: AppTypography.label.copyWith(
+                      color: AppColors.of(context).textSecondary,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.of(context).surface,
+                    border: OutlineInputBorder(
+                      borderRadius: AppRadius.mediumBorder,
+                      borderSide: BorderSide(color: AppColors.of(context).border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: AppRadius.mediumBorder,
+                      borderSide: BorderSide(color: AppColors.of(context).border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: AppRadius.mediumBorder,
+                      borderSide: BorderSide(
+                        color: AppColors.of(context).primary,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  initialValue: _selectedBrowser,
+                  items: [
+                    DropdownMenuItem(
+                      value: null,
+                      child: Text(
+                        l10n.cookiesNoneDefault,
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'chrome',
+                      child: Text(
+                        'Google Chrome',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'firefox',
+                      child: Text(
+                        'Mozilla Firefox',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'brave',
+                      child: Text(
+                        'Brave',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'edge',
+                      child: Text(
+                        'Microsoft Edge',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'opera',
+                      child: Text(
+                        'Opera',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'vivaldi',
+                      child: Text(
+                        'Vivaldi',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'safari',
+                      child: Text(
+                        'Safari',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'chromium',
+                      child: Text(
+                        'Chromium',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    setState(() => _selectedBrowser = val);
+                  },
                 ),
-                initialValue: _selectedBrowser,
-                items: [
-                  DropdownMenuItem(
-                    value: null,
-                    child: Text(
-                      l10n.cookiesNoneDefault,
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'chrome',
-                    child: Text(
-                      'Google Chrome',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'firefox',
-                    child: Text(
-                      'Mozilla Firefox',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'brave',
-                    child: Text(
-                      'Brave',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'edge',
-                    child: Text(
-                      'Microsoft Edge',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'opera',
-                    child: Text(
-                      'Opera',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'vivaldi',
-                    child: Text(
-                      'Vivaldi',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'safari',
-                    child: Text(
-                      'Safari',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'chromium',
-                    child: Text(
-                      'Chromium',
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.of(context).textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-                onChanged: (val) {
-                  setState(() => _selectedBrowser = val);
-                },
-              ),
+              ],
               const Gap(AppSpacing.l),
               if (_isLoading)
                 const Center(child: LinearProgressIndicator())

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../ui/glass_card.dart';
+import 'glass_card.dart';
 import '../foundation/colors.dart';
 import '../foundation/spacing.dart';
 

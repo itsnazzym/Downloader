@@ -28,6 +28,7 @@ class TransferPeer {
     this.download = false,
     this.known = false,
     this.lastSeen,
+    this.deviceId,
   });
 
   final String alias;
@@ -40,6 +41,9 @@ class TransferPeer {
   final bool download;
   final bool known;
   final DateTime? lastSeen;
+  final String? deviceId;
+
+  String get id => deviceId ?? fingerprint;
 
   Uri origin() {
     return Uri(scheme: protocol, host: ip, port: port);
@@ -49,6 +53,7 @@ class TransferPeer {
     bool? known,
     String? protocol,
     DateTime? lastSeen,
+    String? deviceId,
   }) {
     return TransferPeer(
       alias: alias,
@@ -61,6 +66,7 @@ class TransferPeer {
       download: download,
       known: known ?? this.known,
       lastSeen: lastSeen ?? this.lastSeen,
+      deviceId: deviceId ?? this.deviceId,
     );
   }
 
@@ -73,11 +79,12 @@ class TransferPeer {
     return other is TransferPeer &&
         other.fingerprint == fingerprint &&
         other.ip == ip &&
-        other.port == port;
+        other.port == port &&
+        other.deviceId == deviceId;
   }
 
   @override
-  int get hashCode => Object.hash(fingerprint, ip, port);
+  int get hashCode => Object.hash(fingerprint, ip, port, deviceId);
 }
 
 @immutable
@@ -123,12 +130,16 @@ class TransferIdentity {
     required this.fingerprint,
     required this.deviceModel,
     required this.deviceType,
+    this.deviceId,
   });
 
   final String alias;
   final String fingerprint;
   final String deviceModel;
   final TransferDeviceType deviceType;
+  final String? deviceId;
+
+  String get id => deviceId ?? fingerprint;
 }
 
 @immutable

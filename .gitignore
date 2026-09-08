@@ -60,6 +60,8 @@ lan-folder-transfer.md
 *-hd.md
 *-notes.md
 *-audit.md
+tiktok-*.md
+docs/archive/
 
 # ── Secrets, Credentials & Cookies (Strict Security) ──────────────────
 .env

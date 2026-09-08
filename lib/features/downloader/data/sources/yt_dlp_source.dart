@@ -16,6 +16,8 @@ import '../../../../../core/download/yt_dlp_progress_parser.dart';
 import '../../../../../core/download/download_status_guard.dart';
 import '../../../../../core/download/fragment_budget.dart';
 import '../../../../../core/download/metadata_probe_limiter.dart';
+import '../../../../../core/platform/default_library_path_resolver.dart';
+import '../../../../../core/android/android_engine_bridge.dart';
 
 class YtDlpSource {
   final BinaryLocator _binaryLocator;
@@ -86,27 +88,45 @@ class YtDlpSource {
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) throw Exception('yt-dlp binary not found');
 
+    var effectiveCookies = cookies;
+    if ((effectiveCookies == null || effectiveCookies.isEmpty) &&
+        (cookiesFilePath == null || cookiesFilePath.isEmpty) &&
+        Platform.isAndroid) {
+      try {
+        final wv = await AndroidEngineBridge.instance.webViewCookies(url);
+        if (wv != null && wv.trim().isNotEmpty) {
+          effectiveCookies = wv.trim();
+        }
+      } catch (_) {}
+    }
+
+    final isTwitter =
+        url.contains('twitter.com') || url.contains('x.com');
+
     // Use verbose flags for clarity and safety
     // --no-warnings is CRITICAL because yt-dlp can print warnings to stdout which breaks jsonDecode
     // --no-playlist ensures we get a single video JSON, preventing multiple JSONs for playlist URLs
     final args = <String>['--dump-json', '--no-warnings', '--no-playlist'];
+    if (isTwitter) {
+      args.addAll(['--extractor-args', 'twitter:api=syndication']);
+    }
 
     File? tempNetscapeFile;
     try {
       var effectiveCookiesPath = cookiesFilePath;
       if ((effectiveCookiesPath == null || effectiveCookiesPath.isEmpty) &&
-          YtDlpCookieArgs.isNetscapeFormat(cookies)) {
+          YtDlpCookieArgs.isNetscapeFormat(effectiveCookies)) {
         tempNetscapeFile = File(
           '${Directory.systemTemp.path}/md_meta_cookies_${DateTime.now().millisecondsSinceEpoch}.txt',
         );
-        await tempNetscapeFile.writeAsString(cookies!);
+        await tempNetscapeFile.writeAsString(effectiveCookies!);
         effectiveCookiesPath = tempNetscapeFile.path;
       }
 
       args.addAll(
         YtDlpCookieArgs.build(
           cookiesFilePath: effectiveCookiesPath,
-          rawCookies: cookies,
+          rawCookies: effectiveCookies,
           cookieBrowser: cookieBrowser,
           allowBrowserCookies: !Platform.isAndroid,
         ),
@@ -125,7 +145,23 @@ class YtDlpSource {
 
       args.add(url);
 
-      final result = await _processRunner.run(ytDlp, args);
+      var result = await _processRunner.run(ytDlp, args);
+      if (result.exitCode != 0 && isTwitter) {
+        // Fallback retry without syndication (in case Twitter changed back to GraphQL)
+        final fallbackArgs = List<String>.from(args);
+        final syndIndex = fallbackArgs.indexOf('twitter:api=syndication');
+        if (syndIndex != -1) {
+          fallbackArgs.removeAt(syndIndex);
+          if (syndIndex - 1 >= 0 && fallbackArgs[syndIndex - 1] == '--extractor-args') {
+            fallbackArgs.removeAt(syndIndex - 1);
+          }
+          final retryResult = await _processRunner.run(ytDlp, fallbackArgs);
+          if (retryResult.exitCode == 0) {
+            result = retryResult;
+          }
+        }
+      }
+
       if (result.exitCode != 0) {
         final stderr = result.stderr.toString();
         if (DownloadStatusGuard.isNonRetryableProxyError(stderr)) {
@@ -260,7 +296,7 @@ class YtDlpSource {
 
     // Native multi-fragment downloader scales beyond aria2c's 16-connection cap.
     // Max speed stays on; the global fragment budget only shares 64 across jobs.
-    if (concurrentFragments >= 16 || maxSpeedMode) {
+    if (Platform.isAndroid || concurrentFragments >= 16 || maxSpeedMode) {
       LoggerService.i(
         'Native high-speed downloader: $concurrentFragments parallel fragments'
         '${maxSpeedMode ? ' (max speed mode)' : ''} '
@@ -272,9 +308,6 @@ class YtDlpSource {
           activeCount <= kBufferSizeCapActiveCount) {
         args.addAll(['--http-chunk-size', '10M']);
       }
-    } else if (Platform.isAndroid) {
-      LoggerService.i('Activating Android Aria2c engine (libaria2c.so)');
-      args.addAll(['--downloader', 'libaria2c.so']);
     } else if (aria2cPath != null) {
       LoggerService.i(
         'Activating Aria2c engine: $aria2cPath with $concurrentFragments threads',
@@ -299,6 +332,9 @@ class YtDlpSource {
     if (!(isTwitter && request.twitterIncludeReplies)) {
       args.add('--no-playlist');
     }
+    if (isTwitter) {
+      args.addAll(['--extractor-args', 'twitter:api=syndication']);
+    }
 
     // Output template - Use platform path separators
     String outputPath;
@@ -311,6 +347,10 @@ class YtDlpSource {
         if (userProfile != null) {
           baseFolder = '$userProfile\\Downloads';
         }
+      } else if (Platform.isAndroid) {
+        try {
+          baseFolder = await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+        } catch (_) {}
       }
       baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
     }
@@ -326,9 +366,19 @@ class YtDlpSource {
       baseFolder = p.join(baseFolder, siteFolder);
     }
 
-    final downloadsDir = Directory(baseFolder);
-    if (!downloadsDir.existsSync()) {
-      downloadsDir.createSync(recursive: true);
+    try {
+      final downloadsDir = Directory(baseFolder);
+      if (!downloadsDir.existsSync()) {
+        downloadsDir.createSync(recursive: true);
+      }
+    } catch (e) {
+      LoggerService.w('YtDlpSource: Could not create baseFolder $baseFolder: $e');
+      if (Platform.isAndroid) {
+        try {
+          baseFolder = await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+          Directory(baseFolder).createSync(recursive: true);
+        } catch (_) {}
+      }
     }
 
     // Include %(id)s in the filename to prevent false duplicates when
@@ -468,18 +518,30 @@ class YtDlpSource {
 
     File? tempNetscapeCookies;
     var cookiesFilePath = request.cookiesFilePath;
+    var rawCookies = request.rawCookies;
+    if ((rawCookies == null || rawCookies.isEmpty) &&
+        (cookiesFilePath == null || cookiesFilePath.isEmpty) &&
+        Platform.isAndroid) {
+      try {
+        final wv = await AndroidEngineBridge.instance.webViewCookies(request.url);
+        if (wv != null && wv.trim().isNotEmpty) {
+          rawCookies = wv.trim();
+        }
+      } catch (_) {}
+    }
+
     if ((cookiesFilePath == null || cookiesFilePath.isEmpty) &&
-        YtDlpCookieArgs.isNetscapeFormat(request.rawCookies)) {
+        YtDlpCookieArgs.isNetscapeFormat(rawCookies)) {
       tempNetscapeCookies = File(
         '${Directory.systemTemp.path}/md_dl_cookies_$id.txt',
       );
-      await tempNetscapeCookies.writeAsString(request.rawCookies!);
+      await tempNetscapeCookies.writeAsString(rawCookies!);
       cookiesFilePath = tempNetscapeCookies.path;
     }
 
     final cookieArgs = YtDlpCookieArgs.build(
       cookiesFilePath: cookiesFilePath,
-      rawCookies: request.rawCookies,
+      rawCookies: rawCookies,
       cookieBrowser: request.cookieBrowser,
       allowBrowserCookies: !Platform.isAndroid,
     );

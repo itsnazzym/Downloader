@@ -50,6 +50,7 @@ class LocalSendApi {
       'deviceType': deviceTypeTo(identity.deviceType),
       'fingerprint': identity.fingerprint,
       'download': download,
+      if (identity.deviceId != null) 'deviceId': identity.deviceId,
     };
   }
 
@@ -145,6 +146,7 @@ class LocalSendApi {
           : null,
       deviceType: deviceTypeFrom(body['deviceType']),
       download: body['download'] == true,
+      deviceId: body['deviceId'] is String ? body['deviceId'] as String : null,
     );
   }
 

@@ -3,6 +3,8 @@ import 'package:path/path.dart' as p;
 import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 import 'package:modern_downloader/core/services/binary/process_runner.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 
 /// Service to generate thumbnails from video files using ffmpeg
 class ThumbnailService {
@@ -41,6 +43,23 @@ class ThumbnailService {
     final thumbDir = Directory(thumbnailsDir);
     if (!await thumbDir.exists()) {
       await thumbDir.create(recursive: true);
+    }
+
+    // On Android, use native MediaMetadataRetriever for zero-overhead, reliable thumbnails
+    if (PlatformInfo.isAndroid) {
+      try {
+        final ok = await AndroidEngineBridge.instance.getVideoThumbnail(
+          videoPath,
+          thumbnailPath,
+          timeMs: 2000,
+        );
+        if (ok && File(thumbnailPath).existsSync()) {
+          LoggerService.debug('Generated native Android thumbnail: $thumbnailPath');
+          return thumbnailPath;
+        }
+      } catch (e) {
+        LoggerService.w('ThumbnailService native Android extraction failed: $e');
+      }
     }
 
     // Generate thumbnail using ffmpeg

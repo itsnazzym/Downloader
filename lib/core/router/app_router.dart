@@ -13,8 +13,9 @@ import '../ui/settings/system_settings_view.dart';
 import '../ui/settings/appearance_settings_view.dart';
 import '../ui/settings/plugins_settings_view.dart';
 import '../ui/settings/smart_organizer_settings_view.dart';
-import '../ui/stats/stats_view.dart';
+import '../../features/stats/presentation/views/stats_view.dart';
 import '../../features/transfer/presentation/transfer_view.dart';
+import '../../features/archive/presentation/views/tiktok_archive_view.dart';
 
 // Keys for navigation
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -43,6 +44,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/transfer',
             builder: (context, state) => const TransferView(),
+          ),
+          GoRoute(
+            path: '/archive',
+            builder: (context, state) => const TikTokArchiveView(),
           ),
           GoRoute(
             path: '/settings',

@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import '../platform/android_storage.dart' as platform_android;
+import 'android_storage.dart' as platform_android;
 
-/// Resolves a writable default library folder per platform.
-class AndroidStorage {
-  AndroidStorage._();
+/// Resolves a writable default library folder per platform (Android, Windows, macOS, Linux).
+class DefaultLibraryPathResolver {
+  DefaultLibraryPathResolver._();
 
   static const String folderName = 'ModernDownloader';
 

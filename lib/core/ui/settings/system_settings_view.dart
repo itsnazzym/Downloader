@@ -10,8 +10,9 @@ import '../../design_system/components/app_toast.dart';
 import '../../services/binary/binary_verifier.dart';
 import '../../services/file_organization_service.dart';
 import '../../providers/settings_provider.dart';
-import '../settings_view.dart';
+import 'widgets/settings_tiles.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'widgets/settings_app_bar_leading.dart';
 
 class SystemSettingsView extends ConsumerStatefulWidget {
   const SystemSettingsView({super.key});
@@ -129,7 +130,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        leading: const SizedBox(),
+        leading: const SettingsAppBarLeading(),
         backgroundColor: AppColors.of(
           context,
         ).background.withValues(alpha: 0.8),

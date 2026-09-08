@@ -8,10 +8,13 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
-import '../settings_view.dart'; // Reuse tile widgets
+import 'widgets/settings_tiles.dart';
 import '../../setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+import '../../platform/platform_info.dart';
+
+import 'widgets/settings_app_bar_leading.dart';
 
 class GeneralSettingsView extends ConsumerWidget {
   const GeneralSettingsView({super.key});
@@ -26,7 +29,7 @@ class GeneralSettingsView extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        leading: const SizedBox(), // Hide back button if shown by default
+        leading: const SettingsAppBarLeading(),
         backgroundColor: AppColors.of(
           context,
         ).background.withValues(alpha: 0.8),
@@ -66,34 +69,36 @@ class GeneralSettingsView extends ConsumerWidget {
               children:
                   [
                         SectionTitle(l10n.settingsGeneral),
-                        ActionTile(
-                          title: l10n.previewSetup,
-                          subtitle: l10n.previewSetupDesc,
-                          icon: Icons.install_desktop_outlined,
-                          onTap: () {
-                            ref
-                                .read(dependencyBootstrapProvider.notifier)
-                                .ensureReady();
-                          },
-                        ),
-                        ActionTile(
-                          title: l10n.onboardingReplay,
-                          subtitle: l10n.onboardingReplayDesc,
-                          icon: Icons.replay_outlined,
-                          onTap: () {
-                            context.go('/');
-                            ref
-                                .read(onboardingControllerProvider.notifier)
-                                .replay();
-                          },
-                        ),
-                        ActionTile(
-                          title: l10n.smartOrganization,
-                          subtitle: l10n.smartOrganizationDesc,
-                          icon: Icons.auto_awesome_motion,
-                          onTap: () =>
-                              context.push('/settings/smart_organizer'),
-                        ),
+                        if (!PlatformInfo.isMobile) ...[
+                          ActionTile(
+                            title: l10n.previewSetup,
+                            subtitle: l10n.previewSetupDesc,
+                            icon: Icons.install_desktop_outlined,
+                            onTap: () {
+                              ref
+                                  .read(dependencyBootstrapProvider.notifier)
+                                  .ensureReady();
+                            },
+                          ),
+                          ActionTile(
+                            title: l10n.onboardingReplay,
+                            subtitle: l10n.onboardingReplayDesc,
+                            icon: Icons.replay_outlined,
+                            onTap: () {
+                              context.go('/');
+                              ref
+                                  .read(onboardingControllerProvider.notifier)
+                                  .replay();
+                            },
+                          ),
+                          ActionTile(
+                            title: l10n.smartOrganization,
+                            subtitle: l10n.smartOrganizationDesc,
+                            icon: Icons.auto_awesome_motion,
+                            onTap: () =>
+                                context.push('/settings/smart_organizer'),
+                          ),
+                        ],
                         SwitchTile(
                           title: l10n.audioOnly,
                           subtitle: l10n.audioOnlyDesc,

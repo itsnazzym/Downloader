@@ -208,4 +208,42 @@ void main() {
     expect(flushed, isEmpty);
     await ws.close();
   });
+
+  test('TIKTOK_COLLECTIONS_SYNC updates collections and receives ACK', () async {
+    final ws = await connect();
+    final helloOk = Completer<void>();
+    final syncAck = Completer<Map<String, dynamic>>();
+
+    ws.listen((event) {
+      final data = jsonDecode(event as String) as Map<String, dynamic>;
+      if (data['type'] == 'HELLO_OK' && !helloOk.isCompleted) {
+        helloOk.complete();
+      }
+      if (data['type'] == 'TIKTOK_COLLECTIONS_SYNC_ACK' && !syncAck.isCompleted) {
+        syncAck.complete(data);
+      }
+    });
+
+    ws.add(
+      jsonEncode({'type': 'HELLO', 'token': expectedToken, 'version': '2.1.0'}),
+    );
+    await helloOk.future.timeout(const Duration(seconds: 2));
+
+    expect(container.read(extensionConnectedClientsProvider), equals(1));
+
+    ws.add(jsonEncode({
+      'type': 'TIKTOK_COLLECTIONS_SYNC',
+      'collections': {
+        'Humour': ['7123456789'],
+      },
+    }));
+
+    final ackMsg = await syncAck.future.timeout(const Duration(seconds: 2));
+    expect(ackMsg['ok'], isTrue);
+    expect(ackMsg['collectionCount'], equals(1));
+
+    await ws.close();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(container.read(extensionConnectedClientsProvider), equals(0));
+  });
 }

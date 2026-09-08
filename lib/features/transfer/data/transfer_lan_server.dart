@@ -76,7 +76,7 @@ class TransferLanServer {
   Future<int> start({
     int preferredPort = LocalSendApi.defaultPort,
     InternetAddress? address,
-    bool secure = false,
+    bool secure = true,
   }) async {
     await stop();
     final bindAddr = address ?? InternetAddress.anyIPv4;
@@ -85,7 +85,7 @@ class TransferLanServer {
       if (secure) {
         try {
           final ctx = TransferSecurity.createSecurityContext();
-          final s = await HttpServer.bindSecure(addr, port, ctx);
+          final s = await HttpServer.bindSecure(addr, port, ctx, shared: true);
           _isHttps = true;
           return s;
         } catch (e) {
@@ -93,7 +93,7 @@ class TransferLanServer {
         }
       }
       _isHttps = false;
-      return await HttpServer.bind(addr, port);
+      return await HttpServer.bind(addr, port, shared: true);
     }
 
     if (preferredPort == 0) {
@@ -158,7 +158,8 @@ class TransferLanServer {
         await _writeHtml(request);
         return;
       }
-      if (request.method == 'GET' && path == LocalSendApi.infoPath) {
+      if (request.method == 'GET' &&
+          (path == LocalSendApi.infoPath || path == '/api/localsend/v1/info')) {
         await _writeJson(
           request,
           200,
@@ -166,7 +167,9 @@ class TransferLanServer {
         );
         return;
       }
-      if (request.method == 'POST' && path == LocalSendApi.registerPath) {
+      if (request.method == 'POST' &&
+          (path == LocalSendApi.registerPath ||
+              path == '/api/localsend/v1/register')) {
         await _onRegister(request);
         return;
       }
@@ -218,9 +221,16 @@ class TransferLanServer {
         identity,
         port: port ?? LocalSendApi.defaultPort,
         download: _share != null,
+        protocol: _isHttps ? 'https' : 'http',
       ),
     );
     if (body == null) return;
+    final incomingDeviceId = body['deviceId'] as String?;
+    if (incomingDeviceId != null &&
+        identity.deviceId != null &&
+        incomingDeviceId == identity.deviceId) {
+      return;
+    }
     final ip = request.connectionInfo?.remoteAddress.address;
     if (ip == null || ip.isEmpty) return;
     final peer = LocalSendApi.peerFromRegister(

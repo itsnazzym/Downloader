@@ -14,6 +14,7 @@
   var sendTabBtn = document.getElementById('send-tab-btn');
   var testBtn = document.getElementById('test-connection-btn');
   var openFeedBtn = document.getElementById('open-feed-btn');
+  var syncTikTokBtn = document.getElementById('sync-tiktok-btn');
   var btnColor = document.getElementById('btn-color');
   var btnPosition = document.getElementById('btn-position');
   var btnSize = document.getElementById('btn-size');
@@ -350,6 +351,20 @@
           }
           setConnectionUi(true, t('testOk', 'PING/PONG OK'));
         });
+      });
+    });
+  }
+
+  if (syncTikTokBtn) {
+    syncTikTokBtn.addEventListener('click', function () {
+      syncTikTokBtn.disabled = true;
+      var origText = syncTikTokBtn.textContent;
+      syncTikTokBtn.textContent = 'Sync...';
+      api.runtime.sendMessage({ type: 'MD_TRIGGER_TIKTOK_SYNC' }, function () {
+        setTimeout(function () {
+          syncTikTokBtn.disabled = false;
+          syncTikTokBtn.textContent = origText;
+        }, 3000);
       });
     });
   }

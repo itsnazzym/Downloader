@@ -17,6 +17,7 @@ class SettingsHubView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
+    final isMobile = PlatformInfo.isMobile;
     final entries = <_HubEntry>[
       _HubEntry(
         title: l10n.settingsGeneral,
@@ -29,9 +30,9 @@ class SettingsHubView extends StatelessWidget {
         path: '/settings/output',
       ),
       _HubEntry(
-        title: l10n.settingsAdvanced,
-        icon: Icons.settings_suggest_outlined,
-        path: '/settings/advanced',
+        title: l10n.settingsAppearance,
+        icon: Icons.palette_outlined,
+        path: '/settings/appearance',
       ),
       _HubEntry(
         title: l10n.settingsPerformance,
@@ -39,25 +40,33 @@ class SettingsHubView extends StatelessWidget {
         path: '/settings/performance',
       ),
       _HubEntry(
-        title: l10n.settingsSystem,
-        icon: Icons.memory_outlined,
-        path: '/settings/system',
+        title: l10n.settingsAdvanced,
+        icon: Icons.settings_suggest_outlined,
+        path: '/settings/advanced',
       ),
-      _HubEntry(
-        title: l10n.settingsAppearance,
-        icon: Icons.palette_outlined,
-        path: '/settings/appearance',
-      ),
-      _HubEntry(
-        title: l10n.settingsPlugins,
-        icon: Icons.extension_outlined,
-        path: '/settings/plugins',
-      ),
-      _HubEntry(
-        title: l10n.smartOrganization,
-        icon: Icons.auto_awesome_motion,
-        path: '/settings/smart_organizer',
-      ),
+      if (isMobile)
+        _HubEntry(
+          title: l10n.statistics,
+          icon: Icons.bar_chart_outlined,
+          path: '/stats',
+        )
+      else ...[
+        _HubEntry(
+          title: l10n.settingsSystem,
+          icon: Icons.memory_outlined,
+          path: '/settings/system',
+        ),
+        _HubEntry(
+          title: l10n.settingsPlugins,
+          icon: Icons.extension_outlined,
+          path: '/settings/plugins',
+        ),
+        _HubEntry(
+          title: l10n.smartOrganization,
+          icon: Icons.auto_awesome_motion,
+          path: '/settings/smart_organizer',
+        ),
+      ],
     ];
 
     return Scaffold(

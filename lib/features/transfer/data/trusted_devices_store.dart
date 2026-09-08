@@ -5,33 +5,61 @@ import 'dart:math';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 import 'package:uuid/uuid.dart';
 
+class DeviceIdentityData {
+  const DeviceIdentityData({
+    required this.fingerprint,
+    required this.deviceId,
+  });
+
+  final String fingerprint;
+  final String deviceId;
+}
+
 class TransferIdentityStore {
   TransferIdentityStore(this.file);
 
   final File file;
   String? fingerprint;
+  String? deviceId;
 
-  Future<String> loadOrCreate({String? fixedFingerprint}) async {
-    if (fixedFingerprint != null && fixedFingerprint.isNotEmpty) {
-      fingerprint = fixedFingerprint;
-      await _atomicWrite(jsonEncode({'fingerprint': fingerprint}));
-      return fingerprint!;
-    }
-    if (fingerprint != null) return fingerprint!;
+  Future<DeviceIdentityData> loadOrCreateIdentity({String? fixedFingerprint}) async {
+    String? loadedDeviceId;
+    String? loadedFp;
     try {
       if (await file.exists()) {
         final decoded = jsonDecode(await file.readAsString());
-        if (decoded is Map && decoded['fingerprint'] is String) {
-          fingerprint = decoded['fingerprint'] as String;
-          if (fingerprint!.isNotEmpty) return fingerprint!;
+        if (decoded is Map) {
+          if (decoded['fingerprint'] is String) {
+            loadedFp = decoded['fingerprint'] as String;
+          }
+          if (decoded['deviceId'] is String) {
+            loadedDeviceId = decoded['deviceId'] as String;
+          }
         }
       }
     } catch (e) {
       LoggerService.w('Transfer identity load failed: $e');
     }
-    fingerprint = const Uuid().v4();
-    await _atomicWrite(jsonEncode({'fingerprint': fingerprint}));
-    return fingerprint!;
+
+    fingerprint = (fixedFingerprint != null && fixedFingerprint.isNotEmpty)
+        ? fixedFingerprint
+        : (loadedFp != null && loadedFp.isNotEmpty
+            ? loadedFp
+            : const Uuid().v4());
+
+    deviceId = (loadedDeviceId != null && loadedDeviceId.isNotEmpty)
+        ? loadedDeviceId
+        : const Uuid().v4();
+
+    await _atomicWrite(
+      jsonEncode({'fingerprint': fingerprint, 'deviceId': deviceId}),
+    );
+    return DeviceIdentityData(fingerprint: fingerprint!, deviceId: deviceId!);
+  }
+
+  Future<String> loadOrCreate({String? fixedFingerprint}) async {
+    final id = await loadOrCreateIdentity(fixedFingerprint: fixedFingerprint);
+    return id.fingerprint;
   }
 
   Future<void> _atomicWrite(String content) async {
@@ -90,6 +118,11 @@ class TrustedDevicesStore {
 
   Future<void> add(String fingerprint) async {
     if (fingerprint.isEmpty || !fingerprints.add(fingerprint)) return;
+    await _save();
+  }
+
+  Future<void> remove(String fingerprint) async {
+    if (!fingerprints.remove(fingerprint)) return;
     await _save();
   }
 

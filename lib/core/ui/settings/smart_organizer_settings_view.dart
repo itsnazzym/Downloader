@@ -13,8 +13,9 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../plugins/builtin/smart_organizer_plugin.dart';
 import '../../plugins/plugin_manager.dart'; // Added
-import '../settings_view.dart';
+import 'widgets/settings_tiles.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'widgets/settings_app_bar_leading.dart';
 
 class SmartOrganizerSettingsView extends ConsumerStatefulWidget {
   const SmartOrganizerSettingsView({super.key});
@@ -277,6 +278,7 @@ class _SmartOrganizerSettingsViewState
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
+        leading: const SettingsAppBarLeading(),
         title: Text(context.l10n.smartOrganization),
         backgroundColor: AppColors.of(context).background,
         elevation: 0,

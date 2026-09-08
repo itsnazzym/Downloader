@@ -4,12 +4,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:gap/gap.dart';
-import '../../design_system/foundation/colors.dart';
-import '../../design_system/foundation/spacing.dart';
-import '../../design_system/foundation/typography.dart';
-import '../../services/download_stats_service.dart';
-import '../../services/disk_space_service.dart';
-import '../../utils/format_utils.dart';
+import 'package:modern_downloader/core/design_system/foundation/colors.dart';
+import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
+import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:modern_downloader/core/services/download_stats_service.dart';
+import 'package:modern_downloader/core/services/disk_space_service.dart';
+import 'package:modern_downloader/core/utils/format_utils.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
@@ -41,17 +42,76 @@ class _StatsViewState extends ConsumerState<StatsView> {
     final stats = ref.watch(downloadStatsProvider);
     final l10n = context.l10n;
 
+    final isMobile =
+        PlatformInfo.isMobile || MediaQuery.sizeOf(context).width < 640;
+
+    final statCards = [
+      _StatCard(
+        icon: Icons.download_rounded,
+        label: l10n.totalDownloads,
+        value: stats.totalDownloads.toString(),
+        color: AppColors.of(context).primary,
+        delay: 0,
+      ),
+      _StatCard(
+        icon: Icons.today_rounded,
+        label: l10n.statsToday,
+        value: stats.downloadsToday.toString(),
+        color: AppColors.of(context).info,
+        delay: 100,
+      ),
+      _StatCard(
+        icon: Icons.data_usage_rounded,
+        label: l10n.totalData,
+        value: FormatUtils.formatBytes(stats.totalBytesDownloaded),
+        color: AppColors.of(context).success,
+        delay: 200,
+      ),
+      _StatCard(
+        icon: Icons.storage_rounded,
+        label: l10n.freeSpace,
+        value: _freeSpace != null
+            ? FormatUtils.formatBytes(_freeSpace!)
+            : '...',
+        color: _freeSpace != null &&
+                _freeSpace! < DiskSpaceService.minRequiredBytes
+            ? AppColors.of(context).error
+            : AppColors.of(context).success,
+        delay: 300,
+      ),
+    ];
+
+    final activityChartPanel = _GlassPanel(
+      title: l10n.downloadActivity,
+      subtitle: l10n.last7DaysShort,
+      delay: 400,
+      child: SizedBox(
+        height: 200,
+        child: _buildActivityChart(stats),
+      ),
+    );
+
+    final sourceChartPanel = _GlassPanel(
+      title: l10n.sourcesChartTitle,
+      subtitle: l10n.sourcesByPlatform,
+      delay: 500,
+      child: SizedBox(
+        height: 200,
+        child: _buildSourceChart(stats),
+      ),
+    );
+
     return Container(
       color: AppColors.of(context).background,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: EdgeInsets.all(isMobile ? 16.0 : AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
             Text(
               l10n.statistics,
-              style: AppTypography.h2.copyWith(
+              style: (isMobile ? AppTypography.h3 : AppTypography.h2).copyWith(
                 color: AppColors.of(context).textPrimary,
                 fontWeight: FontWeight.w700,
               ),
@@ -64,117 +124,70 @@ class _StatsViewState extends ConsumerState<StatsView> {
               ),
             ).animate().fadeIn(duration: 300.ms, delay: 100.ms),
 
-            const Gap(AppSpacing.xl),
+            const Gap(AppSpacing.l),
 
             // Top stat cards
-            Row(
-              key: OnboardingTargets.stats,
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.download_rounded,
-                    label: l10n.totalDownloads,
-                    value: stats.totalDownloads.toString(),
-                    color: AppColors.of(context).primary,
-                    delay: 0,
-                  ),
-                ),
-                const Gap(AppSpacing.m),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.today_rounded,
-                    label: l10n.statsToday,
-                    value: stats.downloadsToday.toString(),
-                    color: AppColors.of(context).info,
-                    delay: 100,
-                  ),
-                ),
-                const Gap(AppSpacing.m),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.data_usage_rounded,
-                    label: l10n.totalData,
-                    value: FormatUtils.formatBytes(stats.totalBytesDownloaded),
-                    color: AppColors.of(context).success,
-                    delay: 200,
-                  ),
-                ),
-                const Gap(AppSpacing.m),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.storage_rounded,
-                    label: l10n.freeSpace,
-                    value: _freeSpace != null
-                        ? FormatUtils.formatBytes(_freeSpace!)
-                        : '...',
-                    color:
-                        _freeSpace != null &&
-                            _freeSpace! < DiskSpaceService.minRequiredBytes
-                        ? AppColors.of(context).error
-                        : AppColors.of(context).success,
-                    delay: 300,
-                  ),
-                ),
-              ],
-            ),
-
-            const Gap(AppSpacing.xl),
-
-            // Charts row
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Activity chart (last 7 days)
-                Expanded(
-                  flex: 2,
-                  child: _GlassPanel(
-                    title: l10n.downloadActivity,
-                    subtitle: l10n.last7DaysShort,
-                    delay: 400,
-                    child: SizedBox(
-                      height: 200,
-                      child: _buildActivityChart(stats),
-                    ),
-                  ),
-                ),
-                const Gap(AppSpacing.m),
-                // Source distribution
-                Expanded(
-                  flex: 1,
-                  child: _GlassPanel(
-                    title: l10n.sourcesChartTitle,
-                    subtitle: l10n.sourcesByPlatform,
-                    delay: 500,
-                    child: SizedBox(
-                      height: 200,
-                      child: _buildSourceChart(stats),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const Gap(AppSpacing.xl),
-
-            // Keyboard shortcuts reference
-            _GlassPanel(
-              title: l10n.keyboardShortcuts,
-              subtitle: l10n.shortcutsQuickActions,
-              delay: 600,
-              child: Wrap(
-                spacing: AppSpacing.m,
-                runSpacing: AppSpacing.s,
+            if (isMobile)
+              GridView.count(
+                key: OnboardingTargets.stats,
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: AppSpacing.m,
+                crossAxisSpacing: AppSpacing.m,
+                childAspectRatio: 1.4,
+                children: statCards,
+              )
+            else
+              Row(
+                key: OnboardingTargets.stats,
                 children: [
-                  _ShortcutChip(
-                    keys: 'Ctrl+N',
-                    label: l10n.newDownloadShortcut,
-                  ),
-                  _ShortcutChip(keys: 'Ctrl+,', label: l10n.settingsShortcut),
-                  _ShortcutChip(keys: 'Ctrl+D', label: l10n.dashboardShortcut),
-                  _ShortcutChip(keys: 'Esc', label: l10n.minimizeShortcut),
+                  for (int i = 0; i < statCards.length; i++) ...[
+                    if (i > 0) const Gap(AppSpacing.m),
+                    Expanded(child: statCards[i]),
+                  ],
                 ],
               ),
-            ),
+
+            const Gap(AppSpacing.xl),
+
+            // Charts
+            if (isMobile) ...[
+              activityChartPanel,
+              const Gap(AppSpacing.m),
+              sourceChartPanel,
+            ] else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: activityChartPanel),
+                  const Gap(AppSpacing.m),
+                  Expanded(flex: 1, child: sourceChartPanel),
+                ],
+              ),
+
+            if (!isMobile) ...[
+              const Gap(AppSpacing.xl),
+              // Keyboard shortcuts reference (desktop only)
+              _GlassPanel(
+                title: l10n.keyboardShortcuts,
+                subtitle: l10n.shortcutsQuickActions,
+                delay: 600,
+                child: Wrap(
+                  spacing: AppSpacing.m,
+                  runSpacing: AppSpacing.s,
+                  children: [
+                    _ShortcutChip(
+                      keys: 'Ctrl+N',
+                      label: l10n.newDownloadShortcut,
+                    ),
+                    _ShortcutChip(keys: 'Ctrl+,', label: l10n.settingsShortcut),
+                    _ShortcutChip(keys: 'Ctrl+D', label: l10n.dashboardShortcut),
+                    _ShortcutChip(keys: 'Esc', label: l10n.minimizeShortcut),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

@@ -87,6 +87,78 @@ class AndroidEngineBridge {
     }
   }
 
+  Future<String> getYtDlpVersion() async {
+    try {
+      final result = await _methods.invokeMethod<String>('version');
+      return result ?? 'unknown';
+    } on PlatformException catch (e) {
+      LoggerService.w('Android yt-dlp version check failed: $e');
+      return 'unknown';
+    }
+  }
+
+  Future<bool> acquireMulticastLock() async {
+    try {
+      final result = await _methods.invokeMethod<bool>('acquireMulticastLock');
+      return result ?? false;
+    } on PlatformException catch (e) {
+      LoggerService.w('AndroidEngineBridge acquireMulticastLock failed: $e');
+      return false;
+    }
+  }
+
+  Future<bool> releaseMulticastLock() async {
+    try {
+      final result = await _methods.invokeMethod<bool>('releaseMulticastLock');
+      return result ?? false;
+    } on PlatformException catch (e) {
+      LoggerService.w('AndroidEngineBridge releaseMulticastLock failed: $e');
+      return false;
+    }
+  }
+
+  Future<bool> viewFile(String filePath) async {
+    try {
+      final success = await _methods.invokeMethod<bool>('viewFile', {
+        'path': filePath,
+      });
+      return success ?? false;
+    } on PlatformException catch (e) {
+      LoggerService.w('AndroidEngineBridge viewFile failed: $e');
+      return false;
+    }
+  }
+
+  Future<bool> shareFile(String filePath) async {
+    try {
+      final success = await _methods.invokeMethod<bool>('shareFile', {
+        'path': filePath,
+      });
+      return success ?? false;
+    } on PlatformException catch (e) {
+      LoggerService.w('AndroidEngineBridge shareFile failed: $e');
+      return false;
+    }
+  }
+
+  Future<bool> getVideoThumbnail(
+    String videoPath,
+    String thumbnailPath, {
+    int timeMs = 1000,
+  }) async {
+    try {
+      final success = await _methods.invokeMethod<bool>('getVideoThumbnail', {
+        'videoPath': videoPath,
+        'thumbnailPath': thumbnailPath,
+        'timeMs': timeMs,
+      });
+      return success ?? false;
+    } on PlatformException catch (e) {
+      LoggerService.w('AndroidEngineBridge getVideoThumbnail failed: $e');
+      return false;
+    }
+  }
+
   Future<ProcessResult> run(
     String executable,
     List<String> arguments, {

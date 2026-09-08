@@ -1,0 +1,488 @@
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:modern_downloader/core/android/android_engine_bridge.dart';
+import 'package:modern_downloader/core/design_system/components/status_badge.dart';
+import 'package:modern_downloader/core/design_system/foundation/colors.dart';
+import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
+import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:modern_downloader/core/download/download_file_resolver.dart';
+import 'package:modern_downloader/core/download/extraction_placeholders.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
+import '../../domain/entities/download_item.dart';
+import '../../domain/enums/download_status.dart';
+import 'download_item_display.dart';
+
+class DownloadItemCard extends StatefulWidget {
+  final DownloadItem item;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback onRetry;
+  final VoidCallback onCancel;
+
+  const DownloadItemCard({
+    super.key,
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+    required this.onRetry,
+    required this.onCancel,
+  });
+
+  @override
+  State<DownloadItemCard> createState() => _DownloadItemCardState();
+}
+
+class _DownloadItemCardState extends State<DownloadItemCard> {
+  bool _isHovering = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final isMobile = PlatformInfo.isMobile;
+    final isDownloading = widget.item.status == DownloadStatus.downloading;
+    final isExtracting = widget.item.status == DownloadStatus.extracting;
+
+    Widget cardBody = AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      transform: Matrix4.translationValues(0, _isHovering ? -2 : 0, 0),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: widget.isSelected
+              ? colors.primary
+              : colors.border.withValues(alpha: isMobile ? 0.35 : 0.6),
+          width: widget.isSelected ? 1.5 : 1.0,
+        ),
+        boxShadow: isMobile
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () {
+            if (isMobile) HapticFeedback.lightImpact();
+            widget.onTap();
+          },
+          onHighlightChanged: (highlighted) {
+            if (isMobile && highlighted != _isPressed) {
+              setState(() => _isPressed = highlighted);
+            }
+          },
+          child: Padding(
+            padding: EdgeInsets.all(isMobile ? 10.0 : AppSpacing.m),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Thumbnail
+                _buildThumbnail(context, isMobile),
+                SizedBox(width: isMobile ? 12 : AppSpacing.m),
+
+                // Info Column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title Row + Status Badge
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              DownloadItemDisplay.title(context, widget.item),
+                              maxLines: isMobile ? 2 : 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.label.copyWith(
+                                color: widget.isSelected
+                                    ? colors.primary
+                                    : colors.textPrimary,
+                                fontSize: isMobile ? 13.5 : 14,
+                                fontWeight: FontWeight.w600,
+                                height: 1.25,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          StatusBadge(
+                            status: widget.item.status,
+                            error: widget.item.error,
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      // Progress or Meta Information
+                      if (isDownloading || isExtracting) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: LinearProgressIndicator(
+                            value: widget.item.progress > 0
+                                ? widget.item.progress
+                                : null,
+                            minHeight: 2.5,
+                            backgroundColor: colors.surfaceHighlight,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(colors.primary),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "${(widget.item.progress * 100).toStringAsFixed(1)}%",
+                              style: AppTypography.mono.copyWith(
+                                color: colors.primary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                _buildMetaString(),
+                                style: AppTypography.mono.copyWith(
+                                  color: colors.textSecondary,
+                                  fontSize: 11,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        Row(
+                          children: [
+                            if (widget.item.source.isNotEmpty) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colors.surfaceHighlight,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: colors.border.withValues(alpha: 0.3),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Text(
+                                  widget.item.source,
+                                  style: AppTypography.mono.copyWith(
+                                    fontSize: 10,
+                                    color: colors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Expanded(
+                              child: Text(
+                                _buildMetaString(),
+                                style: AppTypography.bodySmall.copyWith(
+                                  fontSize: 11.5,
+                                  color: colors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // Action Buttons (Desktop only - mobile uses swipe and bottom sheet)
+                if (!isMobile &&
+                    (widget.item.status == DownloadStatus.failed ||
+                        widget.item.status == DownloadStatus.canceled ||
+                        widget.item.status == DownloadStatus.completed)) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: widget.onRetry,
+                    icon: Icon(
+                      Icons.refresh_rounded,
+                      color: colors.primary,
+                      size: 18,
+                    ),
+                    tooltip: context.l10n.retryDownload,
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  IconButton(
+                    onPressed: widget.onCancel,
+                    icon: Icon(
+                      Icons.delete_outline_rounded,
+                      color: colors.error,
+                      size: 18,
+                    ),
+                    tooltip: context.l10n.remove,
+                    padding: const EdgeInsets.all(8),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (isMobile) {
+      return RepaintBoundary(
+        child: AnimatedScale(
+          scale: _isPressed ? 0.98 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOutCubic,
+          child: Dismissible(
+            key: ValueKey('dismiss_${widget.item.id}'),
+            direction: DismissDirection.horizontal,
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.endToStart) {
+                await HapticFeedback.mediumImpact();
+                widget.onCancel();
+              } else if (direction == DismissDirection.startToEnd) {
+                await HapticFeedback.lightImpact();
+                final path = widget.item.filePath;
+                if (path != null && File(path).existsSync()) {
+                  await AndroidEngineBridge.instance.shareFile(path);
+                }
+              }
+              return false;
+            },
+            background: Container(
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 20),
+              decoration: BoxDecoration(
+                color: colors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.share_rounded, color: colors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Partager',
+                    style: TextStyle(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            secondaryBackground: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              decoration: BoxDecoration(
+                color: colors.error.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'Supprimer',
+                    style: TextStyle(
+                      color: colors.error,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    color: colors.error,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+            child: cardBody,
+          ),
+        ),
+      );
+    }
+
+    return RepaintBoundary(
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovering = true),
+        onExit: (_) => setState(() => _isHovering = false),
+        cursor: SystemMouseCursors.click,
+        child: cardBody,
+      ),
+    );
+  }
+
+  Widget _buildThumbnail(BuildContext context, bool isMobile) {
+    final colors = AppColors.of(context);
+    final width = isMobile ? 54.0 : 48.0;
+    final height = isMobile ? 48.0 : 48.0;
+
+    return Stack(
+      children: [
+        Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: colors.background,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: colors.border.withValues(alpha: 0.35),
+              width: 0.8,
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: widget.item.thumbnailUrl != null
+              ? Hero(
+                  tag: 'thumbnail_${widget.item.id}',
+                  child: _buildThumbnailImage(
+                    widget.item.thumbnailUrl!,
+                  ),
+                )
+              : (ExtractionPlaceholders.showThumbnailSpinner(
+                      status: widget.item.status,
+                      thumbnailUrl: widget.item.thumbnailUrl,
+                    )
+                    ? Center(
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colors.primary,
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        Icons.movie_outlined,
+                        color: colors.textSecondary,
+                        size: 22,
+                      )),
+        ),
+        if (isMobile && widget.item.status == DownloadStatus.completed)
+          Positioned(
+            right: 2,
+            bottom: 2,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.play_arrow_rounded,
+                size: 11,
+                color: colors.primary,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _buildMetaString() {
+    final parts = <String>[];
+
+    // Source
+    parts.add(widget.item.source);
+
+    // Size logic — fall back to on-disk length when yt-dlp never reported it.
+    final sizeLabel = DownloadFileResolver.displaySize(
+      storedTotalSize: widget.item.totalSize,
+      filePath: widget.item.filePath,
+      unknownLabel: '',
+    );
+    if (sizeLabel.isNotEmpty) {
+      if (widget.item.downloadedSize.isNotEmpty &&
+          widget.item.status == DownloadStatus.downloading) {
+        parts.add("${widget.item.downloadedSize} / $sizeLabel");
+      } else {
+        parts.add(sizeLabel);
+      }
+    } else if (widget.item.downloadedSize.isNotEmpty) {
+      parts.add(widget.item.downloadedSize);
+    }
+
+    // Speed
+    if (widget.item.speed.isNotEmpty &&
+        widget.item.status == DownloadStatus.downloading) {
+      parts.add(widget.item.speed);
+    }
+
+    // ETA
+    if (widget.item.eta.isNotEmpty &&
+        widget.item.status == DownloadStatus.downloading) {
+      parts.add("ETA ${widget.item.eta}");
+    }
+
+    return parts.join(" • ");
+  }
+
+  /// Helper method to display thumbnail from local file or network URL
+  Widget _buildThumbnailImage(String url) {
+    // Only treat as network URL if it explicitly starts with http:// or https://
+    final isNetworkUrl =
+        url.startsWith('http://') || url.startsWith('https://');
+
+    if (isNetworkUrl) {
+      return CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.cover,
+        width: 48,
+        height: 48,
+        errorWidget: (context, _, _) => Icon(
+          Icons.movie_outlined,
+          color: AppColors.of(context).textSecondary,
+          size: 24,
+        ),
+        placeholder: (context, _) => Container(
+          color: AppColors.of(context).background,
+          child: const Center(
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        fadeInDuration: const Duration(milliseconds: 200),
+      );
+    }
+
+    // Everything else is treated as a local file path
+    // Decode URL-encoded paths if needed
+    String decodedPath = url;
+    try {
+      decodedPath = Uri.decodeFull(url);
+    } catch (_) {}
+
+    return Image.file(
+      File(decodedPath),
+      fit: BoxFit.cover,
+      width: 48,
+      height: 48,
+      errorBuilder: (context, _, _) => Icon(
+        Icons.movie_outlined,
+        color: AppColors.of(context).textSecondary,
+        size: 24,
+      ),
+    );
+  }
+}

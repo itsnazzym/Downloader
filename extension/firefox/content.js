@@ -2817,6 +2817,14 @@
         }
         return false;
       }
+      if (message.type === 'MD_SYNC_TIKTOK_COLLECTIONS') {
+        extractTikTokCollections().then(function (res) {
+          sendResponse(res);
+        }).catch(function (err) {
+          sendResponse({ ok: false, error: (err && err.message) || String(err) });
+        });
+        return true;
+      }
       if (message.type === 'MD_EXTRACT_X_FEED' || message.type === 'MD_EXTRACT_FEED') {
         try {
           var result = extractUniversalFeed(message.maxItems);
@@ -2839,5 +2847,157 @@
     });
   }
 
+  function fetchCollectionItemsRecursive(collectionId, totalDeclared) {
+    return new Promise(function (resolve) {
+      var allIds = [];
+      var cursor = 0;
+      var hasMore = true;
+      var maxLoops = 20;
+
+      function fetchNextPage() {
+        if (!hasMore || (totalDeclared && allIds.length >= totalDeclared) || maxLoops <= 0) {
+          resolve(allIds);
+          return;
+        }
+        maxLoops--;
+        var url = 'https://www.tiktok.com/api/collection/item_list/?collectionId=' + collectionId + '&count=50&cursor=' + cursor;
+        fetch(url, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' },
+        }).then(function (r) {
+          return r.json();
+        }).then(function (res) {
+          if (!res || !Array.isArray(res.itemList) || res.itemList.length === 0) {
+            resolve(allIds);
+            return;
+          }
+          res.itemList.forEach(function (item) {
+            var vid = item.id || item.videoId;
+            if (vid && allIds.indexOf(String(vid)) === -1) {
+              allIds.push(String(vid));
+            }
+          });
+          hasMore = res.hasMore === true;
+          cursor = res.cursor || (cursor + res.itemList.length);
+          if (hasMore && res.itemList.length > 0) {
+            setTimeout(fetchNextPage, 200);
+          } else {
+            resolve(allIds);
+          }
+        }).catch(function () {
+          resolve(allIds);
+        });
+      }
+
+      fetchNextPage();
+    });
+  }
+
+  function extractTikTokCollections() {
+    return new Promise(function (resolve) {
+      var collections = {};
+      var collectionTotals = {};
+
+      try {
+        var links = document.querySelectorAll('a[href*="/video/"]');
+        if (links && links.length > 0) {
+          var currentTitle = document.title || '';
+          var colNameMatch = currentTitle.match(/^(.*?)\s*[-|]\s*TikTok/i);
+          var activeCol = (colNameMatch && colNameMatch[1]) ? colNameMatch[1].trim() : 'Collection Active';
+          collections[activeCol] = [];
+          links.forEach(function (a) {
+            var m = (a.href || '').match(/\/video\/(\d+)/);
+            if (m && m[1] && collections[activeCol].indexOf(m[1]) === -1) {
+              collections[activeCol].push(m[1]);
+            }
+          });
+        }
+      } catch (e) {}
+
+      fetch('https://www.tiktok.com/api/user/collection/list/?count=50&cursor=0', {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+      }).then(function (res) {
+        return res.json();
+      }).then(function (data) {
+        if (!data || !Array.isArray(data.collectionList) || data.collectionList.length === 0) {
+          resolve({ ok: Object.keys(collections).length > 0, collections: collections, collectionTotals: collectionTotals });
+          return;
+        }
+
+        var promises = data.collectionList.map(function (col) {
+          var id = col.collectionId || col.id;
+          var name = col.collectionName || col.name || ('Collection ' + id);
+          var declaredTotal = parseInt(col.total, 10) || 0;
+          collectionTotals[name] = declaredTotal;
+
+          return fetchCollectionItemsRecursive(id, declaredTotal).then(function (items) {
+            collections[name] = items;
+          });
+        });
+
+        Promise.all(promises).then(function () {
+          resolve({ ok: true, collections: collections, collectionTotals: collectionTotals });
+        });
+      }).catch(function () {
+        resolve({ ok: Object.keys(collections).length > 0, collections: collections, collectionTotals: collectionTotals });
+      });
+    });
+  }
+
+  function injectTikTokSyncBanner() {
+    if (window.location.hostname.indexOf('tiktok.com') === -1) return;
+    if (document.getElementById('md-tiktok-sync-pill')) return;
+
+    var pill = document.createElement('div');
+    pill.id = 'md-tiktok-sync-pill';
+    pill.style.position = 'fixed';
+    pill.style.bottom = '24px';
+    pill.style.right = '24px';
+    pill.style.zIndex = '9999999';
+    pill.style.background = 'linear-gradient(135deg, #6C5DD3 0%, #FE2C55 100%)';
+    pill.style.color = '#fff';
+    pill.style.padding = '8px 14px';
+    pill.style.borderRadius = '24px';
+    pill.style.boxShadow = '0 6px 18px rgba(0,0,0,0.35)';
+    pill.style.cursor = 'pointer';
+    pill.style.fontSize = '13px';
+    pill.style.fontWeight = '600';
+    pill.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+    pill.style.display = 'flex';
+    pill.style.alignItems = 'center';
+    pill.style.gap = '8px';
+    pill.style.transition = 'transform 0.2s, opacity 0.2s';
+    pill.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Sync Collections vers Modern Downloader</span>';
+
+    pill.addEventListener('mouseenter', function () { pill.style.transform = 'scale(1.04)'; });
+    pill.addEventListener('mouseleave', function () { pill.style.transform = 'scale(1)'; });
+    pill.addEventListener('click', function () {
+      pill.innerHTML = '<span>⏳ Synchronisation en cours...</span>';
+      extractTikTokCollections().then(function (res) {
+        if (res && res.ok && res.collections && Object.keys(res.collections).length > 0) {
+          api.runtime.sendMessage({
+            type: 'MD_TIKTOK_COLLECTIONS_DATA',
+            collections: res.collections,
+            collectionTotals: res.collectionTotals,
+          });
+          pill.innerHTML = '<span>✅ ' + Object.keys(res.collections).length + ' collections synchronisées !</span>';
+          setTimeout(function () { pill.remove(); }, 4000);
+        } else {
+          pill.innerHTML = '<span>⚠️ Aucune collection trouvée</span>';
+          setTimeout(function () {
+            pill.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Sync Collections vers Modern Downloader</span>';
+          }, 3000);
+        }
+      });
+    });
+
+    try {
+      document.body.appendChild(pill);
+    } catch (e) {}
+  }
+
   start();
+  setTimeout(injectTikTokSyncBanner, 2000);
 })();
+

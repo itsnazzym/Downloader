@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/theme/app_typography.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
@@ -14,6 +15,8 @@ import 'package:modern_downloader/core/ui/widgets/log_viewer.dart';
 import 'video_preview_widget.dart';
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -30,6 +33,12 @@ class DownloadInspector extends ConsumerWidget {
     if (item == null) {
       return Center(child: Text(l10n.selectDownload));
     }
+
+    final validPath = DownloadFileResolver.resolvePlayablePath(
+      item.filePath,
+      title: item.title,
+      outputFolder: item.request.outputFolder,
+    );
 
     return Animate(
       key: ValueKey(downloadId),
@@ -50,9 +59,21 @@ class DownloadInspector extends ConsumerWidget {
                 bottom: BorderSide(color: AppColors.of(context).border),
               ),
             ),
-            child: Text(
-              l10n.inspector,
-              style: Theme.of(context).textTheme.titleSmall,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: AppColors.of(context).primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.inspector,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
             ),
           ),
 
@@ -64,11 +85,6 @@ class DownloadInspector extends ConsumerWidget {
                 children: [
                   // Preview
                   (() {
-                    final validPath = DownloadFileResolver.resolvePlayablePath(
-                      item.filePath,
-                      title: item.title,
-                      outputFolder: item.request.outputFolder,
-                    );
                     if (validPath != null &&
                         DownloadFileResolver.isMediaPath(validPath) &&
                         !DownloadFileResolver.isAudioPath(validPath)) {
@@ -138,8 +154,36 @@ class DownloadInspector extends ConsumerWidget {
                       ),
                     );
                   })(),
+                  if (validPath != null) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          _openMediaFile(ref, validPath);
+                        },
+                        icon: const Icon(Icons.play_arrow_rounded, size: 22),
+                        label: const Text(
+                          'Lire le média',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.of(context).primary,
+                          foregroundColor: AppColors.of(context).onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
 
                   // Metadata
                   _InfoRow(
@@ -168,19 +212,10 @@ class DownloadInspector extends ConsumerWidget {
                     value: item.request.url,
                     isMono: true,
                   ),
-                  if (DownloadFileResolver.resolvePlayablePath(
-                        item.filePath,
-                        title: item.title,
-                        outputFolder: item.request.outputFolder,
-                      ) !=
-                      null)
+                  if (validPath != null)
                     _InfoRow(
                       label: 'Fichier local',
-                      value: DownloadFileResolver.resolvePlayablePath(
-                        item.filePath,
-                        title: item.title,
-                        outputFolder: item.request.outputFolder,
-                      )!,
+                      value: validPath,
                       isMono: true,
                     ),
                   const SizedBox(height: 8),
@@ -189,6 +224,7 @@ class DownloadInspector extends ConsumerWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
+                            HapticFeedback.lightImpact();
                             Clipboard.setData(
                               ClipboardData(text: item.request.url),
                             );
@@ -203,28 +239,44 @@ class DownloadInspector extends ConsumerWidget {
                           label: const Text('Copier URL'),
                         ),
                       ),
-                      if (DownloadFileResolver.resolvePlayablePath(
-                            item.filePath,
-                            title: item.title,
-                            outputFolder: item.request.outputFolder,
-                          ) !=
-                          null) ...[
+                      if (validPath != null) ...[
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              final path =
-                                  DownloadFileResolver.resolvePlayablePath(
-                                    item.filePath,
-                                    title: item.title,
-                                    outputFolder: item.request.outputFolder,
-                                  );
-                              if (path != null) _openInFolder(path);
+                              HapticFeedback.lightImpact();
+                              if (PlatformInfo.isAndroid) {
+                                AndroidEngineBridge.instance.viewFile(validPath);
+                              } else {
+                                _openInFolder(validPath);
+                              }
                             },
-                            icon: const Icon(Icons.folder_open_rounded, size: 16),
-                            label: const Text('Explorer'),
+                            icon: Icon(
+                              PlatformInfo.isAndroid
+                                  ? Icons.open_in_new_rounded
+                                  : Icons.folder_open_rounded,
+                              size: 16,
+                            ),
+                            label: Text(
+                              PlatformInfo.isAndroid
+                                  ? 'Ouvrir avec'
+                                  : 'Explorer',
+                            ),
                           ),
                         ),
+                        if (PlatformInfo.isAndroid) ...[
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                AndroidEngineBridge.instance.shareFile(validPath);
+                              },
+                              icon: const Icon(Icons.share_rounded, size: 16),
+                              label: const Text('Partager'),
+                            ),
+                          ),
+                        ],
                       ],
                     ],
                   ),
@@ -438,6 +490,8 @@ class DownloadInspector extends ConsumerWidget {
         Process.run('open', [path]);
       } else if (Platform.isLinux) {
         Process.run('xdg-open', [path]);
+      } else if (PlatformInfo.isAndroid) {
+        AndroidEngineBridge.instance.viewFile(path);
       }
     } catch (e) {
       debugPrint("Error opening file: $e");
@@ -453,6 +507,8 @@ class DownloadInspector extends ConsumerWidget {
       } else if (Platform.isLinux) {
         final parent = File(path).parent.path;
         Process.run('xdg-open', [parent]);
+      } else if (PlatformInfo.isAndroid) {
+        AndroidEngineBridge.instance.viewFile(path);
       }
     } catch (e) {
       debugPrint("Error revealing file: $e");
@@ -561,8 +617,18 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+    final colors = AppColors.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: colors.border.withValues(alpha: 0.18),
+            width: 0.6,
+          ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -570,20 +636,24 @@ class _InfoRow extends StatelessWidget {
             label.toUpperCase(),
             style: TextStyle(
               fontSize: 10,
-              color: AppColors.of(context).textSecondary,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Text(
             value,
-            style: TextStyle(
-              color: AppColors.of(context).textPrimary,
-              fontSize: 13,
-              fontFamily: isMono ? 'JetBrains Mono' : null,
-            ),
-            maxLines: 2,
+            style: isMono
+                ? AppTypography.mono.copyWith(
+                    color: colors.textPrimary,
+                    fontSize: 12.5,
+                  )
+                : TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 13,
+                  ),
+            maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),
         ],

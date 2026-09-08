@@ -14,10 +14,10 @@ import 'package:modern_downloader/features/transfer/domain/send_memory.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_creator_query.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_progress_label.dart';
 import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:path/path.dart' as p;
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -57,8 +57,16 @@ class _TransferViewState extends ConsumerState<TransferView> {
       unawaited(_showPeerPin(next));
     });
 
+    final isMobile =
+        PlatformInfo.isMobile || MediaQuery.sizeOf(context).width < 640;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(40, 24, 40, 32),
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 16 : 40,
+        isMobile ? 12 : 24,
+        isMobile ? 16 : 40,
+        isMobile ? 16 : 32,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -256,6 +264,60 @@ class _HeaderBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
+    final isMobile =
+        PlatformInfo.isMobile || MediaQuery.sizeOf(context).width < 640;
+
+    final tabSwitcher = _SegmentedTabSwitcher(
+      selected: state.activeTab,
+      onSelect: (tab) {
+        ref.read(transferControllerProvider.notifier).setTab(tab);
+      },
+    );
+
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.transferTitle,
+                style: AppTypography.h1.copyWith(
+                  color: colors.textPrimary,
+                  fontSize: 22,
+                ),
+              ),
+              tabSwitcher,
+            ],
+          ),
+          const Gap(8),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              if (state.lanIp != null)
+                _NetworkStatusChip(
+                  ip: state.lanIp!,
+                  port: state.port ?? 0,
+                ),
+              if (state.pin.isNotEmpty)
+                _PinBadge(pin: state.pin),
+            ],
+          ),
+          const Gap(4),
+          Text(
+            state.portConflict
+                ? (PlatformInfo.isMobile
+                    ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
+                    : l10n.transferPortBusy)
+                : l10n.transferSubtitle,
+            style: AppTypography.caption.copyWith(color: colors.textSecondary),
+          ),
+        ],
+      );
+    }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,19 +346,18 @@ class _HeaderBar extends ConsumerWidget {
               ),
               const Gap(4),
               Text(
-                state.portConflict ? l10n.transferPortBusy : l10n.transferSubtitle,
+                state.portConflict
+                    ? (PlatformInfo.isMobile
+                        ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
+                        : l10n.transferPortBusy)
+                    : l10n.transferSubtitle,
                 style: AppTypography.caption.copyWith(color: colors.textSecondary),
               ),
             ],
           ),
         ),
         const Gap(16),
-        _SegmentedTabSwitcher(
-          selected: state.activeTab,
-          onSelect: (tab) {
-            ref.read(transferControllerProvider.notifier).setTab(tab);
-          },
-        ),
+        tabSwitcher,
       ],
     );
   }
@@ -414,7 +475,9 @@ class _SegmentedTabSwitcher extends StatelessWidget {
             onTap: () => onSelect(TransferTab.send),
           ),
           _TabPill(
-            icon: Icons.qr_code_2_rounded,
+            icon: PlatformInfo.isMobile
+                ? Icons.download_rounded
+                : Icons.qr_code_2_rounded,
             label: l10n.transferTabReceive,
             selected: selected == TransferTab.receive,
             onTap: () => onSelect(TransferTab.receive),
@@ -569,29 +632,20 @@ class _LiveTransferBanner extends StatelessWidget {
                   label: Text(l10n.transferRetry),
                 ),
                 const Gap(8),
-                IconButton(
-                  onPressed: onCancel,
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                ),
-              ] else if (!isDone) ...[
-                TextButton(
-                  onPressed: onCancel,
-                  child: Text(l10n.transferCancel),
-                ),
-              ] else ...[
-                IconButton(
-                  onPressed: onCancel,
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                ),
               ],
+              IconButton(
+                tooltip: l10n.transferCancel,
+                icon: const Icon(Icons.close_rounded, size: 18),
+                onPressed: onCancel,
+              ),
             ],
           ),
           if (progress != null && !isFailed && !isDone) ...[
-            const Gap(10),
+            const Gap(12),
             ClipRRect(
               borderRadius: BorderRadius.circular(99),
               child: LinearProgressIndicator(
-                value: TransferProgressLabel.isIndeterminate(progress!)
+                value: progress!.fraction.isNaN || progress!.fraction.isInfinite
                     ? null
                     : progress!.fraction,
                 minHeight: 8,
@@ -806,32 +860,54 @@ class _DoppelrandCard extends StatelessWidget {
   }
 }
 
-class _MePanel extends StatelessWidget {
+class _MePanel extends ConsumerStatefulWidget {
   const _MePanel({required this.state, required this.fill});
 
   final TransferUiState state;
   final bool fill;
 
   @override
+  ConsumerState<_MePanel> createState() => _MePanelState();
+}
+
+class _MePanelState extends ConsumerState<_MePanel> {
+  late bool _showQr;
+
+  @override
+  void initState() {
+    super.initState();
+    _showQr = !PlatformInfo.isMobile;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
+    final state = widget.state;
     final qr = state.qrUrl;
+    final isMobile = PlatformInfo.isMobile;
 
     return _DoppelrandCard(
-      fill: fill,
-      padding: const EdgeInsets.all(28),
+      fill: widget.fill,
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.desktop_windows_rounded, size: 20, color: colors.primary),
-              const Gap(8),
-              Text(
-                state.alias,
-                style: AppTypography.h3.copyWith(color: colors.textPrimary),
+              Icon(
+                isMobile ? Icons.smartphone_rounded : Icons.desktop_windows_rounded,
+                size: 22,
+                color: colors.primary,
+              ),
+              const Gap(10),
+              Flexible(
+                child: Text(
+                  state.alias,
+                  style: AppTypography.h3.copyWith(color: colors.textPrimary),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -840,7 +916,7 @@ class _MePanel extends StatelessWidget {
             l10n.transferListeningOn,
             style: AppTypography.caption.copyWith(color: colors.textSecondary),
           ),
-          const Gap(24),
+          const Gap(20),
           if (qr == null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),
@@ -851,32 +927,79 @@ class _MePanel extends StatelessWidget {
               ),
             )
           else ...[
+            // Status Radar Card
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.primary.withValues(alpha: 0.15),
-                    blurRadius: 28,
-                    offset: const Offset(0, 8),
+                color: colors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF10B981),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Prêt à recevoir',
+                          style: AppTypography.body.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        Text(
+                          'Visible sur le Wi-Fi local',
+                          style: AppTypography.caption.copyWith(
+                            color: colors.textSecondary,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Diffuser une annonce réseau',
+                    icon: const Icon(Icons.wifi_tethering_rounded, size: 20),
+                    onPressed: () {
+                      ref.read(transferControllerProvider.notifier).triggerDiscoveryPulse();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Signal de découverte diffusé sur le réseau'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
-              child: QrImageView(
-                data: qr,
-                size: 190,
-                backgroundColor: Colors.white,
-              ),
             ),
-            const Gap(20),
+            const Gap(18),
+            // Security PIN Block
             Text(
-              'CODE PIN',
+              'CODE PIN DE SÉCURITÉ',
               style: AppTypography.caption.copyWith(
                 color: colors.textSecondary,
                 letterSpacing: 2,
                 fontSize: 10,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const Gap(4),
@@ -886,8 +1009,8 @@ class _MePanel extends StatelessWidget {
                 Text(
                   state.pin,
                   style: AppTypography.mono.copyWith(
-                    fontSize: 30,
-                    letterSpacing: 8,
+                    fontSize: 28,
+                    letterSpacing: 6,
                     color: colors.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
@@ -907,7 +1030,8 @@ class _MePanel extends StatelessWidget {
                 ),
               ],
             ),
-            const Gap(14),
+            const Gap(12),
+            // Direct Address
             InkWell(
               onTap: () {
                 final directUrl = 'http://${state.lanIp}:${state.port}';
@@ -951,6 +1075,48 @@ class _MePanel extends StatelessWidget {
                 ),
               ),
             ),
+            const Gap(20),
+            // QR Code Section (Collapsible on Mobile, Expanded by Default on Desktop)
+            if (isMobile)
+              TextButton.icon(
+                onPressed: () => setState(() => _showQr = !_showQr),
+                icon: Icon(
+                  _showQr ? Icons.keyboard_arrow_up_rounded : Icons.qr_code_2_rounded,
+                  size: 18,
+                  color: colors.primary,
+                ),
+                label: Text(
+                  _showQr
+                      ? 'Masquer le QR code'
+                      : 'Afficher le QR code (mobile à mobile)',
+                  style: AppTypography.caption.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            if (_showQr) ...[
+              const Gap(12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.primary.withValues(alpha: 0.15),
+                      blurRadius: 28,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: QrImageView(
+                  data: qr,
+                  size: isMobile ? 160 : 190,
+                  backgroundColor: Colors.white,
+                ),
+              ),
+            ],
           ],
         ],
       ),
@@ -977,11 +1143,23 @@ class _PeersPanel extends ConsumerStatefulWidget {
   ConsumerState<_PeersPanel> createState() => _PeersPanelState();
 }
 
-class _PeersPanelState extends ConsumerState<_PeersPanel> {
+class _PeersPanelState extends ConsumerState<_PeersPanel>
+    with SingleTickerProviderStateMixin {
   final _scrollController = ScrollController();
+  late final AnimationController _rotationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+  }
 
   @override
   void dispose() {
+    _rotationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -993,6 +1171,18 @@ class _PeersPanelState extends ConsumerState<_PeersPanel> {
     final peers = widget.peers;
     final fill = widget.fill;
     final onSend = widget.onSend;
+    final state = ref.watch(transferControllerProvider);
+
+    if (state.isScanningSubnet) {
+      if (!_rotationController.isAnimating) {
+        _rotationController.repeat();
+      }
+    } else {
+      if (_rotationController.isAnimating) {
+        _rotationController.stop();
+        _rotationController.reset();
+      }
+    }
 
     final emptyState = Center(
       child: Padding(
@@ -1022,10 +1212,36 @@ class _PeersPanelState extends ConsumerState<_PeersPanel> {
               textAlign: TextAlign.center,
             ),
             const Gap(14),
-            FilledButton.tonalIcon(
-              onPressed: () => _showDirectIpDialog(context, ref),
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: Text(l10n.transferDirectIpTitle),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                FilledButton.icon(
+                  onPressed: () {
+                    _rotationController.repeat();
+                    unawaited(
+                      ref
+                          .read(transferControllerProvider.notifier)
+                          .triggerDiscoveryPulse()
+                          .whenComplete(() {
+                        if (mounted &&
+                            !ref.read(transferControllerProvider).isScanningSubnet) {
+                          _rotationController.stop();
+                          _rotationController.reset();
+                        }
+                      }),
+                    );
+                  },
+                  icon: const Icon(Icons.sync_rounded, size: 16),
+                  label: const Text('Actualiser'),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: () => _showDirectIpDialog(context, ref),
+                  icon: const Icon(Icons.add_link_rounded, size: 16),
+                  label: Text(l10n.transferDirectIpTitle),
+                ),
+              ],
             ),
           ],
         ),
@@ -1043,23 +1259,87 @@ class _PeersPanelState extends ConsumerState<_PeersPanel> {
                 l10n.transferDevices,
                 style: AppTypography.h3.copyWith(color: colors.textPrimary),
               ),
+              if (peers.isNotEmpty) ...[
+                const Gap(8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${peers.length}',
+                    style: AppTypography.caption.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
               const Spacer(),
+              // 1. Refresh button (with rotation animation)
+              IconButton(
+                tooltip: 'Actualiser la recherche',
+                icon: RotationTransition(
+                  turns: _rotationController,
+                  child: const Icon(Icons.sync_rounded, size: 20),
+                ),
+                onPressed: () {
+                  _rotationController.repeat();
+                  unawaited(
+                    ref
+                        .read(transferControllerProvider.notifier)
+                        .triggerDiscoveryPulse()
+                        .whenComplete(() {
+                      if (mounted &&
+                          !ref.read(transferControllerProvider).isScanningSubnet) {
+                        _rotationController.stop();
+                        _rotationController.reset();
+                      }
+                    }),
+                  );
+                },
+              ),
+              // 2. Subnet scan button
               IconButton(
                 tooltip: l10n.transferScanSubnet,
-                icon: const Icon(Icons.wifi_find_rounded, size: 20),
+                icon: const Icon(Icons.travel_explore_rounded, size: 20),
                 onPressed: () {
                   unawaited(
                     ref.read(transferControllerProvider.notifier).scanSubnet(),
                   );
                 },
               ),
+              // 3. Direct IP button
               IconButton(
                 tooltip: l10n.transferDirectIpTitle,
                 icon: const Icon(Icons.add_link_rounded, size: 20),
                 onPressed: () => _showDirectIpDialog(context, ref),
               ),
+              // 4. Clear peer list button
+              if (peers.isNotEmpty)
+                IconButton(
+                  tooltip: 'Effacer la liste',
+                  icon: const Icon(Icons.delete_sweep_outlined, size: 20),
+                  onPressed: () {
+                    ref.read(transferControllerProvider.notifier).clearPeers();
+                  },
+                ),
             ],
           ),
+          if (state.isScanningSubnet) ...[
+            const Gap(10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: state.subnetScanProgress,
+                minHeight: 3,
+                backgroundColor: Colors.white.withValues(alpha: 0.05),
+                valueColor: AlwaysStoppedAnimation(colors.primary),
+              ),
+            ),
+          ],
           const Gap(14),
           if (peers.isEmpty)
             (fill ? Expanded(child: emptyState) : emptyState)
@@ -1104,7 +1384,7 @@ class _PeersPanelState extends ConsumerState<_PeersPanel> {
   }
 }
 
-class _PeerTile extends StatelessWidget {
+class _PeerTile extends ConsumerWidget {
   const _PeerTile({
     required this.peer,
     required this.onTap,
@@ -1118,7 +1398,7 @@ class _PeerTile extends StatelessWidget {
   final bool onlyNew;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
 
@@ -1194,6 +1474,24 @@ class _PeerTile extends StatelessWidget {
                   ],
                 ),
               ),
+              IconButton(
+                tooltip: peer.known
+                    ? 'Retirer des appareils connus'
+                    : 'Marquer comme appareil connu',
+                icon: Icon(
+                  peer.known ? Icons.star_rounded : Icons.star_outline_rounded,
+                  color: peer.known
+                      ? const Color(0xFFF59E0B)
+                      : colors.textSecondary.withValues(alpha: 0.45),
+                  size: 20,
+                ),
+                onPressed: () {
+                  ref
+                      .read(transferControllerProvider.notifier)
+                      .toggleTrusted(peer);
+                },
+              ),
+              const Gap(4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(

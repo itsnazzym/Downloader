@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/ui/glass_card.dart';
+import 'package:modern_downloader/core/design_system/components/glass_card.dart';
 import 'package:gap/gap.dart';
 
 class GlassSettingSection extends StatelessWidget {

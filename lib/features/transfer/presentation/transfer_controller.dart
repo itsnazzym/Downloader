@@ -5,7 +5,8 @@ import 'dart:math';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/android/android_storage.dart';
+import 'package:modern_downloader/core/platform/default_library_path_resolver.dart';
+import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
@@ -203,7 +204,7 @@ class TransferController extends StateNotifier<TransferUiState> {
         File(p.join(dir.path, 'send_memory.json')),
       );
       await _sendMemoryStore!.load();
-      final fingerprint = await identityStore.loadOrCreate(
+      final identityData = await identityStore.loadOrCreateIdentity(
         fixedFingerprint: TransferSecurity.certificateFingerprint,
       );
       String alias;
@@ -215,7 +216,8 @@ class TransferController extends StateNotifier<TransferUiState> {
       if (alias.trim().isEmpty) alias = 'Modern Downloader';
       final identity = TransferIdentity(
         alias: alias,
-        fingerprint: fingerprint,
+        fingerprint: identityData.fingerprint,
+        deviceId: identityData.deviceId,
         deviceModel: Platform.operatingSystem,
         deviceType: PlatformInfo.isMobile
             ? TransferDeviceType.mobile
@@ -225,7 +227,7 @@ class TransferController extends StateNotifier<TransferUiState> {
       final settings = _ref.read(settingsProvider);
       var destRoot = settings.outputFolder;
       if (destRoot.trim().isEmpty) {
-        destRoot = await AndroidStorage.resolveDefaultOutputFolder();
+        destRoot = await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
       }
       _server = TransferLanServer(
         identity: identity,
@@ -236,7 +238,7 @@ class TransferController extends StateNotifier<TransferUiState> {
         onPeer: _addPeer,
       );
       _server!.pin = pin;
-      final port = await _server!.start();
+      final port = await _server!.start(secure: true);
       final conflict = port != LocalSendApi.defaultPort;
       final ip = await LanIpv4.detect();
       _discovery = TransferDiscovery(
@@ -244,18 +246,25 @@ class TransferController extends StateNotifier<TransferUiState> {
         client: _client,
         onPeer: _addPeer,
       );
-      await _discovery!.start(ourPort: port);
+      if (Platform.isAndroid) {
+        await AndroidEngineBridge.instance.acquireMulticastLock();
+      }
+      await _discovery!.start(
+        ourPort: port,
+        protocol: _server!.isHttps ? 'https' : 'http',
+      );
       state = state.copyWith(
         started: true,
         pin: pin,
         port: port,
         lanIp: ip,
         alias: alias,
-        fingerprint: fingerprint,
+        fingerprint: identityData.fingerprint,
         portConflict: conflict,
         clearError: true,
       );
       _refreshShare();
+      unawaited(triggerDiscoveryPulse());
     } catch (e) {
       LoggerService.e('Transfer hub failed to start', e);
       state = state.copyWith(lastError: e.toString());
@@ -272,6 +281,9 @@ class TransferController extends StateNotifier<TransferUiState> {
 
   @override
   void dispose() {
+    if (Platform.isAndroid) {
+      unawaited(AndroidEngineBridge.instance.releaseMulticastLock());
+    }
     unawaited(stop());
     _client.close();
     super.dispose();
@@ -437,11 +449,11 @@ class TransferController extends StateNotifier<TransferUiState> {
       return state.activeTargetFingerprint;
     }
     if (state.lastPeerAttempt != null &&
-        state.lastPeerAttempt!.fingerprint.isNotEmpty) {
-      return state.lastPeerAttempt!.fingerprint;
+        state.lastPeerAttempt!.id.isNotEmpty) {
+      return state.lastPeerAttempt!.id;
     }
     if (state.peers.isNotEmpty) {
-      return state.peers.first.fingerprint;
+      return state.peers.first.id;
     }
     final known = _sendMemoryStore?.knownDevices;
     if (known != null && known.isNotEmpty) {
@@ -467,6 +479,9 @@ class TransferController extends StateNotifier<TransferUiState> {
   void setTab(TransferTab tab) {
     if (state.activeTab == tab) return;
     state = state.copyWith(activeTab: tab);
+    if (tab == TransferTab.send) {
+      unawaited(triggerDiscoveryPulse());
+    }
   }
 
   void cancelTransfer() {
@@ -516,7 +531,7 @@ class TransferController extends StateNotifier<TransferUiState> {
     try {
       await discovery.scanSubnet(
         ip,
-        port: state.port ?? LocalSendApi.defaultPort,
+        port: LocalSendApi.defaultPort,
         onProgress: (fraction) {
           state = state.copyWith(subnetScanProgress: fraction);
         },
@@ -561,12 +576,13 @@ class TransferController extends StateNotifier<TransferUiState> {
         );
         return;
       }
+      final targetKey = peer.id;
       final outgoingIndividual = state.onlyNewVideos
           ? SendMemoryFilter.outgoing(
               files: bundle.files,
-              fingerprint: peer.fingerprint,
+              fingerprint: targetKey,
               isTransferred: (sha) =>
-                  _sendMemoryStore?.isTransferred(peer.fingerprint, sha) ??
+                  _sendMemoryStore?.isTransferred(targetKey, sha) ??
                   false,
             )
           : _dedupFiles(bundle.files);
@@ -734,13 +750,13 @@ class TransferController extends StateNotifier<TransferUiState> {
         onProgress: _onBytes,
       );
       if (!_isActive(id)) return;
-      if (peer.fingerprint.isNotEmpty) {
-        await _trusted?.add(peer.fingerprint);
+      if (targetKey.isNotEmpty) {
+        await _trusted?.add(targetKey);
         final records = [
           for (final file in outgoingIndividual)
             TransferredFileRecord.fromFile(file),
         ];
-        await _sendMemoryStore?.commit(peer.fingerprint, records);
+        await _sendMemoryStore?.commit(targetKey, records);
       }
       state = state.copyWith(
         progress: TransferProgress(
@@ -901,11 +917,13 @@ class TransferController extends StateNotifier<TransferUiState> {
   }
 
   void _addPeer(TransferPeer peer) {
-    final known = _trusted?.contains(peer.fingerprint) ?? false;
+    final known = _trusted?.contains(peer.id) ??
+        _trusted?.contains(peer.fingerprint) ??
+        false;
     final tagged = peer.copyWith(known: known);
     final next = [
       for (final item in state.peers)
-        if (item.fingerprint != tagged.fingerprint) item,
+        if (item.ip != tagged.ip || item.id != tagged.id) item,
       tagged,
     ];
     state = state.copyWith(peers: next);
@@ -937,6 +955,42 @@ class TransferController extends StateNotifier<TransferUiState> {
         bytesPerSecond: _currentSpeed,
       ),
     );
+  }
+
+  Future<void> triggerDiscoveryPulse() async {
+    await _discovery?.announce();
+    final ip = state.lanIp;
+    if (ip != null && ip.isNotEmpty) {
+      unawaited(scanSubnet());
+    }
+  }
+
+  void clearPeers() {
+    state = state.copyWith(peers: const []);
+    unawaited(triggerDiscoveryPulse());
+  }
+
+  Future<void> toggleTrusted(TransferPeer peer) async {
+    final trusted = _trusted;
+    if (trusted == null) return;
+    final key = peer.id;
+    final isKnown = trusted.contains(key) || trusted.contains(peer.fingerprint);
+    if (isKnown) {
+      await trusted.remove(key);
+      await trusted.remove(peer.fingerprint);
+    } else {
+      await trusted.add(key);
+    }
+    final next = [
+      for (final item in state.peers)
+        if (item.id == peer.id)
+          item.copyWith(
+            known: trusted.contains(key) || trusted.contains(item.fingerprint),
+          )
+        else
+          item,
+    ];
+    state = state.copyWith(peers: next);
   }
 }
 

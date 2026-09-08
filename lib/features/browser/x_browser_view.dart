@@ -340,98 +340,111 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
     }
 
     final controller = _controller!;
-    return Column(
-      children: [
-        Material(
-          color: colors.surface.withValues(alpha: 0.92),
-          child: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        tooltip: 'Back',
-                        onPressed: () => controller.goBack(),
-                        icon: const Icon(Icons.arrow_back),
-                      ),
-                      IconButton(
-                        tooltip: 'Forward',
-                        onPressed: () => controller.goForward(),
-                        icon: const Icon(Icons.arrow_forward),
-                      ),
-                      IconButton(
-                        tooltip: 'X.com',
-                        onPressed: () {
-                          controller.loadRequest(Uri.parse('https://x.com'));
-                        },
-                        icon: const Icon(Icons.home_outlined),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _urlController,
-                          style: const TextStyle(fontSize: 14),
-                          decoration: InputDecoration(
-                            isDense: true,
-                            hintText: 'x.com, instagram, tiktok...',
-                            filled: true,
-                            fillColor: colors.background.withValues(alpha: 0.6),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                          ),
-                          onSubmitted: (_) => _submitUrl(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (await controller.canGoBack()) {
+          await controller.goBack();
+        } else {
+          if (context.mounted) {
+            context.go('/');
+          }
+        }
+      },
+      child: Column(
+        children: [
+          Material(
+            color: colors.surface.withValues(alpha: 0.92),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          tooltip: 'Back',
+                          onPressed: () => controller.goBack(),
+                          icon: const Icon(Icons.arrow_back),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => controller.reload(),
-                        icon: const Icon(Icons.refresh),
-                      ),
-                    ],
+                        IconButton(
+                          tooltip: 'Forward',
+                          onPressed: () => controller.goForward(),
+                          icon: const Icon(Icons.arrow_forward),
+                        ),
+                        IconButton(
+                          tooltip: 'X.com',
+                          onPressed: () {
+                            controller.loadRequest(Uri.parse('https://x.com'));
+                          },
+                          icon: const Icon(Icons.home_outlined),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _urlController,
+                            style: const TextStyle(fontSize: 14),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              hintText: 'x.com, instagram, tiktok...',
+                              filled: true,
+                              fillColor: colors.background.withValues(alpha: 0.6),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                            ),
+                            onSubmitted: (_) => _submitUrl(),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => controller.reload(),
+                          icon: const Icon(Icons.refresh),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  child: Row(
-                    children: [
-                      _buildMobileQuickChip('X.com', 'https://x.com', colors),
-                      const SizedBox(width: 8),
-                      _buildMobileQuickChip('Instagram', 'https://www.instagram.com/reels/', colors),
-                      const SizedBox(width: 8),
-                      _buildMobileQuickChip('TikTok', 'https://www.tiktok.com', colors),
-                      const SizedBox(width: 8),
-                      _buildMobileQuickChip('Shorts', 'https://www.youtube.com/shorts', colors),
-                    ],
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    child: Row(
+                      children: [
+                        _buildMobileQuickChip('X.com', 'https://x.com', colors),
+                        const SizedBox(width: 8),
+                        _buildMobileQuickChip('Instagram', 'https://www.instagram.com/reels/', colors),
+                        const SizedBox(width: 8),
+                        _buildMobileQuickChip('TikTok', 'https://www.tiktok.com', colors),
+                        const SizedBox(width: 8),
+                        _buildMobileQuickChip('Shorts', 'https://www.youtube.com/shorts', colors),
+                      ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      l10n.browseXHint,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colors.textSecondary,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        l10n.browseXHint,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (_loading) const LinearProgressIndicator(minHeight: 2),
-              ],
+                  if (_loading) const LinearProgressIndicator(minHeight: 2),
+                ],
+              ),
             ),
           ),
-        ),
-        Expanded(child: WebViewWidget(controller: controller)),
-      ],
+          Expanded(child: WebViewWidget(controller: controller)),
+        ],
+      ),
     );
   }
 

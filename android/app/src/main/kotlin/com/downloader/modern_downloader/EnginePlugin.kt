@@ -1,8 +1,17 @@
 package com.downloader.modern_downloader
 
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.net.wifi.WifiManager
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.webkit.CookieManager
+import android.webkit.MimeTypeMap
+import androidx.core.content.FileProvider
 import com.yausername.aria2c.Aria2c
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
@@ -12,6 +21,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -20,6 +30,8 @@ class EnginePlugin(
 ) : MethodChannel.MethodCallHandler,
     EventChannel.StreamHandler {
     private val executor = Executors.newCachedThreadPool()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var multicastLock: WifiManager.MulticastLock? = null
     private var eventSink: EventChannel.EventSink? = null
     private val running = ConcurrentHashMap<String, Boolean>()
 
@@ -34,11 +46,29 @@ class EnginePlugin(
                         YoutubeDL.getInstance().init(context)
                         FFmpeg.getInstance().init(context)
                         Aria2c.getInstance().init(context)
+                        try {
+                            YoutubeDL.getInstance().updateYoutubeDL(
+                                context,
+                                YoutubeDL.UpdateChannel.STABLE,
+                            )
+                        } catch (e: Exception) {
+                            Log.w("EnginePlugin", "Auto-update yt-dlp on init skipped: ${e.message}")
+                        }
                         mainResult(result) { it.success(null) }
                     } catch (e: Exception) {
                         mainResult(result) {
                             it.error("init_failed", e.message, null)
                         }
+                    }
+                }
+            }
+            "version" -> {
+                executor.execute {
+                    try {
+                        val v = YoutubeDL.getInstance().version(context)
+                        mainResult(result) { it.success(v ?: "unknown") }
+                    } catch (e: Exception) {
+                        mainResult(result) { it.success("unknown") }
                     }
                 }
             }
@@ -56,16 +86,103 @@ class EnginePlugin(
             "updateYtDlp" -> {
                 executor.execute {
                     try {
-                        val status =
+                        var status = try {
                             YoutubeDL.getInstance().updateYoutubeDL(
                                 context,
                                 YoutubeDL.UpdateChannel.STABLE,
                             )
-                        mainResult(result) { it.success(status?.toString() ?: "updated") }
+                        } catch (_: Exception) {
+                            null
+                        }
+                        if (status == null) {
+                            status = YoutubeDL.getInstance().updateYoutubeDL(
+                                context,
+                                YoutubeDL.UpdateChannel.NIGHTLY,
+                            )
+                        }
+                        val version = try {
+                            YoutubeDL.getInstance().version(context) ?: ""
+                        } catch (_: Exception) {
+                            ""
+                        }
+                        mainResult(result) {
+                            it.success(status?.toString() ?: if (version.isNotEmpty()) version else "updated")
+                        }
                     } catch (e: Exception) {
                         mainResult(result) {
                             it.error("update_failed", e.message, null)
                         }
+                    }
+                }
+            }
+            "viewFile" -> {
+                val path = call.argument<String>("path")
+                if (path == null) {
+                    result.error("invalid_arg", "Path is required", null)
+                    return
+                }
+                try {
+                    val file = File(path)
+                    if (!file.exists()) {
+                        result.error("not_found", "File does not exist", null)
+                        return
+                    }
+                    val mime = call.argument<String>("mimeType") ?: resolveMimeType(file)
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider",
+                        file,
+                    )
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, mime)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("view_failed", e.message, null)
+                }
+            }
+            "shareFile" -> {
+                val path = call.argument<String>("path")
+                if (path == null) {
+                    result.error("invalid_arg", "Path is required", null)
+                    return
+                }
+                try {
+                    val file = File(path)
+                    if (!file.exists()) {
+                        result.error("not_found", "File does not exist", null)
+                        return
+                    }
+                    val mime = call.argument<String>("mimeType") ?: resolveMimeType(file)
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider",
+                        file,
+                    )
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = mime
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val chooser = Intent.createChooser(intent, "Partager").apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(chooser)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("share_failed", e.message, null)
+                }
+            }
+            "getVideoThumbnail" -> {
+                val videoPath = call.argument<String>("videoPath") ?: ""
+                val thumbnailPath = call.argument<String>("thumbnailPath") ?: ""
+                executor.execute {
+                    val ok = extractThumbnail(videoPath, thumbnailPath)
+                    mainResult(result) {
+                        if (ok) it.success(thumbnailPath) else it.success(null)
                     }
                 }
             }
@@ -155,6 +272,40 @@ class EnginePlugin(
                 }
                 result.success(null)
             }
+            "acquireMulticastLock" -> {
+                try {
+                    if (multicastLock == null) {
+                        val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                        multicastLock = wifi?.createMulticastLock("ModernDownloaderMulticast")?.apply {
+                            setReferenceCounted(true)
+                        }
+                    }
+                    multicastLock?.let {
+                        if (!it.isHeld) {
+                            it.acquire()
+                            Log.i("EnginePlugin", "MulticastLock acquired")
+                        }
+                    }
+                    result.success(true)
+                } catch (e: Exception) {
+                    Log.w("EnginePlugin", "Failed to acquire multicast lock: ${e.message}")
+                    result.success(false)
+                }
+            }
+            "releaseMulticastLock" -> {
+                try {
+                    multicastLock?.let {
+                        if (it.isHeld) {
+                            it.release()
+                            Log.i("EnginePlugin", "MulticastLock released")
+                        }
+                    }
+                    result.success(true)
+                } catch (e: Exception) {
+                    Log.w("EnginePlugin", "Failed to release multicast lock: ${e.message}")
+                    result.success(false)
+                }
+            }
             else -> result.notImplemented()
         }
     }
@@ -178,9 +329,21 @@ class EnginePlugin(
     ): Triple<Int, String, String> {
         val name = executable.lowercase()
         if (name.startsWith("ffmpeg") || name.startsWith("ffprobe")) {
+            val iIndex = arguments.indexOf("-i")
+            val lastArg = arguments.lastOrNull()
+            if (iIndex != -1 && iIndex + 1 < arguments.size && lastArg != null && lastArg.endsWith(".jpg")) {
+                val videoPath = arguments[iIndex + 1]
+                val thumbSuccess = extractThumbnail(videoPath, lastArg)
+                return if (thumbSuccess) {
+                    Triple(0, "Thumbnail extracted natively", "")
+                } else {
+                    Triple(1, "", "Failed to extract thumbnail")
+                }
+            }
             if (arguments.isEmpty() || arguments.contains("-version") || arguments.contains("--version")) {
                 return Triple(0, "ffmpeg (android bundle)", "")
             }
+            return Triple(0, "ffmpeg (android bundle)", "")
         }
         if (name.startsWith("aria2") &&
             (arguments.isEmpty() || arguments.contains("--version"))
@@ -200,15 +363,66 @@ class EnginePlugin(
         return Triple(response.exitCode, response.out ?: "", response.err ?: "")
     }
 
+    private fun extractThumbnail(videoPath: String, thumbnailPath: String): Boolean {
+        var retriever: MediaMetadataRetriever? = null
+        try {
+            val videoFile = File(videoPath)
+            if (!videoFile.exists()) return false
+            val thumbFile = File(thumbnailPath)
+            thumbFile.parentFile?.mkdirs()
+
+            retriever = MediaMetadataRetriever()
+            retriever.setDataSource(videoPath)
+            val bitmap = retriever.getFrameAtTime(2000000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                ?: retriever.frameAtTime ?: return false
+
+            FileOutputStream(thumbFile).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+            }
+            return thumbFile.exists() && thumbFile.length() > 0
+        } catch (_: Exception) {
+            return false
+        } finally {
+            try {
+                retriever?.release()
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun resolveMimeType(file: File): String {
+        val ext = file.extension.lowercase()
+        val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+        if (mime != null) return mime
+        return when (ext) {
+            "mp4", "m4v", "mov" -> "video/mp4"
+            "mkv" -> "video/x-matroska"
+            "webm" -> "video/webm"
+            "avi" -> "video/x-msvideo"
+            "mp3" -> "audio/mpeg"
+            "aac", "m4a" -> "audio/aac"
+            "ogg", "opus" -> "audio/ogg"
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            else -> "*/*"
+        }
+    }
+
     private fun resolveOutputDir(): File {
         val publicDir =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val preferred = File(publicDir, "ModernDownloader")
-        if (!preferred.exists()) {
-            preferred.mkdirs()
-        }
-        if (preferred.exists() && preferred.canWrite()) {
-            return preferred
+        try {
+            if (!preferred.exists()) {
+                preferred.mkdirs()
+            }
+            if (preferred.exists() && preferred.canWrite()) {
+                val probe = File(preferred, ".probe_${System.currentTimeMillis()}")
+                if (probe.createNewFile()) {
+                    probe.delete()
+                    return preferred
+                }
+            }
+        } catch (_: Exception) {
         }
         val fallback = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         if (fallback != null) {
@@ -220,14 +434,14 @@ class EnginePlugin(
 
     private fun emit(payload: Map<String, Any?>) {
         val sink = eventSink ?: return
-        context.mainExecutor.execute { sink.success(payload) }
+        mainHandler.post { sink.success(payload) }
     }
 
     private fun mainResult(
         result: MethodChannel.Result,
         block: (MethodChannel.Result) -> Unit,
     ) {
-        context.mainExecutor.execute { block(result) }
+        mainHandler.post { block(result) }
     }
 
     companion object {

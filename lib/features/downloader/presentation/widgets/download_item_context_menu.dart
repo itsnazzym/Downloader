@@ -4,10 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../domain/entities/download_item.dart';
 import '../../domain/enums/download_status.dart';
 import '../providers/downloader_provider.dart';
+import '../providers/filtered_downloads_provider.dart';
 
 /// Right-click (or long-press) menu for a download item.
 class DownloadItemContextMenu extends ConsumerWidget {
@@ -81,13 +84,26 @@ class DownloadItemContextMenu extends ConsumerWidget {
             label: l10n.openFile,
             color: colors.textPrimary,
           ),
+        if (fileExists && PlatformInfo.isAndroid)
+          _item(
+            value: 'share',
+            icon: Icons.share_rounded,
+            label: 'Partager',
+            color: colors.textPrimary,
+          ),
         if (fileExists)
           _item(
             value: 'folder',
             icon: Icons.folder_open_rounded,
-            label: l10n.openFolder,
+            label: PlatformInfo.isAndroid ? 'Ouvrir avec...' : l10n.openFolder,
             color: colors.textPrimary,
           ),
+        _item(
+          value: 'details',
+          icon: Icons.info_outline_rounded,
+          label: 'Détails',
+          color: colors.textPrimary,
+        ),
         _item(
           value: 'copy',
           icon: Icons.link_rounded,
@@ -117,10 +133,18 @@ class DownloadItemContextMenu extends ConsumerWidget {
           await ref.read(mediaPlayerProvider.notifier).openFile(path);
         }
         break;
+      case 'share':
+        if (fileExists && path != null) {
+          await AndroidEngineBridge.instance.shareFile(path);
+        }
+        break;
       case 'folder':
         if (fileExists && path != null) {
           _revealInFolder(path);
         }
+        break;
+      case 'details':
+        ref.read(selectedDownloadIdProvider.notifier).state = item.id;
         break;
       case 'copy':
         await Clipboard.setData(ClipboardData(text: item.request.url));
@@ -166,6 +190,8 @@ class DownloadItemContextMenu extends ConsumerWidget {
         Process.start('explorer.exe', ['/select,', path]);
       } else if (Platform.isMacOS) {
         Process.start('open', ['-R', path]);
+      } else if (PlatformInfo.isAndroid) {
+        AndroidEngineBridge.instance.viewFile(path);
       } else {
         Process.start('xdg-open', [File(path).parent.path]);
       }

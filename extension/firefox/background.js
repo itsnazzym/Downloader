@@ -258,6 +258,24 @@
       return;
     }
 
+    if (message.type === 'REQUEST_TIKTOK_COLLECTIONS_SYNC') {
+      syncTikTokCollections();
+      return;
+    }
+
+    if (message.type === 'TIKTOK_COLLECTIONS_SYNC_ACK') {
+      logDiag('TIKTOK_SYNC_ACK', 'ok=' + message.ok + ' count=' + message.collectionCount);
+      try {
+        api.runtime.sendMessage({
+          type: 'MD_TIKTOK_COLLECTIONS_SYNC_ACK',
+          ok: message.ok,
+          count: message.collectionCount,
+          error: message.error,
+        }).catch(function () {});
+      } catch (e) {}
+      return;
+    }
+
     if (message.type === 'PROGRESS') {
       var item = message.data || {};
       // Persist only sanitized fields (no cookies / paths).
@@ -981,10 +999,141 @@
     }
   }
 
+  function syncTikTokCollections() {
+    logDiag('TIKTOK_SYNC_TRIGGERED', 'Looking for tiktok tabs');
+    api.tabs.query({ url: '*://*.tiktok.com/*' }).then(function (tabs) {
+      if (tabs && tabs.length > 0) {
+        var targetTab = tabs.find(function (t) { return t.active; }) || tabs[0];
+        api.tabs.sendMessage(targetTab.id, { type: 'MD_SYNC_TIKTOK_COLLECTIONS' }).then(function (res) {
+          if (res && res.ok && res.collections && Object.keys(res.collections).length > 0) {
+            sendTikTokCollectionsToApp(res.collections, res.collectionTotals);
+          } else {
+            fetchTikTokCollectionsDirectly();
+          }
+        }).catch(function () {
+          fetchTikTokCollectionsDirectly();
+        });
+      } else {
+        fetchTikTokCollectionsDirectly();
+      }
+    }).catch(function () {
+      fetchTikTokCollectionsDirectly();
+    });
+  }
+
+  function sendTikTokCollectionsToApp(collections, collectionTotals) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      logDiag('TIKTOK_SEND_ERR', 'Socket not open');
+      return;
+    }
+    try {
+      socket.send(JSON.stringify({
+        type: 'TIKTOK_COLLECTIONS_SYNC',
+        collections: collections,
+        collectionTotals: collectionTotals || {},
+      }));
+      logDiag('TIKTOK_COLLECTIONS_SENT', 'Count=' + Object.keys(collections).length);
+    } catch (e) {
+      console.warn('Failed to send TikTok collections to app', e);
+    }
+  }
+
+  function fetchCollectionItemsRecursive(collectionId, totalDeclared) {
+    return new Promise(function (resolve) {
+      var allIds = [];
+      var cursor = 0;
+      var hasMore = true;
+      var maxLoops = 20;
+
+      function fetchNextPage() {
+        if (!hasMore || (totalDeclared && allIds.length >= totalDeclared) || maxLoops <= 0) {
+          resolve(allIds);
+          return;
+        }
+        maxLoops--;
+        var url = 'https://www.tiktok.com/api/collection/item_list/?collectionId=' + collectionId + '&count=50&cursor=' + cursor;
+        fetch(url, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' },
+        }).then(function (r) {
+          return r.json();
+        }).then(function (res) {
+          if (!res || !Array.isArray(res.itemList) || res.itemList.length === 0) {
+            resolve(allIds);
+            return;
+          }
+          res.itemList.forEach(function (item) {
+            var vid = item.id || item.videoId;
+            if (vid && allIds.indexOf(String(vid)) === -1) {
+              allIds.push(String(vid));
+            }
+          });
+          hasMore = res.hasMore === true;
+          cursor = res.cursor || (cursor + res.itemList.length);
+          if (hasMore && res.itemList.length > 0) {
+            setTimeout(fetchNextPage, 200);
+          } else {
+            resolve(allIds);
+          }
+        }).catch(function () {
+          resolve(allIds);
+        });
+      }
+
+      fetchNextPage();
+    });
+  }
+
+  function fetchTikTokCollectionsDirectly() {
+    fetch('https://www.tiktok.com/api/user/collection/list/?count=50&cursor=0', {
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' },
+    }).then(function (r) {
+      return r.json();
+    }).then(function (data) {
+      if (!data || !Array.isArray(data.collectionList) || data.collectionList.length === 0) {
+        logDiag('TIKTOK_SYNC_DIRECT_EMPTY', 'No collections returned via direct API');
+        return;
+      }
+      var collections = {};
+      var collectionTotals = {};
+      var promises = data.collectionList.map(function (col) {
+        var id = col.collectionId || col.id;
+        var name = col.collectionName || col.name || ('Collection ' + id);
+        var declaredTotal = parseInt(col.total, 10) || 0;
+        collectionTotals[name] = declaredTotal;
+
+        return fetchCollectionItemsRecursive(id, declaredTotal).then(function (items) {
+          collections[name] = items;
+        });
+      });
+
+      Promise.all(promises).then(function () {
+        sendTikTokCollectionsToApp(collections, collectionTotals);
+      });
+    }).catch(function (err) {
+      logDiag('TIKTOK_SYNC_DIRECT_FAIL', (err && err.message) || String(err));
+    });
+  }
+
   api.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (!message || !message.type) return false;
 
     var senderTabId = sender && sender.tab && sender.tab.id;
+
+    if (message.type === 'MD_TRIGGER_TIKTOK_SYNC') {
+      syncTikTokCollections();
+      sendResponse({ ok: true });
+      return false;
+    }
+
+    if (message.type === 'MD_TIKTOK_COLLECTIONS_DATA') {
+      if (message.collections) {
+        sendTikTokCollectionsToApp(message.collections, message.collectionTotals);
+      }
+      sendResponse({ ok: true });
+      return false;
+    }
 
     if (message.type === 'MD_DEEP_SCAN_PROGRESS' || message.type === 'MD_PAGE_NAVIGATED') {
       try {
