@@ -1403,4 +1403,131 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transferListeningOn => 'Listening on network';
+
+  @override
+  String transferVideosFound(int count) {
+    return '$count found';
+  }
+
+  @override
+  String transferAlreadyTransferred(int count) {
+    return '$count already transferred';
+  }
+
+  @override
+  String transferNewVideos(int count) {
+    return '$count new';
+  }
+
+  @override
+  String transferSendNewOnly(int count) {
+    return 'Send $count new videos';
+  }
+
+  @override
+  String transferSendAll(int count) {
+    return 'Send all ($count)';
+  }
+
+  @override
+  String get transferOnlyNewToggle => 'Send new videos only';
+
+  @override
+  String transferFolderBreakdown(int newCount, int alreadyCount) {
+    return '$newCount new • $alreadyCount transferred';
+  }
+
+  @override
+  String get transferForgetDeviceHistory => 'Forget history for this device';
+
+  @override
+  String get transferHistoryCleared => 'Transfer history cleared';
+
+  @override
+  String get onboardingStart => 'Start';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingDone => 'Done';
+
+  @override
+  String get onboardingSkipStep => 'Skip';
+
+  @override
+  String get onboardingSkipAll => 'Skip tour';
+
+  @override
+  String get onboardingReplay => 'Replay tour';
+
+  @override
+  String get onboardingReplayDesc => 'Show the tour again';
+
+  @override
+  String get onboardingWelcomeTitle => 'Quick tour';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'A short walk through the main screens. Skip anytime.';
+
+  @override
+  String get onboardingNewDownloadTitle => 'New download';
+
+  @override
+  String get onboardingNewDownloadBody =>
+      'Paste a URL or send one from the browser extension.';
+
+  @override
+  String get onboardingLibraryTitle => 'Library';
+
+  @override
+  String get onboardingLibraryBody =>
+      'Filter downloads by active, done, or failed.';
+
+  @override
+  String get onboardingTopBarTitle => 'Toolbar';
+
+  @override
+  String get onboardingTopBarBody =>
+      'Search, pause the queue, and retry failed downloads.';
+
+  @override
+  String get onboardingFoldersTitle => 'Creator folders';
+
+  @override
+  String get onboardingFoldersBody =>
+      'Downloads are grouped by channel. Switch list or folders, then sort.';
+
+  @override
+  String get onboardingTransferTitle => 'Transfer';
+
+  @override
+  String get onboardingTransferBody =>
+      'Pick folders, scan the QR, then accept on the other device.';
+
+  @override
+  String get onboardingStatsTitle => 'Stats';
+
+  @override
+  String get onboardingStatsBody => 'Totals, disk space, and download history.';
+
+  @override
+  String get onboardingOutputTitle => 'Output folder';
+
+  @override
+  String get onboardingOutputBody => 'Choose where files are saved.';
+
+  @override
+  String get onboardingExtensionTitle => 'Browser extension';
+
+  @override
+  String get onboardingExtensionBody =>
+      'Install the Chrome or Firefox extension to send links here.';
+
+  @override
+  String get onboardingReadyTitle => 'Ready';
+
+  @override
+  String get onboardingReadyBody => 'Replay the tour from Settings > General.';
 }

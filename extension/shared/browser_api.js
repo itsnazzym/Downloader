@@ -28,11 +28,40 @@
   }
 
   function promisify(fn, ctx) {
+    if (!fn) return undefined;
     return function () {
       var args = Array.prototype.slice.call(arguments);
+      var last = args[args.length - 1];
+      var hasCallback = typeof last === 'function';
+
+      if (hasCallback) {
+        var userCb = args.pop();
+        try {
+          var res = fn.apply(
+            ctx,
+            args.concat([
+              function (result) {
+                // Reading lastError marks it as checked so Chrome does not warn
+                var err = raw.runtime && raw.runtime.lastError;
+                try {
+                  userCb(result);
+                } catch (_) {}
+              },
+            ]),
+          );
+          if (res && typeof res.catch === 'function') {
+            res.catch(function () {});
+          }
+          return res;
+        } catch (e) {
+          try { userCb(undefined); } catch (_) {}
+          return undefined;
+        }
+      }
+
       return new Promise(function (resolve, reject) {
         try {
-          fn.apply(
+          var res = fn.apply(
             ctx,
             args.concat([
               function (result) {
@@ -45,6 +74,12 @@
               },
             ]),
           );
+          if (res && typeof res.then === 'function') {
+            res.then(resolve).catch(function (e) {
+              var _ = raw.runtime && raw.runtime.lastError;
+              reject(e);
+            });
+          }
         } catch (e) {
           reject(e);
         }
@@ -73,8 +108,11 @@
 
   // Ensure promise helpers for the common Chrome callback APIs we use.
   if (typeof browser === 'undefined') {
+    var runtimeWrapper = Object.create(raw.runtime);
+    runtimeWrapper.sendMessage = promisify(raw.runtime.sendMessage, raw.runtime);
+
     api = {
-      runtime: raw.runtime,
+      runtime: runtimeWrapper,
       storage: {
         local: wrapStorageArea(raw.storage && raw.storage.local),
         sync: wrapStorageArea(raw.storage && raw.storage.sync),
@@ -90,15 +128,14 @@
           }
         : undefined,
       tabs: raw.tabs
-        ? {
-            query: promisify(raw.tabs.query, raw.tabs),
-            sendMessage: raw.tabs.sendMessage
-              ? promisify(raw.tabs.sendMessage, raw.tabs)
-              : undefined,
-            create: raw.tabs.create
-              ? promisify(raw.tabs.create, raw.tabs)
-              : undefined,
-          }
+        ? (function () {
+            var tabsWrapper = Object.create(raw.tabs);
+            tabsWrapper.query = promisify(raw.tabs.query, raw.tabs);
+            tabsWrapper.sendMessage = promisify(raw.tabs.sendMessage, raw.tabs);
+            tabsWrapper.create = promisify(raw.tabs.create, raw.tabs);
+            if (raw.tabs.get) tabsWrapper.get = promisify(raw.tabs.get, raw.tabs);
+            return tabsWrapper;
+          })()
         : undefined,
       contextMenus: raw.contextMenus,
       action: raw.action || raw.browserAction,

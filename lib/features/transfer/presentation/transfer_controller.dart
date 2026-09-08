@@ -15,13 +15,16 @@ import 'package:modern_downloader/features/transfer/data/lan_ipv4.dart';
 import 'package:modern_downloader/features/transfer/data/localsend_api.dart';
 import 'package:modern_downloader/features/transfer/data/localsend_client.dart';
 import 'package:modern_downloader/features/transfer/data/payload_scanner.dart';
+import 'package:modern_downloader/features/transfer/data/send_memory_store.dart';
 import 'package:modern_downloader/features/transfer/data/transfer_discovery.dart';
 import 'package:modern_downloader/features/transfer/data/transfer_lan_server.dart';
 import 'package:modern_downloader/features/transfer/data/transfer_security.dart';
 import 'package:modern_downloader/features/transfer/data/transfer_zip_bundle.dart';
 import 'package:modern_downloader/features/transfer/data/trusted_devices_store.dart';
+import 'package:modern_downloader/features/transfer/domain/content_hash.dart';
 import 'package:modern_downloader/features/transfer/domain/library_manifest.dart';
 import 'package:modern_downloader/features/transfer/domain/qr_payload.dart';
+import 'package:modern_downloader/features/transfer/domain/send_memory.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -47,6 +50,9 @@ class TransferUiState {
     this.compressZip = false,
     this.selectedFilesCount = 0,
     this.selectedTotalBytes = 0,
+    this.sendPreview = SendPreview.empty,
+    this.onlyNewVideos = true,
+    this.activeTargetFingerprint,
     this.progress,
     this.incoming,
     this.peerPinPrompt,
@@ -72,6 +78,9 @@ class TransferUiState {
   final bool compressZip;
   final int selectedFilesCount;
   final int selectedTotalBytes;
+  final SendPreview sendPreview;
+  final bool onlyNewVideos;
+  final String? activeTargetFingerprint;
   final TransferProgress? progress;
   final IncomingOffer? incoming;
   final TransferPeer? peerPinPrompt;
@@ -104,6 +113,10 @@ class TransferUiState {
     bool? compressZip,
     int? selectedFilesCount,
     int? selectedTotalBytes,
+    SendPreview? sendPreview,
+    bool? onlyNewVideos,
+    String? activeTargetFingerprint,
+    bool clearActiveTarget = false,
     TransferProgress? progress,
     IncomingOffer? incoming,
     TransferPeer? peerPinPrompt,
@@ -134,6 +147,11 @@ class TransferUiState {
       compressZip: compressZip ?? this.compressZip,
       selectedFilesCount: selectedFilesCount ?? this.selectedFilesCount,
       selectedTotalBytes: selectedTotalBytes ?? this.selectedTotalBytes,
+      sendPreview: sendPreview ?? this.sendPreview,
+      onlyNewVideos: onlyNewVideos ?? this.onlyNewVideos,
+      activeTargetFingerprint: clearActiveTarget
+          ? null
+          : (activeTargetFingerprint ?? this.activeTargetFingerprint),
       progress: clearProgress ? null : (progress ?? this.progress),
       incoming: clearIncoming ? null : (incoming ?? this.incoming),
       peerPinPrompt: clearPeerPin
@@ -158,6 +176,7 @@ class TransferController extends StateNotifier<TransferUiState> {
   TransferLanServer? _server;
   TransferDiscovery? _discovery;
   TrustedDevicesStore? _trusted;
+  SendMemoryStore? _sendMemoryStore;
   Completer<bool>? _incomingWait;
   bool _busy = false;
   int _sendId = 0;
@@ -166,6 +185,8 @@ class TransferController extends StateNotifier<TransferUiState> {
   DateTime _lastSpeedSample = DateTime.fromMillisecondsSinceEpoch(0);
   int _bytesDeltaSample = 0;
   double _currentSpeed = 0.0;
+
+  SendMemoryStore? get sendMemoryStore => _sendMemoryStore;
 
   Future<void> start() async {
     if (state.started) return;
@@ -178,6 +199,10 @@ class TransferController extends StateNotifier<TransferUiState> {
       );
       _trusted = TrustedDevicesStore(File(p.join(dir.path, 'trusted.json')));
       await _trusted!.load();
+      _sendMemoryStore = SendMemoryStore(
+        File(p.join(dir.path, 'send_memory.json')),
+      );
+      await _sendMemoryStore!.load();
       final fingerprint = await identityStore.loadOrCreate(
         fixedFingerprint: TransferSecurity.certificateFingerprint,
       );
@@ -377,6 +402,54 @@ class TransferController extends StateNotifier<TransferUiState> {
     setCompressZip(!state.compressZip);
   }
 
+  void setOnlyNewVideos(bool value) {
+    if (state.onlyNewVideos == value) return;
+    state = state.copyWith(onlyNewVideos: value);
+    _refreshShare();
+  }
+
+  void toggleOnlyNewVideos() {
+    setOnlyNewVideos(!state.onlyNewVideos);
+  }
+
+  void setActiveTargetFingerprint(String? fingerprint) {
+    if (state.activeTargetFingerprint == fingerprint) return;
+    state = state.copyWith(
+      activeTargetFingerprint: fingerprint,
+      clearActiveTarget: fingerprint == null || fingerprint.isEmpty,
+    );
+    _refreshShare();
+  }
+
+  Future<void> forgetDeviceMemory(String fingerprint) async {
+    await _sendMemoryStore?.forgetDevice(fingerprint);
+    _refreshShare();
+  }
+
+  Future<void> clearAllMemory() async {
+    await _sendMemoryStore?.clearAll();
+    _refreshShare();
+  }
+
+  String? resolveTargetFingerprint() {
+    if (state.activeTargetFingerprint != null &&
+        state.activeTargetFingerprint!.isNotEmpty) {
+      return state.activeTargetFingerprint;
+    }
+    if (state.lastPeerAttempt != null &&
+        state.lastPeerAttempt!.fingerprint.isNotEmpty) {
+      return state.lastPeerAttempt!.fingerprint;
+    }
+    if (state.peers.isNotEmpty) {
+      return state.peers.first.fingerprint;
+    }
+    final known = _sendMemoryStore?.knownDevices;
+    if (known != null && known.isNotEmpty) {
+      return known.first;
+    }
+    return null;
+  }
+
   void answerIncoming(bool accept) {
     final offer = state.incoming;
     _incomingWait?.complete(accept);
@@ -474,7 +547,7 @@ class TransferController extends StateNotifier<TransferUiState> {
     );
     File? tempZipToCleanup;
     try {
-      final bundle = await _buildBundle(hash: false);
+      final bundle = await _buildBundle(hash: true);
       if (!_isActive(id)) return;
       if (bundle.files.isEmpty) {
         state = state.copyWith(
@@ -488,7 +561,29 @@ class TransferController extends StateNotifier<TransferUiState> {
         );
         return;
       }
-      var files = bundle.files;
+      final outgoingIndividual = state.onlyNewVideos
+          ? SendMemoryFilter.outgoing(
+              files: bundle.files,
+              fingerprint: peer.fingerprint,
+              isTransferred: (sha) =>
+                  _sendMemoryStore?.isTransferred(peer.fingerprint, sha) ??
+                  false,
+            )
+          : _dedupFiles(bundle.files);
+
+      if (outgoingIndividual.isEmpty) {
+        state = state.copyWith(
+          progress: const TransferProgress(
+            phase: TransferPhase.failed,
+            bytesDone: 0,
+            bytesTotal: 0,
+            error: 'all_transferred',
+          ),
+          lastError: 'all_transferred',
+        );
+        return;
+      }
+      var files = outgoingIndividual;
       if (TransferZipBundle.shouldArchive(
         compressZip: state.compressZip,
         fileCount: files.length,
@@ -641,6 +736,11 @@ class TransferController extends StateNotifier<TransferUiState> {
       if (!_isActive(id)) return;
       if (peer.fingerprint.isNotEmpty) {
         await _trusted?.add(peer.fingerprint);
+        final records = [
+          for (final file in outgoingIndividual)
+            TransferredFileRecord.fromFile(file),
+        ];
+        await _sendMemoryStore?.commit(peer.fingerprint, records);
       }
       state = state.copyWith(
         progress: TransferProgress(
@@ -677,13 +777,19 @@ class TransferController extends StateNotifier<TransferUiState> {
     }
   }
 
-  Future<PayloadBundle> _buildBundle({bool hash = false}) async {
+  Future<PayloadBundle> _buildBundle({bool hash = true}) async {
     final output = _ref.read(settingsProvider).outputFolder;
     final folders = _ref.read(creatorFoldersProvider).folders;
     final items = _ref.read(downloadListProvider).valueOrNull ?? const [];
     final files = <TransferFile>[];
     final entries = <LibraryManifestEntry>[];
     final usedNames = <String>{};
+
+    Future<String> hashOf(File file, FileStat stat) => ContentHash.resolve(
+          file: file,
+          stat: stat,
+          store: _sendMemoryStore,
+        );
 
     for (final folder in folders) {
       if (!state.selectedCreatorKeys.contains(folder.key)) continue;
@@ -697,6 +803,7 @@ class TransferController extends StateNotifier<TransferUiState> {
         creatorKey: folder.key,
         creatorHandle: folder.handle,
         hash: hash,
+        hashOf: hashOf,
         flatten: true,
         usedNames: usedNames,
       );
@@ -707,6 +814,7 @@ class TransferController extends StateNotifier<TransferUiState> {
       final part = await PayloadScanner.scanDirectories(
         [for (final path in state.extraFolders) Directory(path)],
         hash: hash,
+        hashOf: hashOf,
         flatten: true,
         usedNames: usedNames,
       );
@@ -717,6 +825,7 @@ class TransferController extends StateNotifier<TransferUiState> {
       final part = await PayloadScanner.scanFiles(
         [for (final path in state.extraFiles) File(path)],
         hash: hash,
+        hashOf: hashOf,
         flatten: true,
         usedNames: usedNames,
       );
@@ -738,17 +847,49 @@ class TransferController extends StateNotifier<TransferUiState> {
     }
     unawaited(() async {
       try {
-        final bundle = await _buildBundle();
-        final total = bundle.files.fold<int>(0, (sum, f) => sum + f.size);
-        state = state.copyWith(
-          selectedFilesCount: bundle.files.length,
-          selectedTotalBytes: total,
+        final bundle = await _buildBundle(hash: true);
+        final targetFp = resolveTargetFingerprint();
+        final preview = SendMemoryFilter.preview(
+          files: bundle.files,
+          fingerprint: targetFp,
+          isTransferred: (sha) =>
+              _sendMemoryStore?.isTransferred(targetFp, sha) ?? false,
         );
-        server.setShare(ShareOffer(files: bundle.files, pin: state.pin));
+
+        final outgoing = (state.onlyNewVideos && (targetFp != null || preview.already > 0))
+            ? SendMemoryFilter.outgoing(
+                files: bundle.files,
+                fingerprint: targetFp,
+                isTransferred: (sha) =>
+                    _sendMemoryStore?.isTransferred(targetFp, sha) ?? false,
+              )
+            : _dedupFiles(bundle.files);
+
+        final total = outgoing.fold<int>(0, (sum, f) => sum + f.size);
+        state = state.copyWith(
+          selectedFilesCount: outgoing.length,
+          selectedTotalBytes: total,
+          sendPreview: preview,
+        );
+        server.setShare(ShareOffer(files: outgoing, pin: state.pin));
       } catch (e) {
         LoggerService.w('Share offer refresh failed: $e');
       }
     }());
+  }
+
+  static List<TransferFile> _dedupFiles(List<TransferFile> files) {
+    final seen = <String>{};
+    final out = <TransferFile>[];
+    for (final f in files) {
+      final sha = f.sha256;
+      if (sha == null || sha.isEmpty) {
+        out.add(f);
+        continue;
+      }
+      if (seen.add(sha)) out.add(f);
+    }
+    return out;
   }
 
   Future<bool> _onIncoming(IncomingOffer offer) async {

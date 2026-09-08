@@ -10,8 +10,10 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:modern_downloader/features/transfer/domain/send_memory.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_creator_query.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_progress_label.dart';
 import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
@@ -696,12 +698,15 @@ class _SendTabContent extends StatelessWidget {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 960;
         final payload = _PayloadPanel(
+          key: OnboardingTargets.transfer,
           state: state,
           fill: wide,
         );
         final peers = _PeersPanel(
           peers: state.peers,
           fill: wide,
+          preview: state.sendPreview,
+          onlyNew: state.onlyNewVideos,
           onSend: (peer) {
             final container = ProviderScope.containerOf(context);
             unawaited(
@@ -958,11 +963,15 @@ class _PeersPanel extends ConsumerStatefulWidget {
     required this.peers,
     required this.onSend,
     required this.fill,
+    this.preview = SendPreview.empty,
+    this.onlyNew = true,
   });
 
   final List<TransferPeer> peers;
   final ValueChanged<TransferPeer> onSend;
   final bool fill;
+  final SendPreview preview;
+  final bool onlyNew;
 
   @override
   ConsumerState<_PeersPanel> createState() => _PeersPanelState();
@@ -1065,6 +1074,8 @@ class _PeersPanelState extends ConsumerState<_PeersPanel> {
                   separatorBuilder: (context, index) => const Gap(10),
                   itemBuilder: (context, index) => _PeerTile(
                     peer: peers[index],
+                    preview: widget.preview,
+                    onlyNew: widget.onlyNew,
                     onTap: () => onSend(peers[index]),
                   ),
                 ),
@@ -1072,7 +1083,12 @@ class _PeersPanelState extends ConsumerState<_PeersPanel> {
             )
           else
             for (final peer in peers) ...[
-              _PeerTile(peer: peer, onTap: () => onSend(peer)),
+              _PeerTile(
+                peer: peer,
+                preview: widget.preview,
+                onlyNew: widget.onlyNew,
+                onTap: () => onSend(peer),
+              ),
               const Gap(10),
             ],
         ],
@@ -1089,10 +1105,17 @@ class _PeersPanelState extends ConsumerState<_PeersPanel> {
 }
 
 class _PeerTile extends StatelessWidget {
-  const _PeerTile({required this.peer, required this.onTap});
+  const _PeerTile({
+    required this.peer,
+    required this.onTap,
+    this.preview = SendPreview.empty,
+    this.onlyNew = true,
+  });
 
   final TransferPeer peer;
   final VoidCallback onTap;
+  final SendPreview preview;
+  final bool onlyNew;
 
   @override
   Widget build(BuildContext context) {
@@ -1174,16 +1197,24 @@ class _PeerTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.18),
+                  color: (onlyNew && preview.found > 0 && preview.newest == 0)
+                      ? colors.success.withValues(alpha: 0.18)
+                      : colors.primary.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      l10n.transferSend,
+                      (onlyNew && preview.found > 0)
+                          ? (preview.newest > 0
+                              ? l10n.transferSendNewOnly(preview.newest)
+                              : 'À jour (${preview.already})')
+                          : l10n.transferSend,
                       style: AppTypography.label.copyWith(
-                        color: colors.primary,
+                        color: (onlyNew && preview.found > 0 && preview.newest == 0)
+                            ? colors.success
+                            : colors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1192,11 +1223,15 @@ class _PeerTile extends StatelessWidget {
                       width: 18,
                       height: 18,
                       decoration: BoxDecoration(
-                        color: colors.primary,
+                        color: (onlyNew && preview.found > 0 && preview.newest == 0)
+                            ? colors.success
+                            : colors.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.arrow_forward_rounded,
+                      child: Icon(
+                        (onlyNew && preview.found > 0 && preview.newest == 0)
+                            ? Icons.check_rounded
+                            : Icons.arrow_forward_rounded,
                         size: 11,
                         color: Colors.white,
                       ),
@@ -1317,6 +1352,7 @@ class _DirectIpDialogState extends ConsumerState<_DirectIpDialog> {
 
 class _PayloadPanel extends ConsumerStatefulWidget {
   const _PayloadPanel({
+    super.key,
     required this.state,
     required this.fill,
   });
@@ -1485,6 +1521,37 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
               ),
             ],
           ),
+          if (hasAnyPayload && state.sendPreview.found > 0) ...[
+            const Gap(12),
+            _SendMemoryStatusBanner(
+              preview: state.sendPreview,
+              onlyNewVideos: state.onlyNewVideos,
+              onToggleOnlyNew: () {
+                ref
+                    .read(transferControllerProvider.notifier)
+                    .toggleOnlyNewVideos();
+              },
+              onForgetHistory: (state.sendPreview.already > 0)
+                  ? () async {
+                      final activeFp = ref
+                          .read(transferControllerProvider.notifier)
+                          .resolveTargetFingerprint();
+                      if (activeFp == null) return;
+                      await ref
+                          .read(transferControllerProvider.notifier)
+                          .forgetDeviceMemory(activeFp);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.transferHistoryCleared),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    }
+                  : null,
+            ),
+          ],
           if (hasAnyPayload) ...[
             const Gap(12),
             _PayloadCompressionBanner(
@@ -1580,80 +1647,88 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
             ),
           if (widget.fill)
             Expanded(
-              child: _buildItemsList(
-                context: context,
-                allSelected: allSelected,
-                selected: selected,
-                folderByKey: folderByKey,
-                state: state,
-                hits: hits,
-              ).isEmpty
-                  ? const SizedBox.shrink()
-                  : Scrollbar(
-                      controller: _scrollController,
-                      child: ListView(
-                        controller: _scrollController,
-                        padding: EdgeInsets.zero,
-                        children: _buildItemsList(
-                          context: context,
-                          allSelected: allSelected,
-                          selected: selected,
-                          folderByKey: folderByKey,
-                          state: state,
-                          hits: hits,
-                        ),
-                      ),
-                    ),
+              child: Scrollbar(
+                controller: _scrollController,
+                child: ListView(
+                  controller: _scrollController,
+                  padding: EdgeInsets.zero,
+                  children: _buildPayloadList(
+                    state: state,
+                    folders: folders,
+                    selected: selected,
+                    allSelected: allSelected,
+                    hits: hits,
+                    folderByKey: folderByKey,
+                  ),
+                ),
+              ),
             )
           else
-            ..._buildItemsList(
-              context: context,
-              allSelected: allSelected,
-              selected: selected,
-              folderByKey: folderByKey,
+            ..._buildPayloadList(
               state: state,
+              folders: folders,
+              selected: selected,
+              allSelected: allSelected,
               hits: hits,
+              folderByKey: folderByKey,
             ),
         ],
       ),
     );
   }
 
-  List<Widget> _buildItemsList({
-    required BuildContext context,
-    required bool allSelected,
-    required Set<String> selected,
-    required Map<String, CreatorFolder> folderByKey,
+  List<Widget> _buildPayloadList({
     required TransferUiState state,
+    required List<CreatorFolder> folders,
+    required Set<String> selected,
+    required bool allSelected,
     required List<CreatorFolder> hits,
+    required Map<String, CreatorFolder> folderByKey,
   }) {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
+    final preview = state.sendPreview;
 
     return [
-      if (allSelected)
+      if (allSelected) ...[
         Align(
           alignment: Alignment.centerLeft,
           child: InputChip(
-            label: Text(l10n.transferEntireLibrary),
+            label: Text(
+              preview.already > 0
+                  ? '${l10n.transferEntireLibrary} (${preview.newest} nlle${preview.newest > 1 ? 's' : ''} / ${preview.found})'
+                  : l10n.transferEntireLibrary,
+            ),
             onDeleted: () {
               ref
                   .read(transferControllerProvider.notifier)
                   .clearCreators();
             },
           ),
-        )
-      else if (selected.isNotEmpty)
+        ),
+        if (preview.folders.isNotEmpty) ...[
+          const Gap(6),
+          for (final f in preview.folders) ...[
+            _HitRow(
+              icon: Icons.folder_special_outlined,
+              title: f.key,
+              subtitle: l10n.transferFolderBreakdown(f.newest, f.already),
+            ),
+            const Gap(2),
+          ],
+        ],
+      ] else if (selected.isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
-              for (final key in selected.take(12))
-                InputChip(
-                  label: Text(
-                    _labelFor(
+              for (final key in selected.take(12)) ...[
+                Builder(
+                  builder: (context) {
+                    final counts = preview.forKey(key);
+                    final baseName = _labelFor(
                       folderByKey[key] ??
                           CreatorFolder(
                             key: key,
@@ -1661,14 +1736,21 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                             itemIds: const [],
                             previewUrls: const [],
                           ),
-                    ),
-                  ),
-                  onDeleted: () {
-                    ref
-                        .read(transferControllerProvider.notifier)
-                        .toggleCreator(key);
+                    );
+                    final label = (counts != null && counts.already > 0)
+                        ? '$baseName (${counts.newest} nlle${counts.newest > 1 ? 's' : ''})'
+                        : baseName;
+                    return InputChip(
+                      label: Text(label),
+                      onDeleted: () {
+                        ref
+                            .read(transferControllerProvider.notifier)
+                            .toggleCreator(key);
+                      },
+                    );
                   },
                 ),
+              ],
               if (selected.length > 12)
                 InputChip(
                   label: Text('+${selected.length - 12}'),
@@ -1681,7 +1763,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
         const Gap(6),
         _HitRow(
           icon: Icons.folder_outlined,
-          title: p.basename(path),
+          title: p.basename(path.replaceAll(r'\', '/')),
           subtitle: path,
           onRemove: () {
             ref
@@ -1694,7 +1776,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
         const Gap(6),
         _HitRow(
           icon: Icons.video_file_outlined,
-          title: p.basename(path),
+          title: p.basename(path.replaceAll(r'\', '/')),
           subtitle: path,
           onRemove: () {
             ref
@@ -1714,22 +1796,161 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
           )
         else
           for (final folder in hits) ...[
-            const Gap(4),
-            _HitRow(
-              icon: Icons.person_outline_rounded,
-              title: _labelFor(folder),
-              subtitle: l10n.folderVideoCount(folder.count),
-              onTap: () {
-                ref
-                    .read(transferControllerProvider.notifier)
-                    .addCreator(folder.key);
-                _query.clear();
-                setState(() {});
+            Builder(
+              builder: (context) {
+                final counts = preview.forKey(folder.key);
+                final subtitle = counts != null
+                    ? '${l10n.folderVideoCount(folder.count)} • ${l10n.transferFolderBreakdown(counts.newest, counts.already)}'
+                    : l10n.folderVideoCount(folder.count);
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: _HitRow(
+                    icon: Icons.person_outline_rounded,
+                    title: _labelFor(folder),
+                    subtitle: subtitle,
+                    onTap: () {
+                      ref
+                          .read(transferControllerProvider.notifier)
+                          .addCreator(folder.key);
+                      _query.clear();
+                      setState(() {});
+                    },
+                  ),
+                );
               },
             ),
           ],
       ],
     ];
+  }
+}
+
+class _SendMemoryStatusBanner extends StatelessWidget {
+  const _SendMemoryStatusBanner({
+    required this.preview,
+    required this.onlyNewVideos,
+    required this.onToggleOnlyNew,
+    required this.onForgetHistory,
+  });
+
+  final SendPreview preview;
+  final bool onlyNewVideos;
+  final VoidCallback onToggleOnlyNew;
+  final VoidCallback? onForgetHistory;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colors.primary.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 16,
+                  color: colors.primary,
+                ),
+              ),
+              const Gap(10),
+              Expanded(
+                child: Text(
+                  '${l10n.transferVideosFound(preview.found)} • ${l10n.transferAlreadyTransferred(preview.already)} • ${l10n.transferNewVideos(preview.newest)}',
+                  style: AppTypography.mono.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ),
+              if (onForgetHistory != null && preview.already > 0)
+                Tooltip(
+                  message: l10n.transferForgetDeviceHistory,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.history_toggle_off_rounded,
+                      size: 18,
+                      color: colors.textSecondary,
+                    ),
+                    onPressed: onForgetHistory,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+            ],
+          ),
+          const Gap(8),
+          InkWell(
+            onTap: onToggleOnlyNew,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: onlyNewVideos
+                    ? colors.primary.withValues(alpha: 0.12)
+                    : Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: onlyNewVideos
+                      ? colors.primary.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.08),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    onlyNewVideos
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    size: 15,
+                    color: onlyNewVideos ? colors.primary : colors.textSecondary,
+                  ),
+                  const Gap(8),
+                  Expanded(
+                    child: Text(
+                      l10n.transferOnlyNewToggle,
+                      style: AppTypography.caption.copyWith(
+                        color: onlyNewVideos
+                            ? colors.textPrimary
+                            : colors.textSecondary,
+                        fontWeight: onlyNewVideos
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  if (onlyNewVideos && preview.newest > 0)
+                    Text(
+                      '${preview.newest} (${FormatUtils.formatBytes(preview.newBytes)})',
+                      style: AppTypography.mono.copyWith(
+                        fontSize: 11,
+                        color: colors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

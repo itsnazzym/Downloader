@@ -19,9 +19,6 @@
         "sidePanel",
         "webRequest"
     ],
-    "optional_host_permissions": [
-        "*://*.pornhub.com/*"
-    ],
     "host_permissions": [
         "*://*/*"
     ],
@@ -64,7 +61,7 @@
         }
     },
     "content_security_policy": {
-        "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https://pbs.twimg.com https://video.twimg.com https://*.tiktokcdn.com https://*.tiktokcdn-eu.com https://*.tiktokcdn-us.com https://*.cdninstagram.com https://*.ytimg.com https://*.fbcdn.net https://*.akamaihd.net; media-src 'self' blob: data: https://*.tiktokcdn.com https://*.tiktokcdn-eu.com https://*.tiktokcdn-us.com https://video.twimg.com https://*.cdninstagram.com; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:* ws://localhost:* http://localhost:*;"
+        "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:* ws://localhost:* http://localhost:*;"
     },
     "icons": {
         "16": "icons/icon16.png",

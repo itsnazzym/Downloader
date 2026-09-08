@@ -14,6 +14,7 @@ import '../../download/download_path_resolver.dart';
 import 'widgets/storage_chart.dart';
 import 'widgets/library_migration_dialog.dart';
 import 'widgets/reorganize_library_dialog.dart';
+import '../../../features/onboarding/presentation/onboarding_targets.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -86,6 +87,7 @@ class OutputSettingsView extends ConsumerWidget {
                         ),
                         const Gap(AppSpacing.l),
                         ActionTile(
+                          key: OnboardingTargets.outputFolder,
                           title: l10n.downloadFolder,
                           subtitle: settings.outputFolder.isEmpty
                               ? l10n.selectFolder

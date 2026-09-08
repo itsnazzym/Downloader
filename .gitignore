@@ -48,9 +48,14 @@ compile_commands.json
 agent-tools/
 *-plan.md
 *-fix.md
+fix-*.md
+*-redesign.md
+*-redesign-plan.md
+toolbar-*.md
 *-optimization.md
 *-organizer.md
 *-transfer.md
+transfer-*.md
 lan-folder-transfer.md
 *-hd.md
 *-notes.md
@@ -194,6 +199,7 @@ history_export_*.json
 *.aab
 ModernDownloader-*
 modern_downloader_firefox.xpi
+modern_downloader_chrome/
 /bin/
 bin/
 /Release/

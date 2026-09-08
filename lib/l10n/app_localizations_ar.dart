@@ -1395,4 +1395,131 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transferListeningOn => 'جاهز على الشبكة';
+
+  @override
+  String transferVideosFound(int count) {
+    return '$count موجودة';
+  }
+
+  @override
+  String transferAlreadyTransferred(int count) {
+    return '$count تم نقلها مسبقاً';
+  }
+
+  @override
+  String transferNewVideos(int count) {
+    return '$count جديدة';
+  }
+
+  @override
+  String transferSendNewOnly(int count) {
+    return 'إرسال $count فيديو جديد';
+  }
+
+  @override
+  String transferSendAll(int count) {
+    return 'إرسال الكل ($count)';
+  }
+
+  @override
+  String get transferOnlyNewToggle => 'إرسال الفيديوهات الجديدة فقط';
+
+  @override
+  String transferFolderBreakdown(int newCount, int alreadyCount) {
+    return '$newCount جديدة • $alreadyCount منقولة';
+  }
+
+  @override
+  String get transferForgetDeviceHistory => 'نسيان سجل هذا الجهاز';
+
+  @override
+  String get transferHistoryCleared => 'تم مسح سجل النقل';
+
+  @override
+  String get onboardingStart => 'ابدأ';
+
+  @override
+  String get onboardingNext => 'التالي';
+
+  @override
+  String get onboardingDone => 'تم';
+
+  @override
+  String get onboardingSkipStep => 'تخطي';
+
+  @override
+  String get onboardingSkipAll => 'تخطي الجولة';
+
+  @override
+  String get onboardingReplay => 'إعادة الجولة';
+
+  @override
+  String get onboardingReplayDesc => 'عرض الجولة مرة أخرى';
+
+  @override
+  String get onboardingWelcomeTitle => 'جولة سريعة';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'نظرة قصيرة على الشاشات الرئيسية. يمكنك التخطي في أي وقت.';
+
+  @override
+  String get onboardingNewDownloadTitle => 'تنزيل جديد';
+
+  @override
+  String get onboardingNewDownloadBody =>
+      'الصق رابطاً أو أرسله من إضافة المتصفح.';
+
+  @override
+  String get onboardingLibraryTitle => 'المكتبة';
+
+  @override
+  String get onboardingLibraryBody =>
+      'صفّ التنزيلات حسب النشط أو المكتمل أو الفاشل.';
+
+  @override
+  String get onboardingTopBarTitle => 'شريط الأدوات';
+
+  @override
+  String get onboardingTopBarBody =>
+      'ابحث وأوقف الطابور وأعد المحاولات الفاشلة.';
+
+  @override
+  String get onboardingFoldersTitle => 'مجلدات المنشئين';
+
+  @override
+  String get onboardingFoldersBody =>
+      'تُجمّع التنزيلات حسب القناة. بدّل القائمة أو المجلدات ثم رتّب.';
+
+  @override
+  String get onboardingTransferTitle => 'النقل';
+
+  @override
+  String get onboardingTransferBody =>
+      'اختر المجلدات وامسح رمز QR ثم اقبل على الجهاز الآخر.';
+
+  @override
+  String get onboardingStatsTitle => 'الإحصاءات';
+
+  @override
+  String get onboardingStatsBody => 'الإجماليات ومساحة القرص وسجل التنزيلات.';
+
+  @override
+  String get onboardingOutputTitle => 'مجلد الإخراج';
+
+  @override
+  String get onboardingOutputBody => 'اختر مكان حفظ الملفات.';
+
+  @override
+  String get onboardingExtensionTitle => 'إضافة المتصفح';
+
+  @override
+  String get onboardingExtensionBody =>
+      'ثبّت إضافة كروم أو فايرفوكس لإرسال الروابط إلى هنا.';
+
+  @override
+  String get onboardingReadyTitle => 'جاهز';
+
+  @override
+  String get onboardingReadyBody => 'أعد الجولة من الإعدادات > عام.';
 }

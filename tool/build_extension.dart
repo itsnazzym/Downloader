@@ -128,6 +128,13 @@ Future<void> main(List<String> args) async {
     stdout.writeln('Built extension/$browser');
   }
 
+  final chromeOut = Directory('${root.path}/extension/chrome');
+  final modernChromeOut = Directory('${root.path}/modern_downloader_chrome');
+  if (chromeOut.existsSync()) {
+    await _copyDir(chromeOut, modernChromeOut);
+    stdout.writeln('Synchronized modern_downloader_chrome with extension/chrome');
+  }
+
   final tag = (releaseTag != null && releaseTag.isNotEmpty)
       ? releaseTag
       : 'v$version';

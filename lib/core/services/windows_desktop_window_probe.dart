@@ -51,7 +51,7 @@ class WindowsDesktopWindowProbe {
       return _foundOther;
     } catch (e) {
       LoggerService.w('Desktop window probe failed: $e');
-      return false;
+      return true;
     }
   }
 

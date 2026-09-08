@@ -7,6 +7,7 @@ import '../../presentation/providers/downloader_provider.dart';
 import '../../presentation/providers/download_library_counts.dart';
 import '../../presentation/providers/creator_folders_provider.dart';
 
+import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'inspector/download_inspector.dart';
 import 'widgets/download_list.dart';
 import 'widgets/download_search_field.dart';
@@ -19,7 +20,11 @@ class DownloadView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isNarrow = MediaQuery.sizeOf(context).width < 720;
+    final sidebarWidth = ref.watch(
+      paneLayoutProvider.select((s) => s.visibleSidebarWidth),
+    );
+    final availableWidth = MediaQuery.sizeOf(context).width - sidebarWidth;
+    final isNarrow = availableWidth < 620;
     if (isNarrow) {
       ref.listen<String?>(selectedDownloadIdProvider, (previous, next) {
         if (next == null || next == previous) return;
@@ -58,11 +63,13 @@ class DownloadView extends ConsumerWidget {
                   }
                 },
               },
-              child: const Column(
+              child: Column(
                 children: [
-                  _DownloadTopBar(),
-                  _DownloadTopHairline(),
-                  Expanded(child: DownloadList()),
+                  _DownloadTopBar(key: OnboardingTargets.topBar),
+                  const _DownloadTopHairline(),
+                  Expanded(
+                    child: DownloadList(key: OnboardingTargets.creatorList),
+                  ),
                 ],
               ),
             ),
@@ -162,7 +169,9 @@ class _DownloadTopHairline extends StatelessWidget {
 }
 
 class _FailedDownloadsBadge extends ConsumerWidget {
-  const _FailedDownloadsBadge();
+  final bool compact;
+
+  const _FailedDownloadsBadge({this.compact = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -175,7 +184,7 @@ class _FailedDownloadsBadge extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Tooltip(
-        message: 'Relancer tous les téléchargements en échec',
+        message: 'Relancer tous les téléchargements en échec ($failedCount)',
         child: Material(
           color: colors.warning.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(8),
@@ -185,16 +194,16 @@ class _FailedDownloadsBadge extends ConsumerWidget {
               await ref.read(downloadListProvider.notifier).retryAllFailed();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Relance des téléchargements en échec'),
-                    duration: Duration(seconds: 2),
+                  SnackBar(
+                    content: Text('Relance de $failedCount téléchargement(s) en échec'),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               }
             },
             child: Container(
               height: 34,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
@@ -209,9 +218,11 @@ class _FailedDownloadsBadge extends ConsumerWidget {
                     size: 15,
                     color: colors.warning,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Text(
-                    '$failedCount ${failedCount > 1 ? "échecs" : "échec"} · Relancer',
+                    compact
+                        ? '$failedCount'
+                        : '$failedCount ${failedCount > 1 ? "échecs" : "échec"} · Relancer',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -346,7 +357,13 @@ class _QueueControlCapsule extends ConsumerWidget {
 }
 
 class _DownloadMoreActionsMenu extends ConsumerWidget {
-  const _DownloadMoreActionsMenu();
+  final bool showQueueActions;
+  final bool showRetryFailed;
+
+  const _DownloadMoreActionsMenu({
+    this.showQueueActions = false,
+    this.showRetryFailed = false,
+  });
 
   void _showClearHistoryDialog(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -379,6 +396,9 @@ class _DownloadMoreActionsMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
+    final activeCount = ref.watch(
+      downloadLibraryCountsProvider.select((c) => c.active),
+    );
     final completedCount = ref.watch(
       downloadLibraryCountsProvider.select((c) => c.completed),
     );
@@ -389,7 +409,37 @@ class _DownloadMoreActionsMenu extends ConsumerWidget {
     return PopupMenuButton<String>(
       tooltip: 'Plus d\'actions',
       onSelected: (value) async {
-        if (value == 'refresh') {
+        if (value == 'retry_failed') {
+          await ref.read(downloadListProvider.notifier).retryAllFailed();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Relance de $failedCount téléchargement(s) en échec'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        } else if (value == 'pause_all') {
+          await ref.read(downloadListProvider.notifier).pauseAllActive();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Tous les téléchargements actifs mis en pause'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        } else if (value == 'resume_all') {
+          await ref.read(downloadListProvider.notifier).resumeAllQueued();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('File d\'attente lancée'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        } else if (value == 'refresh') {
           await ref.read(downloadListProvider.notifier).refreshLibrary();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -425,6 +475,76 @@ class _DownloadMoreActionsMenu extends ConsumerWidget {
       },
       itemBuilder: (context) {
         return [
+          if (showRetryFailed && failedCount > 0) ...[
+            PopupMenuItem(
+              value: 'retry_failed',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.replay_rounded,
+                    size: 18,
+                    color: colors.warning,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Relancer les échecs ($failedCount)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: colors.warning,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+          ],
+          if (showQueueActions) ...[
+            PopupMenuItem(
+              value: 'pause_all',
+              enabled: activeCount > 0,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.pause_rounded,
+                    size: 18,
+                    color: activeCount > 0
+                        ? colors.textSecondary
+                        : colors.textDisabled,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Mettre en pause les actifs',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: activeCount > 0 ? null : colors.textDisabled,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'resume_all',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.play_arrow_rounded,
+                    size: 18,
+                    color: colors.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Lancer la file d\'attente',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+          ],
           PopupMenuItem(
             value: 'refresh',
             child: Row(
@@ -535,31 +655,40 @@ class _DownloadMoreActionsMenu extends ConsumerWidget {
 }
 
 class _DownloadTopBar extends ConsumerWidget {
-  const _DownloadTopBar();
+  const _DownloadTopBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
-    return Container(
-      height: 64,
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      color: colors.isIosChrome
-          ? colors.background.withValues(alpha: 0.35)
-          : colors.background,
-      child: Row(
-        children: [
-          Expanded(
-            child: DownloadSearchField(
-              onChanged: (value) {
-                ref.read(downloadSearchQueryProvider.notifier).state = value;
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          const _FailedDownloadsBadge(),
-          const _QueueControlCapsule(),
-          const SizedBox(width: 8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final isCompact = availableWidth < 640;
+        final isVeryCompact = availableWidth < 460;
+
+        return Container(
+          height: 64,
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          color: colors.isIosChrome
+              ? colors.background.withValues(alpha: 0.35)
+              : colors.background,
+          child: Row(
+            children: [
+              Expanded(
+                child: DownloadSearchField(
+                  onChanged: (value) {
+                    ref.read(downloadSearchQueryProvider.notifier).state = value;
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (!isVeryCompact)
+                _FailedDownloadsBadge(compact: isCompact),
+              if (!isCompact) ...[
+                const _QueueControlCapsule(),
+                const SizedBox(width: 8),
+              ],
 
           // View Mode & Sort Menu
           PopupMenuButton<String>(
@@ -870,9 +999,14 @@ class _DownloadTopBar extends ConsumerWidget {
             },
           ),
           const SizedBox(width: 8),
-          const _DownloadMoreActionsMenu(),
+          _DownloadMoreActionsMenu(
+            showQueueActions: isCompact,
+            showRetryFailed: isVeryCompact,
+          ),
         ],
       ),
+    );
+      },
     );
   }
 }

@@ -556,5 +556,73 @@
   "transferDirectBrowserUrl": "رابط المتصفح",
   "transferCopyLink": "نسخ الرابط",
   "transferCopied": "تم النسخ!",
-  "transferListeningOn": "جاهز على الشبكة"
+  "transferListeningOn": "جاهز على الشبكة",
+  "transferVideosFound": "{count} موجودة",
+  "@transferVideosFound": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferAlreadyTransferred": "{count} تم نقلها مسبقاً",
+  "@transferAlreadyTransferred": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferNewVideos": "{count} جديدة",
+  "@transferNewVideos": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferSendNewOnly": "إرسال {count} فيديو جديد",
+  "@transferSendNewOnly": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferSendAll": "إرسال الكل ({count})",
+  "@transferSendAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferOnlyNewToggle": "إرسال الفيديوهات الجديدة فقط",
+  "transferFolderBreakdown": "{newCount} جديدة • {alreadyCount} منقولة",
+  "@transferFolderBreakdown": {
+    "placeholders": {
+      "newCount": { "type": "int" },
+      "alreadyCount": { "type": "int" }
+    }
+  },
+  "transferForgetDeviceHistory": "نسيان سجل هذا الجهاز",
+  "transferHistoryCleared": "تم مسح سجل النقل",
+
+  "onboardingStart": "ابدأ",
+  "onboardingNext": "التالي",
+  "onboardingDone": "تم",
+  "onboardingSkipStep": "تخطي",
+  "onboardingSkipAll": "تخطي الجولة",
+  "onboardingReplay": "إعادة الجولة",
+  "onboardingReplayDesc": "عرض الجولة مرة أخرى",
+  "onboardingWelcomeTitle": "جولة سريعة",
+  "onboardingWelcomeBody": "نظرة قصيرة على الشاشات الرئيسية. يمكنك التخطي في أي وقت.",
+  "onboardingNewDownloadTitle": "تنزيل جديد",
+  "onboardingNewDownloadBody": "الصق رابطاً أو أرسله من إضافة المتصفح.",
+  "onboardingLibraryTitle": "المكتبة",
+  "onboardingLibraryBody": "صفّ التنزيلات حسب النشط أو المكتمل أو الفاشل.",
+  "onboardingTopBarTitle": "شريط الأدوات",
+  "onboardingTopBarBody": "ابحث وأوقف الطابور وأعد المحاولات الفاشلة.",
+  "onboardingFoldersTitle": "مجلدات المنشئين",
+  "onboardingFoldersBody": "تُجمّع التنزيلات حسب القناة. بدّل القائمة أو المجلدات ثم رتّب.",
+  "onboardingTransferTitle": "النقل",
+  "onboardingTransferBody": "اختر المجلدات وامسح رمز QR ثم اقبل على الجهاز الآخر.",
+  "onboardingStatsTitle": "الإحصاءات",
+  "onboardingStatsBody": "الإجماليات ومساحة القرص وسجل التنزيلات.",
+  "onboardingOutputTitle": "مجلد الإخراج",
+  "onboardingOutputBody": "اختر مكان حفظ الملفات.",
+  "onboardingExtensionTitle": "إضافة المتصفح",
+  "onboardingExtensionBody": "ثبّت إضافة كروم أو فايرفوكس لإرسال الروابط إلى هنا.",
+  "onboardingReadyTitle": "جاهز",
+  "onboardingReadyBody": "أعد الجولة من الإعدادات > عام."
 }

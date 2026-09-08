@@ -81,11 +81,14 @@
   function publishConnectionState() {
     setConnected(isConnected);
     try {
-      api.runtime.sendMessage({
+      var pending = api.runtime.sendMessage({
         type: 'MD_CONNECTION_STATE',
         connected: isConnected,
         activeCount: activeDownloadCount,
       });
+      if (pending && typeof pending.catch === 'function') {
+        pending.catch(function () {});
+      }
     } catch (e) {
       /* SW may be asleep */
     }
@@ -176,17 +179,17 @@
         };
 
         socket.onerror = function () {
-          logDiag('WS_ERROR', 'ReadyState=' + (socket ? socket.readyState : 'null'));
-          console.error('WebSocket error');
+          logDiag('WS_OFFLINE', 'ReadyState=' + (socket ? socket.readyState : 'null'));
+          console.debug('Modern Downloader desktop app is offline or unreachable on ws://127.0.0.1:' + serverPort);
         };
       } catch (e) {
-        logDiag('CRITICAL_WS_ERR', (e && e.message) || String(e));
-        console.error('Critical WebSocket error', e);
+        logDiag('WS_CONNECT_IDLE', (e && e.message) || String(e));
+        console.debug('WebSocket connection attempt idle (desktop app offline):', (e && e.message) || String(e));
         scheduleReconnect();
       }
     }).catch(function (e) {
       logDiag('SETTINGS_ERR', (e && e.message) || String(e));
-      console.error('Failed to read settings for connect', e);
+      console.warn('Failed to read settings for connect', e);
       scheduleReconnect();
     });
   }

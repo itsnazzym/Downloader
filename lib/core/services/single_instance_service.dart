@@ -100,7 +100,7 @@ class SingleInstanceService {
           LoggerService.i('Reclaimed single-instance port $port');
           return false;
         }
-        return false;
+        return true;
       } catch (sendError) {
         debugPrint('Failed to send args to primary instance: $sendError');
         return false;

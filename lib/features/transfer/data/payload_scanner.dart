@@ -10,6 +10,8 @@ import 'package:modern_downloader/features/transfer/domain/transfer_path_guard.d
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+typedef ContentHashResolver = Future<String> Function(File file, FileStat stat);
+
 class PayloadBundle {
   const PayloadBundle({required this.files, required this.manifest});
 
@@ -58,11 +60,23 @@ class PayloadScanner {
     }
   }
 
+  static Future<String?> _hashOf(
+    File file,
+    FileStat stat, {
+    required bool hash,
+    ContentHashResolver? hashOf,
+  }) async {
+    if (!hash) return null;
+    if (hashOf != null) return hashOf(file, stat);
+    return sha256File(file);
+  }
+
   static Future<PayloadBundle> scanDirectories(
     List<Directory> dirs, {
     bool hash = true,
     bool flatten = false,
     Set<String>? usedNames,
+    ContentHashResolver? hashOf,
   }) async {
     final files = <TransferFile>[];
     final entries = <LibraryManifestEntry>[];
@@ -87,7 +101,12 @@ class PayloadScanner {
         if (name == null) continue;
         final stat = await entity.stat();
         if (stat.size <= 0) continue;
-        final hashHex = hash ? await sha256File(entity) : null;
+        final hashHex = await _hashOf(
+          entity,
+          stat,
+          hash: hash,
+          hashOf: hashOf,
+        );
         files.add(
           TransferFile(
             id: const Uuid().v4(),
@@ -119,6 +138,7 @@ class PayloadScanner {
     bool hash = true,
     bool flatten = true,
     Set<String>? usedNames,
+    ContentHashResolver? hashOf,
   }) async {
     final files = <TransferFile>[];
     final entries = <LibraryManifestEntry>[];
@@ -131,7 +151,7 @@ class PayloadScanner {
       final name = flatten
           ? _flatUniqueName(file.path, seen)
           : p.basename(file.path);
-      final hashHex = hash ? await sha256File(file) : null;
+      final hashHex = await _hashOf(file, stat, hash: hash, hashOf: hashOf);
       files.add(
         TransferFile(
           id: const Uuid().v4(),
@@ -157,6 +177,7 @@ class PayloadScanner {
     bool hash = true,
     bool flatten = false,
     Set<String>? usedNames,
+    ContentHashResolver? hashOf,
   }) async {
     final files = <TransferFile>[];
     final entries = <LibraryManifestEntry>[];
@@ -185,7 +206,7 @@ class PayloadScanner {
           id: const Uuid().v4(),
           fileName: name,
           size: stat.size,
-          sha256: hash ? await sha256File(file) : null,
+          sha256: await _hashOf(file, stat, hash: hash, hashOf: hashOf),
           localPath: path,
           downloadId: item.id,
           creatorKey: creatorKey,

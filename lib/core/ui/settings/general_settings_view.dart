@@ -10,6 +10,7 @@ import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
 import '../settings_view.dart'; // Reuse tile widgets
 import '../../setup/dependency_bootstrap_provider.dart';
+import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class GeneralSettingsView extends ConsumerWidget {
@@ -73,6 +74,17 @@ class GeneralSettingsView extends ConsumerWidget {
                             ref
                                 .read(dependencyBootstrapProvider.notifier)
                                 .ensureReady();
+                          },
+                        ),
+                        ActionTile(
+                          title: l10n.onboardingReplay,
+                          subtitle: l10n.onboardingReplayDesc,
+                          icon: Icons.replay_outlined,
+                          onTap: () {
+                            context.go('/');
+                            ref
+                                .read(onboardingControllerProvider.notifier)
+                                .replay();
                           },
                         ),
                         ActionTile(

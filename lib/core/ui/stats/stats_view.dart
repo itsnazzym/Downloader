@@ -10,6 +10,7 @@ import '../../design_system/foundation/typography.dart';
 import '../../services/download_stats_service.dart';
 import '../../services/disk_space_service.dart';
 import '../../utils/format_utils.dart';
+import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class StatsView extends ConsumerStatefulWidget {
@@ -67,6 +68,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
 
             // Top stat cards
             Row(
+              key: OnboardingTargets.stats,
               children: [
                 Expanded(
                   child: _StatCard(

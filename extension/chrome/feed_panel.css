@@ -1174,6 +1174,14 @@ button:disabled {
     font-weight: 500;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    cursor: pointer;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.card-title:hover {
+    color: #a78bfa;
+    text-decoration: underline;
+    text-decoration-color: rgba(167, 139, 250, 0.6);
 }
 
 .card-music {

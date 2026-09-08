@@ -2631,6 +2631,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Listening on network'**
   String get transferListeningOn;
+
+  /// No description provided for @transferVideosFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} found'**
+  String transferVideosFound(int count);
+
+  /// No description provided for @transferAlreadyTransferred.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} already transferred'**
+  String transferAlreadyTransferred(int count);
+
+  /// No description provided for @transferNewVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new'**
+  String transferNewVideos(int count);
+
+  /// No description provided for @transferSendNewOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Send {count} new videos'**
+  String transferSendNewOnly(int count);
+
+  /// No description provided for @transferSendAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Send all ({count})'**
+  String transferSendAll(int count);
+
+  /// No description provided for @transferOnlyNewToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send new videos only'**
+  String get transferOnlyNewToggle;
+
+  /// No description provided for @transferFolderBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{newCount} new • {alreadyCount} transferred'**
+  String transferFolderBreakdown(int newCount, int alreadyCount);
+
+  /// No description provided for @transferForgetDeviceHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget history for this device'**
+  String get transferForgetDeviceHistory;
+
+  /// No description provided for @transferHistoryCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer history cleared'**
+  String get transferHistoryCleared;
+
+  /// No description provided for @onboardingStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get onboardingStart;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get onboardingDone;
+
+  /// No description provided for @onboardingSkipStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkipStep;
+
+  /// No description provided for @onboardingSkipAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip tour'**
+  String get onboardingSkipAll;
+
+  /// No description provided for @onboardingReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay tour'**
+  String get onboardingReplay;
+
+  /// No description provided for @onboardingReplayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the tour again'**
+  String get onboardingReplayDesc;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick tour'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A short walk through the main screens. Skip anytime.'**
+  String get onboardingWelcomeBody;
+
+  /// No description provided for @onboardingNewDownloadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New download'**
+  String get onboardingNewDownloadTitle;
+
+  /// No description provided for @onboardingNewDownloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a URL or send one from the browser extension.'**
+  String get onboardingNewDownloadBody;
+
+  /// No description provided for @onboardingLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get onboardingLibraryTitle;
+
+  /// No description provided for @onboardingLibraryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter downloads by active, done, or failed.'**
+  String get onboardingLibraryBody;
+
+  /// No description provided for @onboardingTopBarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Toolbar'**
+  String get onboardingTopBarTitle;
+
+  /// No description provided for @onboardingTopBarBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Search, pause the queue, and retry failed downloads.'**
+  String get onboardingTopBarBody;
+
+  /// No description provided for @onboardingFoldersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Creator folders'**
+  String get onboardingFoldersTitle;
+
+  /// No description provided for @onboardingFoldersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads are grouped by channel. Switch list or folders, then sort.'**
+  String get onboardingFoldersBody;
+
+  /// No description provided for @onboardingTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get onboardingTransferTitle;
+
+  /// No description provided for @onboardingTransferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick folders, scan the QR, then accept on the other device.'**
+  String get onboardingTransferBody;
+
+  /// No description provided for @onboardingStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get onboardingStatsTitle;
+
+  /// No description provided for @onboardingStatsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals, disk space, and download history.'**
+  String get onboardingStatsBody;
+
+  /// No description provided for @onboardingOutputTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Output folder'**
+  String get onboardingOutputTitle;
+
+  /// No description provided for @onboardingOutputBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where files are saved.'**
+  String get onboardingOutputBody;
+
+  /// No description provided for @onboardingExtensionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser extension'**
+  String get onboardingExtensionTitle;
+
+  /// No description provided for @onboardingExtensionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Install the Chrome or Firefox extension to send links here.'**
+  String get onboardingExtensionBody;
+
+  /// No description provided for @onboardingReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get onboardingReadyTitle;
+
+  /// No description provided for @onboardingReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the tour from Settings > General.'**
+  String get onboardingReadyBody;
 }
 
 class _AppLocalizationsDelegate

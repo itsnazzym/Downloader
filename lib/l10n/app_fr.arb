@@ -556,5 +556,73 @@
   "transferDirectBrowserUrl": "Lien navigateur web",
   "transferCopyLink": "Copier le lien",
   "transferCopied": "Copié !",
-  "transferListeningOn": "En écoute sur le réseau"
+  "transferListeningOn": "En écoute sur le réseau",
+  "transferVideosFound": "{count} trouvées",
+  "@transferVideosFound": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferAlreadyTransferred": "{count} déjà transférées",
+  "@transferAlreadyTransferred": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferNewVideos": "{count} nouvelles",
+  "@transferNewVideos": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferSendNewOnly": "Transférer les {count} nouvelles vidéos",
+  "@transferSendNewOnly": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferSendAll": "Tout transférer ({count})",
+  "@transferSendAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferOnlyNewToggle": "Envoyer uniquement les nouveautés",
+  "transferFolderBreakdown": "{newCount} nouvelle(s) • {alreadyCount} transférée(s)",
+  "@transferFolderBreakdown": {
+    "placeholders": {
+      "newCount": { "type": "int" },
+      "alreadyCount": { "type": "int" }
+    }
+  },
+  "transferForgetDeviceHistory": "Oublier l'historique de cet appareil",
+  "transferHistoryCleared": "Historique de transfert effacé",
+
+  "onboardingStart": "Commencer",
+  "onboardingNext": "Suivant",
+  "onboardingDone": "Terminer",
+  "onboardingSkipStep": "Passer",
+  "onboardingSkipAll": "Passer le tour",
+  "onboardingReplay": "Relancer le tour",
+  "onboardingReplayDesc": "Afficher le tour à nouveau",
+  "onboardingWelcomeTitle": "Tour rapide",
+  "onboardingWelcomeBody": "Un aperçu des écrans principaux. Vous pouvez passer à tout moment.",
+  "onboardingNewDownloadTitle": "Nouveau téléchargement",
+  "onboardingNewDownloadBody": "Collez une URL ou envoyez-en une depuis l'extension navigateur.",
+  "onboardingLibraryTitle": "Bibliothèque",
+  "onboardingLibraryBody": "Filtrez les téléchargements actifs, terminés ou échoués.",
+  "onboardingTopBarTitle": "Barre d'outils",
+  "onboardingTopBarBody": "Recherchez, mettez la file en pause et relancez les échecs.",
+  "onboardingFoldersTitle": "Dossiers créateurs",
+  "onboardingFoldersBody": "Les téléchargements sont groupés par chaîne. Liste ou dossiers, puis tri.",
+  "onboardingTransferTitle": "Transfert",
+  "onboardingTransferBody": "Choisissez les dossiers, scannez le QR, puis acceptez sur l'autre appareil.",
+  "onboardingStatsTitle": "Statistiques",
+  "onboardingStatsBody": "Totaux, espace disque et historique.",
+  "onboardingOutputTitle": "Dossier de sortie",
+  "onboardingOutputBody": "Choisissez où enregistrer les fichiers.",
+  "onboardingExtensionTitle": "Extension navigateur",
+  "onboardingExtensionBody": "Installez l'extension Chrome ou Firefox pour envoyer les liens ici.",
+  "onboardingReadyTitle": "Prêt",
+  "onboardingReadyBody": "Relancez le tour depuis Paramètres > Général."
 }

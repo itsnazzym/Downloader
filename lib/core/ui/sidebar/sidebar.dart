@@ -8,6 +8,7 @@ import '../../design_system/components/app_button.dart';
 import '../../../../core/ui/primary_button.dart';
 import '../../design_system/components/app_skeleton.dart';
 import '../../../../features/downloader/presentation/views/dialogs/add_download_dialog.dart';
+import '../../../../features/onboarding/presentation/onboarding_targets.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/downloader/presentation/providers/filtered_downloads_provider.dart';
@@ -169,31 +170,32 @@ class AppSidebar extends ConsumerWidget {
                 ),
               ),
               const Gap(AppSpacing.s),
-              if (compact)
-                Tooltip(
-                  message: l10n.newDownload,
-                  child: Center(
-                    child: SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: Material(
-                        color: colors.primary,
-                        borderRadius: AppRadius.controlOf(context),
-                        child: InkWell(
-                          onTap: openNewDownload,
-                          borderRadius: AppRadius.controlOf(context),
-                          child: Icon(
-                            Icons.add,
-                            size: 18,
-                            color: colors.onPrimary,
+              KeyedSubtree(
+                key: OnboardingTargets.newDownload,
+                child: compact
+                    ? Tooltip(
+                        message: l10n.newDownload,
+                        child: Center(
+                          child: SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Material(
+                              color: colors.primary,
+                              borderRadius: AppRadius.controlOf(context),
+                              child: InkWell(
+                                onTap: openNewDownload,
+                                borderRadius: AppRadius.controlOf(context),
+                                child: Icon(
+                                  Icons.add,
+                                  size: 18,
+                                  color: colors.onPrimary,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                )
-              else
-                ios
+                      )
+                    : ios
                     ? SizedBox(
                         width: double.infinity,
                         child: PrimaryButton(
@@ -208,6 +210,7 @@ class AppSidebar extends ConsumerWidget {
                         expand: true,
                         onPressed: openNewDownload,
                       ),
+              ),
 
               const Gap(AppSpacing.l),
               const Gap(AppSpacing.l),
@@ -216,7 +219,9 @@ class AppSidebar extends ConsumerWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      _NavSection(
+                      KeyedSubtree(
+                        key: OnboardingTargets.library,
+                        child: _NavSection(
                         title: l10n.librarySection,
                         children: [
                           _NavItem(
@@ -271,6 +276,7 @@ class AppSidebar extends ConsumerWidget {
                             onTap: () => context.go('/transfer'),
                           ),
                         ],
+                      ),
                       ),
                       const Gap(AppSpacing.m),
                       Divider(

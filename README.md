@@ -42,10 +42,10 @@
 | Fonctionnalité | Description |
 |---|---|
 | **1 800+ plateformes & flux directs** | Téléchargement via `yt-dlp`, `gallery-dl` et moteur direct (HLS `.m3u8`, DASH `.mpd`, MP4). Toute URL HTTP(S) publique est acceptée côté app — pas seulement une liste fermée de sites. |
-| **Extension universelle (tous sites)** | Overlay sur **100 % des pages web** : détection DOM générique (miniatures, `<video>`, iframes, plein écran), stream sniffer réseau MV3 et envoi vers l'app via WebSocket local. |
+| **Extension universelle (v2.1.14)** | Détection fluide sur tous les sites, boutons discrets uniquement au survol (non-intrusifs), clic sur un titre pour localiser immédiatement la vidéo dans la page (scroll & halo lumineux), 100 % conforme CSP Chrome MV3. |
 | **Organisation par dossiers créateurs** | Bibliothèque regroupée par créateur / chaîne avec vignettes, compteurs, tri et recherche dédiée. |
 | **Smart Organizer & auto-rename** | Plugins intégrés pour renommer et classer automatiquement les fichiers téléchargés selon vos règles. |
-| **Transfert LAN (LocalSend)** | Envoi de fichiers ou dossiers entiers (bibliothèque, dossiers créateurs) vers un PC ou mobile sur le réseau local, compatible protocole LocalSend. |
+| **Transfert LAN & Mémoire Intelligente** | Envoi ultra-rapide vers mobile ou PC (LocalSend v2). Mémoire intelligente d'envoi par empreinte SHA-256 : synchronisation incrémentale n'envoyant que les **nouvelles vidéos** sans réexpédier les fichiers déjà reçus. |
 | **Barre d'actions intelligente** | Play/Pause global, compteur actif, relance des échecs en 1 clic, nettoyage terminés / échoués. |
 | **Vitesse multi-connexions** | Accélération **aria2c**, remux **FFmpeg** sans perte de qualité. |
 | **File d'attente robuste** | Concurrence paramétrable, reprise après crash, pagination fluide pour des milliers d'entrées. |
@@ -180,23 +180,24 @@ powershell -ExecutionPolicy Bypass -File tool/sign_firefox_xpi.ps1
 
 ---
 
-## 🧩 Extensions Navigateur Universelles / Browser Extensions
+## 🧩 Extensions Navigateur Universelles / Browser Extensions (v2.1.14)
 
-Manifest V3 · permission `*://*/*` · `all_frames: true`
+Manifest V3 · permission `*://*/*` · `all_frames: true` · 100 % conforme CSP Chrome & Firefox
 
-### Détection multi-couche
+### Détection multi-couche & Expérience épurée
 
 | Couche | Rôle |
 |---|---|
-| **Overlay DOM** | Bouton Download sur `<video>`, miniatures type carte vidéo, lecteurs plein écran |
-| **Iframes** | Injection dans les sous-documents (embeds, players tiers) |
-| **Stream Sniffer** | `webRequest` — capture `.m3u8`, `.mpd`, `.mp4` au premier octet réseau |
-| **URL fallback** | Si aucun flux direct : envoi de l'URL canonique de la page à l'app |
-| **Filtre IAB** | Ignore pubs vidéo et contenus sponsorisés |
+| **Boutons discrets au survol** | Les boutons d'action d'overlay n'apparaissent **qu'au survol (hover)** de la vidéo ou de sa miniature, éliminant tout encombrement visuel sur les flux denses (Kick, TikTok, YouTube, Spankbang). |
+| **Localisation dans la page (Click-to-locate)** | Dans le panneau latéral « Fil X », un clic sur le titre de n'importe quelle vidéo fait défiler la page instantanément jusqu'à la vidéo avec un halo lumineux temporaire. |
+| **Extracteurs avancés & Titres propres** | Filtrage intelligent des faux titres numériques (ex. IDs Kick, codes de player) au profit des vrais noms de vidéos, et extraction robuste des miniatures même en lazy-loading (`data-src`). |
+| **Stream Sniffer** | `webRequest` — capture `.m3u8`, `.mpd`, `.mp4` au premier octet réseau. |
+| **Conformité CSP stricte** | Zéro injection de script inline dans le DOM pour éviter tout blocage de sécurité, et reconnexion WebSocket silencieuse sans erreurs rouges dans `chrome://extensions`. |
+| **Filtre IAB & Publicités** | Ignore automatiquement les pubs vidéo et contenus sponsorisés. |
 
-### Panneau latéral « Flux Médias »
+### Panneau latéral « Fil X » (Flux Médias)
 
-Filtres **Tous les sites**, **Onglet actif**, **Flux réseau** — envoi vers l'app via WebSocket sécurisé `127.0.0.1:6969`.
+Filtres **Tous les sites**, **Onglet actif**, **Flux réseau** — envoi vers l'app en un clic via WebSocket local `127.0.0.1:6969`.
 
 ### Sites adultes (+18)
 
@@ -206,30 +207,39 @@ Par défaut, l'app et l'extension peuvent filtrer les domaines adultes. Activez 
 
 | Navigateur | Procédure |
 |---|---|
-| **Chrome / Brave / Edge** | `chrome://extensions` → Charger `extension/chrome/` |
-| **Firefox (dev)** | `about:debugging` → `extension/firefox/manifest.json` |
-| **Firefox (prod)** | Installer le `.xpi` depuis [Releases](https://github.com/itsnazzym/Downloader/releases) |
+| **Chrome / Brave / Edge** | `chrome://extensions` → Activer mode développeur → Charger le dossier `extension/chrome/` |
+| **Firefox (dev)** | `about:debugging` → Ce Firefox → Charger un module temporaire → `extension/firefox/manifest.json` |
+| **Firefox (prod)** | Installer le `.xpi` signé depuis [Releases](https://github.com/itsnazzym/Downloader/releases) |
 
 ---
 
-## 📡 Transfert Réseau Local (LAN Sync)
+## 📡 Transfert Réseau Local (LAN Sync) & Mémoire Intelligente
 
-Module **Transfert** dans l'app — compatible **LocalSend** (protocole v2).
+Module **Transfert** dans l'app — compatible **LocalSend** (protocole v2 standard).
 
-### Fonctionnement
+### Mémoire Intelligente d'Envoi (Synchronisation Incrémentale)
+
+Modern Downloader intègre un magasin persistant d'historique de transfert basé sur l'empreinte cryptographique **SHA-256** des fichiers (avec mise en cache ultra-rapide par taille et mtime) :
+
+- **Synchronisation incrémentale** : Lorsque vous mettez à jour un dossier créateur ou votre bibliothèque (ex. ajout de 2 nouvelles vidéos à un dossier de 50 vidéos déjà envoyées), l'application détecte automatiquement les fichiers déjà reçus par votre smartphone.
+- **Zéro doublon & Gain de temps** : Seules les **nouvelles vidéos** sont incluses dans l'archive ZIP et transmises.
+- **Compteurs & Badges en temps réel** : L'interface affiche clairement le nombre total de vidéos trouvées, déjà transférées, et prêtes pour l'envoi, avec un badge détaillé par dossier créateur (`X nouvelles / Y transférées`).
+- **Contrôle total** : Possibilité d'envoyer uniquement les nouvelles vidéos, de forcer le renvoi complet, ou de réinitialiser la mémoire d'un appareil spécifique.
+
+### Fonctionnement du transfert
 
 1. Ouvrez **Transfert** dans la sidebar.
-2. Sélectionnez fichiers, dossiers créateurs ou bibliothèque entière.
-3. Scannez le QR ou choisissez un appareil découvert sur le LAN.
-4. L'app compresse en ZIP (multi-fichiers) puis envoie via LocalSend avec barre de progression honnête.
+2. Sélectionnez les fichiers, dossiers créateurs ou la bibliothèque entière.
+3. Scannez le QR ou choisissez votre smartphone / PC détecté automatiquement sur le LAN via mDNS.
+4. L'application prépare le lot incrémental, compresse en ZIP en tâche de fond (isolate non-bloquant) et transfère via LocalSend avec suivi de progression en direct.
 
 ### Phases affichées
 
 | Phase | Signification |
 |---|---|
-| **Compression…** | Création du ZIP en arrière-plan (isolate) |
-| **En attente du pair…** | Handshake LocalSend — le récepteur doit accepter |
-| **Envoi…** | Transfert en cours |
+| **Compression…** | Création de l'archive ZIP incrémentale en arrière-plan (isolate Flutter) |
+| **En attente du pair…** | Handshake LocalSend — le récepteur confirme la réception |
+| **Envoi…** | Transfert en cours avec vitesse et jauge précise |
 
 ### Prérequis réseau
 

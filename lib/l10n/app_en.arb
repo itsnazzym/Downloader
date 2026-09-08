@@ -556,5 +556,73 @@
   "transferDirectBrowserUrl": "Web browser link",
   "transferCopyLink": "Copy link",
   "transferCopied": "Copied!",
-  "transferListeningOn": "Listening on network"
+  "transferListeningOn": "Listening on network",
+  "transferVideosFound": "{count} found",
+  "@transferVideosFound": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferAlreadyTransferred": "{count} already transferred",
+  "@transferAlreadyTransferred": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferNewVideos": "{count} new",
+  "@transferNewVideos": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferSendNewOnly": "Send {count} new videos",
+  "@transferSendNewOnly": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferSendAll": "Send all ({count})",
+  "@transferSendAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "transferOnlyNewToggle": "Send new videos only",
+  "transferFolderBreakdown": "{newCount} new • {alreadyCount} transferred",
+  "@transferFolderBreakdown": {
+    "placeholders": {
+      "newCount": { "type": "int" },
+      "alreadyCount": { "type": "int" }
+    }
+  },
+  "transferForgetDeviceHistory": "Forget history for this device",
+  "transferHistoryCleared": "Transfer history cleared",
+
+  "onboardingStart": "Start",
+  "onboardingNext": "Next",
+  "onboardingDone": "Done",
+  "onboardingSkipStep": "Skip",
+  "onboardingSkipAll": "Skip tour",
+  "onboardingReplay": "Replay tour",
+  "onboardingReplayDesc": "Show the tour again",
+  "onboardingWelcomeTitle": "Quick tour",
+  "onboardingWelcomeBody": "A short walk through the main screens. Skip anytime.",
+  "onboardingNewDownloadTitle": "New download",
+  "onboardingNewDownloadBody": "Paste a URL or send one from the browser extension.",
+  "onboardingLibraryTitle": "Library",
+  "onboardingLibraryBody": "Filter downloads by active, done, or failed.",
+  "onboardingTopBarTitle": "Toolbar",
+  "onboardingTopBarBody": "Search, pause the queue, and retry failed downloads.",
+  "onboardingFoldersTitle": "Creator folders",
+  "onboardingFoldersBody": "Downloads are grouped by channel. Switch list or folders, then sort.",
+  "onboardingTransferTitle": "Transfer",
+  "onboardingTransferBody": "Pick folders, scan the QR, then accept on the other device.",
+  "onboardingStatsTitle": "Stats",
+  "onboardingStatsBody": "Totals, disk space, and download history.",
+  "onboardingOutputTitle": "Output folder",
+  "onboardingOutputBody": "Choose where files are saved.",
+  "onboardingExtensionTitle": "Browser extension",
+  "onboardingExtensionBody": "Install the Chrome or Firefox extension to send links here.",
+  "onboardingReadyTitle": "Ready",
+  "onboardingReadyBody": "Replay the tour from Settings > General."
 }

@@ -1425,4 +1425,133 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transferListeningOn => 'En écoute sur le réseau';
+
+  @override
+  String transferVideosFound(int count) {
+    return '$count trouvées';
+  }
+
+  @override
+  String transferAlreadyTransferred(int count) {
+    return '$count déjà transférées';
+  }
+
+  @override
+  String transferNewVideos(int count) {
+    return '$count nouvelles';
+  }
+
+  @override
+  String transferSendNewOnly(int count) {
+    return 'Transférer les $count nouvelles vidéos';
+  }
+
+  @override
+  String transferSendAll(int count) {
+    return 'Tout transférer ($count)';
+  }
+
+  @override
+  String get transferOnlyNewToggle => 'Envoyer uniquement les nouveautés';
+
+  @override
+  String transferFolderBreakdown(int newCount, int alreadyCount) {
+    return '$newCount nouvelle(s) • $alreadyCount transférée(s)';
+  }
+
+  @override
+  String get transferForgetDeviceHistory =>
+      'Oublier l\'historique de cet appareil';
+
+  @override
+  String get transferHistoryCleared => 'Historique de transfert effacé';
+
+  @override
+  String get onboardingStart => 'Commencer';
+
+  @override
+  String get onboardingNext => 'Suivant';
+
+  @override
+  String get onboardingDone => 'Terminer';
+
+  @override
+  String get onboardingSkipStep => 'Passer';
+
+  @override
+  String get onboardingSkipAll => 'Passer le tour';
+
+  @override
+  String get onboardingReplay => 'Relancer le tour';
+
+  @override
+  String get onboardingReplayDesc => 'Afficher le tour à nouveau';
+
+  @override
+  String get onboardingWelcomeTitle => 'Tour rapide';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Un aperçu des écrans principaux. Vous pouvez passer à tout moment.';
+
+  @override
+  String get onboardingNewDownloadTitle => 'Nouveau téléchargement';
+
+  @override
+  String get onboardingNewDownloadBody =>
+      'Collez une URL ou envoyez-en une depuis l\'extension navigateur.';
+
+  @override
+  String get onboardingLibraryTitle => 'Bibliothèque';
+
+  @override
+  String get onboardingLibraryBody =>
+      'Filtrez les téléchargements actifs, terminés ou échoués.';
+
+  @override
+  String get onboardingTopBarTitle => 'Barre d\'outils';
+
+  @override
+  String get onboardingTopBarBody =>
+      'Recherchez, mettez la file en pause et relancez les échecs.';
+
+  @override
+  String get onboardingFoldersTitle => 'Dossiers créateurs';
+
+  @override
+  String get onboardingFoldersBody =>
+      'Les téléchargements sont groupés par chaîne. Liste ou dossiers, puis tri.';
+
+  @override
+  String get onboardingTransferTitle => 'Transfert';
+
+  @override
+  String get onboardingTransferBody =>
+      'Choisissez les dossiers, scannez le QR, puis acceptez sur l\'autre appareil.';
+
+  @override
+  String get onboardingStatsTitle => 'Statistiques';
+
+  @override
+  String get onboardingStatsBody => 'Totaux, espace disque et historique.';
+
+  @override
+  String get onboardingOutputTitle => 'Dossier de sortie';
+
+  @override
+  String get onboardingOutputBody => 'Choisissez où enregistrer les fichiers.';
+
+  @override
+  String get onboardingExtensionTitle => 'Extension navigateur';
+
+  @override
+  String get onboardingExtensionBody =>
+      'Installez l\'extension Chrome ou Firefox pour envoyer les liens ici.';
+
+  @override
+  String get onboardingReadyTitle => 'Prêt';
+
+  @override
+  String get onboardingReadyBody =>
+      'Relancez le tour depuis Paramètres > Général.';
 }

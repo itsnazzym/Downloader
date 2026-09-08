@@ -524,6 +524,7 @@
     }
     if (previewFallbackImg) {
       if (item.thumbnailUrl) {
+        previewFallbackImg.referrerPolicy = 'no-referrer';
         previewFallbackImg.src = item.thumbnailUrl;
         previewFallbackImg.style.display = 'block';
       } else {
@@ -566,7 +567,10 @@
     updateFeedCountStatus();
     getTargetTab(function (tab) {
       if (tab && tab.id && api.tabs && api.tabs.sendMessage) {
-        api.tabs.sendMessage(tab.id, { type: 'MD_CLEAR_CACHE' }, function () {});
+        var p = api.tabs.sendMessage(tab.id, { type: 'MD_CLEAR_CACHE' }, function () {
+          var _ = api.runtime && api.runtime.lastError;
+        });
+        if (p && typeof p.catch === 'function') p.catch(function () {});
       }
     });
   }
@@ -594,6 +598,51 @@
   }
   if (jumpActiveBtn) {
     jumpActiveBtn.addEventListener('click', jumpToActiveVideo);
+  }
+
+  function locateMediaInTargetTab(item) {
+    if (!item) return;
+    getTargetTab(function (tab) {
+      if (!tab || !tab.id) {
+        setStatus('Impossible de cibler : aucun onglet actif.', 'error');
+        return;
+      }
+      var shortTitle = item.title && item.title.length > 30 ? (item.title.substring(0, 30) + '…') : (item.title || 'Vidéo');
+      setStatus('Localisation de « ' + shortTitle + ' » sur la page…', '');
+      if (api.tabs && api.tabs.sendMessage) {
+        api.tabs.sendMessage(tab.id, {
+          type: 'MD_LOCATE_MEDIA',
+          item: item,
+        }, function (res) {
+          if (api.runtime && api.runtime.lastError) {
+            navigateToMediaUrl(item, tab);
+            return;
+          }
+          if (res && res.found) {
+            setStatus('Vidéo « ' + shortTitle + ' » ciblée sur la page 🎯', 'success');
+          } else {
+            navigateToMediaUrl(item, tab);
+          }
+        });
+      }
+    });
+  }
+
+  function navigateToMediaUrl(item, tab) {
+    var url = item.pageUrl || item.url;
+    if (!url || !isSafeHttpUrl(url)) return;
+    try {
+      var curUrl = tab && tab.url ? tab.url.split('#')[0] : '';
+      var targetNorm = url.split('#')[0];
+      if (curUrl && curUrl === targetNorm) {
+        setStatus('La vidéo est sur cette page mais hors du champ visible. Défilez vers le bas.', 'info');
+        return;
+      }
+      if (api.tabs && api.tabs.update) {
+        api.tabs.update(tab.id, { url: url });
+        setStatus('Ouverture de la page de la vidéo 🎯', 'success');
+      }
+    } catch (e) {}
   }
 
   function startDeepScan() {
@@ -641,10 +690,13 @@
       }
       getTargetTab(function (tab) {
         if (tab && tab.id && api.tabs && api.tabs.sendMessage) {
-          api.tabs.sendMessage(tab.id, {
+          var p = api.tabs.sendMessage(tab.id, {
             type: 'MD_DEEP_SCAN_PULSE',
             maxTarget: displayLimit,
-          }, function () {});
+          }, function () {
+            var _ = api.runtime && api.runtime.lastError;
+          });
+          if (p && typeof p.catch === 'function') p.catch(function () {});
         }
       });
     }, 4500);
@@ -664,7 +716,10 @@
     if (deepScanBtn) deepScanBtn.disabled = false;
     getTargetTab(function (tab) {
       if (tab && tab.id && api.tabs && api.tabs.sendMessage) {
-        api.tabs.sendMessage(tab.id, { type: 'MD_STOP_DEEP_SCAN' }, function () {});
+        var p = api.tabs.sendMessage(tab.id, { type: 'MD_STOP_DEEP_SCAN' }, function () {
+          var _ = api.runtime && api.runtime.lastError;
+        });
+        if (p && typeof p.catch === 'function') p.catch(function () {});
       }
     });
   }
@@ -755,6 +810,8 @@
       var image = document.createElement('img');
       image.className = 'thumbnail';
       image.loading = 'lazy';
+      image.decoding = 'async';
+      image.referrerPolicy = 'no-referrer';
       image.alt = item.title || t('xFeedVideoAlt', 'Miniature');
       image.src = item.thumbnailUrl;
       image.addEventListener('error', function () {
@@ -798,11 +855,18 @@
       var url = String(item.url || '');
       if (!id || seen[id] || !isSafeHttpUrl(url)) return;
       seen[id] = true;
+      var rawTitle = String(item.title || '').trim();
+      var cleanTitle = rawTitle;
+      if (/^\d+$/.test(cleanTitle) || /^[\d,.\s]+(k|m|b)?\s*(vues?|views?)?$/i.test(cleanTitle)) {
+        cleanTitle = (item.author && item.author !== 'Kick Creator') ? (item.author + ' — Vidéo') : '';
+      }
+      if (!cleanTitle) cleanTitle = t('xFeedVideo', 'Vidéo');
+
       normalized.push({
         id: id,
         url: url,
         pageUrl: isSafeHttpUrl(item.pageUrl) ? item.pageUrl : url,
-        title: String(item.title || t('xFeedVideo', 'Vidéo')),
+        title: cleanTitle,
         author: String(item.author || t('xFeedAuthorUnknown', 'Créateur')),
         platform: item.platform || (typeof MDUrl !== 'undefined' && MDUrl.detectPlatform ? MDUrl.detectPlatform(url) : 'generic'),
         music: item.music ? String(item.music) : null,
@@ -866,11 +930,17 @@
       var existing = feedItems[existingIndex];
       var preferIncoming = item.source === 'gobird' &&
         existing.source !== 'gobird';
+      var incomingTitleValid = item.title && !/^\d+$/.test(String(item.title).trim());
+      var existingTitleIsDigits = /^\d+$/.test(String(existing.title || '').trim());
+      var resolvedTitle = (existingTitleIsDigits && incomingTitleValid)
+        ? item.title
+        : (existing.title || item.title);
+
       feedItems[existingIndex] = {
         id: existing.id,
         url: preferIncoming ? item.url : existing.url,
         pageUrl: preferIncoming ? item.pageUrl : existing.pageUrl,
-        title: existing.title || item.title,
+        title: resolvedTitle,
         author: existing.author || item.author,
         platform: existing.platform || item.platform,
         music: existing.music || item.music,
@@ -1011,6 +1081,14 @@
   if (api.tabs && api.tabs.onActivated) {
     api.tabs.onActivated.addListener(function () {
       if (!isHooked) {
+        updateActiveTabUrl();
+      }
+    });
+  }
+
+  if (api.tabs && api.tabs.onUpdated) {
+    api.tabs.onUpdated.addListener(function (tabId, changeInfo) {
+      if (!isHooked && changeInfo && (changeInfo.status === 'complete' || changeInfo.url)) {
         updateActiveTabUrl();
       }
     });
@@ -2285,10 +2363,19 @@
       authorRow.appendChild(creatorBtn);
     }
 
+    var displayTitle = String(item.title || '').trim();
+    if (!displayTitle || /^\d+$/.test(displayTitle) || /^[\d,.\s]+(k|m|b)?\s*(vues?|views?)?$/i.test(displayTitle)) {
+      displayTitle = (item.author && item.author !== 'Kick Creator') ? (item.author + ' — Vidéo') : t('xFeedVideo', 'Vidéo');
+    }
     var title = document.createElement('div');
-    title.className = 'card-title';
-    title.title = item.title;
-    title.textContent = item.title;
+    title.className = 'card-title clickable-media-title';
+    title.title = displayTitle + '\n(Cliquer pour cibler et afficher cette vidéo sur la page 🎯)';
+    title.textContent = displayTitle;
+    title.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      locateMediaInTargetTab(item);
+    });
 
     var metadata = document.createElement('div');
     metadata.className = 'card-meta';
@@ -2430,7 +2517,12 @@
     scanInfo.textContent = '';
 
     function handleDomExtraction(domRes) {
+      var lastErr = api.runtime && api.runtime.lastError;
       setBusy(false);
+      if (lastErr) {
+        setStatus(t('xFeedNoItems', 'Aucune vidéo trouvée sur cette page.'), '');
+        return;
+      }
       if (domRes && domRes.ok && Array.isArray(domRes.items)) {
         mergeItems(domRes.items);
         renderItems();
@@ -2445,7 +2537,13 @@
     getTargetTab(function (tab) {
       var isX = tab && tab.url && (tab.url.indexOf('x.com') !== -1 || tab.url.indexOf('twitter.com') !== -1);
       if (!isX && tab && tab.id && api.tabs && api.tabs.sendMessage) {
-        api.tabs.sendMessage(tab.id, { type: 'MD_EXTRACT_FEED', maxItems: Math.max(displayLimit, 1000) }, handleDomExtraction);
+        var p = api.tabs.sendMessage(tab.id, { type: 'MD_EXTRACT_FEED', maxItems: Math.max(displayLimit, 1000) }, handleDomExtraction);
+        if (p && typeof p.catch === 'function') {
+          p.catch(function () {
+            setBusy(false);
+            setStatus(t('xFeedNoItems', 'Aucune vidéo trouvée sur cette page.'), '');
+          });
+        }
         return;
       }
 
@@ -2461,7 +2559,13 @@
           if (!result || !result.ok) {
             if (feedItems.length === 0) renderItems();
             if (tab && tab.id) {
-              api.tabs.sendMessage(tab.id, { type: 'MD_EXTRACT_FEED', maxItems: MAX_ITEMS }, handleDomExtraction);
+              var p2 = api.tabs.sendMessage(tab.id, { type: 'MD_EXTRACT_FEED', maxItems: MAX_ITEMS }, handleDomExtraction);
+              if (p2 && typeof p2.catch === 'function') {
+                p2.catch(function () {
+                  setBusy(false);
+                  setStatus(t('xFeedNoItems', 'Aucune vidéo trouvée sur cette page.'), '');
+                });
+              }
               return;
             }
             setStatus(t('xFeedAnalyzeFailed', 'Could not analyze the loaded feed.'), 'error');

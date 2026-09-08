@@ -178,14 +178,128 @@
   }
 
   function safeHttpUrl(value) {
-    if (!value) return null;
+    if (!value || typeof value !== 'string') return null;
     try {
       var url = new URL(value, window.location.href);
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-      return url.href;
+      return (url.protocol === 'http:' || url.protocol === 'https:')
+        ? url.href
+        : null;
     } catch (e) {
       return null;
     }
+  }
+
+  function extractCleanImageUrl(element) {
+    if (!element) return null;
+
+    function isPlaceholderUrl(str) {
+      if (!str || typeof str !== 'string') return true;
+      var s = str.trim().toLowerCase();
+      if (!s) return true;
+      if (/^data:image\/[a-z0-9+]+;base64,R0lGOD/i.test(s)) return true;
+      if (/^data:image\/svg\+xml/i.test(s) && (s.length < 300 || s.indexOf('placeholder') !== -1 || s.indexOf('viewbox') !== -1)) return true;
+      if (/placeholder|spacer|transparent|blank\.gif|pixel\.gif|1x1/i.test(s)) return true;
+      return false;
+    }
+
+    function cleanUrlCandidate(candidate) {
+      if (!candidate || typeof candidate !== 'string') return null;
+      candidate = candidate.trim();
+      if (!candidate || isPlaceholderUrl(candidate)) return null;
+      // Unwrap Next.js optimizer URLs: e.g. /_next/image?url=https%3A%2F%2F...&w=...
+      if (candidate.indexOf('_next/image') !== -1 && candidate.indexOf('url=') !== -1) {
+        try {
+          var parsed = new URL(candidate, window.location.href);
+          var inner = parsed.searchParams.get('url');
+          if (inner && (inner.indexOf('http://') === 0 || inner.indexOf('https://') === 0)) {
+            return inner;
+          }
+        } catch (e) {}
+      }
+      return safeHttpUrl(candidate);
+    }
+
+    function parseSrcset(srcset) {
+      if (!srcset || typeof srcset !== 'string') return null;
+      var parts = srcset.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+      for (var i = parts.length - 1; i >= 0; i--) {
+        var candidate = parts[i].split(/\s+/)[0];
+        var cleaned = cleanUrlCandidate(candidate);
+        if (cleaned) return cleaned;
+      }
+      return null;
+    }
+
+    // 1. If element is an IMG
+    if (element.tagName === 'IMG') {
+      var lazyAttrs = [
+        'data-src',
+        'data-thumbnail',
+        'data-thumb',
+        'data-preview',
+        'data-original',
+        'data-original-src',
+        'data-lazy-src',
+        'data-lazy',
+        'data-poster',
+        'data-image',
+        'data-fallback-src',
+        'data-url',
+      ];
+      for (var aIdx = 0; aIdx < lazyAttrs.length; aIdx++) {
+        var cleanLazy = cleanUrlCandidate(element.getAttribute(lazyAttrs[aIdx]));
+        if (cleanLazy) return cleanLazy;
+      }
+
+      var fromSrcset = parseSrcset(element.getAttribute('data-srcset') || element.getAttribute('srcset') || element.srcset);
+      if (fromSrcset) return fromSrcset;
+
+      var fromCurrent = cleanUrlCandidate(element.currentSrc);
+      if (fromCurrent) return fromCurrent;
+
+      var fromSrc = cleanUrlCandidate(element.src || element.getAttribute('src'));
+      if (fromSrc) return fromSrc;
+    }
+
+    // 2. Search children for img or picture source
+    if (element.querySelectorAll) {
+      var sources = element.querySelectorAll('source[data-srcset], source[srcset]');
+      for (var k = 0; k < sources.length; k++) {
+        var srcUrl = parseSrcset(sources[k].getAttribute('data-srcset') || sources[k].getAttribute('srcset'));
+        if (srcUrl) return srcUrl;
+      }
+
+      var imgs = element.querySelectorAll('img');
+      for (var j = 0; j < imgs.length; j++) {
+        var imgUrl = extractCleanImageUrl(imgs[j]);
+        if (imgUrl) return imgUrl;
+      }
+    }
+
+    // 3. Check data attributes on container itself (e.g. div with data-src/data-thumb)
+    if (element.getAttribute) {
+      var directData = cleanUrlCandidate(
+        element.getAttribute('data-thumb') ||
+        element.getAttribute('data-thumbnail') ||
+        element.getAttribute('data-src') ||
+        element.getAttribute('data-preview') ||
+        element.getAttribute('data-poster') ||
+        element.getAttribute('data-bg')
+      );
+      if (directData) return directData;
+    }
+
+    // 4. Check CSS background-image
+    try {
+      var bg = window.getComputedStyle(element).backgroundImage || '';
+      var match = bg.match(/url\(["']?([^"')]+)["']?\)/);
+      if (match && match[1]) {
+        var cleanedBg = cleanUrlCandidate(match[1]);
+        if (cleanedBg) return cleanedBg;
+      }
+    } catch (e) {}
+
+    return null;
   }
 
   function isAdFrameHost() {
@@ -193,7 +307,43 @@
     return /doubleclick|googlesyndication|adsystem|outbrain|taboola|criteo|adnxs|adroll|moatads|innovid|amazon-adsystem/.test(host);
   }
 
+  function isExcludedNavigation(el) {
+    if (!el) return false;
+    try {
+      if (el.closest && el.closest('aside, nav, header, footer, [role="navigation"], [class*="sidebar"], [class*="sidebar-"], [class*="recommend"], [class*="following"], [class*="drawer"], [id*="sidebar"], [id*="navigation"], [class*="chat"], #chat, [class*="channel-sidebar"], [class*="side-nav"], [class*="sideNav"], [class*="navigation"]')) {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function isKickVideoLink(href) {
+    if (!href || typeof href !== 'string') return false;
+    return /\/(video|videos|clip|clips)\/([A-Za-z0-9_-]+)/i.test(href) ||
+           /[?&](video|clip)=([A-Za-z0-9_-]+)/i.test(href);
+  }
+
+  function isValidCandidateTitle(candidate, author) {
+    if (!candidate || typeof candidate !== 'string') return false;
+    var t = candidate.trim();
+    if (t.length < 2) return false;
+    // Pure numbers (e.g. "6140", "3976", "5708", "5601")
+    if (/^\d+$/.test(t)) return false;
+    // Formatted numbers / views: "6,1 k vues", "10k views", "1.2M vues", "6,1 k", "4456 vues", "6.2k"
+    if (/^[\d,.\s]+(k|m|b)?\s*(vues?|views?|spectateurs?|viewers?)?$/i.test(t)) return false;
+    // Durations: "08:14:42", "06:21:06", "352:17", "11:03:39", "08:14"
+    if (/^\d{1,3}:\d{2}(:\d{2})?$/.test(t)) return false;
+    // Relative dates: "il y a 3 semaines", "3 days ago", "hier", "yesterday", "il y a ..."
+    if (/^(il y a|\d+\s*(h|m|s|j|d|w|semaines?|jours?|heures?|minutes?|mois|years?|ans?)|yesterday|hier)/i.test(t)) return false;
+    // Common Kick badges and meta labels
+    if (/^(abonné-seulement|abonn-seulement|sub-only|subscriber-only|en direct|live|rediffusion|rerun|vod|clip)$/i.test(t)) return false;
+    // If it's just the author name or @author:
+    if (author && (t.toLowerCase() === author.toLowerCase() || t.toLowerCase() === ('@' + author).toLowerCase())) return false;
+    return true;
+  }
+
   function isJunkPath(pathname) {
+    if (/\/(video|videos|clip|clips)\//i.test(pathname || '')) return false;
     return /\/(tag|tags|search|login|signup|register|account|settings|privacy|terms|about|contact|category|categories|channels?|models?|pornstars?|playlist|feed|trending)(\/|$)/i.test(
       pathname || '',
     );
@@ -223,15 +373,22 @@
   }
 
   function looksLikeVideoCard(anchor) {
-    if (!anchor || !anchor.href || PROCESSED.has(anchor)) return false;
+    if (!anchor || !anchor.href) return false;
+    if (isExcludedNavigation(anchor)) return false;
+    var platform = currentPlatform();
+    if (platform === 'kick' && !isKickVideoLink(anchor.href)) return false;
     if (!looksLikeContentLink(anchor.href)) return false;
     var rect = anchor.getBoundingClientRect();
-    if (rect.width < 120 || rect.height < 70) return false;
-    if (rect.width > 1100 && rect.height > 800) return false;
+    var hasSize = (rect.width >= 100 && rect.height >= 50 && rect.width <= 1200 && rect.height <= 900);
+    var card = anchor.closest ? anchor.closest('div, article, li, figure') : null;
+    var cardRect = card ? card.getBoundingClientRect() : null;
+    var cardHasSize = cardRect && (cardRect.width >= 120 && cardRect.height >= 70 && cardRect.width <= 1200 && cardRect.height <= 900);
+    if (!hasSize && !cardHasSize) return false;
     if (anchor.querySelector('img, video, source, picture')) return true;
+    if (card && card.querySelector('img, video, source, picture')) return true;
     var bg = '';
     try {
-      bg = window.getComputedStyle(anchor).backgroundImage || '';
+      bg = window.getComputedStyle(anchor).backgroundImage || (card ? window.getComputedStyle(card).backgroundImage : '');
     } catch (e) {
       bg = '';
     }
@@ -868,6 +1025,220 @@
     });
   }
 
+  function extractKickFeed(limit, seenIds, items) {
+    var pathSegments = window.location.pathname.split('/').filter(Boolean);
+    var defaultAuthor = (pathSegments.length > 0 && ['video', 'videos', 'categories', 'clips', 'search', 'following'].indexOf(pathSegments[0].toLowerCase()) === -1)
+      ? pathSegments[0]
+      : 'Kick Creator';
+
+    // 1. If currently on a watch / live page with a playing video:
+    var videos = document.querySelectorAll('video');
+    videos.forEach(function (video) {
+      if (items.length >= limit) return;
+      if (isExcludedNavigation(video) || isExcludedNavigation(video.parentElement)) return;
+      if (!isUsableVideo(video)) return;
+      if (isSponsoredContent(video)) return;
+
+      var currentUrl = window.location.href.split('#')[0];
+      var cleanKey = currentUrl.replace(/[^a-zA-Z0-9]/g, '').slice(-32);
+      var itemId = 'kick-player-' + cleanKey;
+      if (seenIds[itemId]) return;
+      seenIds[itemId] = true;
+
+      var titleEl = document.querySelector('h1, h2, [class*="stream_title"], [class*="stream-title"]');
+      var candidateTitle = cleanText(titleEl && titleEl.textContent);
+      var title = (candidateTitle && isValidCandidateTitle(candidateTitle, defaultAuthor))
+        ? candidateTitle
+        : (document.title && isValidCandidateTitle(document.title, defaultAuthor) ? document.title : (defaultAuthor + ' en direct sur Kick'));
+      var cardContainer = video.closest('div[class*="player"], div[class*="video"], main') || video.parentElement;
+      var thumb = extractCleanImageUrl(cardContainer) || safeHttpUrl(video.poster);
+
+      items.push({
+        id: itemId,
+        url: currentUrl,
+        pageUrl: currentUrl,
+        title: title,
+        author: defaultAuthor,
+        platform: 'kick',
+        thumbnailUrl: thumb,
+        videoSrc: video.currentSrc || video.src || null,
+        isActive: !video.paused && video.currentTime > 0,
+        durationSeconds: Number.isFinite(video.duration) && video.duration > 0 ? Math.round(video.duration) : null,
+        width: video.videoWidth || null,
+        height: video.videoHeight || null,
+        sizeBytes: null,
+        source: 'dom',
+        sourceLabel: 'Kick Direct / VOD',
+      });
+    });
+
+    // 2. Scan all video, VOD, and clip cards on the page
+    var anchors = document.querySelectorAll('a[href]');
+    anchors.forEach(function (anchor) {
+      if (items.length >= limit) return;
+      if (isExcludedNavigation(anchor)) return;
+      if (isSponsoredContent(anchor)) return;
+
+      var fullHref = '';
+      try {
+        var u = new URL(anchor.href, window.location.href);
+        if (u.origin !== window.location.origin) return;
+        fullHref = u.href.split('#')[0];
+      } catch (e) {
+        return;
+      }
+
+      var isVideoLink = isKickVideoLink(fullHref);
+
+      // Don't match the current list page itself (e.g. /balti/videos)
+      var normCurrent = window.location.href.split('#')[0].replace(/\/$/, '');
+      if (fullHref.replace(/\/$/, '') === normCurrent) return;
+
+      var path = '';
+      try {
+        path = new URL(fullHref).pathname;
+      } catch (e) {
+        return;
+      }
+      if (isJunkPath(path)) return;
+
+      if (!isVideoLink) {
+        // If on a channel videos or clips page, also check if anchor is inside a grid card
+        var isChannelVideosPage = /\/videos|\/clips/i.test(window.location.pathname);
+        if (isChannelVideosPage) {
+          var segments = path.split('/').filter(Boolean);
+          if (segments.length >= 2 && (segments[1] === 'videos' || segments[0] === 'video' || segments[1] === 'clips' || segments[0] === 'clips')) {
+            isVideoLink = true;
+          }
+        }
+      }
+
+      if (!isVideoLink) return;
+
+      var canonical = (typeof MDUrl !== 'undefined' && MDUrl.canonicalMediaUrl)
+        ? (MDUrl.canonicalMediaUrl(fullHref) || fullHref)
+        : fullHref;
+
+      var cleanKey = canonical.replace(/[^a-zA-Z0-9]/g, '').slice(-36);
+      var itemId = 'kick-' + cleanKey;
+      if (seenIds[itemId]) return;
+
+      // Find the card container
+      var card = (anchor.closest && anchor.closest('div[class*="group"], div[class*="card"], article, li')) || anchor.parentElement || anchor;
+
+      // Extract author
+      var author = defaultAuthor;
+      var authorEl = card.querySelector ? card.querySelector('a[href^="/"]:not([href*="video"]):not([href*="clip"]), [class*="channel"], [class*="creator"]') : null;
+      if (authorEl) {
+        var aText = cleanText(authorEl.textContent);
+        if (aText && aText.length < 35 && aText.indexOf('/') === -1) {
+          author = aText.replace(/^@/, '');
+        }
+      }
+
+      // Extract title robustly
+      var title = '';
+
+      // Check specific title elements or links pointing to the video
+      var titleLinks = card.querySelectorAll ? card.querySelectorAll('a[href*="/video/"], a[href*="/videos/"], a[href*="/clips/"], a[href*="/clip/"]') : [];
+      for (var l = 0; l < titleLinks.length; l++) {
+        var tVal = cleanText(titleLinks[l].getAttribute('title') || titleLinks[l].getAttribute('aria-label'));
+        if (isValidCandidateTitle(tVal, author)) {
+          title = tVal;
+          break;
+        }
+      }
+
+      // Check headings inside card
+      if (!title && card.querySelectorAll) {
+        var headings = card.querySelectorAll('h1, h2, h3, h4, h5, [class*="title"], [class*="Title"], [data-testid*="title"]');
+        for (var h = 0; h < headings.length; h++) {
+          var hVal = cleanText(headings[h].getAttribute('title') || headings[h].textContent);
+          if (isValidCandidateTitle(hVal, author)) {
+            title = hVal;
+            break;
+          }
+        }
+      }
+
+      // Check img alt in card
+      if (!title && card.querySelector) {
+        var cardImg = card.querySelector('img[alt]:not([alt=""]):not([alt*="avatar"])');
+        if (cardImg) {
+          var altVal = cleanText(cardImg.getAttribute('alt'));
+          if (isValidCandidateTitle(altVal, author)) {
+            title = altVal;
+          }
+        }
+      }
+
+      // Check any element with [title] attribute, strictly filtering out view counts / pure digits
+      if (!title && card.querySelectorAll) {
+        var titledEls = card.querySelectorAll('[title]');
+        for (var tIdx = 0; tIdx < titledEls.length; tIdx++) {
+          var candidateVal = cleanText(titledEls[tIdx].getAttribute('title'));
+          if (isValidCandidateTitle(candidateVal, author)) {
+            title = candidateVal;
+            break;
+          }
+        }
+      }
+
+      // Fallback to text lines within the card (ignoring views, duration, author, badges)
+      if (!title && card.innerText) {
+        var lines = card.innerText.split('\n').map(function (s) { return s.trim(); }).filter(function (s) {
+          return isValidCandidateTitle(s, author);
+        });
+        if (lines.length > 0) {
+          title = lines[0];
+        }
+      }
+
+      if (!title) {
+        var fallbackAnchorTitle = cleanText(anchor.getAttribute('title') || anchor.getAttribute('aria-label'));
+        title = (isValidCandidateTitle(fallbackAnchorTitle, author) ? fallbackAnchorTitle : '') || (defaultAuthor + ' — Vidéo Kick');
+      }
+
+      // Extract thumbnail
+      var thumb = extractCleanImageUrl(anchor) ||
+                  extractCleanImageUrl(card) ||
+                  extractCleanImageUrl(anchor.parentElement);
+
+      // Extract duration
+      var durationSec = null;
+      var durationBadges = card.querySelectorAll ? card.querySelectorAll('span, div, p') : [];
+      for (var i = 0; i < durationBadges.length; i++) {
+        var badgeText = (durationBadges[i].textContent || '').trim();
+        var durMatch = badgeText.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        if (durMatch) {
+          if (durMatch[3] !== undefined) {
+            durationSec = parseInt(durMatch[1], 10) * 3600 + parseInt(durMatch[2], 10) * 60 + parseInt(durMatch[3], 10);
+          } else {
+            durationSec = parseInt(durMatch[1], 10) * 60 + parseInt(durMatch[2], 10);
+          }
+          break;
+        }
+      }
+
+      seenIds[itemId] = true;
+      items.push({
+        id: itemId,
+        url: canonical,
+        pageUrl: canonical,
+        title: title,
+        author: author,
+        platform: 'kick',
+        thumbnailUrl: thumb,
+        durationSeconds: durationSec,
+        width: null,
+        height: null,
+        sizeBytes: null,
+        source: 'dom',
+        sourceLabel: 'Kick VOD / Clip',
+      });
+    });
+  }
+
   function extractUniversalFeed(maxItems) {
     var platform = currentPlatform();
     if (platform === 'x') {
@@ -887,11 +1258,13 @@
       extractInstagramFeed(limit, seenIds, items);
     } else if (platform === 'youtube') {
       extractShortsFeed(limit, seenIds, items);
+    } else if (platform === 'kick') {
+      extractKickFeed(limit, seenIds, items);
     }
 
-    // Universal DOM Video Scanner: works on Reddit, Vimeo, Twitch, Dailymotion, news sites, video blogs, etc.
-    // Guard: Only run for generic sites so we don't pollute TikTok/Instagram/Shorts with document.title dummy items
-    if (platform === 'generic' && items.length < limit) {
+    // Universal DOM Video Scanner: works on Reddit, Vimeo, Twitch, Facebook, Dailymotion, news sites, video blogs, etc.
+    // Any site without a dedicated feed extractor above uses this universal scanner:
+    if (platform !== 'tiktok' && platform !== 'instagram' && platform !== 'youtube' && platform !== 'x' && platform !== 'kick' && items.length < limit) {
       document.querySelectorAll('video').forEach(function (video) {
         if (items.length >= limit) return;
         if (isSponsoredContent(video) || (video.parentElement && isSponsoredContent(video.parentElement))) return;
@@ -910,8 +1283,28 @@
         seenIds[itemId] = true;
 
         var hostClean = window.location.hostname.replace(/^www\./, '');
-        var title = cleanText(video.title || video.getAttribute('aria-label') || document.title) || (hostClean + ' video');
-        var thumb = safeHttpUrl(video.poster) || null;
+        var card = (video.closest && video.closest('div[class*="item"], div[class*="card"], div[class*="video"], article, li, figure')) || video.parentElement;
+
+        var candidateTitle = cleanText(video.title || video.getAttribute('aria-label'));
+        if (!candidateTitle && card && card.querySelector) {
+          var titleEl = card.querySelector('h1, h2, h3, h4, [class*="title"], [class*="name"], a[href*="/video/"]');
+          if (titleEl) {
+            var tVal = cleanText(titleEl.getAttribute('title') || titleEl.textContent);
+            if (isValidCandidateTitle(tVal, hostClean)) candidateTitle = tVal;
+          }
+        }
+        if (!candidateTitle && document.title && isValidCandidateTitle(document.title, hostClean)) {
+          if (!/^(free porn|watch free|home|videos|trending|search|accueil)/i.test(document.title)) {
+            candidateTitle = document.title;
+          }
+        }
+        var title = candidateTitle || (hostClean + ' video');
+
+        var thumb = safeHttpUrl(video.poster) ||
+                    (card ? extractCleanImageUrl(card) : null) ||
+                    extractCleanImageUrl(video.parentElement) ||
+                    extractCleanImageUrl(video) ||
+                    null;
 
         items.push({
           id: itemId,
@@ -941,28 +1334,101 @@
             : href.split('?')[0];
           var cleanKey = canonical.replace(/[^a-zA-Z0-9]/g, '').substring(0, 40);
           var itemId = 'card-' + cleanKey;
-          if (seenIds[itemId]) return;
-          seenIds[itemId] = true;
-          var img = anchor.querySelector('img');
-          var thumb = img
-            ? safeHttpUrl(img.currentSrc || img.src || img.getAttribute('data-src'))
-            : null;
-          var title = cleanText(
+
+          var hostClean = window.location.hostname.replace(/^www\./, '');
+          var card = (anchor.closest && anchor.closest('div[class*="item"], div[class*="card"], div[class*="video"], article, li, figure')) || anchor.parentElement || anchor;
+
+          var thumb = extractCleanImageUrl(card) ||
+                      extractCleanImageUrl(anchor) ||
+                      extractCleanImageUrl(anchor.parentElement);
+
+          var cardText = '';
+          if (card && card.querySelector) {
+            var titleEl = card.querySelector('h1, h2, h3, h4, [class*="title"], [class*="name"], a[title]');
+            if (titleEl) {
+              var tText = cleanText(titleEl.getAttribute('title') || titleEl.textContent);
+              if (isValidCandidateTitle(tText, hostClean)) cardText = tText;
+            }
+          }
+          if (!cardText && anchor.innerText) {
+            var lines = anchor.innerText.split('\n').map(function (s) { return s.trim(); }).filter(function (s) {
+              return isValidCandidateTitle(s, hostClean);
+            });
+            if (lines.length > 0) cardText = lines[0];
+          }
+          var img = anchor.querySelector('img') || (card && card.querySelector('img'));
+          var candidateTitle = cardText || cleanText(
             (img && (img.alt || img.title)) ||
               anchor.getAttribute('title') ||
               anchor.getAttribute('aria-label') ||
               '',
-          ) || canonical;
-          var hostClean = window.location.hostname.replace(/^www\./, '');
+          );
+
+          if (!isValidCandidateTitle(candidateTitle, hostClean)) {
+            // Slug fallback e.g. /8abc/video/my_video_slug
+            try {
+              var p = new URL(canonical).pathname.split('/').filter(Boolean);
+              if (p.length >= 2 && (p[1] === 'video' || p[0] === 'video' || p[1] === 'v')) {
+                var slug = (p[1] === 'video' && p[2]) ? p[2] : ((p[0] === 'video' && p[1]) ? p[1] : '');
+                if (slug) {
+                  var unslug = slug.replace(/[-_+]/g, ' ').trim();
+                  if (unslug.length > 2) {
+                    candidateTitle = unslug.charAt(0).toUpperCase() + unslug.slice(1);
+                  }
+                }
+              }
+            } catch (e) {}
+          }
+
+          var title = (isValidCandidateTitle(candidateTitle, hostClean) ? candidateTitle : '') || (hostClean + ' video');
+
+          var durationSec = null;
+          var durEl = card ? card.querySelector('.l, [class*="duration"], [class*="time"], [class*="length"]') : null;
+          if (durEl) {
+            var dText = (durEl.textContent || '').trim();
+            var dMatch = dText.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+            if (dMatch) {
+              durationSec = dMatch[3] !== undefined
+                ? parseInt(dMatch[1], 10) * 3600 + parseInt(dMatch[2], 10) * 60 + parseInt(dMatch[3], 10)
+                : parseInt(dMatch[1], 10) * 60 + parseInt(dMatch[2], 10);
+            }
+          }
+
+          var authorName = hostClean;
+          var userEl = card ? card.querySelector('.user a, .user, [class*="uploader"], [class*="author"], [class*="channel"]') : null;
+          if (userEl) {
+            var uName = cleanText(userEl.textContent).replace(/^@/, '');
+            if (uName && uName.length < 35 && isValidCandidateTitle(uName, hostClean)) {
+              authorName = uName;
+            }
+          }
+
+          if (seenIds[itemId]) {
+            // Enhance previously added item from preview <video> loop
+            for (var itIdx = 0; itIdx < items.length; itIdx++) {
+              if (items[itIdx].id === itemId) {
+                if (!items[itIdx].thumbnailUrl && thumb) items[itIdx].thumbnailUrl = thumb;
+                if ((!items[itIdx].title || items[itIdx].title === (hostClean + ' video') || items[itIdx].title.indexOf('Free Porn') !== -1) && title && title !== (hostClean + ' video')) {
+                  items[itIdx].title = title;
+                }
+                if (!items[itIdx].durationSeconds && durationSec) items[itIdx].durationSeconds = durationSec;
+                if (authorName && authorName !== hostClean) items[itIdx].author = authorName;
+                break;
+              }
+            }
+            return;
+          }
+          seenIds[itemId] = true;
+
           items.push({
             id: itemId,
             url: canonical,
             pageUrl: canonical,
             title: title,
-            author: hostClean,
+            author: authorName,
             platform: platform,
             thumbnailUrl: thumb,
-            durationSeconds: null,
+            durationSeconds: durationSec,
             width: null,
             height: null,
             sizeBytes: null,
@@ -1070,7 +1536,7 @@
   function publishNewXFeedItems() {
     xFeedUpdateTimer = null;
     var platform = currentPlatform();
-    if (platform === 'generic' || platform === 'kick') return;
+    if (platform === 'generic') return;
 
     var result = extractUniversalFeed(X_FEED_MAX_ITEMS);
     if (!result || result.ok !== true || !Array.isArray(result.items)) return;
@@ -1129,144 +1595,43 @@
   var deepScanBusy = false;
   var deepScanEpoch = 0;
 
-  function injectPageEnvironmentHook() {
-    if (document.getElementById('__md_bg_hook__')) return;
-    try {
-      var script = document.createElement('script');
-      script.id = '__md_bg_hook__';
-      script.textContent = '(' + function () {
-        window.__MD_FORCE_VISIBLE__ = false;
-
-        // 1. Spoof document.hidden & document.visibilityState
-        try {
-          var proto = Document.prototype;
-          var origHiddenDesc = Object.getOwnPropertyDescriptor(proto, 'hidden');
-          var origVisDesc = Object.getOwnPropertyDescriptor(proto, 'visibilityState');
-          Object.defineProperty(proto, 'hidden', {
-            get: function () {
-              if (window.__MD_FORCE_VISIBLE__) return false;
-              return origHiddenDesc && origHiddenDesc.get ? origHiddenDesc.get.call(this) : false;
-            },
-            configurable: true
-          });
-          Object.defineProperty(proto, 'visibilityState', {
-            get: function () {
-              if (window.__MD_FORCE_VISIBLE__) return 'visible';
-              return origVisDesc && origVisDesc.get ? origVisDesc.get.call(this) : 'visible';
-            },
-            configurable: true
-          });
-        } catch (e) {}
-
-        // 2. Intercept IntersectionObserver so we can trigger callbacks in background tabs
-        try {
-          var OrigIO = window.IntersectionObserver;
-          if (OrigIO) {
-            var records = [];
-            window.__MD_IO_RECORDS__ = records;
-            window.IntersectionObserver = function (callback, options) {
-              var inst = new OrigIO(callback, options);
-              var rec = { inst: inst, cb: callback, targets: new Set() };
-              records.push(rec);
-
-              var origObs = inst.observe.bind(inst);
-              inst.observe = function (t) {
-                if (t) rec.targets.add(t);
-                return origObs(t);
-              };
-              var origUnobs = inst.unobserve.bind(inst);
-              inst.unobserve = function (t) {
-                if (t) rec.targets.delete(t);
-                return origUnobs(t);
-              };
-              var origDisc = inst.disconnect.bind(inst);
-              inst.disconnect = function () {
-                rec.targets.clear();
-                var i = records.indexOf(rec);
-                if (i !== -1) records.splice(i, 1);
-                return origDisc();
-              };
-              return inst;
-            };
-            window.IntersectionObserver.prototype = OrigIO.prototype;
-          }
-        } catch (e) {}
-
-        // 3. Listener to trigger all observers on background scan pulse
-        window.addEventListener('__MD_PULSE_OBSERVERS__', function () {
-          window.__MD_FORCE_VISIBLE__ = true;
-          try { document.dispatchEvent(new Event('visibilitychange')); } catch (e) {}
-          if (Array.isArray(window.__MD_IO_RECORDS__)) {
-            window.__MD_IO_RECORDS__.forEach(function (rec) {
-              if (!rec || !rec.targets || rec.targets.size === 0) return;
-              var entries = [];
-              rec.targets.forEach(function (t) {
-                if (t && t.isConnected) {
-                  var r = t.getBoundingClientRect();
-                  entries.push({
-                    target: t,
-                    isIntersecting: true,
-                    intersectionRatio: 1,
-                    boundingClientRect: r,
-                    intersectionRect: r,
-                    rootBounds: { top: 0, left: 0, width: window.innerWidth || 1920, height: window.innerHeight || 1080 },
-                    time: performance.now()
-                  });
-                }
-              });
-              if (entries.length > 0) {
-                try { rec.cb(entries, rec.inst); } catch (e) {}
-              }
-            });
-          }
-        });
-
-        window.addEventListener('__MD_STOP_BG_FORCE__', function () {
-          window.__MD_FORCE_VISIBLE__ = false;
-        });
-
-        window.addEventListener('__MD_SNAP_ADVANCE__', function () {
-          var item = document.querySelector(
-            '[data-e2e="recommend-list-item-container"], [data-e2e="feed-video"]',
-          );
-          var target = item;
-          if (item) {
-            var node = item.parentElement;
-            var hops = 0;
-            while (node && hops < 14) {
-              if (node === document.body || node === document.documentElement) break;
-              if (node.scrollHeight > node.clientHeight + 24) {
-                target = node;
-                break;
-              }
-              node = node.parentElement;
-              hops += 1;
-            }
-          }
-          if (!target) target = document.scrollingElement || document.body;
-          var unit = Math.max(56, Math.round((window.innerHeight || 700) / 8));
-          var ticks = 0;
-          function tick() {
-            if (ticks++ >= 6) return;
-            try {
-              target.dispatchEvent(new WheelEvent('wheel', {
-                bubbles: true,
-                cancelable: true,
-                deltaY: unit,
-                deltaMode: 0,
-                view: window,
-              }));
-            } catch (e) {}
-            if (typeof requestAnimationFrame === 'function') requestAnimationFrame(tick);
-            else setTimeout(tick, 16);
-          }
-          tick();
-        });
-      }.toString() + ')();';
-
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();
-    } catch (e) {}
+  function triggerSnapAdvanceWheel() {
+    var item = document.querySelector(
+      '[data-e2e="recommend-list-item-container"], [data-e2e="feed-video"]',
+    );
+    var target = item;
+    if (item) {
+      var node = item.parentElement;
+      var hops = 0;
+      while (node && hops < 14) {
+        if (node === document.body || node === document.documentElement) break;
+        if (node.scrollHeight > node.clientHeight + 24) {
+          target = node;
+          break;
+        }
+        node = node.parentElement;
+        hops += 1;
+      }
+    }
+    if (!target) target = document.scrollingElement || document.body;
+    if (!target) return;
+    var unit = Math.max(56, Math.round((window.innerHeight || 700) / 8));
+    var ticks = 0;
+    function tick() {
+      if (ticks++ >= 6) return;
+      try {
+        target.dispatchEvent(new WheelEvent('wheel', {
+          bubbles: true,
+          cancelable: true,
+          deltaY: unit,
+          deltaMode: 0,
+          view: window,
+        }));
+      } catch (e) {}
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(tick);
+      else setTimeout(tick, 16);
+    }
+    tick();
   }
 
   function isTikTokSnapFeedPage() {
@@ -1488,7 +1853,7 @@
       if (Math.abs(scroller.scrollTop - before) > 4) return true;
     }
 
-    try { window.dispatchEvent(new CustomEvent('__MD_SNAP_ADVANCE__')); } catch (e) {}
+    triggerSnapAdvanceWheel();
     return true;
   }
 
@@ -1503,10 +1868,6 @@
 
     var snapFeed = isTikTokSnapFeedPage();
     var isBg = typeof document !== 'undefined' && document.hidden;
-
-    if (!snapFeed && deepScanTotalRounds % 3 === 0) {
-      try { window.dispatchEvent(new CustomEvent('__MD_PULSE_OBSERVERS__')); } catch (e) {}
-    }
 
     document.querySelectorAll('[data-e2e="load-more-btn"]').forEach(function (btn) {
       if (btn && typeof btn.click === 'function') {
@@ -1568,7 +1929,6 @@
 
   function startDeepScan(targetMax) {
     stopDeepScan();
-    injectPageEnvironmentHook();
     deepScanActive = true;
     deepScanTarget = Math.min(parseInt(targetMax, 10) || 1000, 2000);
     deepScanLastCount = 0;
@@ -1597,7 +1957,6 @@
       clearInterval(deepScanTimer);
       deepScanTimer = null;
     }
-    try { window.dispatchEvent(new CustomEvent('__MD_STOP_BG_FORCE__')); } catch (e) {}
     try {
       api.runtime.sendMessage({
         type: 'MD_DEEP_SCAN_PROGRESS',
@@ -1811,7 +2170,11 @@
     });
   }
 
-  function createButtonUI(targetUrl, tweetId, mediaId, container) {
+  function createButtonUI(targetUrl, tweetId, mediaId, container, options) {
+    options = options || {};
+    var isCardOverlay = Boolean(options.isCardOverlay);
+    var parentCard = options.parentCard || container;
+
     var host = document.createElement('div');
     host.className = 'md-dl-host';
     if (tweetId) host.dataset.tweetId = tweetId;
@@ -1852,6 +2215,12 @@
         host.style.right = 'auto';
         host.style.bottom = 'auto';
         isLeftAligned = true;
+      } else if (isCardOverlay) {
+        host.style.top = '8px';
+        host.style.right = '8px';
+        host.style.left = 'auto';
+        host.style.bottom = 'auto';
+        isLeftAligned = false;
       } else {
         var offset = '8px';
         host.style.top = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('top') >= 0) ? offset : 'auto';
@@ -1879,6 +2248,34 @@
         '.err{background:#F44336!important}';
     }
     applyStyles();
+
+    if (isCardOverlay && parentCard) {
+      host.style.opacity = '0';
+      host.style.pointerEvents = 'none';
+      host.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+      host.style.transform = 'translateY(-2px)';
+
+      var showHost = function () {
+        host.style.opacity = '1';
+        host.style.pointerEvents = 'auto';
+        host.style.transform = 'translateY(0)';
+      };
+
+      var hideHost = function () {
+        if (markedDownloaded) return;
+        if (menu && menu.classList.contains('open')) return;
+        host.style.opacity = '0';
+        host.style.pointerEvents = 'none';
+        host.style.transform = 'translateY(-2px)';
+      };
+
+      parentCard.addEventListener('mouseenter', showHost, { passive: true });
+      parentCard.addEventListener('mouseleave', hideHost, { passive: true });
+      if (container !== parentCard) {
+        container.addEventListener('mouseenter', showHost, { passive: true });
+        container.addEventListener('mouseleave', hideHost, { passive: true });
+      }
+    }
 
     var wrap = document.createElement('div');
     wrap.className = 'wrap';
@@ -2078,16 +2475,21 @@
     }
   }
 
-  function injectButton(container, targetUrl) {
+  function injectButton(container, targetUrl, options) {
     if (!container || PROCESSED.has(container)) return;
     if (isSponsoredContent(container)) return;
+    options = options || {};
+    var parentCard = options.parentCard || container;
+    if (parentCard.querySelector && parentCard.querySelector('.md-dl-host')) return;
+
     ensureRelative(container);
     var tweetId = xTweetIdFromUrl(targetUrl);
     var mediaId = findMediaAssetIdNear(container);
-    var ui = createButtonUI(targetUrl, tweetId, mediaId, container);
+    var ui = createButtonUI(targetUrl, tweetId, mediaId, container, options);
     container.appendChild(ui.host);
     injectedButtons.push(ui);
     PROCESSED.add(container);
+    if (parentCard && parentCard !== container) PROCESSED.add(parentCard);
     if (isKnownDownloaded(tweetId, mediaId)) {
       ui.setDownloaded();
     }
@@ -2099,6 +2501,7 @@
 
     document.querySelectorAll('video').forEach(function (video) {
       if (!video.parentElement) return;
+      if (isExcludedNavigation(video) || isExcludedNavigation(video.parentElement)) return;
       if (isSponsoredContent(video) || isSponsoredContent(video.parentElement)) return;
       if (!isUsableVideo(video)) return;
       var url = findPlatformSpecificUrl(video);
@@ -2111,6 +2514,7 @@
     if (platform === 'x' || platform === 'facebook') {
       document.querySelectorAll('a').forEach(function (a) {
         if (PROCESSED.has(a)) return;
+        if (isExcludedNavigation(a)) return;
         if (isSponsoredContent(a)) return;
         var href = a.href;
         if (!href || !VIDEO_PATTERNS.some(function (p) { return href.indexOf(p) !== -1; })) return;
@@ -2121,9 +2525,34 @@
       });
     } else if (!inIframe && (platform === 'generic' || platform === 'kick')) {
       document.querySelectorAll('a[href]').forEach(function (a) {
+        if (PROCESSED.has(a)) return;
+        if (isExcludedNavigation(a)) return;
+        if (platform === 'kick' && !isKickVideoLink(a.href)) return;
         if (!looksLikeVideoCard(a)) return;
         if (isSponsoredContent(a)) return;
-        injectButton(a, a.href);
+
+        // Strictly 1 button per card container
+        var card = (a.closest && a.closest('div[class*="group"], div[class*="card"], div[class*="item"], article, li, figure')) || a.parentElement || a;
+        if (card) {
+          if (PROCESSED.has(card) || (card.querySelector && card.querySelector('.md-dl-host'))) {
+            PROCESSED.add(a);
+            return;
+          }
+        }
+
+        // Mount on the thumbnail image/video container rather than raw text links
+        var mountTarget = a;
+        if (card && !a.querySelector('img, video')) {
+          var imgEl = card.querySelector('img, video');
+          if (imgEl) {
+            var thumbParent = imgEl.closest('a') || imgEl.parentElement;
+            if (thumbParent) mountTarget = thumbParent;
+          }
+        }
+
+        injectButton(mountTarget, a.href, { isCardOverlay: true, parentCard: card });
+        PROCESSED.add(a);
+        if (card) PROCESSED.add(card);
       });
     }
 
@@ -2217,6 +2646,116 @@
     }, { passive: true });
   }
 
+  function locateMediaOnPage(item) {
+    if (!item) return false;
+    var targetUrl = (item.url || item.pageUrl || '').split('?')[0].replace(/\/$/, '');
+    var targetPath = '';
+    try {
+      if (targetUrl) targetPath = new URL(targetUrl).pathname.replace(/\/$/, '');
+    } catch (e) {}
+
+    var candidate = null;
+
+    // 1. Search anchor tags
+    if (targetUrl || targetPath) {
+      var anchors = document.querySelectorAll('a[href]');
+      for (var i = 0; i < anchors.length; i++) {
+        var a = anchors[i];
+        var href = (a.href || '').split('#')[0].split('?')[0].replace(/\/$/, '');
+        if (targetUrl && href === targetUrl) {
+          candidate = a;
+          break;
+        }
+        if (targetPath && targetPath.length > 3 && href.indexOf(targetPath) !== -1) {
+          candidate = a;
+          break;
+        }
+      }
+    }
+
+    // 2. Search videos
+    if (!candidate && item.videoSrc) {
+      var videos = document.querySelectorAll('video');
+      for (var v = 0; v < videos.length; v++) {
+        var vid = videos[v];
+        if (vid.currentSrc === item.videoSrc || vid.src === item.videoSrc) {
+          candidate = vid;
+          break;
+        }
+      }
+    }
+
+    // 3. Search thumbnail image
+    if (!candidate && item.thumbnailUrl) {
+      var cleanThumb = item.thumbnailUrl.split('?')[0];
+      var imgs = document.querySelectorAll('img[src], img[data-src], img[data-thumbnail], img[data-thumb]');
+      for (var m = 0; m < imgs.length; m++) {
+        var img = imgs[m];
+        var src = (img.currentSrc || img.src || img.getAttribute('data-src') || img.getAttribute('data-thumbnail') || '').split('?')[0];
+        if (src && cleanThumb && (src === cleanThumb || src.indexOf(cleanThumb) !== -1 || cleanThumb.indexOf(src) !== -1)) {
+          candidate = img;
+          break;
+        }
+      }
+    }
+
+    // 4. Search by title
+    if (!candidate && item.title && item.title.length > 5 && item.title !== 'Vidéo') {
+      var headings = document.querySelectorAll('h1, h2, h3, h4, a[title], [class*="title"]');
+      for (var h = 0; h < headings.length; h++) {
+        var heading = headings[h];
+        if ((heading.textContent || '').trim().indexOf(item.title.trim()) !== -1) {
+          candidate = heading;
+          break;
+        }
+      }
+    }
+
+    // 5. Fallback: if currently on active video page and item corresponds to current page
+    if (!candidate && targetUrl && window.location.href.split('?')[0].replace(/\/$/, '') === targetUrl) {
+      candidate = document.querySelector('video') || document.querySelector('main') || document.body;
+    }
+
+    if (!candidate) return false;
+
+    // Resolve nearest card / player container
+    var box = candidate.closest ? candidate.closest(
+      'article, [class*="card"], [class*="item"], [class*="video-item"], [data-e2e*="item"], [class*="player"], figure, li'
+    ) : null;
+    var el = box || candidate;
+
+    try {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var origOutline = el.style.outline;
+      var origOffset = el.style.outlineOffset;
+      var origShadow = el.style.boxShadow;
+      var origTransition = el.style.transition;
+      var origZ = el.style.zIndex;
+
+      el.style.transition = 'outline 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease';
+      el.style.outline = '3px solid #8b5cf6';
+      el.style.outlineOffset = '4px';
+      el.style.boxShadow = '0 0 28px rgba(139, 92, 246, 0.7)';
+      el.style.transform = 'scale(1.02)';
+
+      setTimeout(function () {
+        el.style.transform = '';
+      }, 300);
+
+      setTimeout(function () {
+        el.style.outline = origOutline || '';
+        el.style.outlineOffset = origOffset || '';
+        el.style.boxShadow = origShadow || '';
+        el.style.transition = origTransition || '';
+        el.style.zIndex = origZ || '';
+      }, 3000);
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   if (api.runtime && api.runtime.onMessage) {
     api.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       if (!message || typeof message.type !== 'string') return false;
@@ -2266,6 +2805,15 @@
           sendResponse({ ok: !!url, url: url || null });
         } catch (e) {
           sendResponse({ ok: false, error: 'resolve_failed' });
+        }
+        return false;
+      }
+      if (message.type === 'MD_LOCATE_MEDIA') {
+        try {
+          var found = locateMediaOnPage(message.item);
+          sendResponse({ ok: true, found: found });
+        } catch (e) {
+          sendResponse({ ok: false, found: false });
         }
         return false;
       }

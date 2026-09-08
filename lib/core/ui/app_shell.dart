@@ -20,6 +20,8 @@ import 'package:modern_downloader/core/ui/widgets/resizable_width_pane.dart';
 import 'package:modern_downloader/core/ui/mobile/mobile_app_shell.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'sidebar/sidebar.dart';
+import 'window_chrome.dart';
+import '../../features/onboarding/presentation/onboarding_overlay.dart';
 
 class AppShell extends ConsumerWidget {
   final Widget child;
@@ -127,6 +129,7 @@ class AppShell extends ConsumerWidget {
           children: [
             chrome,
             if (showDock) FloatingNavDock(currentLocation: location),
+            const OnboardingOverlay(),
             if (ref.watch(mediaPlayerProvider.select((s) => s.isOpen)))
               const Positioned.fill(child: MediaPlayerView()),
             const ToastOverlay(),
@@ -170,13 +173,15 @@ class AppShell extends ConsumerWidget {
 class AppTitleBar extends StatelessWidget {
   const AppTitleBar({super.key});
 
+  static const double height = WindowChrome.titleBarHeight;
+
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     // iOS chrome already blurs the sidebar; keep a single live BackdropFilter.
     final useTitleBlur = !colors.isIosChrome;
     Widget bar = Container(
-      height: 32,
+      height: WindowChrome.titleBarHeight,
       color: colors.background.withValues(alpha: 0.78),
       child: Row(
         children: [

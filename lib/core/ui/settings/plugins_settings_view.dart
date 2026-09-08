@@ -27,6 +27,7 @@ import '../../providers/settings_provider.dart';
 import '../../services/browser_extension_installer.dart';
 import 'widgets/extension_install_guide_dialog.dart';
 
+import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -146,7 +147,10 @@ class PluginsSettingsView extends ConsumerWidget {
 
                       const Gap(AppSpacing.xl),
 
-                      const _BrowserExtensionsPanel(),
+                      KeyedSubtree(
+                        key: OnboardingTargets.extensions,
+                        child: const _BrowserExtensionsPanel(),
+                      ),
                     ],
                   ),
           ),
