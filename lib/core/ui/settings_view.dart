@@ -203,13 +203,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         const Gap(AppSpacing.xl),
                         SectionTitle(l10n.settingsAdvanced),
                         SwitchTile(
-                          title: l10n.adultSites,
-                          subtitle: l10n.adultSitesDesc,
-                          value: settings.adultSitesEnabled,
-                          onChanged: settingsNotifier.setAdultSitesEnabled,
-                          icon: Icons.lock_open,
-                        ),
-                        SwitchTile(
                           title: l10n.clipboardMonitor,
                           subtitle: l10n.clipboardMonitorDesc,
                           value: settings.clipboardMonitorEnabled,
@@ -245,41 +238,39 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           onChanged: settingsNotifier.setCookieBrowser,
                           icon: Icons.browser_updated_rounded,
                         ),
-                        if (settings.adultSitesEnabled) ...[
-                          SwitchTile(
-                            title: l10n.useProxy,
-                            subtitle: l10n.useProxyDesc,
-                            value: settings.useTorProxy,
-                            onChanged: settingsNotifier.setUseTorProxy,
-                            icon: Icons.security,
-                          ),
-                          ActionTile(
-                            title: l10n.cookiesFile,
-                            subtitle: settings.cookiesFilePath.isEmpty
-                                ? "Select cookies.txt"
-                                : settings.cookiesFilePath,
-                            icon: Icons.cookie_outlined,
-                            onTap: () async {
-                              var result = await FilePicker.platform
-                                  .pickFiles();
-                              if (result != null) {
-                                settingsNotifier.setCookiesFilePath(
-                                  result.files.single.path!,
-                                );
-                              }
-                            },
-                            trailing: settings.cookiesFilePath.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(
-                                      Icons.delete_outline,
-                                      color: AppColors.of(context).error,
-                                    ),
-                                    onPressed: settingsNotifier.clearCookies,
-                                    tooltip: "Clear cookies",
-                                  )
-                                : null,
-                          ),
-                        ],
+                        SwitchTile(
+                          title: l10n.useProxy,
+                          subtitle: l10n.useProxyDesc,
+                          value: settings.useTorProxy,
+                          onChanged: settingsNotifier.setUseTorProxy,
+                          icon: Icons.security,
+                        ),
+                        ActionTile(
+                          title: l10n.cookiesFile,
+                          subtitle: settings.cookiesFilePath.isEmpty
+                              ? "Select cookies.txt"
+                              : settings.cookiesFilePath,
+                          icon: Icons.cookie_outlined,
+                          onTap: () async {
+                            var result = await FilePicker.platform
+                                .pickFiles();
+                            if (result != null) {
+                              settingsNotifier.setCookiesFilePath(
+                                result.files.single.path!,
+                              );
+                            }
+                          },
+                          trailing: settings.cookiesFilePath.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color: AppColors.of(context).error,
+                                  ),
+                                  onPressed: settingsNotifier.clearCookies,
+                                  tooltip: "Clear cookies",
+                                )
+                              : null,
+                        ),
 
                         const Gap(AppSpacing.xl),
                         SectionTitle(l10n.settingsPerformance),

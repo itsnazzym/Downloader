@@ -198,10 +198,9 @@ Manifest V3 · permission `*://*/*` · `all_frames: true` · 100 % conforme CSP 
 ### Panneau latéral « Fil X » (Flux Médias)
 
 Filtres **Tous les sites**, **Onglet actif**, **Flux réseau** — envoi vers l'app en un clic via WebSocket local `127.0.0.1:6969`.
+### Contenu universel (+18 inclus)
 
-### Sites adultes (+18)
-
-Par défaut, l'app et l'extension peuvent filtrer les domaines adultes. Activez **Sites adultes** dans *Paramètres → Téléchargement* si nécessaire.
+Le support de l'ensemble des sites et flux directs (+18 inclus) est désormais activé par défaut dans l'application et l'extension.
 
 ### Installation
 
@@ -255,7 +254,6 @@ Modern Downloader intègre un magasin persistant d'historique de transfert basé
 | Paramètre | Effet |
 |---|---|
 | **Dossier de sortie** | Racine de la bibliothèque et des dossiers créateurs |
-| **Sites adultes** | Autorise les domaines +18 (app + extension) |
 | **Concurrence max** | Nombre de téléchargements simultanés |
 | **Smart Organizer** | Règles de classement automatique post-téléchargement |
 | **Tor / SOCKS5** | Proxy pour yt-dlp |
@@ -269,7 +267,6 @@ Modern Downloader intègre un magasin persistant d'historique de transfert basé
 |---|---|
 | Extension : pas de bouton Download | Recharger l'extension · vérifier que l'app tourne · site en iframe → `all_frames` actif |
 | « Connexion refusée » extension → app | Lancer Modern Downloader · port 6969 libre · antivirus / pare-feu |
-| Site adulte bloqué | Activer **Sites adultes** dans les paramètres |
 | Transfert LAN bloqué sur « En attente… » | Accepter sur l'appareil récepteur · même réseau · désactiver VPN |
 | Transfert lent au démarrage | Normal si compression ZIP — la barre indique « Compression… » |
 | Téléchargement échoue sur un site | Mettre à jour yt-dlp embarqué · tester avec cookies · vérifier l'URL dans l'inspecteur |

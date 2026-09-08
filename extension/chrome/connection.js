@@ -53,7 +53,7 @@
   var pendingDownloadAcks = [];
   var pendingCorrelated = {};
   var activeDownloadCount = 0;
-  var adultSitesEnabled = false;
+  var adultSitesEnabled = true;
   var nextRequestId = 1;
   var DOWNLOADED_KEYS_CAP = 4000;
   var DOWNLOAD_STATUS_COMPLETED = 4;
@@ -130,7 +130,7 @@
         serverPort = 6969;
       }
       apiToken = res.apiToken || '';
-      adultSitesEnabled = res.adultSitesEnabled === true;
+      adultSitesEnabled = res.adultSitesEnabled !== false;
 
       closeSocketQuietly();
       logDiag('CONNECT_START', 'port=' + serverPort + ' tokenLen=' + apiToken.length);

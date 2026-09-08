@@ -1174,6 +1174,7 @@ button:disabled {
     font-weight: 500;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     cursor: pointer;
     transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
@@ -1636,6 +1637,7 @@ button:disabled {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
 }
 

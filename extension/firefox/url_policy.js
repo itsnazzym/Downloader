@@ -50,7 +50,7 @@
     if (!hostname) return false;
     var host = String(hostname).toLowerCase();
     if (host === 'localhost' || host === '127.0.0.1') return false;
-    if (!includeAdult) {
+    if (includeAdult === false) {
       if (ADULT_DOMAINS.some(function (d) { return hostMatchesDomain(host, d); })) return false;
     }
     return true;
@@ -222,7 +222,7 @@
       if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname.endsWith('.local')) {
         return false;
       }
-      if (!adultSitesEnabled) {
+      if (adultSitesEnabled === false) {
         var isAdult = ADULT_DOMAINS.some(function (d) {
           return hostMatchesDomain(hostname, d);
         });

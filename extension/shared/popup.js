@@ -18,9 +18,6 @@
   var btnPosition = document.getElementById('btn-position');
   var btnSize = document.getElementById('btn-size');
   var qualityToggle = document.getElementById('quality-toggle');
-  var adultToggle = document.getElementById('adult-toggle');
-
-  var ADULT_ORIGINS = ['*://*.pornhub.com/*'];
 
   var STATUS_KEYS = [
     'statusQueued', 'statusExtracting', 'statusDownloading', 'statusProcessing',
@@ -127,7 +124,6 @@
     if (qualityToggle && typeof result.showQualitySelector === 'boolean') {
       qualityToggle.checked = result.showQualitySelector;
     }
-    if (adultToggle) adultToggle.checked = result.adultSitesEnabled === true;
   });
 
   function persistSettings(extra) {
@@ -146,7 +142,7 @@
       btnPosition: btnPosition ? btnPosition.value : 'top-right',
       btnSize: btnSize ? btnSize.value : 'normal',
       showQualitySelector: qualityToggle ? qualityToggle.checked : true,
-      adultSitesEnabled: adultToggle ? adultToggle.checked : false,
+      adultSitesEnabled: true,
     };
     if (browserSelect) {
       payload.preferredBrowser = browserSelect.value;
@@ -163,21 +159,6 @@
 
   function saveSettings() {
     persistSettings();
-  }
-
-  function onAdultToggle() {
-    if (!adultToggle) return;
-    if (adultToggle.checked && api.permissions && api.permissions.request) {
-      api.permissions.request({ origins: ADULT_ORIGINS }).then(function (granted) {
-        if (!granted) adultToggle.checked = false;
-        persistSettings({ adultSitesEnabled: adultToggle.checked });
-      }).catch(function () {
-        adultToggle.checked = false;
-        persistSettings({ adultSitesEnabled: false });
-      });
-      return;
-    }
-    persistSettings({ adultSitesEnabled: false });
   }
 
   portInput.addEventListener('change', saveSettings);
@@ -207,7 +188,6 @@
   if (btnPosition) btnPosition.addEventListener('change', saveSettings);
   if (btnSize) btnSize.addEventListener('change', saveSettings);
   if (qualityToggle) qualityToggle.addEventListener('change', saveSettings);
-  if (adultToggle) adultToggle.addEventListener('change', onAdultToggle);
 
   function renderList(items) {
     listContainer.textContent = '';

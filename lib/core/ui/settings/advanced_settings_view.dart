@@ -153,13 +153,6 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                   [
                         SectionTitle(l10n.settingsAdvanced),
                         SwitchTile(
-                          title: l10n.adultSites,
-                          subtitle: l10n.adultSitesDesc,
-                          value: settings.adultSitesEnabled,
-                          onChanged: settingsNotifier.setAdultSitesEnabled,
-                          icon: Icons.lock_open,
-                        ),
-                        SwitchTile(
                           title: l10n.clipboardMonitor,
                           subtitle: l10n.clipboardMonitorDesc,
                           value: settings.clipboardMonitorEnabled,
@@ -375,41 +368,39 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                         ),
 
                         const Gap(AppSpacing.l),
-                        if (settings.adultSitesEnabled) ...[
-                          SwitchTile(
-                            title: l10n.useProxy,
-                            subtitle: l10n.torBypassDesc,
-                            value: settings.useTorProxy,
-                            onChanged: settingsNotifier.setUseTorProxy,
-                            icon: Icons.security,
-                          ),
-                          ActionTile(
-                            title: l10n.cookiesFile,
-                            subtitle: settings.cookiesFilePath.isEmpty
-                                ? l10n.selectCookiesFile
-                                : settings.cookiesFilePath,
-                            icon: Icons.cookie_outlined,
-                            onTap: () async {
-                              var result = await FilePicker.platform
-                                  .pickFiles();
-                              if (result != null) {
-                                settingsNotifier.setCookiesFilePath(
-                                  result.files.single.path!,
-                                );
-                              }
-                            },
-                            trailing: settings.cookiesFilePath.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(
-                                      Icons.delete_outline,
-                                      color: colors.error,
-                                    ),
-                                    onPressed: settingsNotifier.clearCookies,
-                                    tooltip: l10n.clearCookies,
-                                  )
-                                : null,
-                          ),
-                        ],
+                        SwitchTile(
+                          title: l10n.useProxy,
+                          subtitle: l10n.torBypassDesc,
+                          value: settings.useTorProxy,
+                          onChanged: settingsNotifier.setUseTorProxy,
+                          icon: Icons.security,
+                        ),
+                        ActionTile(
+                          title: l10n.cookiesFile,
+                          subtitle: settings.cookiesFilePath.isEmpty
+                              ? l10n.selectCookiesFile
+                              : settings.cookiesFilePath,
+                          icon: Icons.cookie_outlined,
+                          onTap: () async {
+                            var result = await FilePicker.platform
+                                .pickFiles();
+                            if (result != null) {
+                              settingsNotifier.setCookiesFilePath(
+                                result.files.single.path!,
+                              );
+                            }
+                          },
+                          trailing: settings.cookiesFilePath.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color: colors.error,
+                                  ),
+                                  onPressed: settingsNotifier.clearCookies,
+                                  tooltip: l10n.clearCookies,
+                                )
+                              : null,
+                        ),
                       ]
                       .animate(interval: 50.ms)
                       .fadeIn(duration: 300.ms, curve: Curves.easeOut)
