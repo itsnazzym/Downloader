@@ -1,17 +1,16 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/design_system/foundation/colors.dart';
 import '../../../../../core/platform/platform_info.dart';
-import '../../../../../core/ui/media_player/media_player_provider.dart';
 import '../../../domain/entities/download_item.dart';
-import '../../../domain/enums/download_status.dart';
 import '../../providers/downloader_provider.dart';
 import '../../providers/filtered_downloads_provider.dart';
+import '../../views/mobile/mobile_download_details_sheet.dart';
 import '../../widgets/download_card.dart';
 import '../../widgets/download_item_card.dart';
 import '../../widgets/download_item_context_menu.dart';
 import '../../widgets/download_item_grid_card.dart';
+import '../../widgets/mobile_download_card.dart';
 
 class DownloadRowHost extends ConsumerWidget {
   const DownloadRowHost({
@@ -34,12 +33,9 @@ class DownloadRowHost extends ConsumerWidget {
     );
 
     void onTap() {
-      if (PlatformInfo.isMobile && item.status == DownloadStatus.completed) {
-        final path = item.filePath;
-        if (path != null && File(path).existsSync()) {
-          ref.read(mediaPlayerProvider.notifier).openFile(path);
-          return;
-        }
+      if (PlatformInfo.isMobile) {
+        MobileDownloadDetailsSheet.show(context, item.id);
+        return;
       }
       ref.read(selectedDownloadIdProvider.notifier).state = item.id;
     }
@@ -50,6 +46,17 @@ class DownloadRowHost extends ConsumerWidget {
 
     void onCancel() {
       ref.read(downloadListProvider.notifier).deleteDownload(item.id);
+    }
+
+    if (PlatformInfo.isMobile) {
+      return RepaintBoundary(
+        child: MobileDownloadCard(
+          item: item,
+          onTap: onTap,
+          onRetry: onRetry,
+          onCancel: onCancel,
+        ),
+      );
     }
 
     if (useGridCard) {

@@ -1315,8 +1315,38 @@ abstract class AppLocalizations {
   /// No description provided for @torBypassDesc.
   ///
   /// In en, this message translates to:
-  /// **'Bypass geo-blocks via Tor (127.0.0.1:9050)'**
+  /// **'Start Tor in the background and route downloads through it (127.0.0.1:9050)'**
   String get torBypassDesc;
+
+  /// No description provided for @torProxyStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting Tor…'**
+  String get torProxyStarting;
+
+  /// No description provided for @torProxyReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor is ready at 127.0.0.1:9050'**
+  String get torProxyReady;
+
+  /// No description provided for @torProxyExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'A Tor proxy is already running at 127.0.0.1:9050'**
+  String get torProxyExisting;
+
+  /// No description provided for @torProxyStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor is stopped'**
+  String get torProxyStopped;
+
+  /// No description provided for @torProxyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tor is unavailable'**
+  String get torProxyFailed;
 
   /// No description provided for @selectCookiesFile.
   ///
@@ -1843,13 +1873,13 @@ abstract class AppLocalizations {
   /// No description provided for @pluginsSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Plugins'**
+  /// **'Download workflow plugins'**
   String get pluginsSectionTitle;
 
   /// No description provided for @pluginsSectionHint.
   ///
   /// In en, this message translates to:
-  /// **'In-app modules such as Auto Rename and Smart Organizer.'**
+  /// **'These plugins add actions before or after a download completes.'**
   String get pluginsSectionHint;
 
   /// No description provided for @browserExtensionsTitle.
@@ -2847,6 +2877,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replay the tour from Settings > General.'**
   String get onboardingReadyBody;
+
+  /// No description provided for @pluginFeaturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App features'**
+  String get pluginFeaturesTitle;
+
+  /// No description provided for @pluginFeaturesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on only the screens and tools you use. Disabling a feature keeps its code and data intact.'**
+  String get pluginFeaturesHint;
+
+  /// No description provided for @pluginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Essential'**
+  String get pluginRequired;
+
+  /// No description provided for @pluginActivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable feature'**
+  String get pluginActivate;
+
+  /// No description provided for @pluginOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open feature'**
+  String get pluginOpen;
+
+  /// No description provided for @pluginInactiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature is disabled'**
+  String get pluginInactiveTitle;
+
+  /// No description provided for @pluginInactiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The feature is still available and its data is untouched. You can turn it back on in plugin settings.'**
+  String get pluginInactiveBody;
+
+  /// No description provided for @pluginManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage plugins'**
+  String get pluginManage;
+
+  /// No description provided for @pluginWebRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern Downloader’s website requested this feature. Confirm here to add it to your interface.'**
+  String get pluginWebRequest;
+
+  /// No description provided for @pluginExternalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This extension is installed in your browser. Use the existing setup steps below.'**
+  String get pluginExternalHint;
 }
 
 class _AppLocalizationsDelegate

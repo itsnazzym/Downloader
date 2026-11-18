@@ -31,7 +31,8 @@ class ExtractionPlaceholders {
         if (_hostMatches(host, 'twitch.tv')) {
           return 'Twitch Video';
         }
-        if (_hostMatches(host, 'tiktok.com')) {
+        if (_hostMatches(host, 'tiktok.com') ||
+            _hostMatches(host, 'tiktokv.com')) {
           return 'TikTok Video';
         }
         if (_hostMatches(host, 'kick.com')) {

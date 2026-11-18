@@ -1,0 +1,235 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import CatalogCard from '../../components/CatalogCard';
+import catalog from '../../../plugin-catalog.json';
+
+export function getStaticPaths() {
+  return ['fr', 'en', 'ar'].map((lang) => ({ params: { lang }, props: { lang } }));
+}
+
+const copy = {
+  fr: {
+    title: 'Catalogue des plugins', description: 'Découvrez les fonctionnalités de Modern Downloader et ouvrez dans l’application les outils qui vous intéressent.',
+    eyebrow: 'Bibliothèque Modern Downloader', heading: 'Explorer les plugins', intro: 'Les fonctionnalités disponibles sur Windows, réunies dans un catalogue.',
+    search: 'Rechercher un plugin…', searchLabel: 'Rechercher dans le catalogue', filterTitle: 'Affiner la sélection', filters: 'Catégories', all: 'Tout le catalogue',
+    kinds: { core: 'Essentiel', module: 'Modules', download_hook: 'Automatisations', external_extension: 'Extensions navigateur' },
+    count: 'fonctionnalités', singular: 'fonctionnalité', empty: 'Aucun plugin ne correspond à cette recherche.',
+    included: 'Toujours inclus', open: 'Ouvrir dans l’app', sort: 'Trier par', sortAZ: 'Nom : A à Z', sortZA: 'Nom : Z à A',
+    details: 'Voir la fiche',
+    catalog: 'Catalogue', noteTitle: 'La suite se passe dans l’app.', note: 'Les modules et automatismes sont intégrés à l’application. Les extensions de navigateur suivent leur guide d’installation dédié. Le catalogue ne télécharge aucun code tiers.',
+    noteLink: 'Voir le guide',
+  },
+  en: {
+    title: 'Plugin catalog', description: 'Explore Modern Downloader features and open the tools you want in the app.',
+    eyebrow: 'Modern Downloader library', heading: 'Explore plugins', intro: 'Features available on Windows, together in one catalog.',
+    search: 'Search plugins…', searchLabel: 'Search the catalog', filterTitle: 'Refine your list', filters: 'Categories', all: 'All features',
+    kinds: { core: 'Essential', module: 'Modules', download_hook: 'Automations', external_extension: 'Browser extensions' },
+    count: 'features', singular: 'feature', empty: 'No plugins match this search.',
+    included: 'Always included', open: 'Open in app', sort: 'Sort by', sortAZ: 'Name: A to Z', sortZA: 'Name: Z to A',
+    details: 'View details',
+    catalog: 'Catalog', noteTitle: 'Continue in the app.', note: 'Modules and automations are built into the app. Browser extensions use a separate installation guide. The catalog does not download third-party code.',
+    noteLink: 'Read the guide',
+  },
+  ar: {
+    title: 'كتالوج الإضافات', description: 'اكتشف ميزات Modern Downloader وافتح الأدوات التي تريدها في التطبيق.',
+    eyebrow: 'مكتبة Modern Downloader', heading: 'استكشف الإضافات', intro: 'ميزات Modern Downloader المتاحة على Windows في كتالوج واحد.',
+    search: 'ابحث عن إضافة…', searchLabel: 'ابحث في الكتالوج', filterTitle: 'تصفية النتائج', filters: 'الفئات', all: 'كل الميزات',
+    kinds: { core: 'أساسي', module: 'الوحدات', download_hook: 'الأتمتة', external_extension: 'إضافات المتصفح' },
+    count: 'ميزات', singular: 'ميزة', empty: 'لا توجد إضافات تطابق بحثك.',
+    included: 'مضمّن دائماً', open: 'فتح في التطبيق', sort: 'ترتيب حسب', sortAZ: 'الاسم: أ إلى ي', sortZA: 'الاسم: ي إلى أ',
+    details: 'عرض التفاصيل',
+    catalog: 'الكتالوج', noteTitle: 'تابع في التطبيق.', note: 'الوحدات والأتمتة مضمّنة في التطبيق. تستخدم إضافات المتصفح دليلاً منفصلاً للتثبيت. لا ينزّل الكتالوج أي شيفرة خارجية.',
+    noteLink: 'اقرأ الدليل',
+  },
+};
+
+const languageCode = String(Astro.props.lang) as keyof typeof copy;
+const text = copy[languageCode] ?? copy.en;
+const plugins = catalog.plugins.filter((plugin) => plugin.platforms.includes('windows'));
+const kinds = ['all', 'core', 'module', 'download_hook', 'external_extension'] as const;
+const counts = {
+  all: plugins.length,
+  core: plugins.filter((plugin) => plugin.kind === 'core').length,
+  module: plugins.filter((plugin) => plugin.kind === 'module').length,
+  download_hook: plugins.filter((plugin) => plugin.kind === 'download_hook').length,
+  external_extension: plugins.filter((plugin) => plugin.kind === 'external_extension').length,
+};
+const initialCount = new Intl.NumberFormat(languageCode).format(plugins.length);
+const basePath = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const routeFor = (page = 'guide') => `${basePath}${languageCode}/${page}/`;
+const iconPaths: Record<string, string> = {
+  video_library: 'M4 5h16v14H4z M8 9h.01 M12 9h.01 M16 9h.01 M8 13h.01 M12 13h.01 M16 13h.01',
+  travel_explore: 'M10 18a8 8 0 1 1 5.3-14 M10 6v4l3 2 M14 19l4 4 M20 17a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+  inventory_2: 'M4 7h16v14H4z M3 3h18v4H3z M9 11h6',
+  bar_chart: 'M4 19V9 M10 19V5 M16 19v-7 M22 19H2',
+  ios_share: 'M12 16V3 M7 8l5-5 5 5 M5 13v7h14v-7',
+  drive_file_rename_outline: 'M4 20h4l11-11-4-4L4 16z M13 7l4 4',
+  folder_copy: 'M3 7h8l2 2h8v11H3z M7 4h8l2 2h4',
+  extension: 'M4 4h6a2 2 0 1 1 4 0h6v6a2 2 0 1 0 0 4v6h-6a2 2 0 1 1-4 0H4v-6a2 2 0 1 0 0-4z',
+  grid: 'M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z',
+  home: 'm3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z',
+  automation: 'M20 7v5h-5 M4 17v-5h5 M5.6 9a7 7 0 0 1 11.8-2L20 12 M4 12l2.6 5a7 7 0 0 0 11.8-2',
+};
+const filterIconFor: Record<string, string> = {
+  all: 'grid', core: 'home', module: 'inventory_2', download_hook: 'automation', external_extension: 'extension',
+};
+---
+
+<SiteLayout
+  lang={languageCode}
+  currentPage="sources"
+  title={`${text.title} — Modern Downloader`}
+  description={text.description}
+>
+  <main id="main" class="directory-main">
+    <header class="directory-heading" data-reveal>
+      <div>
+        <p class="eyebrow"><a href={`${basePath}${languageCode}/`}>Modern Downloader</a><span class="breadcrumb-divider">/</span>{text.catalog}</p>
+        <h1>{text.heading}</h1>
+        <p>{text.intro}</p>
+      </div>
+      <div class="catalog-total"><span class="catalog-total-number">{initialCount}</span><span>{text.count}</span></div>
+    </header>
+
+    <div class="directory-layout">
+      <section class="plugin-results" aria-label={text.heading}>
+        <div class="results-toolbar">
+          <p class="results-count" aria-live="polite" data-result-count data-singular={text.singular} data-plural={text.count}>
+            {initialCount} {text.count}
+          </p>
+          <label class="sort-control" for="plugin-sort"><span>{text.sort}</span>
+            <select id="plugin-sort" data-plugin-sort>
+              <option value="az">{text.sortAZ}</option>
+              <option value="za">{text.sortZA}</option>
+            </select>
+          </label>
+        </div>
+        <div class="plugin-grid" id="plugin-list">
+          {plugins.map((plugin) => {
+            const name = plugin.name[languageCode] ?? plugin.name.en;
+            const description = plugin.description[languageCode] ?? plugin.description.en;
+            const searchText = [name, description, plugin.id, text.kinds[plugin.kind as keyof typeof text.kinds]].join(' ');
+            return (
+              <CatalogCard
+                id={plugin.id}
+                kind={plugin.kind}
+                name={name}
+                description={description}
+                kindLabel={text.kinds[plugin.kind as keyof typeof text.kinds]}
+                searchText={searchText}
+                iconPath={iconPaths[plugin.icon] ?? iconPaths.extension}
+                detailHref={`${routeFor('sources')}${plugin.id}/`}
+                detailsLabel={text.details}
+                appHref={'moderndownloader://plugin/' + plugin.id}
+                openLabel={text.open}
+                includedLabel={text.included}
+              />
+            );
+          })}
+        </div>
+        <p class="empty-results" hidden data-empty-results>{text.empty}</p>
+      </section>
+
+      <aside class="filter-panel" aria-label={text.filterTitle} data-reveal>
+        <div class="filter-heading"><div><svg class="filter-heading-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7" /><path d="m16 16 4.2 4.2" /></svg><h2>{text.filterTitle}</h2></div><span class="filter-result-total">{initialCount}</span></div>
+        <div class="search-field">
+          <label for="plugin-search">{text.searchLabel}</label>
+          <div class="search-input-wrap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7" /><path d="m16 16 4.2 4.2" /></svg><input id="plugin-search" type="search" placeholder={text.search} autocomplete="off" /></div>
+        </div>
+        <h3 class="filter-section-title">{text.filters}</h3>
+        <div class="filter-list" role="group" aria-label={text.filters}>
+          {kinds.map((kind) => (
+            <button type="button" class="filter-option" data-plugin-filter={kind} aria-pressed={kind === 'all' ? 'true' : 'false'}>
+              <span class="filter-option-label"><svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={iconPaths[filterIconFor[kind]]} /></svg>{kind === 'all' ? text.all : text.kinds[kind]}</span>
+              <span class="filter-count">{counts[kind]}</span>
+            </button>
+          ))}
+        </div>
+        <div class="catalog-note">
+          <div class="note-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9L12 3Z" /><path d="m8.5 12 2.2 2.2 4.8-5" /></svg></div>
+          <h3>{text.noteTitle}</h3>
+          <p>{text.note}</p>
+          <a href={routeFor()}>{text.noteLink}<span aria-hidden="true">→</span></a>
+        </div>
+      </aside>
+    </div>
+  </main>
+</SiteLayout>
+
+<script>
+  import { animate, stagger } from 'motion';
+  import { MOTION } from '../../scripts/motionTokens';
+
+  function initializeCatalog() {
+    const pluginGrid = document.querySelector<HTMLElement>('#plugin-list');
+    if (!pluginGrid || pluginGrid.dataset.catalogReady === 'true') return;
+    pluginGrid.dataset.catalogReady = 'true';
+    const searchField = document.querySelector<HTMLInputElement>('#plugin-search');
+    const sortField = document.querySelector<HTMLSelectElement>('[data-plugin-sort]');
+    const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-plugin-filter]'));
+    const pluginCards = Array.from(pluginGrid.querySelectorAll<HTMLElement>('[data-plugin-card]'));
+    const resultCount = document.querySelector<HTMLElement>('[data-result-count]');
+    const filterTotal = document.querySelector<HTMLElement>('.filter-result-total');
+    const emptyResults = document.querySelector<HTMLElement>('[data-empty-results]');
+    if (!searchField || !resultCount || !emptyResults) return;
+    const locale = document.documentElement.lang;
+    const collator = new Intl.Collator(locale, { sensitivity: 'base', numeric: true });
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let activeKind = 'all';
+    let stopAnimation: (() => void) | undefined;
+
+    function updateCatalog(animateResults = false) {
+      stopAnimation?.();
+      pluginCards.forEach((card) => { card.style.removeProperty('opacity'); card.style.removeProperty('transform'); });
+      const query = searchField!.value.trim().toLocaleLowerCase(locale);
+      const direction = sortField?.value === 'za' ? -1 : 1;
+      const sortedCards = [...pluginCards].sort((left, right) =>
+        collator.compare(left.dataset.sortName ?? '', right.dataset.sortName ?? '') * direction,
+      );
+      const shown: HTMLElement[] = [];
+
+      for (const card of sortedCards) {
+        const matchesKind = activeKind === 'all' || card.dataset.kind === activeKind;
+        const matchesSearch = (card.dataset.search ?? '').toLocaleLowerCase(locale).includes(query);
+        card.hidden = !(matchesKind && matchesSearch);
+        if (!card.hidden) shown.push(card);
+        pluginGrid!.append(card);
+      }
+
+      const count = new Intl.NumberFormat(locale).format(shown.length);
+      const word = shown.length === 1 ? resultCount!.dataset.singular : resultCount!.dataset.plural;
+      resultCount!.textContent = `${count} ${word ?? ''}`;
+      if (filterTotal) filterTotal.textContent = count;
+      emptyResults!.hidden = shown.length !== 0;
+
+      if (!reducedMotion.matches) {
+        animate(resultCount!, { opacity: [0.5, 1], y: [5, 0] }, { duration: MOTION.interaction, ease: MOTION.ease });
+        if (animateResults && shown.length) {
+          const targets = shown.slice(0, 8);
+          const control = animate(targets, { opacity: [0.3, 1], y: [13, 0] }, {
+            duration: MOTION.results, delay: stagger(0.045), ease: MOTION.ease,
+          });
+          stopAnimation = () => control.stop();
+          void control.finished.then(() => targets.forEach((card) => {
+            card.style.removeProperty('opacity'); card.style.removeProperty('transform');
+          })).catch(() => {});
+        }
+      }
+    }
+
+    for (const button of filterButtons) {
+      button.addEventListener('click', () => {
+        activeKind = button.dataset.pluginFilter ?? 'all';
+        for (const option of filterButtons) option.setAttribute('aria-pressed', String(option === button));
+        updateCatalog(true);
+      });
+    }
+    searchField.addEventListener('input', () => updateCatalog(false));
+    sortField?.addEventListener('change', () => updateCatalog(true));
+  }
+
+  document.addEventListener('astro:page-load', initializeCatalog);
+  if (document.readyState === 'complete') initializeCatalog();
+</script>

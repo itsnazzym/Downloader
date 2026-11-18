@@ -10,6 +10,9 @@ import '../../design_system/components/app_toast.dart';
 import '../../services/binary/binary_verifier.dart';
 import '../../services/file_organization_service.dart';
 import '../../providers/settings_provider.dart';
+import '../../platform/platform_info.dart';
+import '../../android/android_engine_bridge.dart';
+import '../../setup/dependency_bootstrap_provider.dart';
 import 'widgets/settings_tiles.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'widgets/settings_app_bar_leading.dart';
@@ -26,8 +29,36 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
   BinaryStatus? _ffmpegStatus;
   BinaryStatus? _aria2cStatus;
   bool _isVerifying = false;
+  bool _isUpdatingYtDlp = false;
   bool _isOrganizing = false;
   String _organizingStatus = '';
+
+  Future<void> _updateYtDlpEngine() async {
+    setState(() => _isUpdatingYtDlp = true);
+    try {
+      if (PlatformInfo.isAndroid) {
+        final res = await AndroidEngineBridge.instance.updateYtDlp();
+        if (mounted) {
+          AppToast.showSuccess(context, 'yt-dlp mis à jour : $res');
+          await _verifyBinaries();
+        }
+      } else {
+        await ref
+            .read(dependencyBootstrapProvider.notifier)
+            .ensureReady(updateYtDlp: true);
+        if (mounted) {
+          AppToast.showSuccess(context, context.l10n.notificationYtDlpUpdated);
+          await _verifyBinaries();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.showError(context, 'Erreur de mise à jour : $e');
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingYtDlp = false);
+    }
+  }
 
   Future<void> _verifyBinaries() async {
     setState(() => _isVerifying = true);
@@ -177,6 +208,14 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
                               : l10n.checkDependenciesDesc,
                           icon: Icons.build_circle_outlined,
                           onTap: _isVerifying ? null : _verifyBinaries,
+                        ),
+                        ActionTile(
+                          title: 'Mettre à jour le moteur yt-dlp',
+                          subtitle: _isUpdatingYtDlp
+                              ? 'Téléchargement de la dernière version (nightly)...'
+                              : 'Vérifier et installer la dernière version de yt-dlp',
+                          icon: Icons.system_update_rounded,
+                          onTap: _isUpdatingYtDlp ? null : _updateYtDlpEngine,
                         ),
                         if (_ytDlpStatus != null) ...[
                           const Gap(AppSpacing.s),

@@ -130,19 +130,22 @@ class SendMemoryFilter {
     final seenNew = <String>{};
 
     for (final file in files) {
-      final sha = file.sha256;
-      if (sha == null || sha.isEmpty) continue;
       found += 1;
       final key = file.creatorKey ?? file.creatorHandle ?? '_';
       final counts = byKey.putIfAbsent(key, () => [0, 0, 0]);
       counts[0] += 1;
-      final transferred = checkTransferred && isTransferred(sha);
+
+      final sha = file.sha256;
+      final hasSha = sha != null && sha.isNotEmpty;
+      final transferred = hasSha && checkTransferred && isTransferred(sha);
       if (transferred) {
         already += 1;
         counts[1] += 1;
         continue;
       }
-      if (seenNew.add(sha)) {
+
+      final dedupKey = hasSha ? sha : (file.localPath ?? file.fileName);
+      if (seenNew.add(dedupKey)) {
         newest += 1;
         newBytes += file.size;
         counts[2] += 1;
@@ -181,9 +184,12 @@ class SendMemoryFilter {
     final next = <TransferFile>[];
     for (final file in files) {
       final sha = file.sha256;
-      if (sha == null || sha.isEmpty) continue;
-      if (checkTransferred && isTransferred(sha)) continue;
-      if (!seen.add(sha)) continue;
+      final hasSha = sha != null && sha.isNotEmpty;
+      if (hasSha && checkTransferred && isTransferred(sha)) {
+        continue;
+      }
+      final dedupKey = hasSha ? sha : (file.localPath ?? file.fileName);
+      if (!seen.add(dedupKey)) continue;
       next.add(file);
     }
     return next;

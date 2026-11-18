@@ -49,10 +49,16 @@ class EnginePlugin(
                         try {
                             YoutubeDL.getInstance().updateYoutubeDL(
                                 context,
-                                YoutubeDL.UpdateChannel.STABLE,
+                                YoutubeDL.UpdateChannel.NIGHTLY,
                             )
                         } catch (e: Exception) {
-                            Log.w("EnginePlugin", "Auto-update yt-dlp on init skipped: ${e.message}")
+                            try {
+                                YoutubeDL.getInstance().updateYoutubeDL(
+                                    context,
+                                    YoutubeDL.UpdateChannel.STABLE,
+                                )
+                            } catch (_: Exception) {}
+                            Log.w("EnginePlugin", "Auto-update yt-dlp on init fallback: ${e.message}")
                         }
                         mainResult(result) { it.success(null) }
                     } catch (e: Exception) {
@@ -89,7 +95,7 @@ class EnginePlugin(
                         var status = try {
                             YoutubeDL.getInstance().updateYoutubeDL(
                                 context,
-                                YoutubeDL.UpdateChannel.STABLE,
+                                YoutubeDL.UpdateChannel.NIGHTLY,
                             )
                         } catch (_: Exception) {
                             null
@@ -97,7 +103,7 @@ class EnginePlugin(
                         if (status == null) {
                             status = YoutubeDL.getInstance().updateYoutubeDL(
                                 context,
-                                YoutubeDL.UpdateChannel.NIGHTLY,
+                                YoutubeDL.UpdateChannel.STABLE,
                             )
                         }
                         val version = try {
@@ -174,6 +180,18 @@ class EnginePlugin(
                     result.success(true)
                 } catch (e: Exception) {
                     result.error("share_failed", e.message, null)
+                }
+            }
+            "openUrl" -> {
+                val url = call.argument<String>("url") ?: ""
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("open_url_failed", e.message, null)
                 }
             }
             "getVideoThumbnail" -> {

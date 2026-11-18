@@ -29,5 +29,8 @@ class LaunchData {
 /// Holds the data that triggered the app launch or a remote request.
 final launchDataProvider = StateProvider<LaunchData?>((ref) => null);
 
+/// A verified catalog ID requested by the website through the app URI scheme.
+final pluginInstallRequestProvider = StateProvider<String?>((ref) => null);
+
 /// Deprecated: all launch paths now write [launchDataProvider].
 final launchUrlProvider = StateProvider<String?>((ref) => null);

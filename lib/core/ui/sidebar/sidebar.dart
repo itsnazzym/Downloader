@@ -14,6 +14,7 @@ import '../../../../features/downloader/presentation/providers/filtered_download
 import '../../../../features/downloader/presentation/providers/downloader_provider.dart';
 import '../../../../features/downloader/presentation/providers/download_library_counts.dart';
 import '../../../../core/providers/settings_provider.dart';
+import '../../../../core/plugins/feature_activation.dart';
 import '../../../../core/ui/layout/pane_layout_provider.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../../../features/archive/presentation/providers/tiktok_archive_provider.dart';
@@ -33,6 +34,9 @@ class AppSidebar extends ConsumerWidget {
       downloadListProvider.select((async) => async.isLoading),
     );
     final settings = ref.watch(settingsProvider);
+    final features = ref.watch(featureActivationProvider);
+    final featureCatalog = ref.watch(featureCatalogProvider);
+    final locale = Localizations.localeOf(context).languageCode;
 
     final countActive = libraryCounts.active;
     final countCompleted = libraryCounts.completed;
@@ -211,70 +215,79 @@ class AppSidebar extends ConsumerWidget {
                       KeyedSubtree(
                         key: OnboardingTargets.library,
                         child: SidebarNavSection(
-                        title: l10n.librarySection,
-                        children: [
-                          SidebarNavItem(
-                            icon: Icons.inbox_rounded,
-                            label: l10n.allDownloads,
-                            count: libraryCounts.total,
-                            isLoading: listLoading,
-                            isSelected:
-                                statusFilter == DownloadStatusFilter.all &&
-                                sourceFilter == null,
-                            onTap: () => setStatus(DownloadStatusFilter.all),
-                          ),
-                          SidebarNavItem(
-                            icon: Icons.downloading_rounded,
-                            label: l10n.sidebarActive,
-                            count: countActive,
-                            isLoading: listLoading,
-                            isSelected:
-                                statusFilter == DownloadStatusFilter.active,
-                            onTap: () => setStatus(DownloadStatusFilter.active),
-                          ),
-                          SidebarNavItem(
-                            icon: Icons.check_circle_outline_rounded,
-                            label: l10n.sidebarCompleted,
-                            count: countCompleted,
-                            isLoading: listLoading,
-                            isSelected:
-                                statusFilter == DownloadStatusFilter.completed,
-                            onTap: () =>
-                                setStatus(DownloadStatusFilter.completed),
-                          ),
-                          SidebarNavItem(
-                            icon: Icons.error_outline_rounded,
-                            label: l10n.sidebarFailed,
-                            count: countFailed,
-                            isLoading: listLoading,
-                            isSelected:
-                                statusFilter == DownloadStatusFilter.failed,
-                            onTap: () => setStatus(DownloadStatusFilter.failed),
-                          ),
-                          const Gap(AppSpacing.s),
-                          SidebarNavItem(
-                            icon: Icons.bar_chart_rounded,
-                            label: l10n.statistics,
-                            isSelected: location == '/stats',
-                            onTap: () => context.go('/stats'),
-                          ),
-                          SidebarNavItem(
-                            icon: Icons.ios_share_rounded,
-                            label: l10n.transferTitle,
-                            isSelected: location == '/transfer',
-                            onTap: () => context.go('/transfer'),
-                          ),
-                          SidebarNavItem(
-                            icon: Icons.inventory_2_rounded,
-                            label: 'Archives & Imports',
-                            isSelected: location == '/archive',
-                            onTap: () {
-                              ref.read(tikTokArchiveProvider.notifier).setViewMode(TikTokViewMode.hub);
-                              context.go('/archive');
-                            },
-                          ),
-                        ],
-                      ),
+                          title: l10n.librarySection,
+                          children: [
+                            SidebarNavItem(
+                              icon: Icons.inbox_rounded,
+                              label: l10n.allDownloads,
+                              count: libraryCounts.total,
+                              isLoading: listLoading,
+                              isSelected:
+                                  statusFilter == DownloadStatusFilter.all &&
+                                  sourceFilter == null,
+                              onTap: () => setStatus(DownloadStatusFilter.all),
+                            ),
+                            SidebarNavItem(
+                              icon: Icons.downloading_rounded,
+                              label: l10n.sidebarActive,
+                              count: countActive,
+                              isLoading: listLoading,
+                              isSelected:
+                                  statusFilter == DownloadStatusFilter.active,
+                              onTap: () =>
+                                  setStatus(DownloadStatusFilter.active),
+                            ),
+                            SidebarNavItem(
+                              icon: Icons.check_circle_outline_rounded,
+                              label: l10n.sidebarCompleted,
+                              count: countCompleted,
+                              isLoading: listLoading,
+                              isSelected:
+                                  statusFilter ==
+                                  DownloadStatusFilter.completed,
+                              onTap: () =>
+                                  setStatus(DownloadStatusFilter.completed),
+                            ),
+                            SidebarNavItem(
+                              icon: Icons.error_outline_rounded,
+                              label: l10n.sidebarFailed,
+                              count: countFailed,
+                              isLoading: listLoading,
+                              isSelected:
+                                  statusFilter == DownloadStatusFilter.failed,
+                              onTap: () =>
+                                  setStatus(DownloadStatusFilter.failed),
+                            ),
+                            const Gap(AppSpacing.s),
+                            if (features.isEnabledById('statistics'))
+                              SidebarNavItem(
+                                icon: Icons.bar_chart_rounded,
+                                label: l10n.statistics,
+                                isSelected: location == '/stats',
+                                onTap: () => context.go('/stats'),
+                              ),
+                            if (features.isEnabledById('device_transfer'))
+                              SidebarNavItem(
+                                icon: Icons.ios_share_rounded,
+                                label: l10n.transferTitle,
+                                isSelected: location == '/transfer',
+                                onTap: () => context.go('/transfer'),
+                              ),
+                            if (features.isEnabledById('tiktok_archives'))
+                              SidebarNavItem(
+                                icon: Icons.inventory_2_rounded,
+                                label: featureCatalog.byId['tiktok_archives']!
+                                    .nameFor(locale),
+                                isSelected: location == '/archive',
+                                onTap: () {
+                                  ref
+                                      .read(tikTokArchiveProvider.notifier)
+                                      .setViewMode(TikTokViewMode.hub);
+                                  context.go('/archive');
+                                },
+                              ),
+                          ],
+                        ),
                       ),
                       const Gap(AppSpacing.m),
                       Divider(
@@ -393,4 +406,3 @@ class AppSidebar extends ConsumerWidget {
     );
   }
 }
-

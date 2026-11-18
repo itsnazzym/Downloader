@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/app_typography.dart';
+import 'package:modern_downloader/core/plugins/feature_activation.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_view.dart';
 import 'package:modern_downloader/core/ui/widgets/mesh_gradient_background.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
+import 'package:modern_downloader/features/downloader/presentation/views/mobile/mobile_add_download_sheet.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class MobileAppShell extends ConsumerWidget {
@@ -17,37 +18,65 @@ class MobileAppShell extends ConsumerWidget {
 
   const MobileAppShell({super.key, required this.child});
 
-  int _indexFor(String location) {
-    if (location.startsWith('/browse')) return 1;
-    if (location.startsWith('/transfer')) return 2;
-    if (location.startsWith('/settings') || location.startsWith('/stats')) {
-      return 3;
-    }
-    return 0;
-  }
-
-  void _go(BuildContext context, int index) {
-    switch (index) {
-      case 1:
-        context.go('/browse');
-        break;
-      case 2:
-        context.go('/transfer');
-        break;
-      case 3:
-        context.go('/settings');
-        break;
-      default:
-        context.go('/');
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
     final counts = ref.watch(downloadLibraryCountsProvider);
+    final hasSelection = ref.watch(selectedDownloadIdProvider) != null;
     final location = GoRouterState.of(context).uri.path;
+    final features = ref.watch(featureActivationProvider);
+    final featureCatalog = ref.watch(featureCatalogProvider);
+    final locale = Localizations.localeOf(context).languageCode;
+    final isFr = locale == 'fr';
+    final destinations = <_MobileNavigationDestination>[
+      _MobileNavigationDestination(
+        icon: Icons.video_library_outlined,
+        selectedIcon: Icons.video_library,
+        label: isFr ? 'Vidéos' : 'Library',
+        route: '/',
+      ),
+      if (features.isEnabledById('x_browser'))
+        _MobileNavigationDestination(
+          icon: Icons.travel_explore_outlined,
+          selectedIcon: Icons.travel_explore,
+          label: isFr ? 'Navigateur' : 'Browse',
+          route: '/browse',
+        ),
+      if (features.isEnabledById('statistics'))
+        _MobileNavigationDestination(
+          icon: Icons.bar_chart_outlined,
+          selectedIcon: Icons.bar_chart_rounded,
+          label: 'Stats',
+          route: '/stats',
+        ),
+      if (features.isEnabledById('device_transfer'))
+        _MobileNavigationDestination(
+          icon: Icons.ios_share_outlined,
+          selectedIcon: Icons.ios_share,
+          label: isFr ? 'Transfert' : 'Transfer',
+          route: '/transfer',
+        ),
+      if (features.isEnabledById('tiktok_archives'))
+        _MobileNavigationDestination(
+          icon: Icons.inventory_2_outlined,
+          selectedIcon: Icons.inventory_2_rounded,
+          label: 'TikTok',
+          route: '/archive',
+        ),
+      _MobileNavigationDestination(
+        icon: Icons.settings_outlined,
+        selectedIcon: Icons.settings,
+        label: isFr ? 'Réglages' : 'Settings',
+        route: '/settings',
+      ),
+    ];
+    final matchedDestination = destinations.indexWhere(
+      (destination) => destination.matches(location),
+    );
+    final selectedDestination = matchedDestination >= 0
+        ? matchedDestination
+        : destinations.length - 1;
     final mesh = colors.useMeshBackground;
     final isLibraryRoot = location == '/';
 
@@ -109,10 +138,7 @@ class MobileAppShell extends ConsumerWidget {
                   tooltip: l10n.newDownload,
                   onPressed: () {
                     HapticFeedback.lightImpact();
-                    showDialog(
-                      context: context,
-                      builder: (context) => const AddDownloadDialog(),
-                    );
+                    MobileAddDownloadSheet.show(context);
                   },
                   icon: const Icon(Icons.add_link_rounded),
                 ),
@@ -120,23 +146,17 @@ class MobileAppShell extends ConsumerWidget {
             )
           : null,
       body: child,
-      floatingActionButton: isLibraryRoot
-          ? FloatingActionButton.extended(
+      floatingActionButton: (isLibraryRoot && !hasSelection)
+          ? FloatingActionButton(
+              heroTag: 'mobile_add_download_fab',
               onPressed: () {
                 HapticFeedback.mediumImpact();
-                showDialog(
-                  context: context,
-                  builder: (context) => const AddDownloadDialog(),
-                );
+                MobileAddDownloadSheet.show(context);
               },
               backgroundColor: colors.accent,
               foregroundColor: colors.onPrimary,
-              elevation: 3,
-              icon: const Icon(Icons.add_rounded),
-              label: Text(
-                l10n.newDownload,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+              elevation: 4,
+              child: const Icon(Icons.add_rounded, size: 28),
             )
           : null,
       bottomNavigationBar: Column(
@@ -160,8 +180,10 @@ class MobileAppShell extends ConsumerWidget {
                     }
                   },
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: colors.surface,
                       borderRadius: BorderRadius.circular(10),
@@ -217,48 +239,49 @@ class MobileAppShell extends ConsumerWidget {
                 ),
               ),
             ),
-          NavigationBar(
-            selectedIndex: _indexFor(location),
-            onDestinationSelected: (index) {
-              HapticFeedback.selectionClick();
-              _go(context, index);
-            },
-            destinations: [
-              NavigationDestination(
-                icon: counts.active > 0
-                    ? Badge.count(
-                        count: counts.active,
-                        backgroundColor: colors.primary,
-                        textColor: colors.onPrimary,
-                        child: const Icon(Icons.video_library_outlined),
-                      )
-                    : const Icon(Icons.video_library_outlined),
-                selectedIcon: counts.active > 0
-                    ? Badge.count(
-                        count: counts.active,
-                        backgroundColor: colors.primary,
-                        textColor: colors.onPrimary,
-                        child: const Icon(Icons.video_library),
-                      )
-                    : const Icon(Icons.video_library),
-                label: l10n.mobileLibrary,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.travel_explore_outlined),
-                selectedIcon: const Icon(Icons.travel_explore),
-                label: l10n.browseX,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.ios_share_outlined),
-                selectedIcon: const Icon(Icons.ios_share),
-                label: l10n.transferTitle,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.settings_outlined),
-                selectedIcon: const Icon(Icons.settings),
-                label: l10n.settings,
-              ),
-            ],
+          NavigationBarTheme(
+            data: NavigationBarThemeData(
+              height: 62,
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                final isSelected = states.contains(WidgetState.selected);
+                return TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  letterSpacing: -0.2,
+                  overflow: TextOverflow.ellipsis,
+                );
+              }),
+            ),
+            child: NavigationBar(
+              selectedIndex: selectedDestination,
+              onDestinationSelected: (index) {
+                HapticFeedback.selectionClick();
+                context.go(destinations[index].route);
+              },
+              destinations: destinations
+                  .map(
+                    (destination) => NavigationDestination(
+                      icon: destination.route == '/' && counts.active > 0
+                          ? Badge.count(
+                              count: counts.active,
+                              backgroundColor: colors.primary,
+                              textColor: colors.onPrimary,
+                              child: Icon(destination.icon, size: 22),
+                            )
+                          : Icon(destination.icon, size: 22),
+                      selectedIcon: destination.route == '/' && counts.active > 0
+                          ? Badge.count(
+                              count: counts.active,
+                              backgroundColor: colors.primary,
+                              textColor: colors.onPrimary,
+                              child: Icon(destination.selectedIcon, size: 22),
+                            )
+                          : Icon(destination.selectedIcon, size: 22),
+                      label: destination.label,
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
         ],
       ),
@@ -295,4 +318,22 @@ class MobileAppShell extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _MobileNavigationDestination {
+  const _MobileNavigationDestination({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.route,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final String route;
+
+  bool matches(String location) => route == '/'
+      ? location == '/'
+      : location == route || location.startsWith('$route/');
 }

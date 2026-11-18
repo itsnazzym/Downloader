@@ -1,0 +1,61 @@
+/* The picker lives in the native top layer, above Astro page transitions. */
+.download-dialog {
+  position: fixed; inset: 0; margin: auto; box-sizing: border-box;
+  width: min(550px, calc(100% - 32px)); height: fit-content; max-height: calc(100dvh - 32px);
+  padding: 0; overflow: auto; overscroll-behavior: contain;
+  border: 1px solid #45454d; border-radius: 16px; background: #161618; color: #f1f1f5;
+  box-shadow: 0 28px 90px #0006, inset 0 1px 0 #ffffff0a;
+}
+.download-dialog::backdrop { background: #0004; }
+.download-dialog [hidden] { display: none !important; }
+.download-dialog-inner { padding: 28px; }
+.download-dialog-header { position: relative; }
+.download-platform { display: none; }
+.download-dialog-kicker { margin: 0 42px 18px 0; color: #a5a5b1; font-size: 10px; line-height: 1.5; letter-spacing: .065em; font-weight: 550; }
+.download-dialog-kicker span { margin-inline: 6px; color: #60606c; }
+.download-dialog-header h2 { margin: 0; font-size: 26px; line-height: 1.22; font-weight: 600; letter-spacing: -.04em; text-wrap: balance; }
+.download-dialog-header h2:focus { outline: none; }
+.download-dialog-header p:last-child { max-width: 400px; margin: 10px 0 0; font-size: 13px; line-height: 1.65; color: #b1b1bd; }
+.download-dialog-close { position: absolute; top: -12px; inset-inline-end: -12px; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #a8a8b3; font: 25px/1 sans-serif; cursor: pointer; }
+.download-dialog-close:hover { background: #29292e; color: #fff; }
+.download-dialog-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; min-width: 0; margin: 24px 0 0; padding: 0; border: 0; }
+.download-option { position: relative; display: flex; flex-direction: column; gap: 16px; min-height: 194px; padding: 18px; border: 1px solid #3c3c44; border-radius: 10px; background: #1c1c20; cursor: pointer; transition: border-color 180ms ease, background 180ms ease; }
+.download-option:hover { border-color: #787885; background: #232329; }
+.download-option:has(input:checked) { border-color: #c3c3cd; background: #26262d; box-shadow: inset 0 0 0 1px #c3c3cd; }
+.download-option:has(input:disabled) { opacity: .55; cursor: wait; }
+.download-option input { position: absolute; top: 20px; inset-inline-end: 18px; width: 17px; height: 17px; margin: 0; accent-color: #e8e8ef; cursor: inherit; }
+.download-option-mark { display: grid; place-items: center; width: 39px; height: 44px; border: 1px solid #5b5b67; border-radius: 6px; background: #202026; color: #e3e3eb; font-size: 10px; font-weight: 650; letter-spacing: .05em; box-shadow: 2px 3px 0 #111114; transform: perspective(350px) rotateY(-10deg); transition: transform 200ms ease; }
+.download-option:hover .download-option-mark { transform: perspective(350px) rotateY(0) translateZ(4px); }
+.download-option-copy { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 8px; }
+.download-option-copy strong { font-size: 14px; line-height: 1.35; font-weight: 600; }
+.download-option-copy > span { font-size: 12px; line-height: 1.55; color: #b9b9c5; }
+.download-option-copy small { margin-top: auto; padding-top: 3px; font-size: 11px; color: #b0b0bd; font-variant-numeric: tabular-nums; }
+.download-dialog-footer { margin-top: 22px; padding-top: 17px; border-top: 1px solid #35353d; }
+.download-release-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin-bottom: 15px; color: #a8a8b5; font-size: 10px; line-height: 1.6; }
+.download-release-line strong { margin-inline-start: 4px; color: #d8d8e2; font-weight: 500; }
+.download-submit { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 17px; border: 1px solid #f0f0f4; border-radius: 8px; background: #ededf2; color: #151519; font-size: 13px; font-weight: 650; text-decoration: none; transition: background 160ms ease, transform 160ms ease; }
+.download-submit:hover { background: #fff; color: #09090b; }
+.download-submit:active { transform: translateY(1px); }
+.download-submit[aria-disabled='true'] { opacity: .4; cursor: not-allowed; }
+.download-submit svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.download-dialog-status { margin: 16px 0 0; font-size: 12px; line-height: 1.5; color: #c0c0cd; }
+.download-dialog-retry { min-height: 40px; margin-top: 8px; padding: 6px 12px; border: 1px solid #656571; border-radius: 6px; background: #29292f; color: #f0f0f5; font: inherit; font-size: 12px; cursor: pointer; }
+.download-dialog :is(a, button, input):focus-visible { outline: 2px solid #e5e5f0; outline-offset: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .download-dialog[open] { animation: download-picker-enter 180ms cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes download-picker-enter { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .download-dialog * { transition: none !important; }
+  .download-option-mark, .download-option:hover .download-option-mark { transform: none; }
+}
+@media (max-width: 440px) {
+  .download-dialog-inner { padding: 22px; }
+  .download-dialog-header h2 { font-size: 23px; }
+  .download-dialog-options { grid-template-columns: 1fr; gap: 9px; margin-top: 19px; }
+  .download-option { flex-direction: row; min-height: auto; gap: 14px; padding: 16px 42px 16px 16px; }
+  [dir='rtl'] .download-option { padding-inline: 16px 42px; }
+  .download-option-mark { flex-shrink: 0; }
+  .download-option-copy { gap: 5px; }
+  .download-option input { top: 19px; inset-inline-end: 14px; }
+}

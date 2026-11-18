@@ -1,10 +1,30 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:path_provider/path_provider.dart';
 import 'download_queue_codec.dart';
+
+/// JSON encoding a multi-thousand-item library is CPU intensive. Keep it off
+/// the Flutter UI isolate so download progress never stalls input or frames.
+Future<String> encodeDownloadsInBackground(List<DownloadItem> downloads) {
+  return Isolate.run(() => _encodeDownloads(downloads));
+}
+
+String _encodeDownloads(List<DownloadItem> downloads) {
+  return jsonEncode([for (final download in downloads) download.toJson()]);
+}
+
+Future<List<DownloadItem>> _decodeDownloadsInBackground(String source) {
+  return Isolate.run(() {
+    final decoded = jsonDecode(source) as List<dynamic>;
+    return decoded
+        .map((entry) => DownloadItem.fromJson(entry as Map<String, dynamic>))
+        .toList(growable: false);
+  });
+}
 
 class PersistenceService {
   static const String _fileName = 'downloads_v1.json';
@@ -14,8 +34,7 @@ class PersistenceService {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$_fileName');
-      final data = downloads.map((e) => e.toJson()).toList();
-      final jsonString = jsonEncode(data);
+      final jsonString = await encodeDownloadsInBackground(downloads);
       await _atomicWrite(file, jsonString);
       LoggerService.debug('Saved ${downloads.length} downloads to disk.');
     } catch (e) {
@@ -32,7 +51,9 @@ class PersistenceService {
       File effectiveFile = file;
       if (!await file.exists()) {
         if (await bakFile.exists()) {
-          LoggerService.w('Primary downloads file missing, recovering from backup: ${bakFile.path}');
+          LoggerService.w(
+            'Primary downloads file missing, recovering from backup: ${bakFile.path}',
+          );
           effectiveFile = bakFile;
         } else {
           LoggerService.i('No saved downloads found.');
@@ -45,17 +66,16 @@ class PersistenceService {
         jsonString = await effectiveFile.readAsString();
       } catch (e) {
         if (effectiveFile != bakFile && await bakFile.exists()) {
-          LoggerService.w('Failed reading primary file, falling back to backup: $e');
+          LoggerService.w(
+            'Failed reading primary file, falling back to backup: $e',
+          );
           jsonString = await bakFile.readAsString();
         } else {
           rethrow;
         }
       }
 
-      final List<dynamic> jsonList = jsonDecode(jsonString);
-      final downloads = jsonList
-          .map((e) => DownloadItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final downloads = await _decodeDownloadsInBackground(jsonString);
 
       LoggerService.i('Loaded ${downloads.length} downloads from disk.');
       return downloads;

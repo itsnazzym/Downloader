@@ -10,8 +10,10 @@ import 'package:modern_downloader/core/download/extraction_placeholders.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 
+import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/core/ui/widgets/log_viewer.dart';
+import '../dialogs/age_verification_help_dialog.dart';
 import 'video_preview_widget.dart';
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
@@ -69,9 +71,9 @@ class DownloadInspector extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   l10n.inspector,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -230,7 +232,9 @@ class DownloadInspector extends ConsumerWidget {
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('URL copiée dans le presse-papier'),
+                                content: Text(
+                                  'URL copiée dans le presse-papier',
+                                ),
                                 duration: Duration(seconds: 2),
                               ),
                             );
@@ -246,7 +250,9 @@ class DownloadInspector extends ConsumerWidget {
                             onPressed: () {
                               HapticFeedback.lightImpact();
                               if (PlatformInfo.isAndroid) {
-                                AndroidEngineBridge.instance.viewFile(validPath);
+                                AndroidEngineBridge.instance.viewFile(
+                                  validPath,
+                                );
                               } else {
                                 _openInFolder(validPath);
                               }
@@ -270,7 +276,9 @@ class DownloadInspector extends ConsumerWidget {
                             child: OutlinedButton.icon(
                               onPressed: () {
                                 HapticFeedback.lightImpact();
-                                AndroidEngineBridge.instance.shareFile(validPath);
+                                AndroidEngineBridge.instance.shareFile(
+                                  validPath,
+                                );
                               },
                               icon: const Icon(Icons.share_rounded, size: 16),
                               label: const Text('Partager'),
@@ -283,39 +291,101 @@ class DownloadInspector extends ConsumerWidget {
 
                   if (item.error != null) ...[
                     const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.of(
-                          context,
-                        ).error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: AppColors.of(
-                            context,
-                          ).error.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            color: AppColors.of(context).error,
-                            size: 20,
+                    if (DownloadStatusGuard.isAgeVerificationFailure(
+                      error: item.error,
+                      url: item.request.url,
+                    )) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.amber.withValues(alpha: 0.4),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(
+                                  Icons.shield_outlined,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Vérification d\'âge requise (+18)',
+                                  style: TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
                               item.error!,
-                              style: TextStyle(
-                                color: AppColors.of(context).error,
-                                fontSize: 13,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                height: 1.35,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 12),
+                            FilledButton.icon(
+                              onPressed: () => AgeVerificationHelpDialog.show(
+                                context,
+                                item,
+                              ),
+                              icon: const Icon(
+                                Icons.help_outline_rounded,
+                                size: 16,
+                              ),
+                              label: const Text('Voir les solutions (+18)'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.amber.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.of(
+                            context,
+                          ).error.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.of(
+                              context,
+                            ).error.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              color: AppColors.of(context).error,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                item.error!,
+                                style: TextStyle(
+                                  color: AppColors.of(context).error,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
 
                   const SizedBox(height: 24),
@@ -333,8 +403,17 @@ class DownloadInspector extends ConsumerWidget {
                                   .read(downloadListProvider.notifier)
                                   .pauseDownload(item.id);
                             },
-                            icon: const Icon(Icons.pause, size: 18),
-                            label: Text(l10n.pause),
+                            icon: const Icon(Icons.pause, size: 16),
+                            label: Text(
+                              l10n.pause,
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -345,9 +424,16 @@ class DownloadInspector extends ConsumerWidget {
                                   .read(downloadListProvider.notifier)
                                   .cancelDownload(item.id);
                             },
-                            icon: const Icon(Icons.cancel_outlined, size: 18),
-                            label: Text(l10n.cancel),
+                            icon: const Icon(Icons.cancel_outlined, size: 16),
+                            label: Text(
+                              l10n.cancel,
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
                             style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
                               foregroundColor: AppColors.of(context).error,
                               side: BorderSide(
                                 color: AppColors.of(context).error,
@@ -366,9 +452,16 @@ class DownloadInspector extends ConsumerWidget {
                                   .read(downloadListProvider.notifier)
                                   .resumeDownload(item.id);
                             },
-                            icon: const Icon(Icons.play_arrow, size: 18),
-                            label: Text(l10n.resume),
+                            icon: const Icon(Icons.play_arrow, size: 16),
+                            label: Text(
+                              l10n.resume,
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
                             style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
                               foregroundColor: AppColors.of(context).primary,
                               side: BorderSide(
                                 color: AppColors.of(context).primary,
@@ -391,14 +484,19 @@ class DownloadInspector extends ConsumerWidget {
                             },
                             icon: const Icon(
                               Icons.restart_alt_rounded,
-                              size: 18,
+                              size: 16,
                             ),
                             label: Text(
                               item.status == DownloadStatus.completed
                                   ? l10n.restartDownload
                                   : l10n.retry,
+                              maxLines: 1,
+                              softWrap: false,
                             ),
                             style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
                               foregroundColor: AppColors.of(context).primary,
                               side: BorderSide(
                                 color: AppColors.of(context).primary,
@@ -423,9 +521,14 @@ class DownloadInspector extends ConsumerWidget {
                             // The view will rebuild and might error content if we don't handle "not found" carefully.
                             // It's handled below.
                           },
-                          icon: const Icon(Icons.delete_outline, size: 18),
-                          label: Text(l10n.delete),
+                          icon: const Icon(Icons.delete_outline, size: 16),
+                          label: Text(
+                            l10n.delete,
+                            maxLines: 1,
+                            softWrap: false,
+                          ),
                           style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
                             foregroundColor: AppColors.of(context).textPrimary,
                             side: BorderSide(
                               color: AppColors.of(context).border,
@@ -649,10 +752,7 @@ class _InfoRow extends StatelessWidget {
                     color: colors.textPrimary,
                     fontSize: 12.5,
                   )
-                : TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 13,
-                  ),
+                : TextStyle(color: colors.textPrimary, fontSize: 13),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),

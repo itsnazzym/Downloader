@@ -1,0 +1,285 @@
+---
+import '../styles/download-dialog.css';
+const copy = {
+  fr: {
+    title: 'Installer Modern Downloader',
+    description: 'Une installation guidée ou une version sans installation.',
+    installerAction: 'Télécharger l’installeur', portableAction: 'Télécharger le ZIP',
+    requested: 'Demande envoyée au navigateur.', unavailable: 'Indisponible dans cette version',
+    version: 'Dernière version',
+    installer: 'Installation classique',
+    installerDetail: 'Laissez l’assistant vous guider. Le choix recommandé pour commencer.',
+    portable: 'Version portable',
+    portableDetail: 'Extrayez l’archive dans le dossier de votre choix, puis lancez l’application.',
+    choose: 'Télécharger',
+    loading: 'Recherche des fichiers publiés…',
+    failed: 'Les fichiers ne sont pas disponibles pour le moment. Réessayez dans quelques instants.',
+    retry: 'Réessayer',
+    close: 'Fermer',
+  },
+  en: {
+    title: 'Install Modern Downloader',
+    description: 'Guided setup or a version that needs no installation.',
+    installerAction: 'Download installer', portableAction: 'Download ZIP',
+    requested: 'Download requested in your browser.', unavailable: 'Unavailable in this release',
+    version: 'Latest version',
+    installer: 'Standard installation',
+    installerDetail: 'Let the setup wizard guide you. Recommended for getting started.',
+    portable: 'Portable version',
+    portableDetail: 'Extract the archive into your chosen folder, then launch the app.',
+    choose: 'Download',
+    loading: 'Finding published files…',
+    failed: 'The files are unavailable right now. Please try again in a moment.',
+    retry: 'Try again',
+    close: 'Close',
+  },
+  ar: {
+    title: 'تثبيت Modern Downloader',
+    description: 'إعداد موجّه أو نسخة لا تحتاج إلى تثبيت.',
+    installerAction: 'تنزيل المثبّت', portableAction: 'تنزيل ZIP',
+    requested: 'تم إرسال طلب التنزيل إلى المتصفح.', unavailable: 'غير متاح في هذا الإصدار',
+    version: 'أحدث إصدار',
+    installer: 'مثبّت Windows',
+    installerDetail: 'اتبع خطوات معالج الإعداد. الخيار الموصى به للبدء.',
+    portable: 'النسخة المحمولة',
+    portableDetail: 'استخرج الأرشيف إلى المجلد الذي تختاره، ثم شغّل التطبيق.',
+    choose: 'تنزيل',
+    loading: 'جارٍ البحث عن الملفات المنشورة…',
+    failed: 'الملفات غير متاحة الآن. حاول مرة أخرى بعد قليل.',
+    retry: 'أعد المحاولة',
+    close: 'إغلاق',
+  },
+};
+const lang = ['fr', 'en', 'ar'].includes(String(Astro.props.lang))
+  ? String(Astro.props.lang) as 'fr' | 'en' | 'ar'
+  : 'en';
+const text = copy[lang];
+---
+
+<dialog
+  id="download-options"
+  class="download-dialog"
+  data-design-version="format-picker-v3"
+  data-download-dialog
+  data-unavailable-text={text.unavailable}
+  aria-labelledby="download-dialog-title"
+  aria-describedby="download-dialog-description"
+  lang={lang}
+  dir={lang === 'ar' ? 'rtl' : 'ltr'}
+>
+  <div class="download-dialog-inner">
+    <header class="download-dialog-header">
+      <div>
+        <span class="download-platform" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h8v8H3zm10 0h8v8h-8zM3 14h8v7H3zm10 0h8v7h-8z" /></svg></span>
+        <p class="download-dialog-kicker">MODERN DOWNLOADER <span aria-hidden="true">/</span> WINDOWS</p>
+        <h2 id="download-dialog-title" tabindex="-1" autofocus>{text.title}</h2>
+        <p id="download-dialog-description">{text.description}</p>
+      </div>
+      <button class="download-dialog-close" type="button" data-download-close aria-label={text.close}>
+        <span aria-hidden="true">×</span>
+      </button>
+    </header>
+
+    <p
+      class="download-dialog-status"
+      role="status"
+      aria-live="polite"
+      data-download-status
+      data-loading-text={text.loading}
+      data-failed-text={text.failed}
+    >{text.loading}</p>
+    <button class="download-dialog-retry" type="button" data-download-retry hidden>{text.retry}</button>
+
+    <fieldset class="download-dialog-options" data-download-list>
+      <legend class="sr-only">{text.description}</legend>
+      <label class="download-option">
+        <input type="radio" name="download-format" value="installer" data-download-option="installer" data-action-label={text.installerAction} checked disabled />
+        <span class="download-option-mark" aria-hidden="true">EXE</span>
+        <span class="download-option-copy">
+          <strong>{text.installer}</strong>
+          <span>{text.installerDetail}</span>
+          <small data-download-file-detail="installer"></small>
+        </span>
+      </label>
+      <label class="download-option">
+        <input type="radio" name="download-format" value="portable" data-download-option="portable" data-action-label={text.portableAction} disabled />
+        <span class="download-option-mark" aria-hidden="true">ZIP</span>
+        <span class="download-option-copy">
+          <strong>{text.portable}</strong>
+          <span>{text.portableDetail}</span>
+          <small data-download-file-detail="portable"></small>
+        </span>
+      </label>
+    </fieldset>
+    <div class="download-dialog-footer">
+      <div class="download-release-line"><span>{text.version} <strong data-download-version>—</strong></span><span>Windows 10 / 11 · x64</span></div>
+      <a class="download-submit" data-download-submit aria-disabled="true" tabindex="-1" data-requested-text={text.requested}>
+        <span data-download-submit-label>{text.installerAction}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" /></svg>
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  type ReleaseAsset = { name: string; size: number; browser_download_url: string };
+  type LatestRelease = { tag_name: string; assets: ReleaseAsset[] };
+
+  let latestReleaseRequest: Promise<LatestRelease> | undefined;
+
+  function getLatestRelease(retry = false): Promise<LatestRelease> {
+    if (retry || !latestReleaseRequest) {
+      latestReleaseRequest = fetch('https://api.github.com/repos/itsnazzym/Downloader/releases/latest', {
+        headers: { Accept: 'application/vnd.github+json' },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(8000),
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error('Release metadata request failed');
+          const release = await response.json();
+          if (typeof release?.tag_name !== 'string' || !Array.isArray(release.assets)) {
+            throw new Error('Release metadata is invalid');
+          }
+          return release as LatestRelease;
+        })
+        .catch((error: unknown) => {
+          latestReleaseRequest = undefined;
+          throw error;
+        });
+    }
+    return latestReleaseRequest;
+  }
+
+  function formatSize(size: number): string {
+    if (!Number.isFinite(size) || size <= 0) return '';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const unitIndex = Math.min(Math.floor(Math.log(size) / Math.log(1024)), units.length - 1);
+    const value = size / 1024 ** unitIndex;
+    return `${new Intl.NumberFormat(document.documentElement.lang, { maximumFractionDigits: 1 }).format(value)} ${units[unitIndex]}`;
+  }
+
+  function safeAssetUrl(asset: ReleaseAsset): string | undefined {
+    try {
+      const url = new URL(asset.browser_download_url);
+      if (url.protocol !== 'https:' || url.hostname !== 'github.com' || !url.pathname.startsWith('/itsnazzym/Downloader/releases/download/')) return;
+      return url.href;
+    } catch {
+      return;
+    }
+  }
+
+  function updateSelection(dialog: HTMLDialogElement) {
+    const selected = dialog.querySelector<HTMLInputElement>('[data-download-option]:checked');
+    const action = dialog.querySelector<HTMLAnchorElement>('[data-download-submit]');
+    const label = dialog.querySelector<HTMLElement>('[data-download-submit-label]');
+    if (!selected || !action || !label) return;
+    const url = selected.disabled ? undefined : selected.dataset.url;
+    label.textContent = selected.dataset.actionLabel ?? '';
+    action.setAttribute('aria-disabled', String(!url));
+    action.tabIndex = url ? 0 : -1;
+    if (url) action.href = url;
+    else action.removeAttribute('href');
+  }
+
+  async function loadDownloadOptions(dialog: HTMLDialogElement, retry = false) {
+    if (dialog.dataset.loading === 'true') return;
+    if (dialog.dataset.loaded === 'true' && !retry) return;
+    const status = dialog.querySelector<HTMLElement>('[data-download-status]')!;
+    const retryButton = dialog.querySelector<HTMLButtonElement>('[data-download-retry]')!;
+    const options = Array.from(dialog.querySelectorAll<HTMLInputElement>('[data-download-option]'));
+    dialog.dataset.loading = 'true';
+    status.hidden = false;
+    status.textContent = status.dataset.loadingText ?? '';
+    retryButton.hidden = true;
+    options.forEach((option) => { option.disabled = true; delete option.dataset.url; });
+    updateSelection(dialog);
+    try {
+      const release = await getLatestRelease(retry);
+      if (!dialog.isConnected) return;
+      let available = 0;
+      options.forEach((option) => {
+        const asset = release.assets.find((item) => typeof item?.name === 'string' && (
+          option.value === 'installer'
+            ? /^ModernDownloader-Setup-.+\.exe$/i.test(item.name)
+            : item.name.toLowerCase() === 'moderndownloader-windows-portable.zip'
+        ));
+        const url = asset && safeAssetUrl(asset);
+        const detail = dialog.querySelector<HTMLElement>('[data-download-file-detail="' + option.value + '"]');
+        if (asset && url) {
+          option.dataset.url = url;
+          option.disabled = false;
+          available++;
+          if (detail) detail.textContent = formatSize(asset.size);
+        } else if (detail) detail.textContent = dialog.dataset.unavailableText ?? '';
+      });
+      if (!available) throw new Error('No Windows assets available');
+      if (!options.some((option) => option.checked && !option.disabled)) {
+        options.find((option) => !option.disabled)!.checked = true;
+      }
+      dialog.querySelector<HTMLElement>('[data-download-version]')!.textContent = release.tag_name;
+      dialog.dataset.loaded = 'true';
+      status.hidden = true;
+      updateSelection(dialog);
+    } catch {
+      status.textContent = status.dataset.failedText ?? '';
+      retryButton.hidden = false;
+      updateSelection(dialog);
+    } finally {
+      delete dialog.dataset.loading;
+    }
+  }
+
+  document.addEventListener('change', (event) => {
+    const option = event.target;
+    if (!(option instanceof HTMLInputElement) || !option.matches('[data-download-option]')) return;
+    const dialog = option.closest<HTMLDialogElement>('[data-download-dialog]');
+    if (!dialog) return;
+    dialog.querySelector<HTMLElement>('[data-download-status]')!.hidden = true;
+    updateSelection(dialog);
+  });
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const trigger = target.closest<HTMLElement>('[data-download-open]');
+    if (trigger) {
+      event.preventDefault();
+      const dialog = document.querySelector<HTMLDialogElement>('[data-download-dialog]');
+      if (!dialog) return;
+      if (!dialog.open) dialog.showModal();
+      void loadDownloadOptions(dialog);
+      return;
+    }
+    const close = target.closest('[data-download-close]');
+    if (close) {
+      close.closest<HTMLDialogElement>('[data-download-dialog]')?.close();
+      return;
+    }
+    const retry = target.closest('[data-download-retry]');
+    if (retry) {
+      const dialog = retry.closest<HTMLDialogElement>('[data-download-dialog]');
+      if (dialog) void loadDownloadOptions(dialog, true);
+      return;
+    }
+    const action = target.closest<HTMLAnchorElement>('[data-download-submit]');
+    if (action) {
+      if (action.getAttribute('aria-disabled') === 'true' || !action.hasAttribute('href')) {
+        event.preventDefault();
+        return;
+      }
+      const status = action.closest('[data-download-dialog]')?.querySelector<HTMLElement>('[data-download-status]');
+      if (status) {
+        status.hidden = false;
+        status.textContent = action.dataset.requestedText ?? '';
+      }
+    }
+    if (target instanceof HTMLDialogElement && target.matches('[data-download-dialog]')) {
+      const rect = target.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) target.close();
+    }
+  });
+
+  document.addEventListener('astro:before-swap', () => {
+    document.querySelector<HTMLDialogElement>('[data-download-dialog]')?.close();
+  });
+</script>

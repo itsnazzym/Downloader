@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
 import '../logger/logger_service.dart';
@@ -105,6 +107,10 @@ const _kStatsKey = 'download_stats';
 
 /// Manages download statistics with persistence.
 class DownloadStatsNotifier extends StateNotifier<DownloadStats> {
+  List<DownloadItem>? _pendingLibrarySnapshot;
+  int _librarySnapshotRevision = 0;
+  bool _libraryRebuildRunning = false;
+
   DownloadStatsNotifier() : super(DownloadStats(lastUpdated: DateTime.now())) {
     _load();
   }
@@ -188,9 +194,48 @@ class DownloadStatsNotifier extends StateNotifier<DownloadStats> {
   }
 
   /// Replace incremental event counts with a snapshot of the real library.
+  /// File metadata lookups and aggregation run in a worker isolate so a large
+  /// catalogue cannot block Flutter while it is being reconciled.
   void rebuildFromLibrary(List<DownloadItem> items) {
-    state = LibraryStatsBuilder.fromItems(items);
-    _save();
+    _pendingLibrarySnapshot = List<DownloadItem>.of(items, growable: false);
+    _librarySnapshotRevision++;
+    if (_libraryRebuildRunning) return;
+    _libraryRebuildRunning = true;
+    unawaited(_rebuildLatestLibrarySnapshot());
+  }
+
+  Future<void> _rebuildLatestLibrarySnapshot() async {
+    while (mounted) {
+      final revision = _librarySnapshotRevision;
+      final snapshot = _pendingLibrarySnapshot;
+      if (snapshot == null) break;
+
+      try {
+        final rebuilt = await Isolate.run(
+          () => LibraryStatsBuilder.fromItems(snapshot),
+        );
+        if (!mounted) return;
+        if (revision != _librarySnapshotRevision) continue;
+
+        state = rebuilt;
+        _save();
+        _pendingLibrarySnapshot = null;
+      } catch (e) {
+        LoggerService.w('Failed to rebuild download statistics: $e');
+        if (revision == _librarySnapshotRevision) {
+          _pendingLibrarySnapshot = null;
+          break;
+        }
+      }
+
+      if (revision == _librarySnapshotRevision) break;
+    }
+
+    _libraryRebuildRunning = false;
+    if (mounted && _pendingLibrarySnapshot != null) {
+      _libraryRebuildRunning = true;
+      unawaited(_rebuildLatestLibrarySnapshot());
+    }
   }
 
   String _todayString() {

@@ -1,0 +1,6 @@
+{
+  "taste_state": "applied",
+  "profile": "download-taste.json",
+  "decisions": ["Native radio selection", "Explicit direct-download action", "Matte graphite finish", "Small perspective icon", "Keyboard focus and reduced-motion support"],
+  "validation_boundary": "Astro diagnostics and production build; no live browser visual confirmation"
+}

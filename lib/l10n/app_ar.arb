@@ -251,7 +251,12 @@
   "@serverPortRestartHint": {
     "placeholders": { "port": { "type": "int" } }
   },
-  "torBypassDesc": "تجاوز الحظر الجغرافي عبر Tor (127.0.0.1:9050)",
+  "torBypassDesc": "شغّل Tor في الخلفية ومرّر التنزيلات عبره (127.0.0.1:9050)",
+  "torProxyStarting": "جارٍ تشغيل Tor…",
+  "torProxyReady": "Tor جاهز على 127.0.0.1:9050",
+  "torProxyExisting": "وكيل Tor يعمل بالفعل على 127.0.0.1:9050",
+  "torProxyStopped": "Tor متوقف",
+  "torProxyFailed": "Tor غير متاح",
   "selectCookiesFile": "اختر cookies.txt",
   "clearCookies": "مسح ملفات تعريف الارتباط",
   "selectQuality": "اختر الجودة",
@@ -384,8 +389,8 @@
   "previewSetup": "عرض شاشة الإعداد (مؤقت)",
   "previewSetupDesc": "إعادة تشغيل فحص الأدوات وتثبيتها على كامل الشاشة",
 
-  "pluginsSectionTitle": "الإضافات",
-  "pluginsSectionHint": "وحدات داخل التطبيق مثل Auto Rename و Smart Organizer.",
+  "pluginsSectionTitle": "إضافات سير التنزيل",
+  "pluginsSectionHint": "تضيف هذه الإضافات إجراءات قبل التنزيل أو بعد اكتماله.",
   "browserExtensionsTitle": "إضافة المتصفح",
   "browserExtensionsHint": "أرسل الروابط من المتصفح إلى التطبيق. نقرة واحدة تجهّز الإضافة وتفتح صفحة المتصفح.",
   "chromeExtensionTitle": "Chrome / Edge / Brave",
@@ -624,5 +629,15 @@
   "onboardingExtensionTitle": "إضافة المتصفح",
   "onboardingExtensionBody": "ثبّت إضافة كروم أو فايرفوكس لإرسال الروابط إلى هنا.",
   "onboardingReadyTitle": "جاهز",
-  "onboardingReadyBody": "أعد الجولة من الإعدادات > عام."
+  "onboardingReadyBody": "أعد الجولة من الإعدادات > عام.",
+  "pluginFeaturesTitle": "ميزات التطبيق",
+  "pluginFeaturesHint": "فعّل الشاشات والأدوات التي تستخدمها فقط. تعطيل الميزة لا يحذفها ولا يحذف بياناتها.",
+  "pluginRequired": "أساسي",
+  "pluginActivate": "تفعيل الميزة",
+  "pluginOpen": "فتح الميزة",
+  "pluginInactiveTitle": "الميزة معطّلة",
+  "pluginInactiveBody": "لا تزال الميزة متاحة وبياناتها محفوظة. يمكنك إعادة تفعيلها من إعدادات الإضافات.",
+  "pluginManage": "إدارة الإضافات",
+  "pluginWebRequest": "طلب موقع Modern Downloader هذه الميزة. أكّد هنا لإضافتها إلى واجهتك.",
+  "pluginExternalHint": "تُثبّت هذه الإضافة في المتصفح. اتبع خطوات الإعداد الموجودة أدناه."
 }

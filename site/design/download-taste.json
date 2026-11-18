@@ -1,0 +1,20 @@
+{
+  "profile_version": "1.0",
+  "source": { "label": "User download dialog screenshot and existing Hydra-inspired site", "ownership": "unknown", "kind": "image" },
+  "jobs": ["hierarchy", "material", "restraint", "composition"],
+  "observations": [
+    { "dimension": "lighting", "evidence": "Dark background with fine gray outlines", "interpretation": "Use a restrained edge highlight and soft shadow", "confidence": 0.95 },
+    { "dimension": "palette", "evidence": "Graphite surfaces, white headings, gray descriptions", "interpretation": "Reserve the strongest contrast for the download action", "confidence": 0.98 },
+    { "dimension": "texture", "evidence": "Matte surfaces without photography", "interpretation": "Keep matte panels and one small dimensional platform icon", "confidence": 0.95 },
+    { "dimension": "geometry", "evidence": "Two formats with small arrows and no distinct selected state", "interpretation": "Use native radio choices and one separate download action", "confidence": 0.98 },
+    { "dimension": "mood", "evidence": "User repeatedly rejects intrusive overlays and generic cards", "interpretation": "Use a compact centered panel and light backdrop", "confidence": 0.98 }
+  ],
+  "signature": { "restraint": 90, "depth": 20, "contrast": 75 },
+  "rules": [
+    { "job": "hierarchy", "rule": "Separate choosing a format from requesting its download", "evidence": "Two indistinct arrows in the supplied screenshot", "strength": "high", "transferable": true },
+    { "job": "material", "rule": "Apply perspective only to the small Windows icon", "evidence": "User requested 3d-ui while preserving the sober site", "strength": "medium", "transferable": true }
+  ],
+  "anti_rules": ["No rotating text or large tilting panel", "No decorative glow", "No claims that the browser completed a download", "No forced release-page navigation"],
+  "similarity_guard": { "copy_risk": "low", "protected_elements": [], "must_transform": ["Selection flow", "Action hierarchy"] },
+  "confidence": 0.96
+}

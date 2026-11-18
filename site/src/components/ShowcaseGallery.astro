@@ -1,0 +1,328 @@
+---
+type Language = 'fr' | 'en' | 'ar';
+interface Props { lang: Language; basePath: string; }
+const { lang, basePath } = Astro.props as Props;
+const content = {
+  fr: {
+    label: 'Explorer la démo Windows',
+    caption: 'Capture réelle de Modern Downloader · données de démonstration · aucun fichier personnel · miniatures YouTube officielles chargées en ligne',
+    credit: 'Crédits des médias', expand: 'Agrandir la capture',
+    previous: 'Capture précédente', next: 'Capture suivante',
+    pause: 'Mettre le diaporama en pause', play: 'Reprendre le diaporama', reducedMotion: 'Diaporama désactivé car la réduction des animations est activée',
+    screens: [
+      ['library', 'Bibliothèque', 'Bibliothèque Windows avec miniatures officielles de vidéos YouTube'],
+      ['downloads', 'Téléchargements', 'Liste de téléchargements et progression simulée'],
+      ['archive', 'Archives', 'Écran des archives TikTok avec contenu de démonstration'],
+      ['stats', 'Statistiques', 'Écran des statistiques de téléchargement simulées'],
+      ['transfer', 'Transfert', 'Écran de transfert entre appareils en mode démo'],
+      ['plugins', 'Plugins', 'Écran de gestion des plugins Windows'],
+    ],
+  },
+  en: {
+    label: 'Explore the Windows demo',
+    caption: 'Real Modern Downloader capture · demo data · no personal files · official YouTube thumbnails loaded online',
+    credit: 'Media credits', expand: 'Open full-size capture',
+    previous: 'Previous capture', next: 'Next capture',
+    pause: 'Pause the slideshow', play: 'Resume the slideshow', reducedMotion: 'Slideshow disabled because reduced motion is enabled',
+    screens: [
+      ['library', 'Library', 'Windows library with official YouTube video thumbnails'],
+      ['downloads', 'Downloads', 'Download list with simulated progress'],
+      ['archive', 'Archives', 'TikTok archive screen with demo content'],
+      ['stats', 'Statistics', 'Screen with simulated download statistics'],
+      ['transfer', 'Transfer', 'Device transfer screen in demo mode'],
+      ['plugins', 'Plugins', 'Windows plugin management screen'],
+    ],
+  },
+  ar: {
+    label: 'استكشف عرض Windows',
+    caption: 'لقطة حقيقية من Modern Downloader · بيانات تجريبية · بلا ملفات شخصية · صور YouTube الرسمية تُحمّل عبر الإنترنت',
+    credit: 'حقوق الوسائط', expand: 'افتح الصورة بالحجم الكامل',
+    previous: 'اللقطة السابقة', next: 'اللقطة التالية',
+    pause: 'إيقاف عرض الشرائح مؤقتاً', play: 'استئناف عرض الشرائح', reducedMotion: 'تم تعطيل عرض الشرائح لأن تقليل الحركة مفعّل',
+    screens: [
+      ['library', 'المكتبة', 'مكتبة Windows مع صور مصغرة رسمية لفيديوهات YouTube'],
+      ['downloads', 'التنزيلات', 'قائمة التنزيلات مع تقدم تجريبي'],
+      ['archive', 'الأرشيف', 'شاشة أرشيف TikTok ببيانات تجريبية'],
+      ['stats', 'الإحصاءات', 'شاشة إحصاءات التنزيلات التجريبية'],
+      ['transfer', 'النقل', 'شاشة النقل بين الأجهزة في وضع العرض'],
+      ['plugins', 'الإضافات', 'شاشة إدارة إضافات Windows'],
+    ],
+  },
+} as const;
+const copy = content[lang];
+const screens = copy.screens.map(([id, label, alt]) => ({ id, label, alt }));
+---
+
+<div>
+  <figure class="showcase-gallery" data-showcase-gallery data-active-index="0" data-cycle-duration="8000" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div class="showcase-gallery-heading">
+      <span class="showcase-gallery-index">MODERN DOWNLOADER / WINDOWS</span>
+      <h2>{copy.label}</h2>
+      <div class="showcase-gallery-controls">
+        <span aria-live="polite" data-gallery-count><span data-gallery-current>01</span> <span data-gallery-divider>/</span> {String(screens.length).padStart(2, '0')}</span>
+        <button type="button" data-slot="button" data-variant="outline" data-size="icon-sm" class="showcase-gallery-arrow" data-gallery-step="-1" aria-label={copy.previous} title={copy.previous}>
+          {lang === 'ar' ? '→' : '←'}
+        </button>
+        <button type="button" data-slot="button" data-variant="outline" data-size="icon-sm" class="showcase-gallery-arrow" data-gallery-step="1" aria-label={copy.next} title={copy.next}>
+          {lang === 'ar' ? '←' : '→'}
+        </button>
+        <button
+          type="button"
+          data-slot="button"
+          data-variant="outline"
+          data-size="icon-sm"
+          class="showcase-gallery-arrow showcase-gallery-autoplay"
+          data-gallery-toggle
+          data-gallery-pause-label={copy.pause}
+          data-gallery-play-label={copy.play}
+          data-gallery-reduced-label={copy.reducedMotion}
+          aria-label={copy.pause}
+          title={copy.pause}
+          aria-pressed="false"
+        ><span aria-hidden="true">Ⅱ</span></button>
+      </div>
+    </div>
+    <div class="showcase-tabs-root">
+      <div class="showcase-gallery-tabs" role="tablist" aria-label={copy.label}>
+        {screens.map((screen, index) => (
+          <button
+            type="button"
+            role="tab"
+            id={`showcase-tab-${screen.id}`}
+            aria-controls={`showcase-panel-${screen.id}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+            tabindex={index === 0 ? 0 : -1}
+            data-gallery-tab={index}
+            class="showcase-gallery-tab"
+          >
+            <span class="showcase-active-tab" hidden={index !== 0} aria-hidden="true"></span>
+            <span>{screen.label}</span>
+          </button>
+        ))}
+      </div>
+      {screens.map((screen, index) => {
+        const src = `${basePath}media/showcase-${screen.id}.png`;
+        return (
+          <div
+            id={`showcase-panel-${screen.id}`}
+            role="tabpanel"
+            aria-labelledby={`showcase-tab-${screen.id}`}
+            hidden={index !== 0}
+            class="showcase-gallery-frame"
+            tabindex={index === 0 ? 0 : -1}
+            data-gallery-panel={index}
+          >
+            <a href={src} target="_blank" rel="noopener" aria-label={copy.expand}>
+              <img src={src} width="1440" height="900" alt={screen.alt} decoding="async" loading={index === 0 ? 'eager' : 'lazy'} />
+            </a>
+          </div>
+        );
+      })}
+    </div>
+    <div class="showcase-gallery-progress" aria-hidden="true"><span data-gallery-progress style="transform: scaleX(0)"></span></div>
+    <figcaption>{copy.caption} · <a href={`${basePath}media/ATTRIBUTION.md`}>{copy.credit}</a></figcaption>
+  </figure>
+</div>
+
+<script>
+  const showcaseCleanups = new Set<() => void>();
+
+  function cleanupShowcaseGalleries() {
+    for (const cleanup of [...showcaseCleanups]) cleanup();
+    showcaseCleanups.clear();
+  }
+
+  function initializeShowcaseGalleries() {
+    document.querySelectorAll<HTMLElement>('[data-showcase-gallery]').forEach((gallery) => {
+      if (gallery.dataset.galleryReady === 'true') return;
+
+      const tabs = Array.from(gallery.querySelectorAll<HTMLButtonElement>('[data-gallery-tab]'));
+      const panels = Array.from(gallery.querySelectorAll<HTMLElement>('[data-gallery-panel]'));
+      const count = gallery.querySelector<HTMLElement>('[data-gallery-count]');
+      const currentCount = gallery.querySelector<HTMLElement>('[data-gallery-current]');
+      const progress = gallery.querySelector<HTMLElement>('[data-gallery-progress]');
+      const tablist = gallery.querySelector<HTMLElement>('[role="tablist"]');
+      const toggle = gallery.querySelector<HTMLButtonElement>('[data-gallery-toggle]');
+      if (!tabs.length || tabs.length !== panels.length || !count || !currentCount || !progress || !tablist || !toggle) return;
+
+      gallery.dataset.galleryReady = 'true';
+      const direction = getComputedStyle(gallery).direction === 'rtl' ? -1 : 1;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const cycleDuration = Number(gallery.dataset.cycleDuration) || 6000;
+      gallery.style.setProperty('--motion-gallery-cycle', cycleDuration + 'ms');
+      let manuallyPaused = false;
+      let allowReducedPlayback = false;
+      let timer: number | undefined;
+      let animationFrame: number | undefined;
+
+      const canRun = () =>
+        !manuallyPaused &&
+        (!reducedMotion.matches || allowReducedPlayback) &&
+        !document.hidden;
+
+      const updateToggle = () => {
+        const running = canRun();
+        const label = running
+          ? toggle.dataset.galleryPauseLabel ?? 'Pause slideshow'
+          : toggle.dataset.galleryPlayLabel ?? 'Play slideshow';
+        toggle.setAttribute('aria-pressed', String(!running));
+        toggle.setAttribute('aria-label', label);
+        toggle.title = label;
+        const icon = toggle.querySelector<HTMLElement>('[aria-hidden="true"]');
+        if (icon) icon.textContent = running ? 'Ⅱ' : '▶';
+        gallery.dataset.autoplay = running ? 'running' : 'paused';
+      };
+
+      const stopCycle = () => {
+        if (timer !== undefined) {
+          window.clearTimeout(timer);
+          timer = undefined;
+        }
+        if (animationFrame !== undefined) {
+          window.cancelAnimationFrame(animationFrame);
+          animationFrame = undefined;
+        }
+        progress.style.transition = 'none';
+        progress.style.transform = 'scaleX(0)';
+      };
+
+      const activate = (requestedIndex: number, focus = false, automatic = false) => {
+        const nextIndex = (requestedIndex + tabs.length) % tabs.length;
+        const nextTab = tabs[nextIndex];
+        const nextPanel = panels[nextIndex];
+        if (!nextTab || !nextPanel) return;
+
+        if (focus) nextTab.focus();
+        gallery.dataset.activeIndex = String(nextIndex);
+        tabs.forEach((tab, index) => {
+          const selected = index === nextIndex;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          const indicator = tab.querySelector<HTMLElement>('.showcase-active-tab');
+          if (indicator) indicator.hidden = !selected;
+        });
+        panels.forEach((panel, index) => {
+          panel.hidden = index !== nextIndex;
+          panel.tabIndex = index === nextIndex ? 0 : -1;
+        });
+        count.setAttribute('aria-live', automatic ? 'off' : 'polite');
+        currentCount.textContent = String(nextIndex + 1).padStart(2, '0');
+      };
+
+      const startCycle = () => {
+        updateToggle();
+        if (!canRun() || timer !== undefined || animationFrame !== undefined) return;
+        progress.style.transition = 'none';
+        progress.style.transform = 'scaleX(0)';
+        animationFrame = window.requestAnimationFrame(() => {
+          animationFrame = undefined;
+          if (!canRun()) return;
+          progress.style.transition = 'transform ' + cycleDuration + 'ms linear';
+          progress.style.transform = 'scaleX(1)';
+          timer = window.setTimeout(() => {
+            timer = undefined;
+            const activeIndex = Number(gallery.dataset.activeIndex ?? '0');
+            activate(activeIndex + 1, false, true);
+            startCycle();
+          }, cycleDuration);
+        });
+      };
+
+      const resetCycle = () => {
+        stopCycle();
+        startCycle();
+      };
+
+      const onToggle = () => {
+        if (canRun()) {
+          manuallyPaused = true;
+        } else {
+          manuallyPaused = false;
+          if (reducedMotion.matches) allowReducedPlayback = true;
+        }
+        if (!canRun()) stopCycle();
+        else startCycle();
+        updateToggle();
+      };
+
+      const onVisibilityChange = () => {
+        if (document.hidden) stopCycle();
+        else startCycle();
+        updateToggle();
+      };
+
+      const onMotionPreferenceChange = () => {
+        allowReducedPlayback = false;
+        if (reducedMotion.matches) stopCycle();
+        else startCycle();
+        updateToggle();
+      };
+
+      const onTabListKeyDown = (event: KeyboardEvent) => {
+        const currentIndex = Number(gallery.dataset.activeIndex ?? '0');
+        if (event.key === 'Home') {
+          event.preventDefault();
+          activate(0, true);
+          resetCycle();
+        } else if (event.key === 'End') {
+          event.preventDefault();
+          activate(tabs.length - 1, true);
+          resetCycle();
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          activate(currentIndex + direction, true);
+          resetCycle();
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          activate(currentIndex - direction, true);
+          resetCycle();
+        }
+      };
+
+      const onTabClick = (index: number) => {
+        activate(index);
+        resetCycle();
+      };
+      const onStepClick = (button: HTMLButtonElement) => {
+        const step = Number(button.dataset.galleryStep ?? '0');
+        const currentIndex = Number(gallery.dataset.activeIndex ?? '0');
+        activate(currentIndex + step);
+        resetCycle();
+      };
+
+      tabs.forEach((tab, index) => {
+        const onClick = () => onTabClick(index);
+        tab.addEventListener('click', onClick);
+        showcaseCleanups.add(() => tab.removeEventListener('click', onClick));
+      });
+      const stepButtons = Array.from(gallery.querySelectorAll<HTMLButtonElement>('[data-gallery-step]'));
+      stepButtons.forEach((button) => {
+        const onClick = () => onStepClick(button);
+        button.addEventListener('click', onClick);
+        showcaseCleanups.add(() => button.removeEventListener('click', onClick));
+      });
+      tablist.addEventListener('keydown', onTabListKeyDown);
+      toggle.addEventListener('click', onToggle);
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      reducedMotion.addEventListener('change', onMotionPreferenceChange);
+
+      const cleanup = () => {
+        stopCycle();
+        tablist.removeEventListener('keydown', onTabListKeyDown);
+        toggle.removeEventListener('click', onToggle);
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        reducedMotion.removeEventListener('change', onMotionPreferenceChange);
+        gallery.dataset.galleryReady = 'false';
+        showcaseCleanups.delete(cleanup);
+      };
+      showcaseCleanups.add(cleanup);
+      updateToggle();
+      startCycle();
+    });
+  }
+
+  document.addEventListener('astro:before-swap', cleanupShowcaseGalleries);
+  document.addEventListener('astro:page-load', initializeShowcaseGalleries);
+  if (document.readyState === 'complete') initializeShowcaseGalleries();
+  else window.addEventListener('load', initializeShowcaseGalleries, { once: true });
+</script>

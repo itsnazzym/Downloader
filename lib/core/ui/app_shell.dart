@@ -29,6 +29,10 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<String?>(pluginInstallRequestProvider, (previous, next) {
+      if (next != null) _openPluginRequest(context, ref, next);
+    });
+
     ref.listen<LaunchData?>(launchDataProvider, (previous, next) {
       if (next != null && !ref.read(dependencyBootstrapProvider).blocksUi) {
         _handleLaunchData(context, ref, next);
@@ -49,6 +53,10 @@ class AppShell extends ConsumerWidget {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
+      final pendingPlugin = ref.read(pluginInstallRequestProvider);
+      if (pendingPlugin != null) {
+        _openPluginRequest(context, ref, pendingPlugin);
+      }
       if (ref.read(dependencyBootstrapProvider).blocksUi) return;
       final initialData = ref.read(launchDataProvider);
       if (initialData != null) {
@@ -134,6 +142,17 @@ class AppShell extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _openPluginRequest(
+    BuildContext context,
+    WidgetRef ref,
+    String pluginId,
+  ) {
+    ref.read(pluginInstallRequestProvider.notifier).state = null;
+    context.go(
+      '/settings/plugins?plugin=${Uri.encodeQueryComponent(pluginId)}',
     );
   }
 

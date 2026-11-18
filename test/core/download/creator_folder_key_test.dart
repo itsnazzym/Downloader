@@ -24,10 +24,10 @@ void main() {
   group('CreatorFolderKey', () {
     test('groups TikTok URL handles case-insensitively', () {
       final a = CreatorFolderKey.of(
-        _item(id: '1', url: 'https://www.tiktok.com/@Adult_Hoodz/video/1'),
+        url: 'https://www.tiktok.com/@Adult_Hoodz/video/1',
       );
       final b = CreatorFolderKey.of(
-        _item(id: '2', url: 'https://www.tiktok.com/@adult_hoodz/video/2'),
+        url: 'https://www.tiktok.com/@adult_hoodz/video/2',
       );
       expect(a.key, 'adult_hoodz');
       expect(a.handle, 'Adult_Hoodz');
@@ -37,11 +37,8 @@ void main() {
 
     test('falls back to title when URL has no handle', () {
       final identity = CreatorFolderKey.of(
-        _item(
-          id: '1',
-          url: 'https://www.youtube.com/watch?v=abc',
-          title: 'Veritasium - something [abc]',
-        ),
+        url: 'https://www.youtube.com/watch?v=abc',
+        title: 'Veritasium - something [abc]',
       );
       expect(identity.key, 'veritasium');
       expect(identity.handle, 'Veritasium');
@@ -49,7 +46,8 @@ void main() {
 
     test('unknown bucket when nothing can be parsed', () {
       final identity = CreatorFolderKey.of(
-        _item(id: '1', url: 'https://example.com/video/1', title: 'clip'),
+        url: 'https://example.com/video/1',
+        title: 'clip',
       );
       expect(identity.isUnknown, isTrue);
       expect(identity.key, CreatorIdentity.unknownKey);

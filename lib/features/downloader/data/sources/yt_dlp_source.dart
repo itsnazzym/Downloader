@@ -16,8 +16,15 @@ import '../../../../../core/download/yt_dlp_progress_parser.dart';
 import '../../../../../core/download/download_status_guard.dart';
 import '../../../../../core/download/fragment_budget.dart';
 import '../../../../../core/download/metadata_probe_limiter.dart';
+import '../../../../../core/download/tiktok_video_url.dart';
 import '../../../../../core/platform/default_library_path_resolver.dart';
 import '../../../../../core/android/android_engine_bridge.dart';
+import '../../../../../core/android/netscape_cookie_codec.dart';
+
+const String kMobileChromeUserAgent =
+    'Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+const String kDesktopChromeUserAgent =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 class YtDlpSource {
   final BinaryLocator _binaryLocator;
@@ -39,7 +46,7 @@ class YtDlpSource {
       final result = await _processRunner.run(ytDlp, [
         '--get-title',
         '--no-warnings',
-        url,
+        TikTokVideoUrl.forDownload(url),
       ]);
 
       if (result.exitCode == 0) {
@@ -100,8 +107,7 @@ class YtDlpSource {
       } catch (_) {}
     }
 
-    final isTwitter =
-        url.contains('twitter.com') || url.contains('x.com');
+    final isTwitter = url.contains('twitter.com') || url.contains('x.com');
 
     // Use verbose flags for clarity and safety
     // --no-warnings is CRITICAL because yt-dlp can print warnings to stdout which breaks jsonDecode
@@ -115,11 +121,22 @@ class YtDlpSource {
     try {
       var effectiveCookiesPath = cookiesFilePath;
       if ((effectiveCookiesPath == null || effectiveCookiesPath.isEmpty) &&
-          YtDlpCookieArgs.isNetscapeFormat(effectiveCookies)) {
+          effectiveCookies != null &&
+          effectiveCookies.trim().isNotEmpty) {
+        String netscapeBody;
+        if (YtDlpCookieArgs.isNetscapeFormat(effectiveCookies)) {
+          netscapeBody = effectiveCookies;
+        } else {
+          final host = Uri.tryParse(url)?.host ?? '';
+          netscapeBody = NetscapeCookieCodec.fromHeader(
+            host: host,
+            header: effectiveCookies,
+          );
+        }
         tempNetscapeFile = File(
           '${Directory.systemTemp.path}/md_meta_cookies_${DateTime.now().millisecondsSinceEpoch}.txt',
         );
-        await tempNetscapeFile.writeAsString(effectiveCookies!);
+        await tempNetscapeFile.writeAsString(netscapeBody);
         effectiveCookiesPath = tempNetscapeFile.path;
       }
 
@@ -132,18 +149,33 @@ class YtDlpSource {
         ),
       );
 
+      // Browser headers for anti-bot & video platform compatibility
+      if (Platform.isAndroid) {
+        args.addAll([
+          '--user-agent',
+          kMobileChromeUserAgent,
+          '--referer',
+          url,
+          '--no-check-certificates',
+        ]);
+      } else if (cookieBrowser != null || _requiresCookies(url)) {
+        args.addAll([
+          '--user-agent',
+          kDesktopChromeUserAgent,
+          '--referer',
+          url,
+          '--no-check-certificates',
+        ]);
+      }
+
       final proxy = await TorProxyGuard.resolveProxyUrl(
         useTorProxy: useTorProxy,
       );
       if (proxy != null) {
         args.addAll(['--proxy', proxy]);
-      } else if (useTorProxy) {
-        LoggerService.w(
-          'Tor enabled but ${TorProxyGuard.host}:${TorProxyGuard.port} unreachable — metadata without proxy',
-        );
       }
 
-      args.add(url);
+      args.add(TikTokVideoUrl.forDownload(url));
 
       var result = await _processRunner.run(ytDlp, args);
       if (result.exitCode != 0 && isTwitter) {
@@ -152,7 +184,8 @@ class YtDlpSource {
         final syndIndex = fallbackArgs.indexOf('twitter:api=syndication');
         if (syndIndex != -1) {
           fallbackArgs.removeAt(syndIndex);
-          if (syndIndex - 1 >= 0 && fallbackArgs[syndIndex - 1] == '--extractor-args') {
+          if (syndIndex - 1 >= 0 &&
+              fallbackArgs[syndIndex - 1] == '--extractor-args') {
             fallbackArgs.removeAt(syndIndex - 1);
           }
           final retryResult = await _processRunner.run(ytDlp, fallbackArgs);
@@ -216,16 +249,25 @@ class YtDlpSource {
     return null;
   }
 
-  Future<List<Map<String, dynamic>>> fetchPlaylist(String url) async {
+  Future<List<Map<String, dynamic>>> fetchPlaylist(
+    String url, {
+    bool useTorProxy = false,
+  }) async {
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) return [];
 
-    final result = await _processRunner.run(ytDlp, [
+    final args = <String>[
       '--flat-playlist',
       '--dump-single-json',
       '--no-warnings',
-      url,
-    ]);
+    ];
+    final torProxy = await TorProxyGuard.resolveProxyUrl(
+      useTorProxy: useTorProxy,
+    );
+    if (torProxy != null) args.addAll(['--proxy', torProxy]);
+    args.add(url);
+
+    final result = await _processRunner.run(ytDlp, args);
 
     if (result.exitCode == 0) {
       try {
@@ -349,7 +391,8 @@ class YtDlpSource {
         }
       } else if (Platform.isAndroid) {
         try {
-          baseFolder = await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+          baseFolder =
+              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
         } catch (_) {}
       }
       baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
@@ -372,10 +415,13 @@ class YtDlpSource {
         downloadsDir.createSync(recursive: true);
       }
     } catch (e) {
-      LoggerService.w('YtDlpSource: Could not create baseFolder $baseFolder: $e');
+      LoggerService.w(
+        'YtDlpSource: Could not create baseFolder $baseFolder: $e',
+      );
       if (Platform.isAndroid) {
         try {
-          baseFolder = await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+          baseFolder =
+              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
           Directory(baseFolder).createSync(recursive: true);
         } catch (_) {}
       }
@@ -386,7 +432,7 @@ class YtDlpSource {
     // The ID is unique per video (e.g. YouTube video ID, tweet status ID, etc.)
     final filename = request.customFilename ?? '%(title)s [%(id)s].%(ext)s';
     if (request.organizeByCreator) {
-      final isTikTok = request.url.contains('tiktok.com');
+      final isTikTok = _isTikTokUrl(request.url);
       final creatorFolder = isTikTok
           ? '%(uploader,channel|Inconnu)s'
           : '%(uploader,channel,uploader_id|Inconnu)s';
@@ -416,7 +462,7 @@ class YtDlpSource {
     }
     // === VIDEO MODE ===
     else {
-      final isTikTok = request.url.contains('tiktok.com');
+      final isTikTok = _isTikTokUrl(request.url);
       final isTwitch = request.url.contains('twitch.tv');
 
       // Quality selection
@@ -523,7 +569,9 @@ class YtDlpSource {
         (cookiesFilePath == null || cookiesFilePath.isEmpty) &&
         Platform.isAndroid) {
       try {
-        final wv = await AndroidEngineBridge.instance.webViewCookies(request.url);
+        final wv = await AndroidEngineBridge.instance.webViewCookies(
+          request.url,
+        );
         if (wv != null && wv.trim().isNotEmpty) {
           rawCookies = wv.trim();
         }
@@ -531,11 +579,22 @@ class YtDlpSource {
     }
 
     if ((cookiesFilePath == null || cookiesFilePath.isEmpty) &&
-        YtDlpCookieArgs.isNetscapeFormat(rawCookies)) {
+        rawCookies != null &&
+        rawCookies.trim().isNotEmpty) {
+      String netscapeBody;
+      if (YtDlpCookieArgs.isNetscapeFormat(rawCookies)) {
+        netscapeBody = rawCookies;
+      } else {
+        final host = Uri.tryParse(request.url)?.host ?? '';
+        netscapeBody = NetscapeCookieCodec.fromHeader(
+          host: host,
+          header: rawCookies,
+        );
+      }
       tempNetscapeCookies = File(
         '${Directory.systemTemp.path}/md_dl_cookies_$id.txt',
       );
-      await tempNetscapeCookies.writeAsString(rawCookies!);
+      await tempNetscapeCookies.writeAsString(netscapeBody);
       cookiesFilePath = tempNetscapeCookies.path;
     }
 
@@ -560,20 +619,30 @@ class YtDlpSource {
     args.addAll(['--fragment-retries', '10']);
     args.add('--continue');
 
-    // === HEADERS FOR PROTECTED SITES ===
+    // === HEADERS FOR PROTECTED SITES & MOBILE ===
     if (request.userAgent != null) {
       args.addAll(['--user-agent', request.userAgent!]);
       LoggerService.debug('Using custom User-Agent: ${request.userAgent}');
+    } else if (Platform.isAndroid) {
+      args.addAll([
+        '--user-agent',
+        kMobileChromeUserAgent,
+        '--referer',
+        request.url,
+        '--no-check-certificates',
+      ]);
+      LoggerService.debug('Using Android mobile browser User-Agent & referer');
     } else if (_requiresCookies(request.url)) {
       args.addAll([
         '--user-agent',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        kDesktopChromeUserAgent,
+        '--referer',
+        request.url,
+        '--no-check-certificates',
       ]);
-      args.addAll(['--referer', request.url]);
-      args.add('--no-check-certificates');
     }
 
-    // === TOR PROXY (skip when 9050 is down) ===
+    // === TOR PROXY (fail closed when Tor is enabled but unavailable) ===
     final torProxy = await TorProxyGuard.resolveProxyUrl(
       useTorProxy: request.useTorProxy,
     );
@@ -581,10 +650,6 @@ class YtDlpSource {
       args.add('--proxy');
       args.add(torProxy);
       LoggerService.i('Using Tor Proxy: $torProxy');
-    } else if (request.useTorProxy) {
-      LoggerService.w(
-        'Tor enabled but ${TorProxyGuard.host}:${TorProxyGuard.port} unreachable — downloading without proxy',
-      );
     }
 
     if ((request.forceStreamUrl != null &&
@@ -597,7 +662,7 @@ class YtDlpSource {
     final downloadUrl =
         (request.forceStreamUrl != null && request.forceStreamUrl!.isNotEmpty)
         ? request.forceStreamUrl!
-        : request.url;
+        : TikTokVideoUrl.forDownload(request.url);
     args.add(downloadUrl);
 
     LoggerService.i('YtDlpSource: Running: $ytDlp ${args.join(' ')}');
@@ -701,7 +766,8 @@ class YtDlpSource {
     await for (final line in lineController.stream) {
       for (final update in parser.onLine(line)) {
         final now = DateTime.now();
-        final isSignificant = update.isDuplicate ||
+        final isSignificant =
+            update.isDuplicate ||
             update.filePath != null ||
             (update.title != null && update.title!.isNotEmpty) ||
             update.step != lastYieldStep ||
@@ -842,11 +908,16 @@ class YtDlpSource {
   }
 
   bool _requiresCookies(String url) {
-    // ... same as origin
-    return url.contains('twitter.com') ||
-        url.contains('kick.com') ||
-        url.contains('pornhub.com');
-    // Added kick.com just in case
+    final lower = url.toLowerCase();
+    return lower.contains('twitter.com') ||
+        lower.contains('x.com') ||
+        lower.contains('kick.com') ||
+        lower.contains('pornhub.com') ||
+        lower.contains('xhamster') ||
+        lower.contains('xnxx') ||
+        lower.contains('xvideos') ||
+        lower.contains('instagram.com') ||
+        lower.contains('tiktok.com');
   }
 
   String _getSiteName(String url) {
@@ -879,6 +950,14 @@ class YtDlpSource {
       LoggerService.debug('Failed to extract site name from URL: $e');
     }
     return 'Other';
+  }
+
+  bool _isTikTokUrl(String url) {
+    final host = Uri.tryParse(url)?.host.toLowerCase() ?? '';
+    return host == 'tiktok.com' ||
+        host.endsWith('.tiktok.com') ||
+        host == 'tiktokv.com' ||
+        host.endsWith('.tiktokv.com');
   }
 }
 

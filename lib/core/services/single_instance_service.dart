@@ -3,9 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
-import '../launch/protocol_url_parser.dart';
+import '../bootstrap/app_bootstrap.dart';
 import '../logger/logger_service.dart';
-import '../providers/launch_provider.dart';
 import 'windows_desktop_window_probe.dart';
 
 class SingleInstanceDependencies {
@@ -25,7 +24,9 @@ class SingleInstanceDependencies {
   final bool Function(int processId) terminatePid;
   final int? currentPid;
 
-  factory SingleInstanceDependencies.production({int port = SingleInstanceService.port}) {
+  factory SingleInstanceDependencies.production({
+    int port = SingleInstanceService.port,
+  }) {
     return SingleInstanceDependencies(
       bind: () => ServerSocket.bind(InternetAddress.loopbackIPv4, port),
       notifyPrimary: (payload) async {
@@ -140,12 +141,11 @@ class SingleInstanceService {
       );
 
       if (protocolUrl.isNotEmpty) {
-        final finalUrl = ProtocolUrlParser.extractMediaUrl(protocolUrl);
-
-        if (finalUrl != null) {
-          container.read(launchDataProvider.notifier).state =
-              LaunchData.fromUrl(finalUrl);
-
+        final handled = AppBootstrap.dispatchProtocolUrl(
+          protocolUrl,
+          container,
+        );
+        if (handled) {
           try {
             await windowManager.show();
             if (await windowManager.isMinimized()) {

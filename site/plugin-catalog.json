@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "plugins": [
+    {
+      "id": "core_downloads",
+      "kind": "core",
+      "platforms": ["windows", "android"],
+      "name": { "en": "Downloads & library", "fr": "Téléchargements et bibliothèque", "ar": "التنزيلات والمكتبة" },
+      "description": { "en": "The essential downloader and your local media library.", "fr": "Le téléchargeur essentiel et votre bibliothèque locale.", "ar": "أداة التنزيل الأساسية ومكتبة الوسائط المحلية." },
+      "icon": "video_library",
+      "route": "/",
+      "defaultEnabled": true
+    },
+    {
+      "id": "x_browser",
+      "kind": "module",
+      "platforms": ["android"],
+      "name": { "en": "X browser", "fr": "Navigateur X", "ar": "متصفح X" },
+      "description": { "en": "Browse and save media from X in a focused workspace.", "fr": "Parcourez et enregistrez les médias de X dans un espace dédié.", "ar": "تصفّح الوسائط من X واحفظها في مساحة مخصصة." },
+      "icon": "travel_explore",
+      "route": "/browse",
+      "defaultEnabled": false
+    },
+    {
+      "id": "tiktok_archives",
+      "kind": "module",
+      "platforms": ["windows", "android"],
+      "name": { "en": "TikTok archives", "fr": "Archives TikTok", "ar": "أرشيف TikTok" },
+      "description": { "en": "Import, organize and revisit TikTok archive collections.", "fr": "Importez, organisez et parcourez vos collections d’archives TikTok.", "ar": "استورد مجموعات أرشيف TikTok ونظّمها واستعرضها." },
+      "icon": "inventory_2",
+      "route": "/archive",
+      "defaultEnabled": false
+    },
+    {
+      "id": "statistics",
+      "kind": "module",
+      "platforms": ["windows", "android"],
+      "name": { "en": "Statistics", "fr": "Statistiques", "ar": "الإحصاءات" },
+      "description": { "en": "Review download activity, storage use and history.", "fr": "Consultez l’activité, l’espace utilisé et l’historique des téléchargements.", "ar": "راجع نشاط التنزيل ومساحة التخزين والسجل." },
+      "icon": "bar_chart",
+      "route": "/stats",
+      "defaultEnabled": false
+    },
+    {
+      "id": "device_transfer",
+      "kind": "module",
+      "platforms": ["windows", "android"],
+      "name": { "en": "Device transfer", "fr": "Transfert entre appareils", "ar": "النقل بين الأجهزة" },
+      "description": { "en": "Send selected library items to another device on your network.", "fr": "Envoyez des éléments de la bibliothèque vers un autre appareil du réseau.", "ar": "أرسل عناصر محددة من المكتبة إلى جهاز آخر على الشبكة." },
+      "icon": "ios_share",
+      "route": "/transfer",
+      "defaultEnabled": false
+    },
+    {
+      "id": "builtin_auto_rename",
+      "kind": "download_hook",
+      "platforms": ["windows", "android"],
+      "name": { "en": "Auto rename", "fr": "Renommage automatique", "ar": "إعادة التسمية تلقائياً" },
+      "description": { "en": "Apply a consistent file name after a download completes.", "fr": "Appliquez un nom de fichier cohérent après chaque téléchargement.", "ar": "طبّق اسماً متناسقاً للملف بعد اكتمال التنزيل." },
+      "icon": "drive_file_rename_outline",
+      "route": "/settings/plugins",
+      "defaultEnabled": false,
+      "preferenceId": "builtin_auto_rename"
+    },
+    {
+      "id": "builtin_smart_organizer",
+      "kind": "download_hook",
+      "platforms": ["windows", "android"],
+      "name": { "en": "Smart organizer", "fr": "Organisation intelligente", "ar": "التنظيم الذكي" },
+      "description": { "en": "Organize completed files using your chosen rules.", "fr": "Organisez les fichiers terminés selon vos règles.", "ar": "نظّم الملفات المكتملة وفق القواعد التي تختارها." },
+      "icon": "folder_copy",
+      "route": "/settings/plugins",
+      "defaultEnabled": false,
+      "preferenceId": "builtin_smart_organizer"
+    },
+    {
+      "id": "chrome_extension",
+      "kind": "external_extension",
+      "platforms": ["windows"],
+      "name": { "en": "Chrome extension", "fr": "Extension Chrome", "ar": "إضافة Chrome" },
+      "description": { "en": "Send links from Chrome or Edge to Modern Downloader.", "fr": "Envoyez des liens depuis Chrome ou Edge vers Modern Downloader.", "ar": "أرسل الروابط من Chrome أو Edge إلى Modern Downloader." },
+      "icon": "extension",
+      "route": "/settings/plugins",
+      "defaultEnabled": false
+    },
+    {
+      "id": "firefox_extension",
+      "kind": "external_extension",
+      "platforms": ["windows"],
+      "name": { "en": "Firefox extension", "fr": "Extension Firefox", "ar": "إضافة Firefox" },
+      "description": { "en": "Send links from Firefox to Modern Downloader.", "fr": "Envoyez des liens depuis Firefox vers Modern Downloader.", "ar": "أرسل الروابط من Firefox إلى Modern Downloader." },
+      "icon": "extension",
+      "route": "/settings/plugins",
+      "defaultEnabled": false
+    }
+  ]
+}

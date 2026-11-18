@@ -251,7 +251,12 @@
   "@serverPortRestartHint": {
     "placeholders": { "port": { "type": "int" } }
   },
-  "torBypassDesc": "Contourner les blocages géo via Tor (127.0.0.1:9050)",
+  "torBypassDesc": "Démarrer Tor en arrière-plan et y faire passer les téléchargements (127.0.0.1:9050)",
+  "torProxyStarting": "Démarrage de Tor…",
+  "torProxyReady": "Tor est prêt sur 127.0.0.1:9050",
+  "torProxyExisting": "Un proxy Tor est déjà actif sur 127.0.0.1:9050",
+  "torProxyStopped": "Tor est arrêté",
+  "torProxyFailed": "Tor est indisponible",
   "selectCookiesFile": "Choisir cookies.txt",
   "clearCookies": "Effacer les cookies",
   "selectQuality": "Choisir la qualité",
@@ -384,8 +389,8 @@
   "previewSetup": "Voir l'écran de setup (temporaire)",
   "previewSetupDesc": "Relancer la vérification et l'installation des outils en plein écran",
 
-  "pluginsSectionTitle": "Plugins",
-  "pluginsSectionHint": "Modules intégrés à l'application, comme Auto Rename et Smart Organizer.",
+  "pluginsSectionTitle": "Automatisations des téléchargements",
+  "pluginsSectionHint": "Ces plugins appliquent des actions supplémentaires au début ou à la fin d’un téléchargement.",
   "browserExtensionsTitle": "Extension navigateur",
   "browserExtensionsHint": "Envoie les liens depuis le navigateur vers l'app. Un clic prépare l'extension et ouvre la page du navigateur.",
   "chromeExtensionTitle": "Chrome / Edge / Brave",
@@ -624,5 +629,15 @@
   "onboardingExtensionTitle": "Extension navigateur",
   "onboardingExtensionBody": "Installez l'extension Chrome ou Firefox pour envoyer les liens ici.",
   "onboardingReadyTitle": "Prêt",
-  "onboardingReadyBody": "Relancez le tour depuis Paramètres > Général."
+  "onboardingReadyBody": "Relancez le tour depuis Paramètres > Général.",
+  "pluginFeaturesTitle": "Fonctionnalités de l’application",
+  "pluginFeaturesHint": "Activez uniquement les écrans et outils que vous utilisez. Rien n’est supprimé quand vous désactivez une fonctionnalité.",
+  "pluginRequired": "Essentiel",
+  "pluginActivate": "Activer la fonctionnalité",
+  "pluginOpen": "Ouvrir la fonctionnalité",
+  "pluginInactiveTitle": "Fonctionnalité désactivée",
+  "pluginInactiveBody": "Cette fonctionnalité est conservée et ses données restent intactes. Vous pouvez la réactiver dans les réglages des plugins.",
+  "pluginManage": "Gérer les plugins",
+  "pluginWebRequest": "Le site Modern Downloader vous propose cette fonctionnalité. Confirmez ici pour l’ajouter à votre interface.",
+  "pluginExternalHint": "Cette extension s’installe dans le navigateur. Les étapes existantes sont disponibles plus bas."
 }

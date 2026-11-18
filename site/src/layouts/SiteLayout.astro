@@ -1,0 +1,169 @@
+---
+import '../styles/ui.css';
+import '../styles/site.css';
+import '../styles/hydra-v2.css';
+import '../styles/product-clean.css';
+import '../styles/motion.css';
+import '../styles/site-refinements.css';
+import { ClientRouter } from 'astro:transitions';
+import MobileNavigation from '../components/MobileNavigation';
+import DownloadDialog from '../components/DownloadDialog.astro';
+
+const { lang, title, description, currentPage = 'home', pagePath } = Astro.props;
+const languageCode = ['fr', 'en', 'ar'].includes(String(lang))
+  ? String(lang) as 'fr' | 'en' | 'ar'
+  : 'en';
+const direction = languageCode === 'ar' ? 'rtl' : 'ltr';
+const translations = {
+  fr: {
+    home: 'Accueil', features: 'Fonctionnalités', plugins: 'Plugins', guide: 'Guide',
+    download: 'Télécharger', menu: 'Menu', language: 'Langue', navigation: 'Navigation principale',
+    footer: 'Liens de pied de page', releases: 'GitHub', releaseNotes: 'Notes de version', library: 'Bibliothèque', discover: 'Découvrir',
+    catalog: 'Catalogue', backHome: 'Retour à l’accueil', skip: 'Aller au contenu',
+  },
+  en: {
+    home: 'Home', features: 'Features', plugins: 'Plugins', guide: 'Guide',
+    download: 'Download', menu: 'Menu', language: 'Language', navigation: 'Main navigation',
+    footer: 'Footer links', releases: 'GitHub', releaseNotes: 'Release notes', library: 'Library', discover: 'Discover',
+    catalog: 'Catalog', backHome: 'Back to home', skip: 'Skip to content',
+  },
+  ar: {
+    home: 'الرئيسية', features: 'الميزات', plugins: 'الإضافات', guide: 'الدليل',
+    download: 'تنزيل', menu: 'القائمة', language: 'اللغة', navigation: 'التنقل الرئيسي',
+    footer: 'روابط التذييل', releases: 'GitHub', releaseNotes: 'ملاحظات الإصدار', library: 'المكتبة', discover: 'استكشف',
+    catalog: 'الكتالوج', backHome: 'العودة إلى الرئيسية', skip: 'انتقل إلى المحتوى',
+  },
+};
+const copy = translations[languageCode];
+const basePath = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const githubUrl = 'https://github.com/itsnazzym/Downloader';
+const routeFor = (targetLanguage: string, page = 'home') =>
+  `${basePath}${targetLanguage}/${page === 'home' ? '' : `${page}/`}`;
+const canonicalUrl = new URL(pagePath ? `${basePath}${languageCode}/${pagePath}/` : routeFor(languageCode, currentPage), Astro.site).href;
+const languageRoute = (targetLanguage: string) => pagePath
+  ? `${basePath}${targetLanguage}/${pagePath}/`
+  : routeFor(targetLanguage, currentPage);
+const isSourcesPage = currentPage === 'sources';
+const siteMenuLinks = [
+  { label: copy.home, href: routeFor(languageCode), current: currentPage === 'home' },
+  { label: copy.features, href: `${routeFor(languageCode)}#features` },
+  { label: copy.plugins, href: routeFor(languageCode, 'sources'), current: currentPage === 'sources' },
+  { label: copy.guide, href: routeFor(languageCode, 'guide'), current: currentPage === 'guide' },
+];
+const libraryMenuLinks = [siteMenuLinks[0], siteMenuLinks[2], siteMenuLinks[3]];
+const languageLinks = [
+  { label: 'FR', href: languageRoute('fr'), code: 'fr', current: languageCode === 'fr' },
+  { label: 'EN', href: languageRoute('en'), code: 'en', current: languageCode === 'en' },
+  { label: 'ع', href: languageRoute('ar'), code: 'ar', current: languageCode === 'ar' },
+];
+---
+
+<!doctype html>
+<html lang={languageCode} dir={direction} class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#08090b" />
+    <link rel="icon" type="image/svg+xml" href={`${basePath}favicon.svg`} />
+    <link rel="canonical" href={canonicalUrl} />
+    <title>{title}</title>
+    <ClientRouter />
+    <script is:inline>
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('has-motion');
+        setTimeout(() => {
+          if (document.body?.dataset.motionInitialized !== 'true') document.documentElement.classList.remove('has-motion');
+        }, 2400);
+      }
+    </script>
+  </head>
+  <body class:list={[isSourcesPage ? 'page-library' : 'page-site']} transition:animate="fade">
+    <a class="skip-link" href="#main">{copy.skip}</a>
+    {isSourcesPage ? (
+      <div class="library-shell">
+        <aside class="library-sidebar" aria-label={copy.navigation}>
+          <a class="library-brand" href={routeFor(languageCode)} aria-label={`Modern Downloader — ${copy.backHome}`}>
+            <span class="wordmark">Modern<span>Downloader</span></span>
+          </a>
+          <p class="rail-label">{copy.discover}</p>
+          <nav class="rail-navigation">
+            <a href={routeFor(languageCode)}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" /></svg>
+              {copy.home}
+            </a>
+            <a href={routeFor(languageCode, 'sources')} aria-current="page">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+              {copy.plugins}
+            </a>
+            <a href={routeFor(languageCode, 'guide')}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.6 9a2.5 2.5 0 1 1 4.5 1.5c-1.2 1.3-2.1 1.7-2.1 3.5M12 17.4h.01" /></svg>
+              {copy.guide}
+            </a>
+          </nav>
+          <div class="rail-bottom">
+            <p class="rail-label">{copy.language}</p>
+            <nav class="rail-languages" aria-label={copy.language}>
+              <a href={languageRoute('fr')} lang="fr" aria-current={languageCode === 'fr' ? 'page' : undefined}>FR</a>
+              <a href={languageRoute('en')} lang="en" aria-current={languageCode === 'en' ? 'page' : undefined}>EN</a>
+              <a href={languageRoute('ar')} lang="ar" aria-current={languageCode === 'ar' ? 'page' : undefined}>ع</a>
+            </nav>
+            <button class="rail-download" type="button" data-download-open aria-haspopup="dialog">{copy.download}<span aria-hidden="true">↓</span></button>
+          </div>
+        </aside>
+        <div class="library-stage">
+          <div class="library-mobile-bar">
+            <a class="library-brand" href={routeFor(languageCode)} aria-label="Modern Downloader">
+              <span class="wordmark">Modern<span>Downloader</span></span>
+            </a>
+            <MobileNavigation client:media="(max-width: 1280px)" lang={languageCode} variant="library" menuLabel={copy.menu} navigationLabel={copy.navigation} downloadLabel={copy.download} links={libraryMenuLinks} languages={languageLinks} />
+          </div>
+          <slot />
+        </div>
+      </div>
+    ) : (
+      <>
+        <header class="site-header">
+          <div class="header-inner">
+            <a class="brand" href={routeFor(languageCode)} aria-label="Modern Downloader">
+              <span class="wordmark">Modern<span>Downloader</span></span>
+            </a>
+            <nav class="desktop-nav" aria-label={copy.navigation}>
+              <a href={routeFor(languageCode)} aria-current={currentPage === 'home' ? 'page' : undefined}>{copy.home}</a>
+              <a href={`${routeFor(languageCode)}#features`}>{copy.features}</a>
+              <a href={routeFor(languageCode, 'sources')} aria-current={currentPage === 'sources' ? 'page' : undefined}>{copy.plugins}</a>
+              <a href={routeFor(languageCode, 'guide')} aria-current={currentPage === 'guide' ? 'page' : undefined}>{copy.guide}</a>
+            </nav>
+            <div class="desktop-actions">
+              <nav class="language-switch" aria-label={copy.language}>
+                <a href={languageRoute('fr')} lang="fr" aria-current={languageCode === 'fr' ? 'page' : undefined}>FR</a>
+                <a href={languageRoute('en')} lang="en" aria-current={languageCode === 'en' ? 'page' : undefined}>EN</a>
+                <a href={languageRoute('ar')} lang="ar" aria-current={languageCode === 'ar' ? 'page' : undefined}>ع</a>
+              </nav>
+              <button class="header-cta" type="button" data-download-open aria-haspopup="dialog">{copy.download}<span class="button-arrow" aria-hidden="true">↓</span></button>
+            </div>
+            <MobileNavigation client:media="(max-width: 700px)" lang={languageCode} menuLabel={copy.menu} navigationLabel={copy.navigation} downloadLabel={copy.download} links={siteMenuLinks} languages={languageLinks} />
+          </div>
+        </header>
+        <slot />
+      </>
+    )}
+    <footer class:list={["site-footer", isSourcesPage && 'source-footer']}>
+      <a class="brand footer-brand" href={routeFor(languageCode)}>
+        <span class="wordmark">Modern<span>Downloader</span></span>
+      </a>
+      <p>© 2026 Modern Downloader</p>
+      <nav class="footer-links" aria-label={copy.footer}>
+        <a href={routeFor(languageCode)}>{copy.home}</a>
+        <a href={routeFor(languageCode, 'sources')}>{copy.plugins}</a>
+        <a href={routeFor(languageCode, 'guide')}>{copy.guide}</a>
+        <a href={routeFor(languageCode, 'releases')}>{copy.releaseNotes}</a>
+        <a href={githubUrl}>{copy.releases}<span aria-hidden="true">↗</span></a>
+      </nav>
+    </footer>
+    <DownloadDialog lang={languageCode} />
+    <script>import '../scripts/siteMotion';</script>
+  </body>
+</html>

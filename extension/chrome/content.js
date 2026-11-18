@@ -12,6 +12,7 @@
   var PROCESSED = new WeakSet();
   var scanScheduled = false;
   var scanTimer = null;
+  var tiktokSyncBannerTimer = null;
   var injectedButtons = [];
   var downloadedTweetIds = Object.create(null);
   var downloadedMediaIds = Object.create(null);
@@ -45,9 +46,6 @@
   var tabPageUrl = window.location.href;
 
   var SETTINGS = {
-    btnColor: '#6C5DD3',
-    btnPosition: 'top-right',
-    btnSize: 'normal',
     showQualitySelector: true,
   };
 
@@ -56,17 +54,11 @@
     if (!area) return;
     area.get(
       [
-        'btnColor',
-        'btnPosition',
-        'btnSize',
         'showQualitySelector',
         'downloadedKeys',
       ],
       function (items) {
         if (api.runtime.lastError) return;
-        if (items.btnColor) SETTINGS.btnColor = items.btnColor;
-        if (items.btnPosition) SETTINGS.btnPosition = items.btnPosition;
-        if (items.btnSize) SETTINGS.btnSize = items.btnSize;
         if (typeof items.showQualitySelector === 'boolean') {
           SETTINGS.showQualitySelector = items.showQualitySelector;
         }
@@ -80,9 +72,6 @@
     api.storage.onChanged.addListener(function (changes, areaName) {
       if (areaName !== 'local' && areaName !== 'sync') return;
       var needsRefresh = false;
-      if (changes.btnColor) { SETTINGS.btnColor = changes.btnColor.newValue; needsRefresh = true; }
-      if (changes.btnPosition) { SETTINGS.btnPosition = changes.btnPosition.newValue; needsRefresh = true; }
-      if (changes.btnSize) { SETTINGS.btnSize = changes.btnSize.newValue; needsRefresh = true; }
       if (changes.showQualitySelector) {
         SETTINGS.showQualitySelector = changes.showQualitySelector.newValue;
         needsRefresh = true;
@@ -1595,45 +1584,6 @@
   var deepScanBusy = false;
   var deepScanEpoch = 0;
 
-  function triggerSnapAdvanceWheel() {
-    var item = document.querySelector(
-      '[data-e2e="recommend-list-item-container"], [data-e2e="feed-video"]',
-    );
-    var target = item;
-    if (item) {
-      var node = item.parentElement;
-      var hops = 0;
-      while (node && hops < 14) {
-        if (node === document.body || node === document.documentElement) break;
-        if (node.scrollHeight > node.clientHeight + 24) {
-          target = node;
-          break;
-        }
-        node = node.parentElement;
-        hops += 1;
-      }
-    }
-    if (!target) target = document.scrollingElement || document.body;
-    if (!target) return;
-    var unit = Math.max(56, Math.round((window.innerHeight || 700) / 8));
-    var ticks = 0;
-    function tick() {
-      if (ticks++ >= 6) return;
-      try {
-        target.dispatchEvent(new WheelEvent('wheel', {
-          bubbles: true,
-          cancelable: true,
-          deltaY: unit,
-          deltaMode: 0,
-          view: window,
-        }));
-      } catch (e) {}
-      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(tick);
-      else setTimeout(tick, 16);
-    }
-    tick();
-  }
-
   function isTikTokSnapFeedPage() {
     if (currentPlatform() !== 'tiktok') return false;
     var path = String(window.location.pathname || '/');
@@ -1791,10 +1741,12 @@
 
   function clickTikTokNextControl() {
     var nodes = document.querySelectorAll(
-      '[data-e2e="arrow-down"], button[data-e2e="arrow-down"]',
+      '[data-e2e="arrow-down"], [data-e2e="browse-arrow-down"], ' +
+      'button[aria-label*="Next"], button[aria-label*="next"], ' +
+      'button[aria-label*="suivante"], button[aria-label*="Suivante"]',
     );
     for (var i = 0; i < nodes.length; i++) {
-      var btn = nodes[i];
+      var btn = nodes[i].closest('button') || nodes[i];
       if (!btn || typeof btn.click !== 'function' || !isElementDisplayed(btn)) continue;
       if (isUnsafeTikTokControl(btn)) continue;
       try {
@@ -1828,7 +1780,7 @@
     if (vis && vis.index + 1 < vis.items.length) {
       var next = vis.items[vis.index + 1];
       try {
-        next.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        next.scrollIntoView({ behavior: 'instant', block: 'start', inline: 'nearest' });
       } catch (e) {
         try { next.scrollIntoView(true); } catch (e2) {}
       }
@@ -1846,15 +1798,17 @@
       );
       var before = scroller.scrollTop;
       try {
-        scroller.scrollBy({ top: step, behavior: 'smooth' });
+        scroller.scrollBy({ top: step, behavior: 'instant' });
       } catch (e) {
         scroller.scrollTop = before + step;
       }
-      if (Math.abs(scroller.scrollTop - before) > 4) return true;
+      // scrollBy can be asynchronous; checking scrollTop here used to mistake
+      // a real navigation for a stall on TikTok's snap feed.
+      return true;
     }
-
-    triggerSnapAdvanceWheel();
-    return true;
+    // Synthetic wheel events are untrusted and TikTok ignores them. Report
+    // inability to advance so the panel can show a useful error.
+    return false;
   }
 
   function scrollAllFeedContainers(amount) {
@@ -1876,7 +1830,10 @@
     });
 
     if (snapFeed) {
-      advanceTikTokSnapFeed();
+      if (!advanceTikTokSnapFeed()) {
+        finishDeepScan(X_FEED_CACHE.length, 'navigation_unavailable');
+        return;
+      }
     } else {
       var lastTile = document.querySelector(
         'div[data-e2e="user-post-item"]:last-of-type, [data-e2e="loading-more"]',
@@ -1949,7 +1906,7 @@
     }, stepMs);
   }
 
-  function finishDeepScan(finalCount) {
+  function finishDeepScan(finalCount, error) {
     deepScanEpoch += 1;
     deepScanActive = false;
     deepScanBusy = false;
@@ -1963,6 +1920,7 @@
         count: finalCount,
         target: deepScanTarget,
         done: true,
+        error: error || null,
       });
     } catch (e) {}
   }
@@ -2201,51 +2159,35 @@
     shadow.appendChild(style);
 
     function applyStyles() {
-      var sizeMap = {
-        small: { pad: '4px 8px', font: '11px', togglePad: '4px 6px' },
-        normal: { pad: '6px 12px', font: '13px', togglePad: '6px 8px' },
-        large: { pad: '8px 16px', font: '15px', togglePad: '8px 10px' },
-      };
-      var sz = sizeMap[SETTINGS.btnSize] || sizeMap.normal;
-
-      var isLeftAligned = false;
+      var isLeftAligned = isVerticalVideo;
       if (isVerticalVideo) {
         host.style.top = '16px';
         host.style.left = '16px';
         host.style.right = 'auto';
         host.style.bottom = 'auto';
-        isLeftAligned = true;
-      } else if (isCardOverlay) {
+      } else {
         host.style.top = '8px';
         host.style.right = '8px';
         host.style.left = 'auto';
         host.style.bottom = 'auto';
-        isLeftAligned = false;
-      } else {
-        var offset = '8px';
-        host.style.top = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('top') >= 0) ? offset : 'auto';
-        host.style.bottom = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('bottom') >= 0) ? offset : 'auto';
-        host.style.left = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('left') >= 0) ? offset : 'auto';
-        host.style.right = (SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('right') >= 0) ? offset : 'auto';
-        isLeftAligned = SETTINGS.btnPosition && SETTINGS.btnPosition.indexOf('left') >= 0;
       }
 
       var menuPosCss = isLeftAligned ? 'left:0;right:auto;' : 'right:0;left:auto;';
       style.textContent =
         ':host{all:initial}' +
-        '.wrap{display:flex;align-items:center;gap:0;pointer-events:auto;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,sans-serif;opacity:0.92;transition:opacity 0.2s ease,transform 0.2s ease,box-shadow 0.2s ease;box-shadow:0 4px 14px rgba(0,0,0,0.4);border-radius:6px;background:rgba(20,20,28,0.75)}' +
-        '.wrap:hover{opacity:1;transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,0.45)}' +
-        'button{border:none;color:#fff;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;user-select:none}' +
+        '.wrap{display:flex;align-items:center;pointer-events:auto;font-family:Inter,Segoe UI,Arial,sans-serif;border:1px solid #55555b;border-radius:8px;background:#1f1f23;box-shadow:0 3px 10px rgba(0,0,0,.32)}' +
+        'button{min-height:44px;border:0;color:#fafafa;cursor:pointer;font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;user-select:none;background:transparent}' +
+        'button:focus-visible{outline:2px solid #50d4c7;outline-offset:2px}' +
         'button:disabled{cursor:default}' +
-        '.main{background:' + SETTINGS.btnColor + ';border-radius:6px 0 0 6px;padding:' + sz.pad + ';font-size:' + sz.font + ';line-height:1.4}' +
-        '.main.solo{border-radius:6px}' +
-        '.toggle{background:' + SETTINGS.btnColor + ';filter:brightness(0.9);border-radius:0 6px 6px 0;padding:' + sz.togglePad + ';border-left:1px solid rgba(255,255,255,.2);line-height:1.4}' +
-        '.menu{position:absolute;top:100%;' + menuPosCss + 'display:none;flex-direction:column;min-width:120px;background:#1E1E24;border:1px solid #333;border-radius:6px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.5);margin-top:4px;z-index:100}' +
+        '.main{border-radius:8px 0 0 8px;padding:6px 10px;line-height:1.3}' +
+        '.main.solo{border-radius:8px}' +
+        '.main:hover,.toggle:hover{background:#303036}' +
+        '.toggle{min-width:44px;border-radius:0 8px 8px 0;padding:6px 9px;border-left:1px solid #444449;line-height:1.3}' +
+        '.menu{position:absolute;top:100%;' + menuPosCss + 'display:none;flex-direction:column;min-width:140px;background:#27272b;border:1px solid #55555b;border-radius:8px;overflow:hidden;box-shadow:0 7px 20px rgba(0,0,0,.4);margin-top:4px;z-index:100}' +
         '.menu.open{display:flex}' +
-        '.item{padding:8px 12px;color:#eee;font-size:12px;cursor:pointer}' +
-        '.item:hover{background:' + SETTINGS.btnColor + '}' +
-        '.ok{background:#4CAF50!important}' +
-        '.err{background:#F44336!important}';
+        '.item{min-height:44px;padding:8px 12px;color:#fafafa;justify-content:flex-start;border-radius:0}' +
+        '.item:hover,.item:focus-visible{background:#3a3a41}' +
+        '.ok{color:#86efac!important}.err{color:#fca5a5!important}';
     }
     applyStyles();
 
@@ -2264,6 +2206,7 @@
       var hideHost = function () {
         if (markedDownloaded) return;
         if (menu && menu.classList.contains('open')) return;
+        if (host.matches(':focus-within')) return;
         host.style.opacity = '0';
         host.style.pointerEvents = 'none';
         host.style.transform = 'translateY(-2px)';
@@ -2271,10 +2214,14 @@
 
       parentCard.addEventListener('mouseenter', showHost, { passive: true });
       parentCard.addEventListener('mouseleave', hideHost, { passive: true });
+      parentCard.addEventListener('focusin', showHost);
+      parentCard.addEventListener('focusout', function () { setTimeout(hideHost, 0); });
+      parentCard.addEventListener('touchstart', showHost, { passive: true });
       if (container !== parentCard) {
         container.addEventListener('mouseenter', showHost, { passive: true });
         container.addEventListener('mouseleave', hideHost, { passive: true });
       }
+      if (window.matchMedia && window.matchMedia('(hover: none)').matches) showHost();
     }
 
     var wrap = document.createElement('div');
@@ -2326,6 +2273,7 @@
       toggle.className = 'toggle';
       toggle.type = 'button';
       toggle.setAttribute('aria-label', t('quality', 'Quality'));
+      toggle.setAttribute('aria-expanded', 'false');
       toggle.textContent = '▾';
       wrap.appendChild(toggle);
 
@@ -2339,7 +2287,8 @@
         { label: '720p', val: '720p' },
         { label: t('qualityAudioOnly', 'Audio Only'), val: 'audio' },
       ].forEach(function (opt) {
-        var item = document.createElement('div');
+        var item = document.createElement('button');
+        item.type = 'button';
         item.className = 'item';
         item.textContent = opt.label;
         item.addEventListener('click', function (e) {
@@ -2348,6 +2297,7 @@
           selectedQuality = opt.val;
           btn.textContent = opt.val === 'audio' ? t('qualityAudio', 'Audio') : opt.label;
           menu.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
         });
         menu.appendChild(item);
       });
@@ -2357,6 +2307,14 @@
         e.stopPropagation();
         if (markedDownloaded) return;
         menu.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(menu.classList.contains('open')));
+      });
+      wrap.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && menu.classList.contains('open')) {
+          menu.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.focus();
+        }
       });
     }
 
@@ -2638,6 +2596,7 @@
       if (!hasNodes) return;
       scheduleScan();
       scheduleXFeedUpdate(1200);
+      scheduleTikTokSyncBanner(150);
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
@@ -2733,9 +2692,9 @@
       var origZ = el.style.zIndex;
 
       el.style.transition = 'outline 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease';
-      el.style.outline = '3px solid #8b5cf6';
+      el.style.outline = '2px solid #0d9488';
       el.style.outlineOffset = '4px';
-      el.style.boxShadow = '0 0 28px rgba(139, 92, 246, 0.7)';
+      el.style.boxShadow = '0 0 0 4px rgba(13, 148, 136, 0.18)';
       el.style.transform = 'scale(1.02)';
 
       setTimeout(function () {
@@ -2768,11 +2727,13 @@
         return false;
       }
       if (message.type === 'MD_START_DEEP_SCAN') {
+        if (window !== window.top) return false;
         startDeepScan(message.maxTarget || 1000);
         sendResponse({ ok: true });
         return false;
       }
       if (message.type === 'MD_DEEP_SCAN_PULSE') {
+        if (window !== window.top) return false;
         if (!deepScanActive) {
           startDeepScan(message.maxTarget || 1000);
         }
@@ -2780,6 +2741,7 @@
         return false;
       }
       if (message.type === 'MD_STOP_DEEP_SCAN') {
+        if (window !== window.top) return false;
         stopDeepScan();
         sendResponse({ ok: true });
         return false;
@@ -2818,6 +2780,7 @@
         return false;
       }
       if (message.type === 'MD_SYNC_TIKTOK_COLLECTIONS') {
+        if (window !== window.top) return false;
         extractTikTokCollections().then(function (res) {
           sendResponse(res);
         }).catch(function (err) {
@@ -2847,138 +2810,741 @@
     });
   }
 
-  function fetchCollectionItemsRecursive(collectionId, totalDeclared) {
-    return new Promise(function (resolve) {
-      var allIds = [];
-      var cursor = 0;
-      var hasMore = true;
-      var maxLoops = 20;
-
-      function fetchNextPage() {
-        if (!hasMore || (totalDeclared && allIds.length >= totalDeclared) || maxLoops <= 0) {
-          resolve(allIds);
-          return;
-        }
-        maxLoops--;
-        var url = 'https://www.tiktok.com/api/collection/item_list/?collectionId=' + collectionId + '&count=50&cursor=' + cursor;
-        fetch(url, {
-          credentials: 'include',
-          headers: { 'Accept': 'application/json' },
-        }).then(function (r) {
-          return r.json();
-        }).then(function (res) {
-          if (!res || !Array.isArray(res.itemList) || res.itemList.length === 0) {
-            resolve(allIds);
-            return;
-          }
-          res.itemList.forEach(function (item) {
-            var vid = item.id || item.videoId;
-            if (vid && allIds.indexOf(String(vid)) === -1) {
-              allIds.push(String(vid));
-            }
-          });
-          hasMore = res.hasMore === true;
-          cursor = res.cursor || (cursor + res.itemList.length);
-          if (hasMore && res.itemList.length > 0) {
-            setTimeout(fetchNextPage, 200);
-          } else {
-            resolve(allIds);
-          }
-        }).catch(function () {
-          resolve(allIds);
-        });
-      }
-
-      fetchNextPage();
-    });
+  function waitForTikTok(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
 
-  function extractTikTokCollections() {
-    return new Promise(function (resolve) {
-      var collections = {};
-      var collectionTotals = {};
+  function unwrapTikTokApiData(value) {
+    var merged = {};
+    var current = value;
+    for (var depth = 0; depth < 4; depth++) {
+      if (!current || typeof current !== 'object' || Array.isArray(current)) break;
+      var statusCode = current.statusCode;
+      if (statusCode == null) statusCode = current.status_code;
+      if (statusCode != null && String(statusCode).trim() !== '0') {
+        throw new Error('TikTok API rejected request');
+      }
+      Object.keys(current).forEach(function (key) {
+        if (key !== 'data') merged[key] = current[key];
+      });
+      if (!current.data || typeof current.data !== 'object' || Array.isArray(current.data)) break;
+      current = current.data;
+    }
+    return merged;
+  }
 
-      // NOTE: We intentionally do NOT scrape DOM links (a[href*="/video/"]) here.
-      // On the TikTok home/feed page those links are random videos from other users
-      // and would pollute the user's collections with wrong IDs.
-      // The API is the only reliable source of truth.
+  function parseTikTokJson(text) {
+    // Preserve int64 identifiers and cursors before JSON.parse rounds them to
+    // JavaScript's 53-bit number range.
+    var safeText = String(text).replace(
+      /(\"(?:collectionId|collection_id|collectId|collect_id|aweme_id|awemeId|aweme_id_str|awemeIdStr|video_id|videoId|item_id|itemId|id_str|idStr|id|cursor|next_cursor|nextCursor)\"\s*:\s*)(-?\d{16,})(?=\s*[,}])/g,
+      '$1"$2"',
+    );
+    return JSON.parse(safeText);
+  }
 
-      fetch('https://www.tiktok.com/api/user/collection/list/?count=50&cursor=0', {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-      }).then(function (res) {
-        return res.json();
-      }).then(function (data) {
-        if (!data || !Array.isArray(data.collectionList) || data.collectionList.length === 0) {
-          resolve({ ok: false, collections: collections, collectionTotals: collectionTotals, error: 'no_collections' });
-          return;
+  async function fetchTikTokJson(url) {
+    var attempt = 0;
+    while (true) {
+      var controller = new AbortController();
+      var timer = setTimeout(function () { controller.abort(); }, 15000);
+      try {
+        var response = await fetch(url, {
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          if ((response.status === 429 || response.status >= 500) && attempt < 3) {
+            attempt++;
+            await waitForTikTok(1000 * Math.pow(2, attempt));
+            continue;
+          }
+          throw new Error('HTTP ' + response.status);
         }
+        var payload = typeof response.text === 'function'
+          ? parseTikTokJson(await response.text())
+          : await response.json();
+        return unwrapTikTokApiData(payload);
+      } catch (e) {
+        if (((e && e.name === 'AbortError') || /Failed to fetch|NetworkError|rejected request|rate limit/i.test((e && e.message) || '')) && attempt < 3) {
+          attempt++;
+          await waitForTikTok(1000 * Math.pow(2, attempt));
+          continue;
+        }
+        throw e;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+  }
 
-        var promises = data.collectionList.map(function (col) {
-          var id = col.collectionId || col.id;
-          var name = col.collectionName || col.name || ('Collection ' + id);
-          var declaredTotal = parseInt(col.total, 10) || 0;
-          collectionTotals[name] = declaredTotal;
+  function parseTikTokCount(value) {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+    }
+    if (typeof value !== 'string') return 0;
+    var digits = value.replace(/[^\d]/g, '');
+    return digits ? parseInt(digits, 10) || 0 : 0;
+  }
 
-          return fetchCollectionItemsRecursive(id, declaredTotal).then(function (items) {
-            collections[name] = items;
+  function normalizeCollectionToken(value) {
+    return String(value || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '');
+  }
+
+  function collectionLabelDetails(label, slug) {
+    var rawTokens = String(label || '').trim().split(/\s+/).filter(Boolean);
+    var normalizedTokens = rawTokens.map(normalizeCollectionToken);
+    var slugTokens = String(slug || '')
+      .replace(/[-_]+/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .map(normalizeCollectionToken)
+      .filter(Boolean);
+
+    // TikTok renders the collection name in more than one nested label on some
+    // cards. Strip those exact slug prefixes before parsing the trailing count.
+    var countTokens = normalizedTokens.slice();
+    for (var removals = 0; slugTokens.length && removals < 3; removals++) {
+      var matchAt = -1;
+      for (var start = 0; start <= countTokens.length - slugTokens.length; start++) {
+        var matchesSlug = slugTokens.every(function (token, index) {
+          return countTokens[start + index] === token;
+        });
+        if (matchesSlug) {
+          matchAt = start;
+          break;
+        }
+      }
+      if (matchAt < 0) break;
+      countTokens.splice(matchAt, slugTokens.length);
+    }
+
+    var count = 0;
+    var countTokenLength = 0;
+    var lastToken = countTokens[countTokens.length - 1] || '';
+    if (/^videos?$/.test(lastToken)) {
+      countTokenLength = 1;
+      var numericParts = [];
+      for (var i = countTokens.length - 2; i >= 0; i--) {
+        if (!/^[\d.,]+$/.test(countTokens[i])) break;
+        numericParts.unshift(countTokens[i]);
+        countTokenLength++;
+      }
+      if (numericParts.length) {
+        count = parseTikTokCount(numericParts.join(''));
+      } else {
+        countTokenLength = 0;
+      }
+    }
+
+    var nameTokens = countTokenLength
+      ? rawTokens.slice(0, Math.max(0, rawTokens.length - countTokenLength))
+      : rawTokens.slice();
+    if (slugTokens.length) {
+      // Keep the first visible copy of the name and remove repeated copies.
+      var hasRepeatedSlugPrefix = true;
+      while (hasRepeatedSlugPrefix && nameTokens.length >= slugTokens.length * 2) {
+        hasRepeatedSlugPrefix = slugTokens.every(function (token, index) {
+          return normalizeCollectionToken(nameTokens[index]) === token &&
+            normalizeCollectionToken(nameTokens[index + slugTokens.length]) === token;
+        });
+        if (hasRepeatedSlugPrefix) {
+          nameTokens.splice(slugTokens.length, slugTokens.length);
+        }
+      }
+    }
+    return { name: nameTokens.join(' ').trim(), total: count };
+  }
+
+  function normalizeTikTokImageUrl(value) {
+    if (!value || typeof value !== 'string') return null;
+    try {
+      var url = new URL(value, 'https://www.tiktok.com');
+      if (url.protocol !== 'https:') return null;
+      var host = url.hostname.toLowerCase();
+      var trustedHost = [
+        'tiktokcdn.com',
+        'tiktokv.com',
+        'byteoversea.com',
+        'ibytedtos.com',
+        'byteimg.com',
+      ].some(function (domain) {
+        return host === domain || host.endsWith('.' + domain);
+      });
+      return trustedHost ? url.href : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function tikTokCollectionCover(value, depth) {
+    if (depth > 4 || value == null) return null;
+    if (typeof value === 'string') return normalizeTikTokImageUrl(value);
+    if (Array.isArray(value)) {
+      for (var i = 0; i < value.length; i++) {
+        var fromArray = tikTokCollectionCover(value[i], depth + 1);
+        if (fromArray) return fromArray;
+      }
+      return null;
+    }
+    if (typeof value !== 'object') return null;
+    var keys = [
+      'coverUrl',
+      'cover_url',
+      'originCover',
+      'origin_cover',
+      'dynamicCover',
+      'dynamic_cover',
+      'thumbnail',
+      'cover',
+      'image',
+      'urlList',
+      'url_list',
+      'url',
+    ];
+    for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+      var candidate = value[keys[keyIndex]];
+      if (candidate == null) continue;
+      var fromProperty = tikTokCollectionCover(candidate, depth + 1);
+      if (fromProperty) return fromProperty;
+    }
+    return null;
+  }
+
+  function collectionDescriptor(col) {
+    var id = String(col.collectionId || col.collection_id || col.collectId || col.collect_id || col.id || '');
+    if (!/^\d{8,}$/.test(id)) return null;
+    var name = String(col.collectionName || col.name || col.collection_name || '').trim();
+    if (!name) name = 'Collection ' + id;
+    var totalFields = [
+      col.total,
+      col.item_count,
+      col.itemCount,
+      col.video_count,
+      col.videoCount,
+      col.aweme_count,
+      col.awemeCount,
+    ];
+    var total = 0;
+    for (var fieldIndex = 0; fieldIndex < totalFields.length; fieldIndex++) {
+      total = parseTikTokCount(totalFields[fieldIndex]);
+      if (total > 0) break;
+    }
+    var coverUrl = tikTokCollectionCover(col, 0);
+    return { id: id, name: name, total: total, coverUrl: coverUrl };
+  }
+
+  function readTikTokHasMore(data) {
+    var value = data.hasMore;
+    if (value == null) value = data.has_more;
+    if (value === true || value === 1) return true;
+    if (value === false || value === 0) return false;
+    if (typeof value === 'string') {
+      var normalized = value.trim().toLowerCase();
+      if (normalized === 'true' || normalized === '1') return true;
+      if (normalized === 'false' || normalized === '0') return false;
+    }
+    return null;
+  }
+
+  function tikTokProfileSecUid() {
+    var state = document.getElementById && document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
+    if (!state || !state.textContent) return '';
+    try {
+      var scope = JSON.parse(state.textContent).__DEFAULT_SCOPE__ || {};
+      var contextUser = scope['webapp.app-context'] && scope['webapp.app-context'].user;
+      var profile = scope['webapp.user-detail'] && scope['webapp.user-detail'].userInfo;
+      var profileUser = profile && profile.user;
+      return String((profileUser && profileUser.secUid) || (contextUser && contextUser.secUid) || '');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  async function listTikTokCollectionsFromApi() {
+    var secUid = tikTokProfileSecUid();
+    var endpoints = [
+      'https://www.tiktok.com/api/user/collection_list/',
+      'https://www.tiktok.com/api/user/collection/list/',
+      'https://www.tiktok.com/api/collection/list/',
+    ];
+    var best = { collections: [], complete: false, error: 'collections_unavailable' };
+    for (var endpointIndex = 0; endpointIndex < endpoints.length; endpointIndex++) {
+      var found = new Map();
+      var cursor = '0';
+      var seenCursors = new Set();
+      var complete = false;
+      var error = null;
+      try {
+        for (var page = 0; page < 20; page++) {
+          if (seenCursors.has(cursor)) {
+            error = 'collection_cursor_loop';
+            break;
+          }
+          seenCursors.add(cursor);
+          var url = endpoints[endpointIndex] + '?aid=1988&count=30&cursor=' + encodeURIComponent(cursor) +
+            (endpointIndex === 0 && secUid ? '&secUid=' + encodeURIComponent(secUid) : '');
+          var data = await fetchTikTokJson(url);
+          var list = data.collectionList || data.collection_list || data.collections || data.items;
+          if (!Array.isArray(list)) {
+            error = 'invalid_collection_page';
+            break;
+          }
+          list.forEach(function (col) {
+            var item = collectionDescriptor(col);
+            if (item) found.set(item.id, item);
           });
-        });
+          var next = String(data.cursor == null ? '' : data.cursor);
+          var hasMore = readTikTokHasMore(data);
+          if (hasMore === true) {
+            if (!list.length || !next || next === cursor) {
+              error = 'collection_pagination_incomplete';
+              break;
+            }
+            if (page === 19) {
+              error = 'collection_page_limit';
+              break;
+            }
+            cursor = next;
+            continue;
+          }
+          if (hasMore !== false) {
+            if (list.length && next && next !== cursor) {
+              if (page === 19) {
+                error = 'collection_page_limit';
+                break;
+              }
+              cursor = next;
+              continue;
+            }
+            error = 'collection_pagination_status_missing';
+            break;
+          }
+          complete = true;
+          cursor = next;
+          break;
+        }
+      } catch (e) {
+        error = (e && e.message) || 'collection_list_failed';
+      }
+      var candidate = {
+        collections: Array.from(found.values()),
+        complete: complete,
+        error: error,
+      };
+      if (candidate.collections.length > best.collections.length ||
+          (candidate.collections.length === best.collections.length && candidate.complete)) {
+        best = candidate;
+      }
+      if (candidate.collections.length && candidate.complete) return candidate;
+    }
+    return best;
+  }
 
-        Promise.all(promises).then(function () {
-          resolve({ ok: true, collections: collections, collectionTotals: collectionTotals });
-        });
-      }).catch(function (err) {
-        // API fetch failed — likely not on TikTok page or not logged in.
-        resolve({ ok: false, collections: collections, collectionTotals: collectionTotals, error: (err && err.message) || 'fetch_failed' });
+  function visibleTikTokCollectionCards() {
+    var found = new Map();
+    document.querySelectorAll('a[href*="/collection/"]').forEach(function (link) {
+      var url;
+      try { url = new URL(link.href); } catch (e) { return; }
+      if (!/(^|\.)tiktok\.com$/.test(url.hostname)) return;
+      var match = url.pathname.match(/\/@[^/]+\/collection\/(.+)-(\d{8,})\/?$/);
+      if (!match) return;
+      var label = String(link.innerText || link.textContent || '').trim();
+      var slug = match[1];
+      var id = match[2];
+      var decodedSlug = slug;
+      try { decodedSlug = decodeURIComponent(slug); } catch (e) {}
+      var details = collectionLabelDetails(label, decodedSlug);
+      var name = details.name || decodedSlug.replace(/[-_]+/g, ' ').trim();
+      if (!name) name = 'Collection ' + id;
+      var rawCoverUrl = extractCleanImageUrl(link);
+      found.set(id, {
+        id: id,
+        name: name,
+        total: details.total,
+        coverUrl: normalizeTikTokImageUrl(rawCoverUrl),
       });
     });
+    return found;
+  }
+
+  async function listTikTokCollectionsFromPage(progress) {
+    var found = visibleTikTokCollectionCards();
+    if (!found.size) {
+      return { collections: [], complete: false, declaredTotal: 0 };
+    }
+    var tabText = String(document.body && document.body.innerText || '');
+    var declaredMatch = tabText.match(/Collections\s+(\d+)/i);
+    var declared = declaredMatch ? parseInt(declaredMatch[1], 10) : 0;
+    var first = document.querySelector('a[href*="/collection/"]');
+    var scroller = findScrollableAncestor(first) || document.scrollingElement || document.documentElement;
+    var originalTop = scroller ? scroller.scrollTop : 0;
+    var stagnant = 0;
+    try {
+      for (var round = 0; round < 180 && stagnant < 30 && (!declared || found.size < declared); round++) {
+        var cards = document.querySelectorAll('a[href*="/collection/"]');
+        var last = cards[cards.length - 1];
+        if (last && last.scrollIntoView) last.scrollIntoView({ block: 'end', behavior: 'instant' });
+        if (scroller) scroller.scrollTop += Math.max(240, scroller.clientHeight * 0.55);
+        await waitForTikTok(650);
+        var now = visibleTikTokCollectionCards();
+        now.forEach(function (value, key) { found.set(key, value); });
+        stagnant = found.size > (progress.lastFound || 0) ? 0 : stagnant + 1;
+        progress.lastFound = found.size;
+        if (progress.update) progress.update(t('contentSyncDiscovering', 'Collections repérées') + ' : ' + found.size + (declared ? '/' + declared : ''));
+      }
+      // Virtualized grids can skip cards while loading. Sweep back through
+      // the visible list before declaring folders absent.
+      if (scroller && declared && found.size < declared) {
+        for (var back = 0; back < 180 && scroller.scrollTop > 0 && found.size < declared; back++) {
+          scroller.scrollTop = Math.max(0, scroller.scrollTop - Math.max(240, scroller.clientHeight * 0.55));
+          await waitForTikTok(350);
+          visibleTikTokCollectionCards().forEach(function (value, key) { found.set(key, value); });
+        }
+      }
+    } finally {
+      if (scroller) scroller.scrollTop = originalTop;
+    }
+    return {
+      collections: Array.from(found.values()),
+      complete: declared > 0 && found.size >= declared,
+      declaredTotal: declared,
+    };
+  }
+
+  function tikTokItemId(item) {
+    if (typeof item === 'string' || typeof item === 'number') {
+      if (typeof item === 'number' && !Number.isSafeInteger(item)) return '';
+      var scalarId = String(item);
+      return /^\d{8,}$/.test(scalarId) ? scalarId : '';
+    }
+    if (!item || typeof item !== 'object') return '';
+    var fields = [
+      item.aweme_id,
+      item.awemeId,
+      item.aweme_id_str,
+      item.awemeIdStr,
+      item.video_id,
+      item.videoId,
+      item.item_id,
+      item.itemId,
+      item.id_str,
+      item.idStr,
+      item.id,
+    ];
+    for (var i = 0; i < fields.length; i++) {
+      var value = fields[i];
+      if (typeof value === 'number' && !Number.isSafeInteger(value)) continue;
+      var id = String(value == null ? '' : value);
+      if (/^\d{8,}$/.test(id)) return id;
+    }
+    var nestedItems = [item.aweme, item.awemeInfo, item.aweme_info, item.video, item.item];
+    for (var nestedIndex = 0; nestedIndex < nestedItems.length; nestedIndex++) {
+      if (nestedItems[nestedIndex] && nestedItems[nestedIndex] !== item) {
+        var nestedId = tikTokItemId(nestedItems[nestedIndex]);
+        if (nestedId) return nestedId;
+      }
+    }
+    return '';
+  }
+
+  function tikTokVideoUrl(item, videoId) {
+    if (item && typeof item === 'object') {
+      var candidates = [
+        item.share_url,
+        item.shareUrl,
+        item.url,
+        item.web_url,
+        item.webUrl,
+        item.share_info && item.share_info.share_url,
+        item.shareInfo && item.shareInfo.shareUrl,
+      ];
+      var nested = [item.aweme, item.awemeInfo, item.aweme_info, item.video, item.item];
+      for (var nestedIndex = 0; nestedIndex < nested.length; nestedIndex++) {
+        if (nested[nestedIndex] && nested[nestedIndex] !== item) {
+          var nestedUrl = tikTokVideoUrl(nested[nestedIndex], videoId);
+          if (nestedUrl.indexOf('/video/' + videoId) >= 0) return nestedUrl;
+        }
+      }
+      for (var candidateIndex = 0; candidateIndex < candidates.length; candidateIndex++) {
+        var candidate = String(candidates[candidateIndex] || '').trim();
+        if (!candidate) continue;
+        try {
+          var parsed = new URL(candidate, 'https://www.tiktok.com');
+          if (/(^|\.)tiktok\.com$/i.test(parsed.hostname) &&
+              new RegExp('/@[^/]+/video/' + videoId + '(?:/|$)').test(parsed.pathname)) {
+            return parsed.href;
+          }
+        } catch (e) {}
+      }
+      var author = item.author || item.authorInfo || item.author_info || {};
+      var username = String(
+        author.unique_id || author.uniqueId || author.username || author.user_name || '',
+      ).trim();
+      if (/^[A-Za-z0-9._]{1,64}$/.test(username)) {
+        return 'https://www.tiktok.com/@' + encodeURIComponent(username) + '/video/' + videoId;
+      }
+    }
+    // TikTok's share redirect resolves the creator URL from the stable item ID.
+    return 'https://www.tiktokv.com/share/video/' + videoId + '/';
+  }
+
+  async function fetchCollectionItemsRecursive(collectionId, totalDeclared) {
+    var allIds = new Set();
+    var videoUrls = Object.create(null);
+    var cursor = '0';
+    var seenCursors = new Set();
+    try {
+      for (var page = 0; page < 500; page++) {
+        if (seenCursors.has(cursor)) {
+          return { ids: Array.from(allIds), videoUrls: videoUrls, complete: allIds.size > 0, error: allIds.size > 0 ? null : 'item_cursor_loop' };
+        }
+        seenCursors.add(cursor);
+        var url = 'https://www.tiktok.com/api/collection/item_list/?aid=1988&sourceType=113&collectionId=' +
+          encodeURIComponent(collectionId) + '&count=30&cursor=' + encodeURIComponent(cursor);
+        var data;
+        try {
+          data = await fetchTikTokJson(url);
+        } catch (fetchErr) {
+          if (allIds.size > 0) {
+            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+          }
+          throw fetchErr;
+        }
+        var hasMore = readTikTokHasMore(data);
+        var list = data.itemList || data.item_list || data.items || data.videos || data.aweme_list || data.awemeList || data.awemes;
+        if (!Array.isArray(list)) {
+          if (hasMore === true) {
+            await waitForTikTok(500);
+            try {
+              data = await fetchTikTokJson(url);
+              hasMore = readTikTokHasMore(data);
+              list = data.itemList || data.item_list || data.items || data.videos || data.aweme_list || data.awemeList || data.awemes;
+            } catch (_) {}
+          }
+          if (!Array.isArray(list)) {
+            list = [];
+            hasMore = false;
+          }
+        }
+        list.forEach(function (item) {
+          var id = tikTokItemId(item);
+          if (id) {
+            allIds.add(id);
+            if (!videoUrls[id]) videoUrls[id] = tikTokVideoUrl(item, id);
+          }
+        });
+        var nextValue = data.cursor;
+        if (nextValue == null) nextValue = data.nextCursor;
+        if (nextValue == null) nextValue = data.next_cursor;
+        var next = String(nextValue == null ? '' : nextValue);
+        if (hasMore === false || hasMore === 0) {
+          return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+        }
+        if (!list.length) {
+          return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+        }
+        if (hasMore === true) {
+          if (!next || next === cursor) {
+            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+          }
+          if (page === 499) {
+            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+          }
+          cursor = next;
+          await waitForTikTok(200);
+          continue;
+        }
+        if (next && next !== cursor) {
+          cursor = next;
+          await waitForTikTok(200);
+          continue;
+        }
+        return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+      }
+      return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+    } catch (e) {
+      if (allIds.size > 0) {
+        return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+      }
+      return { ids: Array.from(allIds), videoUrls: videoUrls, complete: false, error: (e && e.message) || 'fetch_failed' };
+    }
+  }
+
+  async function extractTikTokCollections(progress) {
+    progress = progress || {};
+    var apiResult = await listTikTokCollectionsFromApi();
+    var descriptors = apiResult.collections;
+    var collectionListComplete = apiResult.complete;
+    var visibleResult = { collections: [], complete: false, declaredTotal: 0 };
+    // The API may expose only the first page even when the account visibly
+    // has more folders. Merge cards from the user's own Collections grid.
+    if (document.querySelector('a[href*="/collection/"]')) {
+      visibleResult = await listTikTokCollectionsFromPage(progress);
+      var byId = new Map();
+      descriptors.forEach(function (item) { byId.set(item.id, item); });
+      visibleResult.collections.forEach(function (item) {
+        var previous = byId.get(item.id);
+        byId.set(item.id, {
+          id: item.id,
+          name: item.name || (previous && previous.name) || ('Collection ' + item.id),
+          total: item.total || (previous && previous.total) || 0,
+          coverUrl: item.coverUrl || (previous && previous.coverUrl) || null,
+        });
+      });
+      descriptors = Array.from(byId.values());
+      if (visibleResult.complete && descriptors.length >= visibleResult.declaredTotal) {
+        collectionListComplete = true;
+      } else if (visibleResult.declaredTotal && descriptors.length < visibleResult.declaredTotal) {
+        collectionListComplete = false;
+      }
+    }
+    if (!descriptors.length) {
+      return {
+        ok: false,
+        collections: [],
+        collectionListComplete: false,
+        error: 'no_collections',
+      };
+    }
+    var collections = new Array(descriptors.length);
+    var failed = 0;
+    var completed = 0;
+    var nextIndex = 0;
+    async function worker() {
+      while (nextIndex < descriptors.length) {
+        var index = nextIndex++;
+        var col = descriptors[index];
+        var result = await fetchCollectionItemsRecursive(col.id, col.total);
+        if (!result.complete) failed++;
+        collections[index] = {
+          id: col.id,
+          name: col.name,
+          coverUrl: col.coverUrl || null,
+          declaredTotal: col.total > 0 ? col.total : null,
+          videoIds: result.ids,
+          videoUrls: result.videoUrls,
+          complete: result.complete,
+          error: result.error,
+        };
+        completed++;
+        if (progress.update) {
+          progress.update(t('contentSyncProgress', 'Collections traitées') + ' : ' + completed + '/' + descriptors.length);
+        }
+        await waitForTikTok(100);
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(2, descriptors.length) }, worker));
+    var count = collections.length;
+    var expectedTotal = Math.max(descriptors.length, visibleResult.declaredTotal || 0);
+    return {
+      ok: count > 0,
+      collections: collections,
+      collectionListComplete: collectionListComplete,
+      found: descriptors.length,
+      declaredTotal: expectedTotal,
+      failed: failed,
+      error: count && failed === count ? 'collection_items_unavailable' : null,
+    };
+  }
+
+  function scheduleTikTokSyncBanner(delayMs) {
+    if (window !== window.top) return;
+    if (window.location.hostname.indexOf('tiktok.com') === -1) return;
+    if (document.getElementById('md-tiktok-sync-pill')) return;
+    if (tiktokSyncBannerTimer) clearTimeout(tiktokSyncBannerTimer);
+    tiktokSyncBannerTimer = setTimeout(function () {
+      tiktokSyncBannerTimer = null;
+      injectTikTokSyncBanner();
+    }, delayMs == null ? 150 : delayMs);
   }
 
   function injectTikTokSyncBanner() {
+    if (window !== window.top) return;
     if (window.location.hostname.indexOf('tiktok.com') === -1) return;
     if (document.getElementById('md-tiktok-sync-pill')) return;
 
-    var pill = document.createElement('div');
+    var pill = document.createElement('button');
+    pill.type = 'button';
     pill.id = 'md-tiktok-sync-pill';
     pill.style.position = 'fixed';
-    pill.style.bottom = '24px';
-    pill.style.right = '24px';
+    pill.style.bottom = '16px';
+    pill.style.right = '16px';
     pill.style.zIndex = '9999999';
-    pill.style.background = 'linear-gradient(135deg, #6C5DD3 0%, #FE2C55 100%)';
-    pill.style.color = '#fff';
-    pill.style.padding = '8px 14px';
-    pill.style.borderRadius = '24px';
-    pill.style.boxShadow = '0 6px 18px rgba(0,0,0,0.35)';
+    pill.style.background = '#1f1f23';
+    pill.style.color = '#fafafa';
+    pill.style.border = '1px solid #6a6a70';
+    pill.style.padding = '9px 12px';
+    pill.style.minHeight = '44px';
+    pill.style.borderRadius = '8px';
+    pill.style.boxShadow = '0 4px 14px rgba(0,0,0,0.3)';
     pill.style.cursor = 'pointer';
-    pill.style.fontSize = '13px';
+    pill.style.fontSize = '12px';
     pill.style.fontWeight = '600';
     pill.style.fontFamily = 'system-ui, -apple-system, sans-serif';
     pill.style.display = 'flex';
     pill.style.alignItems = 'center';
     pill.style.gap = '8px';
-    pill.style.transition = 'transform 0.2s, opacity 0.2s';
-    pill.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Sync Collections vers Modern Downloader</span>';
-
-    pill.addEventListener('mouseenter', function () { pill.style.transform = 'scale(1.04)'; });
-    pill.addEventListener('mouseleave', function () { pill.style.transform = 'scale(1)'; });
+    pill.style.maxWidth = 'min(360px, calc(100vw - 32px))';
+    pill.style.textAlign = 'start';
+    pill.style.lineHeight = '1.35';
+    pill.setAttribute('aria-live', 'polite');
+    pill.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 7a8 8 0 0 0-14-1M4 3v4h4M4 17a8 8 0 0 0 14 1m2 3v-4h-4"></path></svg><span></span>';
+    pill.querySelector('span').textContent = t('contentSyncButton', 'Synchroniser les collections');
     pill.addEventListener('click', function () {
-      pill.innerHTML = '<span>⏳ Synchronisation en cours...</span>';
-      extractTikTokCollections().then(function (res) {
-        if (res && res.ok && res.collections && Object.keys(res.collections).length > 0) {
-          api.runtime.sendMessage({
+      if (pill.dataset.syncing === 'true') return;
+      pill.dataset.syncing = 'true';
+      pill.setAttribute('aria-busy', 'true');
+      pill.textContent = t('contentSyncInProgress', 'Synchronisation des collections…');
+      extractTikTokCollections({ update: function (message) { pill.textContent = message; } }).then(function (res) {
+        if (res && res.ok && Array.isArray(res.collections) && res.collections.length > 0) {
+          return api.runtime.sendMessage({
             type: 'MD_TIKTOK_COLLECTIONS_DATA',
             collections: res.collections,
-            collectionTotals: res.collectionTotals,
+            collectionListComplete: res.collectionListComplete,
+          }).then(function (ack) {
+            if (!ack || !ack.ok) throw new Error(t('appOffline', 'Application hors ligne'));
+            var synced = res.collections.filter(function (collection) { return collection.complete; }).length;
+            var recovered = new Set();
+            res.collections.forEach(function (collection) {
+              (collection.videoIds || []).forEach(function (id) { recovered.add(id); });
+            });
+            var expected = Math.max(res.found || 0, res.declaredTotal || 0);
+            if (res.failed || !res.collectionListComplete) {
+              var incomplete = Math.max(0, res.found - synced);
+              var missing = Math.max(0, expected - res.found);
+              pill.textContent = recovered.size + ' ' + t('contentSyncVideosSent', 'vidéos transmises') + ' · ' + synced + '/' + expected + ' ' + t('contentSyncComplete', 'complètes') +
+                (incomplete ? ' (' + incomplete + ' ' + t('contentSyncIncomplete', 'incomplètes') : '') +
+                (missing ? (incomplete ? ', ' : ' (') + missing + ' ' + t('contentSyncMissing', 'absentes') : '') +
+                (incomplete || missing ? ')' : '');
+              var errorCounts = {};
+              res.collections.forEach(function (collection) {
+                if (collection.complete || !collection.error) return;
+                errorCounts[collection.error] = (errorCounts[collection.error] || 0) + 1;
+              });
+              pill.title = Object.keys(errorCounts).sort().map(function (error) {
+                return error + ': ' + errorCounts[error];
+              }).join(' · ');
+            } else {
+              pill.textContent = recovered.size + ' ' + t('contentSyncVideosSent', 'vidéos transmises') + ' · ' + synced + ' ' + t('contentSyncCollections', 'collections');
+              setTimeout(function () { pill.remove(); }, 4000);
+            }
           });
-          pill.innerHTML = '<span>✅ ' + Object.keys(res.collections).length + ' collections synchronisées !</span>';
-          setTimeout(function () { pill.remove(); }, 4000);
         } else {
-          pill.innerHTML = '<span>⚠️ Aucune collection trouvée</span>';
-          setTimeout(function () {
-            pill.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Sync Collections vers Modern Downloader</span>';
-          }, 3000);
+          pill.textContent = res && res.found
+            ? t('contentSyncNoVideos', 'Collections visibles, vidéos indisponibles') + ' (' + res.found + ')'
+            : t('contentSyncNoCollections', 'Ouvrez vos Favoris TikTok puis Collections.');
         }
+      }).catch(function (err) {
+        pill.textContent = t('contentSyncFailed', 'Synchronisation impossible') + ': ' + ((err && err.message) || '');
+      }).finally(function () {
+        pill.dataset.syncing = 'false';
+        pill.setAttribute('aria-busy', 'false');
       });
     });
 
@@ -2988,6 +3554,6 @@
   }
 
   start();
-  setTimeout(injectTikTokSyncBanner, 2000);
+  scheduleTikTokSyncBanner(500);
 })();
 

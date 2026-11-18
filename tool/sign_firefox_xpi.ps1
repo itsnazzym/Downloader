@@ -90,4 +90,6 @@ if (Test-Path modern_downloader_firefox.xpi) {
 }
 Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
 Remove-Item modern_downloader_firefox.xpi.old -Force -ErrorAction SilentlyContinue
+Remove-Item "extension/firefox/.amo-upload-uuid" -Force -ErrorAction SilentlyContinue
+Remove-Item "extension/firefox/.web-extension-id" -Force -ErrorAction SilentlyContinue
 Write-Host ("Signed: modern_downloader_firefox.xpi ({0} bytes)" -f $signed.Length)

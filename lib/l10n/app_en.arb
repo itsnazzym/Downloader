@@ -251,7 +251,12 @@
   "@serverPortRestartHint": {
     "placeholders": { "port": { "type": "int" } }
   },
-  "torBypassDesc": "Bypass geo-blocks via Tor (127.0.0.1:9050)",
+  "torBypassDesc": "Start Tor in the background and route downloads through it (127.0.0.1:9050)",
+  "torProxyStarting": "Starting Tor…",
+  "torProxyReady": "Tor is ready at 127.0.0.1:9050",
+  "torProxyExisting": "A Tor proxy is already running at 127.0.0.1:9050",
+  "torProxyStopped": "Tor is stopped",
+  "torProxyFailed": "Tor is unavailable",
   "selectCookiesFile": "Select cookies.txt",
   "clearCookies": "Clear cookies",
   "selectQuality": "Select Quality",
@@ -384,8 +389,8 @@
   "previewSetup": "Show setup screen (temporary)",
   "previewSetupDesc": "Replay the full-screen tools check and install overlay",
 
-  "pluginsSectionTitle": "Plugins",
-  "pluginsSectionHint": "In-app modules such as Auto Rename and Smart Organizer.",
+  "pluginsSectionTitle": "Download workflow plugins",
+  "pluginsSectionHint": "These plugins add actions before or after a download completes.",
   "browserExtensionsTitle": "Browser extension",
   "browserExtensionsHint": "Send links from the browser to the app. One click prepares the extension and opens the browser page.",
   "chromeExtensionTitle": "Chrome / Edge / Brave",
@@ -624,5 +629,15 @@
   "onboardingExtensionTitle": "Browser extension",
   "onboardingExtensionBody": "Install the Chrome or Firefox extension to send links here.",
   "onboardingReadyTitle": "Ready",
-  "onboardingReadyBody": "Replay the tour from Settings > General."
+  "onboardingReadyBody": "Replay the tour from Settings > General.",
+  "pluginFeaturesTitle": "App features",
+  "pluginFeaturesHint": "Turn on only the screens and tools you use. Disabling a feature keeps its code and data intact.",
+  "pluginRequired": "Essential",
+  "pluginActivate": "Enable feature",
+  "pluginOpen": "Open feature",
+  "pluginInactiveTitle": "Feature is disabled",
+  "pluginInactiveBody": "The feature is still available and its data is untouched. You can turn it back on in plugin settings.",
+  "pluginManage": "Manage plugins",
+  "pluginWebRequest": "Modern Downloader’s website requested this feature. Confirm here to add it to your interface.",
+  "pluginExternalHint": "This extension is installed in your browser. Use the existing setup steps below."
 }

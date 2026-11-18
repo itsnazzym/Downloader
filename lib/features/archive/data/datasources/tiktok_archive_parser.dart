@@ -31,36 +31,52 @@ class TikTokArchiveParser {
       throw const FormatException('Invalid TikTok JSON root: expected object');
     }
 
-    final likesAndFav = decoded['Likes and Favorites'] as Map<String, dynamic>? ?? decoded;
+    final likesAndFav =
+        decoded['Likes and Favorites'] as Map<String, dynamic>? ?? decoded;
 
     // 1. Raw collections list
-    final collList = (likesAndFav['Favorite Collection'] as Map<String, dynamic>?)?['FavoriteCollectionList'] as List<dynamic>? ?? [];
-    
+    final collList =
+        (likesAndFav['Favorite Collection']
+                as Map<String, dynamic>?)?['FavoriteCollectionList']
+            as List<dynamic>? ??
+        [];
+
     // Parse raw collections with their creation/modification date
     final List<TikTokCollectionItem> parsedColls = [];
     for (final raw in collList) {
       if (raw is! Map<String, dynamic>) continue;
-      final name = (raw['FavoriteCollection'] ?? raw['favoriteCollection']) as String? ?? '';
+      final name =
+          (raw['FavoriteCollection'] ?? raw['favoriteCollection']) as String? ??
+          '';
       if (name.isEmpty) continue;
 
       final dateStr = (raw['Date'] ?? raw['date']) as String? ?? '';
       final parsedDate = DateTime.tryParse(dateStr);
 
-      parsedColls.add(TikTokCollectionItem(
-        name: name,
-        date: parsedDate,
-        videoCount: 0,
-      ));
+      parsedColls.add(
+        TikTokCollectionItem(name: name, date: parsedDate, videoCount: 0),
+      );
     }
 
     // 2. Parse Favorite Videos
-    final favList = (likesAndFav['Favorite Videos'] as Map<String, dynamic>?)?['FavoriteVideoList'] as List<dynamic>? ?? [];
-    
+    final favList =
+        (likesAndFav['Favorite Videos']
+                as Map<String, dynamic>?)?['FavoriteVideoList']
+            as List<dynamic>? ??
+        [];
+
     // 3. Parse Liked Videos
-    final likeList = (likesAndFav['Like List'] as Map<String, dynamic>?)?['ItemFavoriteList'] as List<dynamic>? ?? [];
+    final likeList =
+        (likesAndFav['Like List'] as Map<String, dynamic>?)?['ItemFavoriteList']
+            as List<dynamic>? ??
+        [];
 
     // 4. Parse Sounds
-    final soundList = (likesAndFav['Favorite Sounds'] as Map<String, dynamic>?)?['FavoriteSoundList'] as List<dynamic>? ?? [];
+    final soundList =
+        (likesAndFav['Favorite Sounds']
+                as Map<String, dynamic>?)?['FavoriteSoundList']
+            as List<dynamic>? ??
+        [];
 
     final idRegex = RegExp(r'/video/(\d+)');
     final Map<String, TikTokArchiveItem> videoMap = {};
@@ -84,7 +100,7 @@ class TikTokArchiveParser {
 
       videoMap[id] = TikTokArchiveItem(
         id: id,
-        url: link,
+        url: _usableVideoUrl(link, id),
         date: parsedDate,
         isFavorite: true,
         isLiked: false,
@@ -119,7 +135,7 @@ class TikTokArchiveParser {
       } else {
         videoMap[id] = TikTokArchiveItem(
           id: id,
-          url: link,
+          url: _usableVideoUrl(link, id),
           date: parsedDate,
           isFavorite: false,
           isLiked: true,
@@ -140,7 +156,8 @@ class TikTokArchiveParser {
     int unclassifiedCount = 0;
     for (final v in sortedVideos) {
       if (v.collectionName != null) {
-        collectionCounts[v.collectionName!] = (collectionCounts[v.collectionName!] ?? 0) + 1;
+        collectionCounts[v.collectionName!] =
+            (collectionCounts[v.collectionName!] ?? 0) + 1;
       } else if (v.isFavorite) {
         unclassifiedCount++;
       }
@@ -151,23 +168,27 @@ class TikTokArchiveParser {
 
     // All unmapped favorites go here until real browser sync
     if (unclassifiedCount > 0) {
-      finalCollections.add(TikTokCollectionItem(
-        name: 'Favoris non classés',
-        videoCount: unclassifiedCount,
-      ));
+      finalCollections.add(
+        TikTokCollectionItem(
+          name: 'Favoris non classés',
+          videoCount: unclassifiedCount,
+        ),
+      );
     }
 
     for (final c in parsedColls) {
-      finalCollections.add(c.copyWith(
-        videoCount: collectionCounts[c.name] ?? 0,
-      ));
+      finalCollections.add(
+        c.copyWith(videoCount: collectionCounts[c.name] ?? 0),
+      );
     }
 
     if ((collectionCounts['Vidéos Likées'] ?? 0) > 0) {
-      finalCollections.add(TikTokCollectionItem(
-        name: 'Vidéos Likées',
-        videoCount: collectionCounts['Vidéos Likées']!,
-      ));
+      finalCollections.add(
+        TikTokCollectionItem(
+          name: 'Vidéos Likées',
+          videoCount: collectionCounts['Vidéos Likées']!,
+        ),
+      );
     }
 
     finalCollections.sort((a, b) {
@@ -198,11 +219,7 @@ class TikTokArchiveParser {
         title = rawTitle.replaceAll('-', ' ');
       }
 
-      sounds.add(TikTokSoundItem(
-        title: title,
-        url: link,
-        date: parsedDate,
-      ));
+      sounds.add(TikTokSoundItem(title: title, url: link, date: parsedDate));
     }
     sounds.sort((a, b) => b.date.compareTo(a.date));
 
@@ -215,5 +232,17 @@ class TikTokArchiveParser {
       totalOverlap: overlap,
       yearCounts: yearCounts,
     );
+  }
+
+  static String _usableVideoUrl(String original, String id) {
+    if (RegExp(
+      r'https?://(?:www\.)?tiktok\.com/@[^/]+/video/\d+',
+    ).hasMatch(original)) {
+      return original;
+    }
+    if (RegExp(r'^\d{8,}$').hasMatch(id)) {
+      return 'https://www.tiktokv.com/share/video/$id/';
+    }
+    return original;
   }
 }

@@ -39,6 +39,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final LibraryScannerService _libraryScanner;
   final PluginManager _pluginManager;
   final String Function() _outputFolderGetter;
+  final bool Function() _useTorProxyGetter;
   final KickSource _kickSource;
   final MediaFingerprintService _mediaFingerprintService;
 
@@ -47,6 +48,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final _fingerprintedFinalPaths = <String>{};
   final _initialDataCompleter = Completer<void>();
   Timer? _saveTimer;
+  Timer? _backgroundLibrarySyncTimer;
+  bool _saveInFlight = false;
+  bool _saveRequested = false;
+  Future<void>? _librarySyncFuture;
   bool _xTitleRepairRunning = false;
 
   @override
@@ -60,9 +65,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     this._pluginManager,
     this._outputFolderGetter, {
     KickSource? kickSource,
+    bool Function()? useTorProxyGetter,
     MediaFingerprintService? mediaFingerprintService,
     Future<void> Function()? waitForLibraryScan,
   }) : _kickSource = kickSource ?? KickSource(),
+       _useTorProxyGetter = useTorProxyGetter ?? (() => false),
        _mediaFingerprintService =
            mediaFingerprintService ??
            MediaFingerprintService(_persistenceService) {
@@ -106,38 +113,18 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         return;
       }
 
-      // Run library disk synchronization in the background after UI renders
-      unawaited(
-        Future.delayed(const Duration(milliseconds: 600), () async {
+      // The persisted history is available before this point. Do not compete
+      // with first render and startup services for disk I/O.
+      _backgroundLibrarySyncTimer?.cancel();
+      _backgroundLibrarySyncTimer = Timer(const Duration(seconds: 10), () {
+        unawaited(() async {
           try {
-            final fixedItems = await _libraryScanner.scanAndFix(
-              _activeDownloads.values.toList(),
-              downloadPath,
-            );
-            bool hasChanges = false;
-            for (final item in fixedItems) {
-              final existing = _activeDownloads[item.id];
-              if (existing == null ||
-                  existing.status != item.status ||
-                  existing.filePath != item.filePath ||
-                  existing.thumbnailUrl != item.thumbnailUrl ||
-                  existing.title != item.title) {
-                _activeDownloads[item.id] = item;
-                _controller.add(item);
-                hasChanges = true;
-              }
-            }
-
-            await _scanLibrary(downloadPath);
-            if (hasChanges) {
-              _saveToDisk();
-            }
-            unawaited(_repairBrokenXLibraryTitles());
+            await _synchronizeLibrary(downloadPath);
           } catch (e) {
             LoggerService.e('Background library scan failed', e);
           }
-        }),
-      );
+        }());
+      });
     } catch (e) {
       LoggerService.e('Failed to load initial download data', e);
     } finally {
@@ -165,6 +152,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   permalink,
                   cookies: rawCookies,
                   cookiesFilePath: cookiePath,
+                  useTorProxy: _useTorProxyGetter(),
                 );
               } catch (e) {
                 LoggerService.w('X library title repair metadata failed: $e');
@@ -222,24 +210,56 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     return _resolveDownloadPath();
   }
 
-  Future<void> _scanLibrary(String downloadPath) async {
-    try {
-      final newItems = await _libraryScanner.scanForNewFiles(
-        _activeDownloads.values.toList(),
-        downloadPath,
-      );
+  Future<void> _synchronizeLibrary(String downloadPath) {
+    final inFlight = _librarySyncFuture;
+    if (inFlight != null) return inFlight;
 
-      for (final item in newItems) {
+    late final Future<void> run;
+    run = _runLibrarySynchronization(downloadPath).whenComplete(() {
+      if (identical(_librarySyncFuture, run)) {
+        _librarySyncFuture = null;
+      }
+    });
+    _librarySyncFuture = run;
+    return run;
+  }
+
+  Future<void> _runLibrarySynchronization(String downloadPath) async {
+    final scanResult = await _libraryScanner.scanLibrary(
+      _activeDownloads.values.toList(),
+      downloadPath,
+    );
+    final fixedItems = scanResult.fixedItems;
+    var hasChanges = false;
+    for (final item in fixedItems) {
+      final existing = _activeDownloads[item.id];
+      if (existing == null ||
+          existing.status != item.status ||
+          existing.filePath != item.filePath ||
+          existing.thumbnailUrl != item.thumbnailUrl ||
+          existing.title != item.title ||
+          existing.totalSize != item.totalSize) {
         _activeDownloads[item.id] = item;
         _controller.add(item);
+        hasChanges = true;
       }
-
-      if (newItems.isNotEmpty) {
-        _saveToDisk();
-      }
-    } catch (e) {
-      LoggerService.e('Library scan failed', e);
     }
+    final keptIds = fixedItems.map((item) => item.id).toSet();
+    final beforeCount = _activeDownloads.length;
+    _activeDownloads.removeWhere((id, _) => !keptIds.contains(id));
+    if (_activeDownloads.length != beforeCount) {
+      hasChanges = true;
+    }
+
+    for (final item in scanResult.newItems) {
+      _activeDownloads[item.id] = item;
+      _controller.add(item);
+    }
+
+    if (hasChanges || scanResult.newItems.isNotEmpty) {
+      _saveToDisk();
+    }
+    unawaited(_repairBrokenXLibraryTitles());
   }
 
   @override
@@ -248,28 +268,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     final downloadPath = await _getDownloadPath();
     if (downloadPath == null) return;
 
-    // 1. Re-scan and fix existing items
-    final currentItems = _activeDownloads.values.toList();
-    final fixedItems = await _libraryScanner.scanAndFix(
-      currentItems,
-      downloadPath,
-    );
-
-    for (final item in fixedItems) {
-      _activeDownloads[item.id] = item;
-      _controller.add(item);
-    }
-    final keptIds = fixedItems.map((item) => item.id).toSet();
-    _activeDownloads.removeWhere((id, _) => !keptIds.contains(id));
-
-    // 2. Scan for new files
-    await _scanLibrary(downloadPath);
+    await _synchronizeLibrary(downloadPath);
     _saveToDisk();
-    unawaited(_repairBrokenXLibraryTitles());
 
     LoggerService.i('Library refresh complete.');
   }
-
 
   @override
   List<DownloadItem> getCurrentDownloads() {
@@ -368,6 +371,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             KickResolvedStream? kickStream;
 
             if (KickPageRef.isKickHost(currentRequest.url) &&
+                !currentRequest.useTorProxy &&
                 (currentRequest.forceStreamUrl == null ||
                     currentRequest.forceStreamUrl!.isEmpty)) {
               try {
@@ -872,21 +876,42 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   }
 
   void _saveToDisk() {
+    _saveRequested = true;
     _saveTimer?.cancel();
-    _saveTimer = Timer(const Duration(milliseconds: 500), () {
+    _saveTimer = Timer(const Duration(milliseconds: 750), _flushSave);
+  }
+
+  void _flushSave() {
+    if (_saveInFlight || !_saveRequested) return;
+    _saveRequested = false;
+    _saveInFlight = true;
+    final snapshot = _activeDownloads.values.toList(growable: false);
+    unawaited(_persistSnapshot(snapshot));
+  }
+
+  Future<void> _persistSnapshot(List<DownloadItem> snapshot) async {
+    try {
+      await _persistenceService.saveDownloads(snapshot);
       _lastDiskSave = DateTime.now();
-      unawaited(
-        _persistenceService.saveDownloads(_activeDownloads.values.toList()),
-      );
-    });
+    } catch (e) {
+      LoggerService.e('Failed to persist download snapshot', e);
+    } finally {
+      _saveInFlight = false;
+      if (_saveRequested) {
+        _saveTimer?.cancel();
+        _saveTimer = Timer(const Duration(milliseconds: 750), _flushSave);
+      }
+    }
   }
 
   @override
   Future<Map<String, dynamic>> fetchMetadata(
     String url, {
     String? cookies,
+    bool? useTorProxy,
   }) async {
-    if (KickPageRef.isKickHost(url)) {
+    final routeThroughTor = useTorProxy ?? _useTorProxyGetter();
+    if (KickPageRef.isKickHost(url) && !routeThroughTor) {
       try {
         final resolved = await _kickSource.resolve(url, cookies: cookies);
         if (resolved != null) {
@@ -898,12 +923,22 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         );
       }
     }
-    return _source.fetchMetadata(url, cookies: cookies);
+    return _source.fetchMetadata(
+      url,
+      cookies: cookies,
+      useTorProxy: routeThroughTor,
+    );
   }
 
   @override
-  Future<List<Map<String, dynamic>>> fetchPlaylist(String url) async {
-    return _source.fetchPlaylist(url);
+  Future<List<Map<String, dynamic>>> fetchPlaylist(
+    String url, {
+    bool? useTorProxy,
+  }) async {
+    return _source.fetchPlaylist(
+      url,
+      useTorProxy: useTorProxy ?? _useTorProxyGetter(),
+    );
   }
 
   String _extractInitialTitle(String url) {

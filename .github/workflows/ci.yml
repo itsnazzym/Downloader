@@ -220,6 +220,13 @@ jobs:
           & ".\tool\prepare_gobird.ps1" -OutDir $releaseBin -RepoRoot "."
           Copy-Item -Recurse -Force "third_party/gobird" "$releaseBin/third_party/gobird"
 
+      - name: Prepare Tor Expert Bundle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $releaseBin = "build/windows/x64/runner/Release/bin"
+          & ".\tool\prepare_tor_bundle.ps1" -OutDir $releaseBin -RepoRoot "."
+
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 

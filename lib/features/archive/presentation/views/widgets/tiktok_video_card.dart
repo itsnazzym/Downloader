@@ -34,6 +34,7 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
   }
 
   Future<void> _openUrl(String url) async {
+    if (Uri.tryParse(url)?.host.endsWith('.invalid') == true) return;
     try {
       if (Platform.isWindows) {
         await Process.run('cmd', ['/c', 'start', '', url]);
@@ -61,6 +62,22 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final item = widget.item;
+    final demoNumber = item.id.startsWith('demo-')
+        ? int.tryParse(item.id.substring(5))
+        : null;
+    final demoIndex = demoNumber == null ? null : (demoNumber - 1) % 4;
+    const demoFilms = [
+      'Sintel',
+      'Tears of Steel',
+      'Elephants Dream',
+      'Big Buck Bunny',
+    ];
+    const demoArt = [
+      'sintel.jpg',
+      'tears-of-steel.jpg',
+      'elephants-dream.jpg',
+      'big-buck-bunny.png',
+    ];
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -71,15 +88,15 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
           color: widget.isSelected
               ? colors.primary.withValues(alpha: 0.08)
               : _isHovered
-                  ? colors.surfaceHighlight.withValues(alpha: 0.6)
-                  : colors.surface.withValues(alpha: 0.5),
+              ? colors.surfaceHighlight.withValues(alpha: 0.6)
+              : colors.surface.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: widget.isSelected
                 ? colors.primary
                 : _isHovered
-                    ? colors.border
-                    : colors.borderSubtle,
+                ? colors.border
+                : colors.borderSubtle,
             width: widget.isSelected ? 1.5 : 1,
           ),
         ),
@@ -107,21 +124,43 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
                   ),
                   const SizedBox(width: 12),
 
-                  // TikTok Video Icon placeholder
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: colors.background,
+                  // The demo uses bundled, licensed stills instead of a video
+                  // player or a thumbnail request to a user's archive source.
+                  if (demoIndex != null)
+                    ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: colors.borderSubtle),
+                      child: Image.asset(
+                        'assets/showcase/${demoArt[demoIndex]}',
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        semanticLabel: demoFilms[demoIndex],
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 48,
+                          height: 48,
+                          color: colors.surfaceHighlight,
+                          child: Icon(
+                            Icons.movie_outlined,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: colors.background,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: colors.borderSubtle),
+                      ),
+                      child: Icon(
+                        Icons.play_circle_outline_rounded,
+                        size: 20,
+                        color: colors.textSecondary,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.play_circle_outline_rounded,
-                      size: 20,
-                      color: colors.textSecondary,
-                    ),
-                  ),
                   const SizedBox(width: 14),
 
                   // Metadata Column
@@ -133,7 +172,9 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
                         Row(
                           children: [
                             Text(
-                              'ID: ${item.id}',
+                              demoIndex == null
+                                  ? 'ID: ${item.id}'
+                                  : '${demoFilms[demoIndex]} · extrait ${(demoNumber! - 1) ~/ 4 + 1}',
                               style: AppTypography.mono.copyWith(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -156,7 +197,9 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
                             if (item.isFavorite) ...[
                               _Badge(
                                 label: 'Favori',
-                                color: const Color(0xFFFE2C55), // Signature TikTok Coral Red
+                                color: const Color(
+                                  0xFFFE2C55,
+                                ), // Signature TikTok Coral Red
                                 icon: Icons.bookmark_rounded,
                               ),
                               const SizedBox(width: 6),
@@ -209,7 +252,10 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
                           onPressed: widget.onDownload,
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.primary,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             minimumSize: const Size(0, 32),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6),
@@ -242,11 +288,7 @@ class _Badge extends StatelessWidget {
   final Color color;
   final IconData icon;
 
-  const _Badge({
-    required this.label,
-    required this.color,
-    required this.icon,
-  });
+  const _Badge({required this.label, required this.color, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -255,10 +297,7 @@ class _Badge extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: color.withValues(alpha: 0.25),
-          width: 0.8,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

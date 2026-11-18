@@ -648,7 +648,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get torBypassDesc => 'Bypass geo-blocks via Tor (127.0.0.1:9050)';
+  String get torBypassDesc =>
+      'Start Tor in the background and route downloads through it (127.0.0.1:9050)';
+
+  @override
+  String get torProxyStarting => 'Starting Tor…';
+
+  @override
+  String get torProxyReady => 'Tor is ready at 127.0.0.1:9050';
+
+  @override
+  String get torProxyExisting =>
+      'A Tor proxy is already running at 127.0.0.1:9050';
+
+  @override
+  String get torProxyStopped => 'Tor is stopped';
+
+  @override
+  String get torProxyFailed => 'Tor is unavailable';
 
   @override
   String get selectCookiesFile => 'Select cookies.txt';
@@ -955,11 +972,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Replay the full-screen tools check and install overlay';
 
   @override
-  String get pluginsSectionTitle => 'Plugins';
+  String get pluginsSectionTitle => 'Download workflow plugins';
 
   @override
   String get pluginsSectionHint =>
-      'In-app modules such as Auto Rename and Smart Organizer.';
+      'These plugins add actions before or after a download completes.';
 
   @override
   String get browserExtensionsTitle => 'Browser extension';
@@ -1530,4 +1547,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingReadyBody => 'Replay the tour from Settings > General.';
+
+  @override
+  String get pluginFeaturesTitle => 'App features';
+
+  @override
+  String get pluginFeaturesHint =>
+      'Turn on only the screens and tools you use. Disabling a feature keeps its code and data intact.';
+
+  @override
+  String get pluginRequired => 'Essential';
+
+  @override
+  String get pluginActivate => 'Enable feature';
+
+  @override
+  String get pluginOpen => 'Open feature';
+
+  @override
+  String get pluginInactiveTitle => 'Feature is disabled';
+
+  @override
+  String get pluginInactiveBody =>
+      'The feature is still available and its data is untouched. You can turn it back on in plugin settings.';
+
+  @override
+  String get pluginManage => 'Manage plugins';
+
+  @override
+  String get pluginWebRequest =>
+      'Modern Downloader’s website requested this feature. Confirm here to add it to your interface.';
+
+  @override
+  String get pluginExternalHint =>
+      'This extension is installed in your browser. Use the existing setup steps below.';
 }

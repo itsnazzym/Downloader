@@ -8,7 +8,10 @@ import 'package:modern_downloader/core/ui/blur_container.dart';
 import 'package:modern_downloader/core/theme/ios_theme.dart';
 import '../../domain/entities/download_item.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
+import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
+import '../../domain/enums/download_status.dart';
+import '../views/dialogs/age_verification_help_dialog.dart';
 import 'download_item_display.dart';
 import 'progress_bar.dart';
 
@@ -49,6 +52,23 @@ class DownloadCard extends StatelessWidget {
 
     final thumb = item.thumbnailUrl;
     if (thumb != null && thumb.trim().isNotEmpty) {
+      if (thumb.startsWith('assets/showcase/')) {
+        return Image.asset(thumb, fit: BoxFit.cover);
+      }
+      // Keep the showcase's fixed YouTube thumbnails memory-only. The normal
+      // cache manager persists image files to disk, which the demo must avoid.
+      if (item.id.startsWith('showcase-') &&
+          thumb.startsWith('https://i.ytimg.com/')) {
+        return Image.network(
+          thumb,
+          fit: BoxFit.cover,
+          errorBuilder: (context, _, _) => Icon(
+            Icons.play_circle_fill_rounded,
+            color: colors.primary,
+            size: 28,
+          ),
+        );
+      }
       final isNetwork =
           thumb.startsWith('http://') || thumb.startsWith('https://');
       if (isNetwork) {
@@ -208,6 +228,22 @@ class DownloadCard extends StatelessWidget {
                           color: colors.surfaceHighlight,
                         ),
                     ] else if (DownloadItemDisplay.isTerminal(item)) ...[
+                      if (item.status == DownloadStatus.failed &&
+                          DownloadStatusGuard.isAgeVerificationFailure(
+                            error: item.error,
+                            url: item.request.url,
+                          )) ...[
+                        _buildActionButton(
+                          context,
+                          icon: Icons.shield_outlined,
+                          onTap: () => AgeVerificationHelpDialog.show(
+                            context,
+                            item,
+                          ),
+                          color: Colors.amber,
+                        ),
+                        const Gap(8),
+                      ],
                       if (onRetry != null)
                         _buildActionButton(
                           context,

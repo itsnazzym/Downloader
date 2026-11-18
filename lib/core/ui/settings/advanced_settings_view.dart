@@ -17,6 +17,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/services/tor/tor_proxy_service.dart';
 import 'widgets/settings_app_bar_leading.dart';
 
 class AdvancedSettingsView extends ConsumerStatefulWidget {
@@ -108,6 +109,17 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
     final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
+    final torState = ref.watch(torProxyServiceProvider);
+    final torStatusMessage = switch (torState.status) {
+      TorRuntimeStatus.disabled => l10n.torProxyStopped,
+      TorRuntimeStatus.starting => l10n.torProxyStarting,
+      TorRuntimeStatus.ready =>
+        torState.usingExistingService
+            ? l10n.torProxyExisting
+            : l10n.torProxyReady,
+      TorRuntimeStatus.failed =>
+        '${l10n.torProxyFailed}: ${torState.message ?? ''}',
+    };
     final colors = AppColors.of(context);
 
     final gobirdStatusSubtitle = _gobirdStatusLoading
@@ -156,7 +168,8 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
-                  [                        SectionTitle(l10n.settingsAdvanced),
+                  [
+                        SectionTitle(l10n.settingsAdvanced),
                         SwitchTile(
                           title: l10n.clipboardMonitor,
                           subtitle: l10n.clipboardMonitorDesc,
@@ -219,7 +232,10 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                                   ClipboardData(text: settings.apiToken),
                                 );
                                 if (context.mounted) {
-                                  AppToast.showSuccess(context, l10n.tokenCopied);
+                                  AppToast.showSuccess(
+                                    context,
+                                    l10n.tokenCopied,
+                                  );
                                 }
                               },
                             ),
@@ -277,7 +293,9 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                           const Gap(AppSpacing.l),
                           SectionTitle(l10n.experimentalXFeedSection),
                           Padding(
-                            padding: const EdgeInsets.only(bottom: AppSpacing.m),
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.m,
+                            ),
                             child: Text(
                               l10n.experimentalXFeedWarning,
                               style: AppTypography.bodySmall.copyWith(
@@ -377,7 +395,7 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                         const Gap(AppSpacing.l),
                         SwitchTile(
                           title: l10n.useProxy,
-                          subtitle: l10n.torBypassDesc,
+                          subtitle: '${l10n.torBypassDesc}\n$torStatusMessage',
                           value: settings.useTorProxy,
                           onChanged: settingsNotifier.setUseTorProxy,
                           icon: Icons.security,
@@ -389,8 +407,7 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                               : settings.cookiesFilePath,
                           icon: Icons.cookie_outlined,
                           onTap: () async {
-                            var result = await FilePicker.platform
-                                .pickFiles();
+                            var result = await FilePicker.platform.pickFiles();
                             if (result != null) {
                               settingsNotifier.setCookiesFilePath(
                                 result.files.single.path!,

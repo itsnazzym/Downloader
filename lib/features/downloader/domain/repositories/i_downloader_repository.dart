@@ -11,8 +11,15 @@ abstract class IDownloaderRepository {
   Future<void> reorderDownloads(int oldIndex, int newIndex);
   List<DownloadItem> getCurrentDownloads();
   Stream<DownloadItem> get downloadUpdateStream;
-  Future<Map<String, dynamic>> fetchMetadata(String url, {String? cookies});
-  Future<List<Map<String, dynamic>>> fetchPlaylist(String url);
+  Future<Map<String, dynamic>> fetchMetadata(
+    String url, {
+    String? cookies,
+    bool? useTorProxy,
+  });
+  Future<List<Map<String, dynamic>>> fetchPlaylist(
+    String url, {
+    bool? useTorProxy,
+  });
   Future<void> clearHistory();
   Future<void> exportHistory(String path);
   Future<void> importHistory(String path);

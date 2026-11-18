@@ -19,7 +19,9 @@ import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:go_router/go_router.dart';
 
 class XBrowserView extends ConsumerStatefulWidget {
-  const XBrowserView({super.key});
+  const XBrowserView({super.key, this.initialUrl});
+
+  final String? initialUrl;
 
   @override
   ConsumerState<XBrowserView> createState() => _XBrowserViewState();
@@ -34,7 +36,10 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
   @override
   void initState() {
     super.initState();
-    _urlController = TextEditingController(text: 'https://x.com');
+    final startUrl = widget.initialUrl?.trim().isNotEmpty == true
+        ? widget.initialUrl!.trim()
+        : 'https://x.com';
+    _urlController = TextEditingController(text: startUrl);
     if (PlatformInfo.isMobile) {
       _controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -59,6 +64,20 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
     }
   }
 
+  @override
+  void didUpdateWidget(XBrowserView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialUrl != null &&
+        widget.initialUrl != oldWidget.initialUrl &&
+        widget.initialUrl!.trim().isNotEmpty) {
+      final uri = Uri.tryParse(widget.initialUrl!.trim());
+      if (uri != null) {
+        _urlController.text = widget.initialUrl!.trim();
+        _controller?.loadRequest(uri);
+      }
+    }
+  }
+
   Future<void> _bootstrap() async {
     if (_controller == null) return;
     try {
@@ -66,7 +85,11 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
     } catch (_) {
       _overlayJs = '';
     }
-    await _controller?.loadRequest(Uri.parse('https://x.com'));
+    final target = widget.initialUrl?.trim().isNotEmpty == true
+        ? widget.initialUrl!.trim()
+        : 'https://x.com';
+    final targetUri = Uri.tryParse(target) ?? Uri.parse('https://x.com');
+    await _controller?.loadRequest(targetUri);
   }
 
   Future<void> _injectOverlay() async {

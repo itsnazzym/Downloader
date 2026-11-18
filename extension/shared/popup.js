@@ -15,10 +15,14 @@
   var testBtn = document.getElementById('test-connection-btn');
   var openFeedBtn = document.getElementById('open-feed-btn');
   var syncTikTokBtn = document.getElementById('sync-tiktok-btn');
-  var btnColor = document.getElementById('btn-color');
-  var btnPosition = document.getElementById('btn-position');
-  var btnSize = document.getElementById('btn-size');
   var qualityToggle = document.getElementById('quality-toggle');
+  var messageOverrideUntil = 0;
+
+  function showFeedback(message, error) {
+    messageOverrideUntil = Date.now() + 6000;
+    connectionMsg.textContent = message;
+    connectionMsg.style.color = error ? 'var(--error)' : 'var(--success)';
+  }
 
   var STATUS_KEYS = [
     'statusQueued', 'statusExtracting', 'statusDownloading', 'statusProcessing',
@@ -44,6 +48,7 @@
       var uiLang = api.i18n && api.i18n.getUILanguage ? api.i18n.getUILanguage() : '';
       if (uiLang) {
         document.documentElement.lang = String(uiLang).split(/[-_]/)[0];
+        document.documentElement.dir = document.documentElement.lang === 'ar' ? 'rtl' : 'ltr';
       }
     } catch (e) { /* keep existing html lang */ }
   }
@@ -67,14 +72,18 @@
       statusDot.className = 'status-dot connected';
       statusDot.title = t('connected', 'Connected');
       statusText.textContent = t('connected', 'Connected');
-      connectionMsg.textContent = detail || t('connected', 'Connected');
-      connectionMsg.style.color = '#4CAF50';
+      if (detail || Date.now() >= messageOverrideUntil) {
+        connectionMsg.textContent = detail || t('connected', 'Connected');
+        connectionMsg.style.color = 'var(--success)';
+      }
     } else {
       statusDot.className = 'status-dot disconnected';
       statusDot.title = t('disconnected', 'Disconnected');
       statusText.textContent = t('disconnected', 'Disconnected');
-      connectionMsg.textContent = detail || t('disconnectedHint', 'Disconnected (Check App + token)');
-      connectionMsg.style.color = '#F44336';
+      if (detail || Date.now() >= messageOverrideUntil) {
+        connectionMsg.textContent = detail || t('disconnectedHint', 'Disconnected (Check App + token)');
+        connectionMsg.style.color = 'var(--error)';
+      }
     }
   }
 
@@ -101,6 +110,15 @@
   updateStatus();
   setInterval(updateStatus, 2000);
 
+  // Collection sync only makes sense while a TikTok page is active.
+  if (syncTikTokBtn && api.tabs && api.tabs.query) {
+    Promise.resolve(api.tabs.query({ active: true, currentWindow: true }))
+      .then(function (tabs) {
+        var url = tabs && tabs[0] && tabs[0].url;
+        syncTikTokBtn.hidden = !/^https?:\/\/(?:[^/]+\.)?tiktok\.com\//i.test(url || '');
+      }).catch(function () { syncTikTokBtn.hidden = true; });
+  }
+
   try {
     api.runtime.sendMessage({ type: 'GET_CONNECTION_STATE' }, function (res) {
       if (!api.runtime.lastError && res && res.ok && typeof res.connected === 'boolean') {
@@ -111,7 +129,7 @@
 
   api.storage.local.get([
     'serverPort', 'autoSendCookies', 'preferredBrowser', 'apiToken',
-    'btnColor', 'btnPosition', 'btnSize', 'showQualitySelector', 'adultSitesEnabled',
+    'showQualitySelector', 'adultSitesEnabled',
   ]).then(function (result) {
     portInput.value = result.serverPort || 6969;
     cookiesToggle.checked = result.autoSendCookies !== false;
@@ -119,9 +137,6 @@
     if (browserSelect && result.preferredBrowser) {
       browserSelect.value = result.preferredBrowser;
     }
-    if (btnColor && result.btnColor) btnColor.value = result.btnColor;
-    if (btnPosition && result.btnPosition) btnPosition.value = result.btnPosition;
-    if (btnSize && result.btnSize) btnSize.value = result.btnSize;
     if (qualityToggle && typeof result.showQualitySelector === 'boolean') {
       qualityToggle.checked = result.showQualitySelector;
     }
@@ -139,9 +154,6 @@
       serverPort: port,
       autoSendCookies: cookiesToggle.checked,
       apiToken: tokenInput ? tokenInput.value.trim() : '',
-      btnColor: btnColor ? btnColor.value : '#6C5DD3',
-      btnPosition: btnPosition ? btnPosition.value : 'top-right',
-      btnSize: btnSize ? btnSize.value : 'normal',
       showQualitySelector: qualityToggle ? qualityToggle.checked : true,
       adultSitesEnabled: true,
     };
@@ -177,17 +189,16 @@
     toggleTokenBtn.addEventListener('click', function () {
       if (tokenInput.type === 'password') {
         tokenInput.type = 'text';
-        toggleTokenBtn.textContent = '🙈';
+        toggleTokenBtn.setAttribute('aria-label', t('hideToken', 'Hide token'));
+        toggleTokenBtn.title = t('hideToken', 'Hide token');
       } else {
         tokenInput.type = 'password';
-        toggleTokenBtn.textContent = '👁';
+        toggleTokenBtn.setAttribute('aria-label', t('showToken', 'Show token'));
+        toggleTokenBtn.title = t('showToken', 'Show token');
       }
     });
   }
   if (browserSelect) browserSelect.addEventListener('change', saveSettings);
-  if (btnColor) btnColor.addEventListener('change', saveSettings);
-  if (btnPosition) btnPosition.addEventListener('change', saveSettings);
-  if (btnSize) btnSize.addEventListener('change', saveSettings);
   if (qualityToggle) qualityToggle.addEventListener('change', saveSettings);
 
   function renderList(items) {
@@ -271,14 +282,12 @@
         sendTabBtn.disabled = false;
         if (api.runtime.lastError || !response || !response.ok) {
           var err = (response && response.error) || 'failed';
-          connectionMsg.textContent = err === 'app_offline'
+          showFeedback(err === 'app_offline'
             ? t('appOffline', 'App offline')
-            : t('sendFailed', 'Could not send tab');
-          connectionMsg.style.color = '#F44336';
+            : t('sendFailed', 'Could not send tab'), true);
           return;
         }
-        connectionMsg.textContent = t('tabSent', 'Tab sent to app');
-        connectionMsg.style.color = '#4CAF50';
+        showFeedback(t('tabSent', 'Tab sent to app'), false);
       });
     });
   }
@@ -315,11 +324,9 @@
       }
 
       Promise.resolve(openOperation).then(function () {
-        connectionMsg.textContent = t('xFeedOpened', 'X Feed panel opened');
-        connectionMsg.style.color = '#4CAF50';
+        showFeedback(t('xFeedOpened', 'Video panel opened'), false);
       }).catch(function () {
-        connectionMsg.textContent = t('xFeedOpenFailed', 'Could not open X Feed panel');
-        connectionMsg.style.color = '#F44336';
+        showFeedback(t('xFeedOpenFailed', 'Could not open video panel'), true);
       }).finally(function () {
         openFeedBtn.disabled = false;
       });
@@ -358,13 +365,15 @@
   if (syncTikTokBtn) {
     syncTikTokBtn.addEventListener('click', function () {
       syncTikTokBtn.disabled = true;
-      var origText = syncTikTokBtn.textContent;
-      syncTikTokBtn.textContent = 'Sync...';
-      api.runtime.sendMessage({ type: 'MD_TRIGGER_TIKTOK_SYNC' }, function () {
-        setTimeout(function () {
-          syncTikTokBtn.disabled = false;
-          syncTikTokBtn.textContent = origText;
-        }, 3000);
+      var label = syncTikTokBtn.querySelector('span');
+      if (label) label.textContent = t('syncInProgress', 'Sync requested…');
+      api.runtime.sendMessage({ type: 'MD_TRIGGER_TIKTOK_SYNC' }, function (response) {
+        var failed = Boolean(api.runtime.lastError || !response || response.ok === false);
+        showFeedback(failed
+          ? t('syncOpenTikTok', 'Open TikTok collections and try again.')
+          : t('syncStarted', 'Sync started on the TikTok page.'), failed);
+        syncTikTokBtn.disabled = false;
+        if (label) label.textContent = t('syncTikTok', 'Sync TikTok collections');
       });
     });
   }

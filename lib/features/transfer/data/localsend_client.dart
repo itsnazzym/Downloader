@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:modern_downloader/features/transfer/data/localsend_api.dart';
 import 'package:modern_downloader/features/transfer/data/transfer_security.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
@@ -184,6 +186,7 @@ class LocalSendClient {
     });
     try {
       final request = await _http.postUrl(uri);
+      request.bufferOutput = false;
       request.contentLength = length;
       await request.addStream(bytes);
       final response = await request.close();
@@ -246,45 +249,69 @@ class LocalSendClient {
     required Map<String, String> tokens,
     required List<TransferFile> files,
     required void Function(int bytesDelta, String name) onProgress,
+    void Function(TransferFile file, String sha256)? onFileCompleted,
   }) async {
-    final gate = _Gate(maxParallel);
-    final tasks = <Future<void>>[];
-    for (final file in files) {
-      final token = tokens[file.id];
-      final path = file.localPath;
-      if (token == null || path == null) continue;
-      tasks.add(() async {
-        await gate.acquire();
-        try {
-          final ioFile = File(path);
-          var sent = 0;
-          final stream = ioFile.openRead().map((chunk) {
-            sent += chunk.length;
-            onProgress(chunk.length, file.fileName);
-            return chunk;
-          });
-          final code = await uploadFile(
-            peer: peer,
-            sessionId: sessionId,
-            fileId: file.id,
-            token: token,
-            bytes: stream,
-            length: file.size,
+    final eligible = [
+      for (final f in files)
+        if (tokens.containsKey(f.id) &&
+            f.localPath != null &&
+            f.localPath!.isNotEmpty)
+          f,
+    ];
+    if (eligible.isEmpty) return;
+
+    var nextIdx = 0;
+    final workerCount = min(maxParallel, eligible.length);
+
+    Future<void> runWorker() async {
+      while (true) {
+        if (nextIdx >= eligible.length) break;
+        final file = eligible[nextIdx++];
+        final token = tokens[file.id]!;
+        final path = file.localPath!;
+        final ioFile = File(path);
+        if (!await ioFile.exists()) continue;
+
+        Digest? computedDigest;
+        final input = sha256.startChunkedConversion(
+          ChunkedConversionSink<Digest>.withCallback((digests) {
+            if (digests.isNotEmpty) computedDigest = digests.first;
+          }),
+        );
+        var sent = 0;
+
+        final stream = ioFile.openRead().map((chunk) {
+          sent += chunk.length;
+          input.add(chunk);
+          onProgress(chunk.length, file.fileName);
+          return chunk;
+        });
+
+        final code = await uploadFile(
+          peer: peer,
+          sessionId: sessionId,
+          fileId: file.id,
+          token: token,
+          bytes: stream,
+          length: file.size,
+        );
+        input.close();
+
+        if (code != TransferProtocolCode.ok) {
+          throw HttpException(
+            'Upload failed for ${file.fileName} with code $code',
           );
-          if (code != TransferProtocolCode.ok) {
-            throw HttpException(
-              'Upload failed for ${file.fileName} with code $code',
-            );
-          }
-          if (sent == 0) {
-            onProgress(0, file.fileName);
-          }
-        } finally {
-          gate.release();
         }
-      }());
+        if (sent == 0) {
+          onProgress(0, file.fileName);
+        }
+        final sha = computedDigest?.toString() ?? '';
+        onFileCompleted?.call(file, sha);
+      }
     }
-    await Future.wait(tasks);
+
+    final workers = List.generate(workerCount, (_) => runWorker());
+    await Future.wait(workers);
   }
 
   Uri _api(TransferPeer peer, String path, Map<String, String> query) {
@@ -292,30 +319,5 @@ class LocalSendClient {
       return peer.origin().replace(path: path);
     }
     return peer.origin().replace(path: path, queryParameters: query);
-  }
-}
-
-class _Gate {
-  _Gate(this.max);
-  final int max;
-  int _active = 0;
-  final _waiters = <Completer<void>>[];
-
-  Future<void> acquire() async {
-    while (_active >= max) {
-      final waiter = Completer<void>();
-      _waiters.add(waiter);
-      await waiter.future;
-    }
-    _active++;
-  }
-
-  void release() {
-    if (_active > 0) {
-      _active -= 1;
-    }
-    if (_waiters.isNotEmpty) {
-      _waiters.removeAt(0).complete();
-    }
   }
 }

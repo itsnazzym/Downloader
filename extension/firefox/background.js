@@ -259,7 +259,7 @@
     }
 
     if (message.type === 'REQUEST_TIKTOK_COLLECTIONS_SYNC') {
-      syncTikTokCollections();
+      syncTikTokCollections(message.requestId);
       return;
     }
 
@@ -999,9 +999,45 @@
     }
   }
 
-  function syncTikTokCollections() {
+  function isMissingContentReceiverError(error) {
+    var message = (error && error.message) || String(error || '');
+    return /could not establish connection|receiving end does not exist/i.test(message);
+  }
+
+  async function sendTikTokSyncMessage(tabId) {
+    var request = { type: 'MD_SYNC_TIKTOK_COLLECTIONS' };
+    try {
+      return await api.tabs.sendMessage(tabId, request);
+    } catch (error) {
+      if (
+        !isMissingContentReceiverError(error) ||
+        !api.scripting ||
+        typeof api.scripting.executeScript !== 'function'
+      ) {
+        throw error;
+      }
+
+      // A TikTok tab may have been opened before the extension was installed
+      // or reloaded. Inject the same guarded content script used at page load.
+      try {
+        await api.scripting.executeScript({
+          target: { tabId: tabId, frameIds: [0] },
+          files: ['url_policy.js', 'content.js'],
+        });
+        return await api.tabs.sendMessage(tabId, request);
+      } catch (injectionError) {
+        logDiag(
+          'TIKTOK_SYNC_INJECT_ERR',
+          (injectionError && injectionError.message) || String(injectionError),
+        );
+        throw new Error('collection_items_unavailable');
+      }
+    }
+  }
+
+  function syncTikTokCollections(requestId) {
     logDiag('TIKTOK_SYNC_TRIGGERED', 'Looking for tiktok tabs');
-    api.tabs.query({ url: '*://*.tiktok.com/*' }).then(function (tabs) {
+    return api.tabs.query({ url: '*://*.tiktok.com/*' }).then(function (tabs) {
       if (!tabs || tabs.length === 0) {
         // No TikTok tab open — inform the app so it can show a proper message.
         logDiag('TIKTOK_SYNC_NO_TAB', 'No TikTok tab available');
@@ -1009,55 +1045,81 @@
           try {
             socket.send(JSON.stringify({
               type: 'TIKTOK_COLLECTIONS_SYNC',
-              collections: {},
-              collectionTotals: {},
+              collections: [],
+              collectionListComplete: false,
               error: 'no_tiktok_tab',
+              requestId: requestId,
             }));
           } catch (e) { /* ignore */ }
         }
         return;
       }
-      var targetTab = tabs.find(function (t) { return t.active; }) || tabs[0];
-      api.tabs.sendMessage(targetTab.id, { type: 'MD_SYNC_TIKTOK_COLLECTIONS' }).then(function (res) {
-        if (res && res.ok && res.collections && Object.keys(res.collections).length > 0) {
-          sendTikTokCollectionsToApp(res.collections, res.collectionTotals);
-        } else {
-          // Content script returned empty — could mean API returned nothing or user not logged in.
-          logDiag('TIKTOK_SYNC_EMPTY', 'Content script returned no collections');
-          if (socket && socket.readyState === WebSocket.OPEN) {
-            try {
-              socket.send(JSON.stringify({
-                type: 'TIKTOK_COLLECTIONS_SYNC',
-                collections: {},
-                collectionTotals: {},
-                error: 'empty_response',
-              }));
-            } catch (e) { /* ignore */ }
+      // Prefer the user's Favorites/Collections tab. An active For You tab
+      // cannot expose the visible collection grid when TikTok blocks its API.
+      tabs.sort(function (a, b) {
+        function priority(tab) {
+          var url = tab.url || '';
+          if (/\/favorites(?:\/|\?|$)|\/collection\/|[?&]tab=favorites/.test(url)) return 2;
+          return tab.active ? 1 : 0;
+        }
+        return priority(b) - priority(a);
+      });
+      // The desktop app can request sync while a different TikTok tab is
+      // active. Try every open TikTok tab before reporting no collections.
+      return (async function () {
+        var lastError = 'empty_response';
+        for (var i = 0; i < tabs.length; i++) {
+          try {
+            var res = await sendTikTokSyncMessage(tabs[i].id);
+            if (res && res.ok && Array.isArray(res.collections) && res.collections.length > 0) {
+              sendTikTokCollectionsToApp(
+                res.collections,
+                res.collectionListComplete,
+                requestId,
+              );
+              return;
+            }
+            if (res && res.error) lastError = res.error;
+          } catch (err) {
+            lastError = (err && err.message) || 'tab_unavailable';
+            logDiag('TIKTOK_SYNC_TAB_ERR', lastError);
           }
         }
-      }).catch(function (err) {
-        logDiag('TIKTOK_SYNC_TAB_ERR', (err && err.message) || String(err));
-        console.warn('MD_SYNC_TIKTOK_COLLECTIONS failed on tab', targetTab.id, err);
+        logDiag('TIKTOK_SYNC_EMPTY', lastError);
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            type: 'TIKTOK_COLLECTIONS_SYNC',
+            collections: [],
+            collectionListComplete: false,
+            error: lastError,
+            requestId: requestId,
+          }));
+        }
+      })().catch(function (err) {
+        logDiag('TIKTOK_SYNC_ERR', (err && err.message) || String(err));
       });
     }).catch(function (err) {
       logDiag('TIKTOK_SYNC_QUERY_ERR', (err && err.message) || String(err));
     });
   }
 
-  function sendTikTokCollectionsToApp(collections, collectionTotals) {
+  function sendTikTokCollectionsToApp(collections, collectionListComplete, requestId) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       logDiag('TIKTOK_SEND_ERR', 'Socket not open');
-      return;
+      return false;
     }
     try {
       socket.send(JSON.stringify({
         type: 'TIKTOK_COLLECTIONS_SYNC',
         collections: collections,
-        collectionTotals: collectionTotals || {},
+        collectionListComplete: collectionListComplete === true,
+        requestId: requestId,
       }));
-      logDiag('TIKTOK_COLLECTIONS_SENT', 'Count=' + Object.keys(collections).length);
+      logDiag('TIKTOK_COLLECTIONS_SENT', 'Count=' + collections.length);
+      return true;
     } catch (e) {
       console.warn('Failed to send TikTok collections to app', e);
+      return false;
     }
   }
 
@@ -1074,16 +1136,19 @@
     var senderTabId = sender && sender.tab && sender.tab.id;
 
     if (message.type === 'MD_TRIGGER_TIKTOK_SYNC') {
-      syncTikTokCollections();
+      syncTikTokCollections(message.requestId);
       sendResponse({ ok: true });
       return false;
     }
 
     if (message.type === 'MD_TIKTOK_COLLECTIONS_DATA') {
-      if (message.collections) {
-        sendTikTokCollectionsToApp(message.collections, message.collectionTotals);
-      }
-      sendResponse({ ok: true });
+      var sent = Array.isArray(message.collections) &&
+        sendTikTokCollectionsToApp(
+          message.collections,
+          message.collectionListComplete,
+          message.requestId,
+        );
+      sendResponse({ ok: !!sent });
       return false;
     }
 

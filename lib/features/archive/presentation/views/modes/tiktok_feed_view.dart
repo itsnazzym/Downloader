@@ -1,18 +1,25 @@
-import 'dart:io';
+import 'dart:async';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_video_card_player.dart';
 
 class TikTokFeedView extends ConsumerStatefulWidget {
   final List<TikTokArchiveItem> videos;
+  final int initialIndex;
+  final VoidCallback? onClose;
 
-  const TikTokFeedView({super.key, required this.videos});
+  const TikTokFeedView({
+    super.key,
+    required this.videos,
+    this.initialIndex = 0,
+    this.onClose,
+  });
 
   @override
   ConsumerState<TikTokFeedView> createState() => _TikTokFeedViewState();
@@ -20,19 +27,22 @@ class TikTokFeedView extends ConsumerStatefulWidget {
 
 class _TikTokFeedViewState extends ConsumerState<TikTokFeedView> {
   late PageController _pageController;
-  int _currentPage = 0;
+  late int _currentPage;
+  bool _wheelNavigationPending = false;
+  DateTime _lastWheelNavigation = DateTime.fromMillisecondsSinceEpoch(0);
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _currentPage = widget.initialIndex
+        .clamp(0, widget.videos.isEmpty ? 0 : widget.videos.length - 1)
+        .toInt();
+    _pageController = PageController(initialPage: _currentPage);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && widget.videos.isNotEmpty) {
-        ref.read(tiktokPreloadControllerProvider).preloadAround(
-          widget.videos,
-          _currentPage,
-          lookAhead: 3,
-        );
+        ref
+            .read(tiktokPreloadControllerProvider)
+            .preloadAround(widget.videos, _currentPage, lookAhead: 3);
       }
     });
   }
@@ -43,28 +53,37 @@ class _TikTokFeedViewState extends ConsumerState<TikTokFeedView> {
     super.dispose();
   }
 
-  void _showNotice(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  Future<void> _openUrl(String url) async {
-    try {
-      if (Platform.isWindows) {
-        await Process.run('cmd', ['/c', 'start', '', url]);
-      } else if (Platform.isMacOS) {
-        await Process.run('open', [url]);
-      } else if (Platform.isLinux) {
-        await Process.run('xdg-open', [url]);
+  void _handleWheelSignal(PointerSignalEvent event, int total) {
+    if (event is! PointerScrollEvent) return;
+    GestureBinding.instance.pointerSignalResolver.register(event, (
+      resolvedEvent,
+    ) {
+      final delta = (resolvedEvent as PointerScrollEvent).scrollDelta.dy;
+      final now = DateTime.now();
+      if (delta == 0 ||
+          _wheelNavigationPending ||
+          now.difference(_lastWheelNavigation) <
+              const Duration(milliseconds: 280) ||
+          !_pageController.hasClients) {
+        return;
       }
-    } catch (_) {}
+
+      final target = (_currentPage + (delta > 0 ? 1 : -1))
+          .clamp(0, total - 1)
+          .toInt();
+      if (target == _currentPage) return;
+      _lastWheelNavigation = now;
+      _wheelNavigationPending = true;
+      unawaited(
+        _pageController
+            .animateToPage(
+              target,
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+            )
+            .whenComplete(() => _wheelNavigationPending = false),
+      );
+    });
   }
 
   @override
@@ -85,49 +104,56 @@ class _TikTokFeedViewState extends ConsumerState<TikTokFeedView> {
       _currentPage = total - 1;
     }
 
-    return Focus(
-      autofocus: true,
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.arrowDown && _currentPage < total - 1) {
-            _pageController.nextPage(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-            );
-            return KeyEventResult.handled;
+    return Listener(
+      onPointerSignal: (event) => _handleWheelSignal(event, total),
+      child: Focus(
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.arrowDown &&
+                _currentPage < total - 1) {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+              );
+              return KeyEventResult.handled;
+            }
+            if (event.logicalKey == LogicalKeyboardKey.arrowUp &&
+                _currentPage > 0) {
+              _pageController.previousPage(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+              );
+              return KeyEventResult.handled;
+            }
           }
-          if (event.logicalKey == LogicalKeyboardKey.arrowUp && _currentPage > 0) {
-            _pageController.previousPage(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-            );
-            return KeyEventResult.handled;
-          }
-        }
-        return KeyEventResult.ignored;
-      },
-      child: PageView.builder(
-        controller: _pageController,
-        scrollDirection: Axis.vertical,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: (idx) {
-          setState(() => _currentPage = idx);
-          ref.read(tiktokPreloadControllerProvider).preloadAround(
-            widget.videos,
-            idx,
-            lookAhead: 3,
-          );
+          return KeyEventResult.ignored;
         },
-        itemCount: total,
-        itemBuilder: (context, index) {
-          final item = widget.videos[index];
-          return _buildTikTokPage(item, colors, index, total);
-        },
+        child: PageView.builder(
+          controller: _pageController,
+          scrollDirection: Axis.vertical,
+          physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+          onPageChanged: (idx) {
+            setState(() => _currentPage = idx);
+            ref
+                .read(tiktokPreloadControllerProvider)
+                .preloadAround(widget.videos, idx, lookAhead: 3);
+          },
+          itemCount: total,
+          itemBuilder: (context, index) {
+            final item = widget.videos[index];
+            return _buildTikTokPage(item, colors, index, total);
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildTikTokPage(TikTokArchiveItem item, AppColors colors, int index, int total) {
+  Widget _buildTikTokPage(
+    TikTokArchiveItem item,
+    AppColors colors,
+    int index,
+    int total,
+  ) {
     final y = item.date.year;
     final m = item.date.month.toString().padLeft(2, '0');
     final d = item.date.day.toString().padLeft(2, '0');
@@ -153,15 +179,15 @@ class _TikTokFeedViewState extends ConsumerState<TikTokFeedView> {
                 isActive: index == _currentPage,
                 onNext: index < total - 1
                     ? () => _pageController.nextPage(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOutCubic,
-                        )
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOutCubic,
+                      )
                     : null,
                 onPrevious: index > 0
                     ? () => _pageController.previousPage(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOutCubic,
-                        )
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOutCubic,
+                      )
                     : null,
               ),
 
@@ -190,24 +216,33 @@ class _TikTokFeedViewState extends ConsumerState<TikTokFeedView> {
               // Bottom Metadata Overlay
               Positioned(
                 left: 18,
-                bottom: 20,
-                right: 70,
+                bottom: 48,
+                right: 18,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (item.collectionName != null) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: colors.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: colors.primary.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.folder_rounded, size: 14, color: colors.primary),
+                            Icon(
+                              Icons.folder_rounded,
+                              size: 14,
+                              color: colors.primary,
+                            ),
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
@@ -235,95 +270,37 @@ class _TikTokFeedViewState extends ConsumerState<TikTokFeedView> {
                         ),
                         const SizedBox(width: 8),
                         if (item.isFavorite)
-                          const Icon(Icons.bookmark_rounded, size: 16, color: Color(0xFFFE2C55)),
+                          const Icon(
+                            Icons.bookmark_rounded,
+                            size: 16,
+                            color: Color(0xFFFE2C55),
+                          ),
                         if (item.isLiked)
-                          const Icon(Icons.favorite_rounded, size: 16, color: Color(0xFFE91E63)),
+                          const Icon(
+                            Icons.favorite_rounded,
+                            size: 16,
+                            color: Color(0xFFE91E63),
+                          ),
                       ],
                     ),
                   ],
                 ),
               ),
 
-              // Right Floating Actions Column (TikTok style!)
-              Positioned(
-                right: 14,
-                bottom: 24,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Index Counter
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: colors.background.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${index + 1}\n$total',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.mono.copyWith(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textSecondary,
-                        ),
-                      ),
+              if (widget.onClose != null)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: IconButton.filledTonal(
+                    tooltip: 'Fermer le lecteur',
+                    onPressed: widget.onClose,
+                    icon: const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black.withValues(alpha: 0.55),
+                      foregroundColor: Colors.white,
                     ),
-                    const SizedBox(height: 14),
-
-                    // Download Button
-                    IconButton.filled(
-                      onPressed: () async {
-                        _showNotice('Téléchargement lancé : ${item.id}');
-                        await ref.read(tikTokArchiveProvider.notifier).downloadBatch([item], limit: 1);
-                      },
-                      icon: const Icon(Icons.download_rounded, size: 22),
-                      tooltip: 'Télécharger cette vidéo',
-                      style: IconButton.styleFrom(
-                        backgroundColor: colors.primary,
-                        foregroundColor: colors.onPrimary,
-                        padding: const EdgeInsets.all(12),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Copy Link Button
-                    IconButton.filledTonal(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: item.url));
-                        _showNotice('Lien copié');
-                      },
-                      icon: const Icon(Icons.link_rounded, size: 20),
-                      tooltip: 'Copier le lien',
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(12),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Open Browser Button
-                    IconButton.filledTonal(
-                      onPressed: () => _openUrl(item.url),
-                      icon: const Icon(Icons.open_in_new_rounded, size: 20),
-                      tooltip: 'Ouvrir dans le navigateur',
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(12),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Next Arrow Hint
-                    if (index < total - 1)
-                      IconButton(
-                        onPressed: () => _pageController.nextPage(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOutCubic,
-                        ),
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
-                        tooltip: 'Suivant (Flèche Bas)',
-                      ),
-                  ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),

@@ -12,7 +12,7 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('tiktok_cache_test_');
-    service = TikTokVideoCacheService();
+    service = TikTokVideoCacheService(cacheDirectory: tempDir);
   });
 
   tearDown(() async {
@@ -30,28 +30,35 @@ void main() {
     expect(state.isReady, isFalse);
   });
 
-  test('getCachedVideoPath returns valid path when file exists and is valid size', () async {
-    final cacheDir = await service.getCacheDirectory();
-    final testFile = File(p.join(cacheDir.path, 'test_vid_99.mp4'));
-    // Write > 1000 bytes
-    await testFile.writeAsBytes(List.filled(2048, 42));
+  test(
+    'getCachedVideoPath returns valid path when file exists and is valid size',
+    () async {
+      final cacheDir = await service.getCacheDirectory();
+      final testFile = File(p.join(cacheDir.path, 'test_vid_99.mp4'));
+      // Write > 1000 bytes
+      await testFile.writeAsBytes(List.filled(2048, 42));
 
-    final cachedPath = await service.getCachedVideoPath('test_vid_99');
-    expect(cachedPath, isNotNull);
-    expect(cachedPath, equals(testFile.path));
+      final cachedPath = await service.getCachedVideoPath('test_vid_99');
+      expect(cachedPath, isNotNull);
+      expect(cachedPath, equals(testFile.path));
 
-    final state = service.getVideoState('test_vid_99');
-    expect(state.isReady, isTrue);
-    expect(state.localPath, equals(testFile.path));
+      final state = service.getVideoState('test_vid_99');
+      expect(state.isReady, isTrue);
+      expect(state.localPath, equals(testFile.path));
 
-    // Cleanup
-    if (await testFile.exists()) await testFile.delete();
-  });
+      // Cleanup
+      if (await testFile.exists()) await testFile.delete();
+    },
+  );
 
   test('getCachedVideoPath detects unavailable marker file', () async {
     final cacheDir = await service.getCacheDirectory();
-    final unavailFile = File(p.join(cacheDir.path, 'deleted_vid_1.unavailable'));
-    await unavailFile.writeAsString('deleted');
+    final unavailFile = File(
+      p.join(cacheDir.path, 'deleted_vid_1.unavailable'),
+    );
+    await unavailFile.writeAsString(
+      'confirmed_tiktok_unavailable_v1:404 Not Found',
+    );
 
     final cachedPath = await service.getCachedVideoPath('deleted_vid_1');
     expect(cachedPath, isNull);
@@ -85,7 +92,9 @@ void main() {
   test('unavailableIds includes detected unavailable videos', () async {
     final cacheDir = await service.getCacheDirectory();
     final unavailFile = File(p.join(cacheDir.path, 'deleted_99.unavailable'));
-    await unavailFile.writeAsString('deleted');
+    await unavailFile.writeAsString(
+      'confirmed_tiktok_unavailable_v1:404 Not Found',
+    );
 
     await service.getCachedVideoPath('deleted_99');
     expect(service.unavailableIds.contains('deleted_99'), isTrue);
@@ -97,4 +106,132 @@ void main() {
     // Cleanup
     if (await unavailFile.exists()) await unavailFile.delete();
   });
+
+  test(
+    'legacy unavailable marker from a temporary failure is retried',
+    () async {
+      final cacheDir = await service.getCacheDirectory();
+      final marker = File(
+        p.join(cacheDir.path, 'temporary_failure.unavailable'),
+      );
+      await marker.writeAsString('unavailable');
+
+      await service.getCachedVideoPath('temporary_failure');
+
+      expect(service.unavailableIds.contains('temporary_failure'), isFalse);
+      expect(await marker.exists(), isFalse);
+    },
+  );
+
+  test(
+    'old private-video markers are cleared instead of hiding the video',
+    () async {
+      final cacheDir = await service.getCacheDirectory();
+      final marker = File(p.join(cacheDir.path, 'private_video.unavailable'));
+      await marker.writeAsString(
+        'confirmed_tiktok_unavailable_v1:This video is private',
+      );
+
+      await service.getCachedVideoPath('private_video');
+
+      expect(service.unavailableIds.contains('private_video'), isFalse);
+      expect(await marker.exists(), isFalse);
+    },
+  );
+
+  test('network errors do not hide a video as deleted', () async {
+    service.dispose();
+    service = TikTokVideoCacheService(
+      cacheDirectory: tempDir,
+      outputDownloader: (id, url, onProgress) async {
+        throw const SocketException('Connection timed out');
+      },
+    );
+    final finalState = service.stateStream.firstWhere(
+      (state) => state.status == TikTokVideoStatus.idle,
+    );
+
+    await service.requestVideo(
+      '7444444444444444444',
+      url: 'https://www.tiktokv.com/share/video/7444444444444444444/',
+    );
+    final state = await finalState.timeout(const Duration(seconds: 5));
+
+    expect(service.unavailableIds, isEmpty);
+    expect(state.errorMessage, contains('Connexion à TikTok impossible'));
+  });
+
+  test(
+    'TikTok login and audience gates stay retryable and show guidance',
+    () async {
+      service.dispose();
+      service = TikTokVideoCacheService(
+        cacheDirectory: tempDir,
+        outputDownloader: (id, url, onProgress) async {
+          throw StateError(
+            'yt-dlp exited with code 1. This post may not be comfortable '
+            'for some audiences. Log in for access. Use --cookies-from-browser.',
+          );
+        },
+      );
+      final finalState = service.stateStream.firstWhere(
+        (state) => state.status == TikTokVideoStatus.idle,
+      );
+
+      await service.requestVideo(
+        '7444444444444444445',
+        url: 'https://www.tiktokv.com/share/video/7444444444444444445/',
+      );
+      final state = await finalState.timeout(const Duration(seconds: 5));
+
+      expect(state.errorMessage, contains('session connectée'));
+      expect(state.errorMessage, contains('Chrome si tu utilises Chrome'));
+      expect(service.unavailableIds, isEmpty);
+    },
+  );
+
+  test('a confirmed 404 hides the video and persists its status', () async {
+    service.dispose();
+    service = TikTokVideoCacheService(
+      cacheDirectory: tempDir,
+      outputDownloader: (id, url, onProgress) async {
+        throw StateError('TikTok returned HTTP 404: Not Found');
+      },
+    );
+    final finalState = service.stateStream.firstWhere(
+      (state) => state.status == TikTokVideoStatus.unavailable,
+    );
+
+    await service.requestVideo(
+      '7555555555555555555',
+      url: 'https://www.tiktokv.com/share/video/7555555555555555555/',
+    );
+    await finalState.timeout(const Duration(seconds: 5));
+
+    expect(service.unavailableIds, contains('7555555555555555555'));
+  });
+
+  test('checkAvailability returns false and records video when video is already in unavailableIds', () async {
+    final cacheDir = await service.getCacheDirectory();
+    final marker = File(p.join(cacheDir.path, 'known_dead_123.unavailable'));
+    await marker.writeAsString('confirmed_tiktok_unavailable_v1:404 Not Found');
+
+    await service.getCachedVideoPath('known_dead_123');
+    expect(service.isUnavailable('known_dead_123'), isTrue);
+
+    final isAvailable = await service.checkAvailability('known_dead_123');
+    expect(isAvailable, isFalse);
+  });
+
+  test('checkAvailability returns true when video is already downloaded locally', () async {
+    final cacheDir = await service.getCacheDirectory();
+    final videoFile = File(p.join(cacheDir.path, 'downloaded_vid_456.mp4'));
+    await videoFile.writeAsBytes(List.filled(2048, 1));
+
+    final isAvailable = await service.checkAvailability('downloaded_vid_456');
+    expect(isAvailable, isTrue);
+
+    if (await videoFile.exists()) await videoFile.delete();
+  });
 }
+

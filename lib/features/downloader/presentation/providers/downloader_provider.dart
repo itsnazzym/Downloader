@@ -8,6 +8,9 @@ import '../../../../core/download/x_download_url.dart';
 import '../../../../core/download/download_request_factory.dart';
 import '../../../../core/download/download_queue_controller.dart';
 import '../../../../core/download/download_url_policy.dart';
+import '../../../../core/download/tiktok_video_url.dart';
+import '../../../../core/download/download_status_guard.dart';
+import '../../../archive/presentation/providers/tiktok_video_cache_provider.dart';
 import '../../../../core/services/local_server_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../x_feed/x_media_identity.dart';
@@ -32,6 +35,13 @@ final activeDownloadsProvider = StreamProvider<DownloadItem>((ref) {
 
 final duplicateBatchCountProvider = StateProvider<int>((ref) => 0);
 
+/// Volatile download data (progress, speed and ETA) is deliberately kept out
+/// of the persisted catalog. Updating an active download must not rebuild or
+/// re-sort thousands of completed rows.
+final downloadRuntimeItemProvider = StateProvider.family<DownloadItem?, String>(
+  (ref, id) => null,
+);
+
 // Notifier to hold the list state
 class DownloadListNotifier
     extends StateNotifier<AsyncValue<List<DownloadItem>>> {
@@ -43,6 +53,9 @@ class DownloadListNotifier
   bool _isProcessingQueue = false;
   bool _processQueueAgain = false;
   final AsyncSerializer _queueOps = AsyncSerializer();
+  final Map<String, DownloadItem> _catalogById = <String, DownloadItem>{};
+  final List<String> _catalogIds = <String>[];
+  final Set<String> _runtimeIds = <String>{};
 
   DownloadListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
@@ -55,8 +68,34 @@ class DownloadListNotifier
     try {
       await _repository.initialized;
       final items = _repository.getCurrentDownloads();
-      state = AsyncValue.data(items);
-      _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(items);
+      final failedToPurge = items.where((item) {
+        if (item.status == DownloadStatus.failed) {
+          final err = (item.error ?? '').toLowerCase();
+          return DownloadStatusGuard.isPermanentDownloadError(err);
+        }
+        return false;
+      }).toList();
+
+      for (final bad in failedToPurge) {
+        unawaited(_repository.deleteDownload(bad.id));
+        final videoId = TikTokVideoUrl.extractVideoId(bad.request.url);
+        if (videoId != null) {
+          try {
+            unawaited(
+              _ref.read(tiktokVideoCacheServiceProvider).recordUnavailable(
+                videoId,
+                bad.error ?? 'Unavailable video',
+              ),
+            );
+          } catch (_) {}
+        }
+      }
+
+      final validItems = items
+          .where((item) => !failedToPurge.contains(item))
+          .toList();
+      _replaceCatalog(validItems);
+      _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(validItems);
       _listenToUpdates();
 
       for (final item in items) {
@@ -127,77 +166,87 @@ class DownloadListNotifier
     if (!mounted) return;
     if (_pendingUpdates.isEmpty) return;
 
-    state.whenData((currentList) {
-      // Create a map of current items for valid lookups and replacement
-      final Map<String, DownloadItem> itemMap = {
-        for (var item in currentList) item.id: item,
-      };
+    final updates = Map<String, DownloadItem>.from(_pendingUpdates);
+    _pendingUpdates.clear();
+    var catalogChanged = false;
+    var newQueuedAdded = false;
 
-      // Apply all pending updates
-      final updates = Map<String, DownloadItem>.from(_pendingUpdates);
-      _pendingUpdates.clear();
+    for (final entry in updates.entries) {
+      final id = entry.key;
+      final item = entry.value;
+      final previous = _catalogById[id];
 
-      bool newQueuedAdded = false;
-      updates.forEach((id, item) {
-        itemMap[id] = item;
-
-        if (item.status == DownloadStatus.queued && !_resumeIds.contains(id)) {
-          _resumeIds.add(id);
-          newQueuedAdded = true;
+      if (_requiresCatalogUpdate(previous, item)) {
+        if (previous == null) {
+          _catalogIds.add(id);
         }
+        _catalogById[id] = item;
+        _clearRuntimeItem(id);
+        catalogChanged = true;
+      } else {
+        _setRuntimeItem(id, item);
+      }
 
-        // Side effects for terminal states (handled once per event effectively)
-        // Note: usage of 'item' here refers to the latest update for that ID
-        if (item.status == DownloadStatus.duplicate) {
-          Future.delayed(const Duration(seconds: 5), () {
+      if (item.status == DownloadStatus.queued && !_resumeIds.contains(id)) {
+        _resumeIds.add(id);
+        newQueuedAdded = true;
+      }
+
+      if (item.status == DownloadStatus.duplicate) {
+        Future<void>.delayed(const Duration(seconds: 5), () {
+          if (mounted) {
+            deleteDownload(item.id);
+          }
+        });
+      }
+
+      if (item.status == DownloadStatus.failed) {
+        final err = (item.error ?? '').toLowerCase();
+        final isPermanentUnavail =
+            DownloadStatusGuard.isPermanentDownloadError(err);
+        if (isPermanentUnavail &&
+            (item.request.url.contains('tiktok.com') ||
+                item.request.url.contains('tiktokv.com'))) {
+          final videoId = TikTokVideoUrl.extractVideoId(item.request.url);
+          if (videoId != null) {
+            try {
+              unawaited(
+                _ref.read(tiktokVideoCacheServiceProvider).recordUnavailable(
+                  videoId,
+                  item.error ?? 'Unavailable video',
+                ),
+              );
+            } catch (_) {}
+          }
+          // Remove from download list after 1s so it quickly disappears from the failed downloads tab
+          Future<void>.delayed(const Duration(seconds: 1), () {
             if (mounted) {
               deleteDownload(item.id);
             }
           });
         }
-      });
-
-      // Convert back to list, maintaining original order if possible, or appending new ones?
-      // Re-constructing the list based on itemMap is risky if we lose order.
-      // Better: Iterate original list/keys and update. New items appended.
-
-      final List<DownloadItem> newState = [];
-      final Set<String> processedIds = {};
-
-      for (var existing in currentList) {
-        if (updates.containsKey(existing.id)) {
-          newState.add(updates[existing.id]!);
-        } else {
-          newState.add(existing);
-        }
-        processedIds.add(existing.id);
       }
+    }
 
-      // Add new items that weren't in the list
-      updates.forEach((id, item) {
-        if (!processedIds.contains(id)) {
-          newState.add(item);
-        }
-      });
+    if (catalogChanged) {
+      state = AsyncValue.data(_catalogItems());
+    }
 
-      state = AsyncValue.data(newState);
-
-      // Process queue if any slot freed up or new queued items arrived
-      final hasTerminal = updates.values.any(
-        (i) => isStatsRebuildStatus(i.status),
-      );
-
-      if (hasTerminal || newQueuedAdded) {
-        _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(newState);
-        _processQueue();
-      }
-    });
+    final hasTerminal = updates.values.any(
+      (item) => isStatsRebuildStatus(item.status),
+    );
+    if (hasTerminal || newQueuedAdded) {
+      _ref
+          .read(downloadStatsProvider.notifier)
+          .rebuildFromLibrary(_catalogItems());
+      _processQueue();
+    }
   }
 
   void refreshList() {
     try {
       final items = _repository.getCurrentDownloads();
-      state = AsyncValue.data(items);
+      _replaceCatalog(items);
       _ref.read(downloadStatsProvider.notifier).rebuildFromLibrary(items);
       bool newQueued = false;
       for (final item in items) {
@@ -213,6 +262,57 @@ class DownloadListNotifier
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  void _replaceCatalog(List<DownloadItem> items) {
+    for (final id in _runtimeIds.toList(growable: false)) {
+      _clearRuntimeItem(id);
+    }
+    _catalogById
+      ..clear()
+      ..addEntries(items.map((item) => MapEntry(item.id, item)));
+    _catalogIds
+      ..clear()
+      ..addAll(items.map((item) => item.id));
+    state = AsyncValue.data(_catalogItems());
+  }
+
+  List<DownloadItem> _catalogItems() {
+    return [
+      for (final id in _catalogIds)
+        if (_catalogById[id] case final item?) item,
+    ];
+  }
+
+  bool _requiresCatalogUpdate(DownloadItem? previous, DownloadItem next) {
+    if (previous == null) return true;
+    return previous.status != next.status ||
+        previous.title != next.title ||
+        previous.filePath != next.filePath ||
+        previous.thumbnailUrl != next.thumbnailUrl ||
+        previous.totalSize != next.totalSize ||
+        previous.sortOrder != next.sortOrder ||
+        previous.error != next.error ||
+        previous.request.url != next.request.url ||
+        previous.request.outputFolder != next.request.outputFolder;
+  }
+
+  void _removeCatalogItem(String id) {
+    if (!_catalogById.containsKey(id)) return;
+    _catalogById.remove(id);
+    _catalogIds.remove(id);
+    _clearRuntimeItem(id);
+    state = AsyncValue.data(_catalogItems());
+  }
+
+  void _setRuntimeItem(String id, DownloadItem item) {
+    _runtimeIds.add(id);
+    _ref.read(downloadRuntimeItemProvider(id).notifier).state = item;
+  }
+
+  void _clearRuntimeItem(String id) {
+    _runtimeIds.remove(id);
+    _ref.read(downloadRuntimeItemProvider(id).notifier).state = null;
   }
 
   Future<void> resumeAllQueued() async {
@@ -245,7 +345,10 @@ class DownloadListNotifier
     bool? audioOnly,
     String? preferredQuality,
   }) async {
-    final resolvedUrl = XDownloadUrl.resolveForDownload(url);
+    final resolved = XDownloadUrl.resolveForDownload(url);
+    final resolvedUrl = resolved == null
+        ? null
+        : TikTokVideoUrl.forDownload(resolved);
     if (resolvedUrl == null) {
       LoggerService.w(
         'Rejected X CDN download without a tweet permalink: $url',
@@ -304,6 +407,141 @@ class DownloadListNotifier
       await _persistQueue();
       await _processQueue();
     });
+  }
+
+  /// Queues a TikTok video through the normal downloader and waits for its
+  /// finished file in the configured output folder. This keeps archive playback
+  /// subject to the same settings, duplicate checks, and library indexing as a
+  /// regular download.
+  Future<String?> downloadTikTokToOutput(
+    String videoId,
+    String url, {
+    required void Function(double progress) onProgress,
+    Duration timeout = const Duration(minutes: 20),
+  }) async {
+    List<DownloadItem> matchingItems() {
+      try {
+        return _repository
+            .getCurrentDownloads()
+            .where((item) => _tiktokVideoIdFromUrl(item.request.url) == videoId)
+            .toList(growable: false);
+      } catch (_) {
+        return const <DownloadItem>[];
+      }
+    }
+
+    bool hasOutput(DownloadItem item) {
+      final path = item.filePath;
+      if (item.status != DownloadStatus.completed ||
+          path == null ||
+          path.isEmpty) {
+        return false;
+      }
+      try {
+        return File(path).existsSync();
+      } catch (_) {
+        return false;
+      }
+    }
+
+    DownloadItem? completedOutput(Iterable<DownloadItem> items) {
+      for (final item in items) {
+        if (hasOutput(item)) return item;
+      }
+      return null;
+    }
+
+    final before = matchingItems();
+    final previousIds = before.map((item) => item.id).toSet();
+    final existingOutput = completedOutput(before);
+    if (existingOutput != null) return existingOutput.filePath;
+
+    bool isPending(DownloadStatus status) =>
+        status == DownloadStatus.queued ||
+        status == DownloadStatus.extracting ||
+        status == DownloadStatus.downloading ||
+        status == DownloadStatus.processing ||
+        status == DownloadStatus.paused;
+
+    var targetIds = before
+        .where((item) => isPending(item.status))
+        .map((item) => item.id)
+        .toSet();
+    var waitingForNewRequest = false;
+    if (targetIds.isEmpty) {
+      await startDownload(url, organizeBySite: true);
+      final after = matchingItems();
+      targetIds = after
+          .where(
+            (item) =>
+                !previousIds.contains(item.id) &&
+                item.status != DownloadStatus.duplicate,
+          )
+          .map((item) => item.id)
+          .toSet();
+      if (targetIds.isEmpty) {
+        final output = completedOutput(after);
+        if (output != null) return output.filePath;
+        targetIds = after
+            .where((item) => isPending(item.status))
+            .map((item) => item.id)
+            .toSet();
+        waitingForNewRequest = targetIds.isEmpty;
+      }
+    }
+
+    final deadline = DateTime.now().add(timeout);
+    final queuedWaitStartedAt = DateTime.now();
+    var lastProgress = -1.0;
+    while (DateTime.now().isBefore(deadline)) {
+      var current = matchingItems()
+          .where(
+            (item) => targetIds.isNotEmpty
+                ? targetIds.contains(item.id) &&
+                      item.status != DownloadStatus.duplicate
+                : !previousIds.contains(item.id) &&
+                      item.status != DownloadStatus.duplicate,
+          )
+          .toList(growable: false);
+      if (waitingForNewRequest && current.isEmpty) {
+        final requestStillQueued = _queue.any(
+          (request) => _tiktokVideoIdFromUrl(request.url) == videoId,
+        );
+        if (!requestStillQueued &&
+            DateTime.now().difference(queuedWaitStartedAt) >
+                const Duration(seconds: 30)) {
+          throw StateError(
+            'Le téléchargement n’a pas pu être ajouté à la file.',
+          );
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 650));
+        continue;
+      }
+      if (waitingForNewRequest && current.isNotEmpty) {
+        targetIds = current.map((item) => item.id).toSet();
+        waitingForNewRequest = false;
+      }
+      final completed = completedOutput(current);
+      if (completed != null) return completed.filePath;
+
+      final latest = current.isEmpty ? null : current.last;
+      if (latest != null) {
+        if (latest.progress != lastProgress) {
+          lastProgress = latest.progress;
+          onProgress(latest.progress.clamp(0.05, 0.99).toDouble());
+        }
+        if (latest.status == DownloadStatus.failed ||
+            latest.status == DownloadStatus.canceled) {
+          throw StateError(
+            latest.error?.trim().isNotEmpty == true
+                ? latest.error!.trim()
+                : 'Le téléchargement TikTok a échoué.',
+          );
+        }
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 650));
+    }
+    throw TimeoutException('Le téléchargement TikTok prend trop de temps.');
   }
 
   Future<void> startDownloadsBatch(List<String> urls) {
@@ -400,10 +638,7 @@ class DownloadListNotifier
 
   Future<void> deleteDownload(String id) async {
     await _repository.deleteDownload(id);
-    state.whenData((currentList) {
-      final newState = currentList.where((item) => item.id != id).toList();
-      state = AsyncValue.data(newState);
-    });
+    _removeCatalogItem(id);
   }
 
   /// [newIndex] is the insertion index after the item is removed (onReorderItem).
@@ -412,7 +647,7 @@ class DownloadListNotifier
       final items = List<DownloadItem>.from(currentList);
       final item = items.removeAt(oldIndex);
       items.insert(newIndex, item);
-      state = AsyncValue.data(items);
+      _replaceCatalog(items);
 
       await _repository.reorderDownloads(oldIndex, newIndex);
     });
@@ -433,7 +668,11 @@ class DownloadListNotifier
   Future<void> retryDownload(DownloadItem item) async {
     await deleteDownload(item.id);
     await _queueOps.run(() async {
-      _queue.add(item.request);
+      _queue.add(
+        item.request.copyWith(
+          url: TikTokVideoUrl.forDownload(item.request.url),
+        ),
+      );
       await _persistQueue();
       await _processQueue();
     });
@@ -473,9 +712,11 @@ class DownloadListNotifier
   Future<void> clearFailed() async {
     final items = state.valueOrNull ?? _repository.getCurrentDownloads();
     final failed = items
-        .where((item) =>
-            item.status == DownloadStatus.failed ||
-            item.status == DownloadStatus.canceled)
+        .where(
+          (item) =>
+              item.status == DownloadStatus.failed ||
+              item.status == DownloadStatus.canceled,
+        )
         .toList();
     for (final item in failed) {
       await deleteDownload(item.id);
@@ -584,18 +825,14 @@ class DownloadListNotifier
       status: DownloadStatus.duplicate,
     );
 
-    state.whenData((items) {
-      state = AsyncValue.data(<DownloadItem>[...items, duplicateItem]);
-    });
+    _catalogById[duplicateItem.id] = duplicateItem;
+    _catalogIds.add(duplicateItem.id);
+    state = AsyncValue.data(_catalogItems());
     Future<void>.delayed(const Duration(seconds: 5), () {
       if (!mounted) {
         return;
       }
-      state.whenData((items) {
-        state = AsyncValue.data(
-          items.where((item) => item.id != duplicateItem.id).toList(),
-        );
-      });
+      _removeCatalogItem(duplicateItem.id);
     });
   }
 
@@ -620,11 +857,27 @@ final downloadListProvider =
       },
     );
 
+String? _tiktokVideoIdFromUrl(String url) {
+  final match = RegExp(
+    r'/(?:video|share/video)/(\d{8,})(?:\D|$)',
+  ).firstMatch(url);
+  if (match != null) return match.group(1);
+  final uri = Uri.tryParse(url);
+  if (uri == null) return null;
+  for (final key in const ['video_id', 'aweme_id', 'item_id']) {
+    final value = uri.queryParameters[key];
+    if (value != null && RegExp(r'^\d{8,}$').hasMatch(value)) return value;
+  }
+  return null;
+}
+
 /// Per-id item so progress ticks rebuild only the row that changed.
 final downloadItemByIdProvider = Provider.family<DownloadItem?, String>((
   ref,
   id,
 ) {
+  final runtimeItem = ref.watch(downloadRuntimeItemProvider(id));
+  if (runtimeItem != null) return runtimeItem;
   return ref.watch(
     downloadListProvider.select((async) {
       final items = async.valueOrNull;

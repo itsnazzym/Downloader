@@ -13,6 +13,7 @@ import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:modern_downloader/showcase/showcase_mode.dart';
 
 class StatsView extends ConsumerStatefulWidget {
   const StatsView({super.key});
@@ -31,6 +32,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
   }
 
   Future<void> _loadDiskSpace() async {
+    if (ref.read(showcaseModeProvider)) {
+      _freeSpace = 512 * 1024 * 1024 * 1024;
+      return;
+    }
     final space = await DiskSpaceService.getFreeDiskSpace();
     if (mounted) {
       setState(() => _freeSpace = space);
@@ -73,7 +78,8 @@ class _StatsViewState extends ConsumerState<StatsView> {
         value: _freeSpace != null
             ? FormatUtils.formatBytes(_freeSpace!)
             : '...',
-        color: _freeSpace != null &&
+        color:
+            _freeSpace != null &&
                 _freeSpace! < DiskSpaceService.minRequiredBytes
             ? AppColors.of(context).error
             : AppColors.of(context).success,
@@ -85,20 +91,14 @@ class _StatsViewState extends ConsumerState<StatsView> {
       title: l10n.downloadActivity,
       subtitle: l10n.last7DaysShort,
       delay: 400,
-      child: SizedBox(
-        height: 200,
-        child: _buildActivityChart(stats),
-      ),
+      child: SizedBox(height: 200, child: _buildActivityChart(stats)),
     );
 
     final sourceChartPanel = _GlassPanel(
       title: l10n.sourcesChartTitle,
       subtitle: l10n.sourcesByPlatform,
       delay: 500,
-      child: SizedBox(
-        height: 200,
-        child: _buildSourceChart(stats),
-      ),
+      child: SizedBox(height: 200, child: _buildSourceChart(stats)),
     );
 
     return Container(
@@ -182,7 +182,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
                       label: l10n.newDownloadShortcut,
                     ),
                     _ShortcutChip(keys: 'Ctrl+,', label: l10n.settingsShortcut),
-                    _ShortcutChip(keys: 'Ctrl+D', label: l10n.dashboardShortcut),
+                    _ShortcutChip(
+                      keys: 'Ctrl+D',
+                      label: l10n.dashboardShortcut,
+                    ),
                     _ShortcutChip(keys: 'Esc', label: l10n.minimizeShortcut),
                   ],
                 ),

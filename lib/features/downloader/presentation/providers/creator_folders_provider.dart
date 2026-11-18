@@ -49,7 +49,13 @@ final openedCreatorFolderItemIdsProvider = Provider<DownloadIdList>((ref) {
       }
       return DownloadIdList([
         for (final item in items)
-          if (CreatorFolderKey.of(item).key == opened) item.id,
+          if (CreatorFolderKey.of(
+                url: item.request.url,
+                title: item.title,
+                filePath: item.filePath,
+              ).key ==
+              opened)
+            item.id,
       ]);
     }),
   );

@@ -13,7 +13,9 @@ import '../../setup/dependency_bootstrap_provider.dart';
 /// Orchestrates the real application warmup pipeline to eliminate startup lag
 /// and presents an animated progress bar with continuous interior shimmer.
 class AppLaunchOverlay extends ConsumerStatefulWidget {
-  const AppLaunchOverlay({super.key});
+  const AppLaunchOverlay({super.key, required this.libraryReady});
+
+  final bool libraryReady;
 
   @override
   ConsumerState<AppLaunchOverlay> createState() => _AppLaunchOverlayState();
@@ -49,7 +51,7 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
       return const SizedBox.shrink();
     }
 
-    final isCompleted = warmup.isCompleted;
+    final isCompleted = warmup.isCompleted && widget.libraryReady;
 
     return IgnorePointer(
       ignoring: isCompleted,
@@ -92,7 +94,10 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 480),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
                         child: Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF0C0C0E),
@@ -137,7 +142,9 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: const Color(0xFFFAFAFA),
                                     side: BorderSide(
-                                      color: Colors.white.withValues(alpha: 0.15),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.15,
+                                      ),
                                     ),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -146,7 +153,9 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
-                                  child: const Text('Continuer vers l\'application'),
+                                  child: const Text(
+                                    'Continuer vers l\'application',
+                                  ),
                                 ),
                               ],
                             ],
@@ -251,10 +260,11 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (warmup.isCompleted
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFF38BDF8))
-                          .withValues(alpha: 0.5),
+                      color:
+                          (warmup.isCompleted
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF38BDF8))
+                              .withValues(alpha: 0.5),
                       blurRadius: 6,
                       spreadRadius: 1,
                     ),
@@ -286,12 +296,16 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
     final isDownloading = depState.fraction != null;
     final effectiveFraction = isDownloading
         ? depState.fraction!.clamp(0.0, 1.0)
-        : warmup.progress.clamp(0.0, 1.0);
+        : (!widget.libraryReady && warmup.isCompleted
+              ? 0.92
+              : warmup.progress.clamp(0.0, 1.0));
     final percent = (effectiveFraction * 100).round();
 
     final statusText = isDownloading && depState.toolName.isNotEmpty
         ? 'Téléchargement de ${depState.toolName} ($percent%)...'
-        : warmup.statusMessage;
+        : (!widget.libraryReady && warmup.isCompleted
+              ? 'Chargement de la bibliothèque...'
+              : warmup.statusMessage);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -395,9 +409,17 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
   Widget _buildStagesChecklist(AppWarmupState warmup) {
     return Column(
       children: warmup.stages.map((stage) {
-        final isDone = stage.status == WarmupStageStatus.completed;
-        final isRunning = stage.status == WarmupStageStatus.running;
-        final isFailed = stage.status == WarmupStageStatus.failed;
+        final waitingForLibrary =
+            stage.id == WarmupStageId.storageCatalog && !widget.libraryReady;
+        final status = waitingForLibrary
+            ? WarmupStageStatus.running
+            : stage.status;
+        final description = waitingForLibrary
+            ? 'Chargement de la bibliothèque sauvegardée...'
+            : stage.description;
+        final isDone = status == WarmupStageStatus.completed;
+        final isRunning = status == WarmupStageStatus.running;
+        final isFailed = status == WarmupStageStatus.failed;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
@@ -464,7 +486,7 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
                     ),
                     const Gap(2),
                     Text(
-                      stage.description,
+                      description,
                       style: AppTypography.caption.copyWith(
                         color: const Color(0xFF52525B),
                         fontSize: 11,
@@ -485,22 +507,24 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
                   color: isDone
                       ? const Color(0xFF10B981).withValues(alpha: 0.12)
                       : (isRunning
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.transparent),
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.transparent),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   isDone
                       ? 'PRÊT'
-                      : (isRunning ? 'EN COURS' : (isFailed ? 'ERREUR' : 'EN ATTENTE')),
+                      : (isRunning
+                            ? 'EN COURS'
+                            : (isFailed ? 'ERREUR' : 'EN ATTENTE')),
                   style: AppTypography.mono.copyWith(
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
                     color: isDone
                         ? const Color(0xFF10B981)
                         : (isRunning
-                            ? const Color(0xFFFAFAFA)
-                            : const Color(0xFF52525B)),
+                              ? const Color(0xFFFAFAFA)
+                              : const Color(0xFF52525B)),
                   ),
                 ),
               ),

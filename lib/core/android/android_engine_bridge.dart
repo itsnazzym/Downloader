@@ -141,6 +141,18 @@ class AndroidEngineBridge {
     }
   }
 
+  Future<bool> openUrl(String url) async {
+    try {
+      final success = await _methods.invokeMethod<bool>('openUrl', {
+        'url': url,
+      });
+      return success ?? false;
+    } on PlatformException catch (e) {
+      LoggerService.w('AndroidEngineBridge openUrl failed: $e');
+      return false;
+    }
+  }
+
   Future<bool> getVideoThumbnail(
     String videoPath,
     String thumbnailPath, {

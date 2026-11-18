@@ -27,11 +27,15 @@ class _EmptyRepo implements IDownloaderRepository {
   @override
   Future<void> exportHistory(String path) async {}
   @override
-  Future<List<Map<String, dynamic>>> fetchPlaylist(String url) async => [];
+  Future<List<Map<String, dynamic>>> fetchPlaylist(
+    String url, {
+    bool? useTorProxy,
+  }) async => [];
   @override
   Future<Map<String, dynamic>> fetchMetadata(
     String url, {
     String? cookies,
+    bool? useTorProxy,
   }) async => {};
   @override
   List<DownloadItem> getCurrentDownloads() => [];
@@ -74,9 +78,7 @@ void main() {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: DownloadSearchField(onChanged: queries.add),
-          ),
+          home: Scaffold(body: DownloadSearchField(onChanged: queries.add)),
         ),
       ),
     );

@@ -40,7 +40,13 @@ List<DownloadItem> itemsForMediaPlaylist({
   }
   return [
     for (final item in items)
-      if (CreatorFolderKey.of(item).key == openedFolderKey) item,
+      if (CreatorFolderKey.of(
+            url: item.request.url,
+            title: item.title,
+            filePath: item.filePath,
+          ).key ==
+          openedFolderKey)
+        item,
   ];
 }
 

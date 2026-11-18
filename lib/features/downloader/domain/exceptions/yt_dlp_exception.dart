@@ -15,10 +15,24 @@ class YtDlpException implements Exception {
     final errorLines = _errorLines(data);
     if (errorLines.isEmpty) return null;
     final check = errorLines.toLowerCase();
+    if (check.contains('http error 429') ||
+        check.contains('too many requests') ||
+        check.contains('captcha') ||
+        check.contains('verify you are human') ||
+        check.contains('rate limit') ||
+        check.contains('temporarily blocked')) {
+      return RateLimitException(log: data);
+    }
     if (check.contains('video unavailable')) {
       return VideoUnavailableException(log: data);
     }
-    if (check.contains('private video')) {
+    if (check.contains('private video') ||
+        check.contains('this video is private') ||
+        check.contains('your ip address is blocked from accessing this post') ||
+        check.contains('status_self_see') ||
+        check.contains('item_privacy_authorization') ||
+        check.contains('item_privacy_auth') ||
+        check.contains('10204')) {
       return PrivateVideoException(log: data);
     }
     if (check.contains('geo-restricted')) {
@@ -45,12 +59,31 @@ class YtDlpException implements Exception {
     }
     if (check.contains('age-restricted') ||
         check.contains('confirm your age') ||
-        check.contains('age confirmation')) {
+        check.contains('age confirmation') ||
+        check.contains('comfortable for some audiences')) {
       return AgeRestrictedException(log: data);
     }
     if (check.contains('live stream') &&
         (check.contains('offline') || check.contains('not currently'))) {
       return LiveStreamOfflineException(log: data);
+    }
+    if (check.contains('no video formats found') ||
+        check.contains('no formats found') ||
+        check.contains('unable to extract video data') ||
+        check.contains('attempting impersonation, but no impersonate target is available')) {
+      return NoVideoFormatsException(log: data);
+    }
+    if (check.contains('cloudflare') ||
+        check.contains('turnstile') ||
+        check.contains('just a moment') ||
+        check.contains('bot detection') ||
+        check.contains('impersonate')) {
+      return ExtractorProtectionException(log: data);
+    }
+    if ((check.contains('sign in to confirm') && !check.contains('not a bot')) ||
+        check.contains('login required') ||
+        check.contains('requires authentication')) {
+      return AuthRequiredException(log: data);
     }
     return null;
   }
@@ -61,7 +94,8 @@ class YtDlpException implements Exception {
       final trimmed = line.trimLeft();
       if (trimmed.startsWith('ERROR:') ||
           trimmed.startsWith('ERROR -') ||
-          trimmed.contains('ERROR: ')) {
+          trimmed.contains('ERROR: ') ||
+          trimmed.startsWith('WARNING:')) {
         if (buffer.isNotEmpty) buffer.writeln();
         buffer.write(trimmed);
       }
@@ -77,7 +111,18 @@ class VideoUnavailableException extends YtDlpException {
 
 class PrivateVideoException extends YtDlpException {
   PrivateVideoException({String? log})
-    : super('Video is private or requires login', originalLog: log);
+    : super(
+        'Vidéo privée ou retirée par l\'auteur (TikTok status_self_see / 10204)',
+        originalLog: log,
+      );
+}
+
+class RateLimitException extends YtDlpException {
+  RateLimitException({String? log})
+    : super(
+        'Adresse IP temporairement limitée ou bloquée (HTTP 429 / Captcha). Patientez ou changez d\'IP.',
+        originalLog: log,
+      );
 }
 
 class GeoBlockedException extends YtDlpException {
@@ -127,6 +172,30 @@ class UnsupportedUrlException extends YtDlpException {
     : super(
         'URL non prise en charge par yt-dlp '
         '(lien externe, invitation Discord, etc.).',
+        originalLog: log,
+      );
+}
+
+class NoVideoFormatsException extends YtDlpException {
+  NoVideoFormatsException({String? log})
+    : super(
+        'Aucun format vidéo accessible. Le site a peut-être changé sa structure ou bloque l\'accès sans cookies/navigateur.',
+        originalLog: log,
+      );
+}
+
+class ExtractorProtectionException extends YtDlpException {
+  ExtractorProtectionException({String? log})
+    : super(
+        'Protection anti-bot ou Cloudflare détectée sur ce site. Ouvrez la page dans le navigateur intégré ou mettez à jour yt-dlp.',
+        originalLog: log,
+      );
+}
+
+class AuthRequiredException extends YtDlpException {
+  AuthRequiredException({String? log})
+    : super(
+        'Connexion ou cookies de session requis pour accéder à cette vidéo.',
         originalLog: log,
       );
 }

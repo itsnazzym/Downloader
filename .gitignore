@@ -18,6 +18,10 @@ Folder.jpg
 AlbumArtSmall.jpg
 $RECYCLE.BIN/
 *.class
+*.directory
+.fuse_hidden*
+.Trash-*
+.nfs*
 
 # ── IDEs, Editors & LSP ───────────────────────────────────────────────
 .idea/
@@ -25,6 +29,9 @@ $RECYCLE.BIN/
 *.ipr
 *.iws
 .vscode/
+*.code-workspace
+.fleet/
+.zed/
 .clangd
 .clangd/
 .ccls-cache/
@@ -36,6 +43,8 @@ compile_commands.json
 .buildlog/
 .history/
 .svn/
+*.sublime-workspace
+*.sublime-project
 
 # ── AI Tools, Agent Memory & Scratch Plans ─────────────────────────────
 .cursor/
@@ -45,6 +54,21 @@ compile_commands.json
 .gemini/
 .agents/
 .ag-kit-backups/
+.codex/
+.codex/**
+.impeccable/
+.impeccable/**
+.superdesign/
+.superdesign/**
+.claude/
+.claude/**
+.windsurf/
+.windsurf/**
+.aider*
+.continue/
+.copilot/
+.v0/
+.brain/
 agent-tools/
 *-plan.md
 *-fix.md
@@ -85,7 +109,11 @@ credentials.json
 client_secrets.json
 token.json
 tokens.json
+secrets.json
+service_account*.json
 amo_credentials.json
+google-services.json
+GoogleService-Info.plist
 
 # ── Flutter & Dart ───────────────────────────────────────────────────
 .dart_tool/
@@ -96,13 +124,18 @@ amo_credentials.json
 .pub/
 /build/
 build/
+**/build/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 migrate_working_dir/
 devtools_options.yaml
 *.g.dart.bak
+lib/generated_plugin_registrant.dart
+*.symbols
+*.vm_service
 
 # ── Windows / C++ Build Artifacts ─────────────────────────────────────
+.vs/
 **/windows/flutter/ephemeral/
 **/windows/flutter/generated_plugin_registrant.*
 **/windows/runner/resources/*_plugin_registrant.cc
@@ -118,6 +151,12 @@ devtools_options.yaml
 *.obj
 *.iobj
 *.ipdb
+*.suo
+*.user
+*.userosv
+*.sln.docstates
+*.tlog
+*.idb
 *.dmp
 *.dump
 *.crash
@@ -125,6 +164,8 @@ devtools_options.yaml
 # ── Android (local & generated) ──────────────────────────────────────
 **/android/local.properties
 **/.gradle/
+**/.cxx/
+**/android/**/.cxx/
 **/android/captures/
 **/android/app/debug/
 **/android/app/profile/
@@ -150,7 +191,7 @@ Podfile.lock
 # ── Linux (generated) ────────────────────────────────────────────────
 **/linux/flutter/ephemeral/
 
-# ── Python, Node & Script Caches ────────────────────────────────────
+# ── Python, Node, Astro & Web Caches ─────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
@@ -162,10 +203,23 @@ __pycache__/
 venv/
 env/
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.turbo/
+.eslintcache
+.astro/
+site/.astro/
+site/dist/
+site/node_modules/
 web-ext-artifacts/
 .web-extension-id
 npm-cache/
 .npx/
+playwright-report/
+blob-report/
 
 # ── Database, Local Data & Backups ───────────────────────────────────
 *.db
@@ -200,6 +254,7 @@ history_export_*.json
 *.apk
 *.aab
 ModernDownloader-*
+release/ModernDownloader-*/
 modern_downloader_firefox.xpi
 modern_downloader_chrome/
 /bin/
@@ -213,6 +268,7 @@ out/
 signed-xpi/
 third_party/gobird/
 third_party/bin/
+tor-bundle-expert/
 
 # ── Scratch Files, Debug Captures & Logs ───────────────────────────────
 tool/_*
@@ -227,6 +283,8 @@ test-results/
 coverage/
 *.lcov
 *.log
+package_windows.log
+capture_showcase.log
 *.bak
 *.orig
 *.rej
@@ -237,6 +295,7 @@ analysis_output.txt
 README.bak.md
 
 # ── Tracked Exceptions (explicit keep) ───────────────────────────────
+!release/SHA256SUMS.txt
 !extension_version.json
 !extension/firefox/
 !extension/chrome/
@@ -246,6 +305,9 @@ README.bak.md
 !assets/
 !assets/**
 !tool/build_extension.dart
+!tool/generate_extension_icons.js
 !tool/launch_desktop.py
 !tool/package_windows.ps1
+!tool/prepare_tor_bundle.ps1
 !tool/sign_firefox_xpi.ps1
+!DESIGN.md

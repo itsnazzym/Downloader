@@ -5,7 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'core/android/android_permissions.dart';
 import 'core/android/android_share_service.dart';
 import 'core/config/app_config.dart';
 import 'core/bootstrap/app_warmup_models.dart';
@@ -17,13 +16,13 @@ import 'core/providers/launch_provider.dart';
 import 'core/providers/settings_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/services/clipboard_service.dart';
-import 'core/services/local_server_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/tor/tor_proxy_service.dart';
 import 'core/setup/dependency_bootstrap_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_resolver.dart';
 import 'core/ui/setup/app_launch_overlay.dart';
-import 'features/downloader/data/datasources/startup_cleanup_service.dart';
+import 'features/downloader/presentation/providers/downloader_provider.dart';
 import 'l10n/app_localizations.dart';
 
 /// Root application widget configuring routing, themes, locales, window lifecycle, and post-bootstrap services.
@@ -39,6 +38,8 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
     with WindowListener, TrayListener {
   bool _postBootstrapStarted = false;
   ProviderSubscription<AppWarmupState>? _warmupSub;
+  StreamSubscription<String>? _clipboardSub;
+  StreamSubscription<String>? _shareSub;
   bool _windowTickersEnabled = true;
 
   void _setWindowTickersEnabled(bool enabled) {
@@ -56,15 +57,14 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _warmupSub = ref.listenManual<AppWarmupState>(
-        appWarmupProvider,
-        (previous, next) {
-          if (next.isCompleted) {
-            _startPostBootstrapWork();
-          }
-        },
-        fireImmediately: true,
-      );
+      _warmupSub = ref.listenManual<AppWarmupState>(appWarmupProvider, (
+        previous,
+        next,
+      ) {
+        if (next.isCompleted) {
+          _startPostBootstrapWork();
+        }
+      }, fireImmediately: true);
     });
   }
 
@@ -74,14 +74,15 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
     try {
       if (PlatformInfo.isDesktop) {
         unawaited(_initTray());
-        ref.read(clipboardServiceProvider).startMonitoring();
-        ref.read(clipboardServiceProvider).clipboardStream.listen((url) {
-          _handleClipboardUrl(url);
-        });
+        _clipboardSub = ref
+            .read(clipboardServiceProvider)
+            .clipboardStream
+            .listen((url) {
+              _handleClipboardUrl(url);
+            });
       } else {
-        unawaited(AndroidPermissions.ensure());
         AndroidShareService.instance.start();
-        AndroidShareService.instance.urlStream.listen((url) {
+        _shareSub = AndroidShareService.instance.urlStream.listen((url) {
           ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
             url,
             shouldAutoStart: true,
@@ -89,12 +90,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
           unawaited(NotificationService().showLinksQueued(1));
         });
       }
-      ref.read(localServerServiceProvider).start();
-      final settings = ref.read(settingsProvider);
-      unawaited(StartupCleanupService.cleanup(settings.outputFolder));
-      LoggerService.i(
-        'Post-bootstrap services initialized (Clipboard, LocalServer, Cleanup)',
-      );
+      LoggerService.i('Post-bootstrap listeners initialized');
     } catch (e) {
       LoggerService.e('Post-bootstrap startup failed', e);
     }
@@ -141,8 +137,9 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
         return;
       }
       NotificationService().showClipboardDetected(resolved);
-      ref.read(launchDataProvider.notifier).state =
-          LaunchData.fromUrl(resolved);
+      ref.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
+        resolved,
+      );
       return;
     }
 
@@ -154,6 +151,8 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
   @override
   void dispose() {
+    _clipboardSub?.cancel();
+    _shareSub?.cancel();
     if (PlatformInfo.isDesktop) {
       _warmupSub?.close();
       windowManager.removeListener(this);
@@ -204,8 +203,16 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       await windowManager.hide();
       return;
     }
-    await windowManager.setPreventClose(false);
-    await windowManager.close();
+    await _exitApplication();
+  }
+
+  Future<void> _exitApplication() async {
+    try {
+      await ref.read(torProxyServiceProvider.notifier).shutdown();
+    } finally {
+      await windowManager.setPreventClose(false);
+      await windowManager.close();
+    }
   }
 
   @override
@@ -220,8 +227,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       await windowManager.show();
       await windowManager.focus();
     } else if (menuItem.key == 'exit_app') {
-      await windowManager.setPreventClose(false);
-      await windowManager.close();
+      await _exitApplication();
     }
   }
 
@@ -256,6 +262,8 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
     final bootstrap = ref.watch(dependencyBootstrapProvider);
     final warmup = ref.watch(appWarmupProvider);
+    final downloadLibrary = ref.watch(downloadListProvider);
+    final libraryReady = downloadLibrary.hasValue || downloadLibrary.hasError;
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
@@ -283,12 +291,14 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
           fit: StackFit.expand,
           children: [
             TickerMode(
-              enabled: warmup.isCompleted &&
+              enabled:
+                  warmup.isCompleted &&
+                  libraryReady &&
                   !bootstrap.blocksUi &&
                   _windowTickersEnabled,
               child: child ?? const SizedBox.shrink(),
             ),
-            const AppLaunchOverlay(),
+            AppLaunchOverlay(libraryReady: libraryReady),
           ],
         );
         // Native video textures inject AX nodes that Flutter's Windows

@@ -10,6 +10,11 @@ class HeartbeatCookieLocator {
     try {
       final host = Uri.parse(url).host;
       if (host.isEmpty) return null;
+      // TikTok exports have no creator handle, so downloads use tiktokv.com's
+      // share URL. Authentication still comes from the tiktok.com session.
+      final cookieHost = host == 'tiktokv.com' || host == 'www.tiktokv.com'
+          ? 'www.tiktok.com'
+          : host;
       final appDir = Directory.systemTemp;
       await for (final entity in appDir.list()) {
         if (entity is! File) continue;
@@ -23,7 +28,7 @@ class HeartbeatCookieLocator {
           'heartbeat_cookies_'.length,
           name.length - '.txt'.length,
         );
-        if (LocalServerAuth.hostMatchesDomain(host, domainPart)) {
+        if (LocalServerAuth.hostMatchesDomain(cookieHost, domainPart)) {
           return entity.path;
         }
       }

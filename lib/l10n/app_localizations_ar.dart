@@ -643,7 +643,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get torBypassDesc => 'تجاوز الحظر الجغرافي عبر Tor (127.0.0.1:9050)';
+  String get torBypassDesc =>
+      'شغّل Tor في الخلفية ومرّر التنزيلات عبره (127.0.0.1:9050)';
+
+  @override
+  String get torProxyStarting => 'جارٍ تشغيل Tor…';
+
+  @override
+  String get torProxyReady => 'Tor جاهز على 127.0.0.1:9050';
+
+  @override
+  String get torProxyExisting => 'وكيل Tor يعمل بالفعل على 127.0.0.1:9050';
+
+  @override
+  String get torProxyStopped => 'Tor متوقف';
+
+  @override
+  String get torProxyFailed => 'Tor غير متاح';
 
   @override
   String get selectCookiesFile => 'اختر cookies.txt';
@@ -950,11 +966,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'إعادة تشغيل فحص الأدوات وتثبيتها على كامل الشاشة';
 
   @override
-  String get pluginsSectionTitle => 'الإضافات';
+  String get pluginsSectionTitle => 'إضافات سير التنزيل';
 
   @override
   String get pluginsSectionHint =>
-      'وحدات داخل التطبيق مثل Auto Rename و Smart Organizer.';
+      'تضيف هذه الإضافات إجراءات قبل التنزيل أو بعد اكتماله.';
 
   @override
   String get browserExtensionsTitle => 'إضافة المتصفح';
@@ -1522,4 +1538,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboardingReadyBody => 'أعد الجولة من الإعدادات > عام.';
+
+  @override
+  String get pluginFeaturesTitle => 'ميزات التطبيق';
+
+  @override
+  String get pluginFeaturesHint =>
+      'فعّل الشاشات والأدوات التي تستخدمها فقط. تعطيل الميزة لا يحذفها ولا يحذف بياناتها.';
+
+  @override
+  String get pluginRequired => 'أساسي';
+
+  @override
+  String get pluginActivate => 'تفعيل الميزة';
+
+  @override
+  String get pluginOpen => 'فتح الميزة';
+
+  @override
+  String get pluginInactiveTitle => 'الميزة معطّلة';
+
+  @override
+  String get pluginInactiveBody =>
+      'لا تزال الميزة متاحة وبياناتها محفوظة. يمكنك إعادة تفعيلها من إعدادات الإضافات.';
+
+  @override
+  String get pluginManage => 'إدارة الإضافات';
+
+  @override
+  String get pluginWebRequest =>
+      'طلب موقع Modern Downloader هذه الميزة. أكّد هنا لإضافتها إلى واجهتك.';
+
+  @override
+  String get pluginExternalHint =>
+      'تُثبّت هذه الإضافة في المتصفح. اتبع خطوات الإعداد الموجودة أدناه.';
 }

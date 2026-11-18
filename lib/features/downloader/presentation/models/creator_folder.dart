@@ -71,7 +71,11 @@ class CreatorFolderGrouper {
     final thumbs = <String, List<String?>>{};
 
     for (final item in items) {
-      final identity = CreatorFolderKey.of(item);
+      final identity = CreatorFolderKey.of(
+        url: item.request.url,
+        title: item.title,
+        filePath: item.filePath,
+      );
       if (!ids.containsKey(identity.key)) {
         keys.add(identity.key);
         handles[identity.key] = identity.handle;

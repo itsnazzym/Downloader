@@ -662,7 +662,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get torBypassDesc =>
-      'Contourner les blocages géo via Tor (127.0.0.1:9050)';
+      'Démarrer Tor en arrière-plan et y faire passer les téléchargements (127.0.0.1:9050)';
+
+  @override
+  String get torProxyStarting => 'Démarrage de Tor…';
+
+  @override
+  String get torProxyReady => 'Tor est prêt sur 127.0.0.1:9050';
+
+  @override
+  String get torProxyExisting =>
+      'Un proxy Tor est déjà actif sur 127.0.0.1:9050';
+
+  @override
+  String get torProxyStopped => 'Tor est arrêté';
+
+  @override
+  String get torProxyFailed => 'Tor est indisponible';
 
   @override
   String get selectCookiesFile => 'Choisir cookies.txt';
@@ -970,11 +986,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Relancer la vérification et l\'installation des outils en plein écran';
 
   @override
-  String get pluginsSectionTitle => 'Plugins';
+  String get pluginsSectionTitle => 'Automatisations des téléchargements';
 
   @override
   String get pluginsSectionHint =>
-      'Modules intégrés à l\'application, comme Auto Rename et Smart Organizer.';
+      'Ces plugins appliquent des actions supplémentaires au début ou à la fin d’un téléchargement.';
 
   @override
   String get browserExtensionsTitle => 'Extension navigateur';
@@ -1554,4 +1570,38 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get onboardingReadyBody =>
       'Relancez le tour depuis Paramètres > Général.';
+
+  @override
+  String get pluginFeaturesTitle => 'Fonctionnalités de l’application';
+
+  @override
+  String get pluginFeaturesHint =>
+      'Activez uniquement les écrans et outils que vous utilisez. Rien n’est supprimé quand vous désactivez une fonctionnalité.';
+
+  @override
+  String get pluginRequired => 'Essentiel';
+
+  @override
+  String get pluginActivate => 'Activer la fonctionnalité';
+
+  @override
+  String get pluginOpen => 'Ouvrir la fonctionnalité';
+
+  @override
+  String get pluginInactiveTitle => 'Fonctionnalité désactivée';
+
+  @override
+  String get pluginInactiveBody =>
+      'Cette fonctionnalité est conservée et ses données restent intactes. Vous pouvez la réactiver dans les réglages des plugins.';
+
+  @override
+  String get pluginManage => 'Gérer les plugins';
+
+  @override
+  String get pluginWebRequest =>
+      'Le site Modern Downloader vous propose cette fonctionnalité. Confirmez ici pour l’ajouter à votre interface.';
+
+  @override
+  String get pluginExternalHint =>
+      'Cette extension s’installe dans le navigateur. Les étapes existantes sont disponibles plus bas.';
 }

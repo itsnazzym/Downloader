@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../domain/entities/download_request.dart';
 import '../../../../../core/logger/logger_service.dart';
 import '../../../../../core/services/binary/binary_locator.dart';
+import '../../../../../core/download/tor_proxy_guard.dart';
 import '../../../../../core/download/cookie_browser_args.dart';
 
 /// Source for downloading via gallery-dl CLI
@@ -72,6 +73,11 @@ class GalleryDlSource {
       // {title} for sites that provide it, fallback to {description}, then {tweet_id}/{id}
       '-o', 'filename={title|description|tweet_id|id|filename}.{extension}',
     ];
+
+    final torProxy = await TorProxyGuard.resolveProxyUrl(
+      useTorProxy: request.useTorProxy,
+    );
+    if (torProxy != null) args.addAll(['--proxy', torProxy]);
 
     args.addAll(CookieBrowserArgs.ytDlpArgs(request.cookieBrowser));
     LoggerService.i(

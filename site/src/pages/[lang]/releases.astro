@@ -1,0 +1,61 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { releaseNotes } from '../../data/releaseNotes';
+
+export function getStaticPaths() {
+  return ['fr', 'en', 'ar'].map((lang) => ({ params: { lang }, props: { lang } }));
+}
+
+const lang = ['fr', 'en', 'ar'].includes(String(Astro.props.lang))
+  ? String(Astro.props.lang) as keyof typeof releaseNotes
+  : 'en';
+const text = releaseNotes[lang];
+const basePath = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const homeUrl = `${basePath}${lang}/`;
+const pluginsUrl = `${basePath}${lang}/sources/`;
+---
+
+<SiteLayout
+  lang={lang}
+  currentPage="releases"
+  pagePath="releases"
+  title={`${text.title} — Modern Downloader`}
+  description={text.description}
+>
+  <main id="main" class="release-notes-main">
+    <header class="release-notes-heading" data-reveal>
+      <p class="section-index">{text.eyebrow}</p>
+      <h1>{text.heading}</h1>
+      <p>{text.intro}</p>
+    </header>
+
+    <div class="release-timeline" aria-label={text.title}>
+      {text.releases.map((release) => (
+        <article class="release-entry" aria-labelledby={`release-${release.version.replaceAll('.', '-')}`} data-reveal>
+          <div class="release-entry-rail">
+            {'latest' in release && release.latest && <span class="release-latest">{text.latest}</span>}
+            <h2 id={`release-${release.version.replaceAll('.', '-')}`}>v{release.version}</h2>
+            <time datetime={release.isoDate}>{release.date}</time>
+          </div>
+          <div class="release-entry-content">
+            {release.sections.map((section) => (
+              <section class="release-change-group" aria-label={section.title}>
+                <h3>{section.title}</h3>
+                <ul>
+                  {section.items.map((item) => <li>{item}</li>)}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <nav class="release-notes-actions" aria-label={text.title} data-reveal>
+      <a class="release-notes-home" href={homeUrl}>← {text.back}</a>
+      <a class="release-notes-plugins" href={pluginsUrl}>{text.browse}<span aria-hidden="true">→</span></a>
+    </nav>
+  </main>
+</SiteLayout>

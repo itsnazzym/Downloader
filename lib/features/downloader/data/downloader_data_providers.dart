@@ -67,6 +67,7 @@ final downloaderRepositoryProvider = Provider<IDownloaderRepository>((ref) {
     ref.read(libraryScannerServiceProvider),
     ref.read(pluginManagerProvider.notifier),
     () => ref.read(settingsProvider).outputFolder,
+    useTorProxyGetter: () => ref.read(settingsProvider).useTorProxy,
     kickSource: ref.read(kickSourceProvider),
     waitForLibraryScan: () => libraryScanGate.future,
   );

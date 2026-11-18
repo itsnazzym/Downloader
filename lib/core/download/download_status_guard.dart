@@ -22,8 +22,26 @@ class DownloadStatusGuard {
         text.contains('proxy/tor unreachable');
   }
 
-  /// Content-side failures that will not succeed on retry (suspended tweet, etc.).
+  /// Real IP rate-limits or temporary captcha blocks (NOT author privacy setting).
+  static bool isRateLimitOrCaptchaError(Object error) {
+    if (error is RateLimitException) return true;
+    final text = error.toString().toLowerCase();
+    return text.contains('429') ||
+        text.contains('too many requests') ||
+        text.contains('rate limit') ||
+        text.contains('captcha') ||
+        text.contains('cloudflare') ||
+        text.contains('verify you are human');
+  }
+
+  /// Content-side failures that will not succeed on retry (suspended tweet, private video, etc.).
   static bool isPermanentDownloadError(Object error) {
+    // If the error is an actual IP rate limit, captcha, or temporary network block,
+    // do NOT treat it as a permanent video-deletion error.
+    if (isRateLimitOrCaptchaError(error)) {
+      return false;
+    }
+
     if (error is SuspendedContentException ||
         error is NoMediaFoundException ||
         error is UnsupportedUrlException ||
@@ -51,7 +69,15 @@ class DownloadStatusGuard {
     }
     if (text.contains('video unavailable') ||
         text.contains('private video') ||
-        text.contains('geo-restricted')) {
+        text.contains('this video is private') ||
+        text.contains('geo-restricted') ||
+        text.contains('your ip address is blocked from accessing this post') ||
+        text.contains('status_self_see') ||
+        text.contains('item_privacy_authorization') ||
+        text.contains('item_privacy_auth') ||
+        text.contains('10204') ||
+        text.contains('comfortable for some audiences') ||
+        text.contains('log in for access')) {
       return true;
     }
     return false;
@@ -93,4 +119,43 @@ class DownloadStatusGuard {
     if (mapped != null) return mapped.message;
     return error.toString();
   }
+
+  /// Detects if an error is due to an age verification requirement or +18 regional block.
+  static bool isAgeVerificationFailure({
+    required String? error,
+    required String url,
+  }) {
+    if (error == null || error.isEmpty) return false;
+    final lowerErr = error.toLowerCase();
+
+    if (lowerErr.contains('age-restricted') ||
+        lowerErr.contains('confirm your age') ||
+        lowerErr.contains('age confirmation') ||
+        lowerErr.contains('comfortable for some audiences')) {
+      return true;
+    }
+
+    final lowerUrl = url.toLowerCase();
+    final isAdultSite = lowerUrl.contains('xhamster') ||
+        lowerUrl.contains('pornhub') ||
+        lowerUrl.contains('xnxx') ||
+        lowerUrl.contains('xvideos') ||
+        lowerUrl.contains('spankbang') ||
+        lowerUrl.contains('redtube') ||
+        lowerUrl.contains('youporn');
+
+    if (isAdultSite &&
+        (lowerErr.contains('aucun format') ||
+            lowerErr.contains('no video formats found') ||
+            lowerErr.contains('no formats found') ||
+            lowerErr.contains('cookies/navigateur') ||
+            lowerErr.contains('cookies de session requis') ||
+            lowerErr.contains('login required') ||
+            lowerErr.contains('requires authentication'))) {
+      return true;
+    }
+
+    return false;
+  }
 }
+

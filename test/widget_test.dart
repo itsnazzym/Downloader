@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:modern_downloader/core/plugins/feature_activation.dart';
+import 'package:modern_downloader/core/plugins/feature_catalog.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
@@ -51,11 +54,15 @@ class MockDownloaderRepository implements IDownloaderRepository {
   @override
   Future<void> exportHistory(String path) async {}
   @override
-  Future<List<Map<String, dynamic>>> fetchPlaylist(String url) async => [];
+  Future<List<Map<String, dynamic>>> fetchPlaylist(
+    String url, {
+    bool? useTorProxy,
+  }) async => [];
   @override
   Future<Map<String, dynamic>> fetchMetadata(
     String url, {
     String? cookies,
+    bool? useTorProxy,
   }) async {
     return {};
   }
@@ -140,9 +147,20 @@ void main() {
       ],
     );
 
+    final catalog = FeatureCatalog.decode(
+      File('site/plugin-catalog.json').readAsStringSync(),
+    );
+    final preferences = await SharedPreferences.getInstance();
+    final featureActivation = FeatureActivationController(
+      preferences: preferences,
+      catalog: catalog,
+    );
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          featureCatalogProvider.overrideWithValue(catalog),
+          featureActivationProvider.overrideWith((ref) => featureActivation),
           clipboardServiceProvider.overrideWith(
             (ref) => MockClipboardService(ref),
           ),

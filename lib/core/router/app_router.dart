@@ -16,6 +16,7 @@ import '../ui/settings/smart_organizer_settings_view.dart';
 import '../../features/stats/presentation/views/stats_view.dart';
 import '../../features/transfer/presentation/transfer_view.dart';
 import '../../features/archive/presentation/views/tiktok_archive_view.dart';
+import '../ui/plugin_route_gate.dart';
 
 // Keys for navigation
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -35,19 +36,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/', builder: (context, state) => const DownloadView()),
           GoRoute(
             path: '/browse',
-            builder: (context, state) => const XBrowserView(),
+            builder: (context, state) {
+              final initialUrl = state.extra as String?;
+              return PluginRouteGate(
+                pluginId: 'x_browser',
+                child: XBrowserView(initialUrl: initialUrl),
+              );
+            },
           ),
           GoRoute(
             path: '/stats',
-            builder: (context, state) => const StatsView(),
+            builder: (context, state) => const PluginRouteGate(
+              pluginId: 'statistics',
+              child: StatsView(),
+            ),
           ),
           GoRoute(
             path: '/transfer',
-            builder: (context, state) => const TransferView(),
+            builder: (context, state) => const PluginRouteGate(
+              pluginId: 'device_transfer',
+              child: TransferView(),
+            ),
           ),
           GoRoute(
             path: '/archive',
-            builder: (context, state) => const TikTokArchiveView(),
+            builder: (context, state) => const PluginRouteGate(
+              pluginId: 'tiktok_archives',
+              child: TikTokArchiveView(),
+            ),
           ),
           GoRoute(
             path: '/settings',
@@ -79,7 +95,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/settings/plugins',
-            builder: (context, state) => const PluginsSettingsView(),
+            builder: (context, state) => PluginsSettingsView(
+              pluginId: state.uri.queryParameters['plugin'],
+            ),
           ),
           GoRoute(
             path: '/settings/smart_organizer',

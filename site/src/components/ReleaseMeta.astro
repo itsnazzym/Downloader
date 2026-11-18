@@ -1,0 +1,54 @@
+---
+const lang = ['fr', 'en', 'ar'].includes(String(Astro.props.lang))
+  ? String(Astro.props.lang) as 'fr' | 'en' | 'ar'
+  : 'en';
+const copy = {
+  fr: { systems: 'Windows 10 / 11', formats: 'Installeur ou ZIP portable', version: 'Version publiée', notes: 'Notes de version' },
+  en: { systems: 'Windows 10 / 11', formats: 'Installer or portable ZIP', version: 'Published version', notes: 'Release notes' },
+  ar: { systems: 'Windows 10 / 11', formats: 'مثبّت أو ملف ZIP محمول', version: 'الإصدار المنشور', notes: 'ملاحظات الإصدار' },
+};
+const text = copy[lang];
+const basePath = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const releaseNotesUrl = `${basePath}${lang}/releases/`;
+---
+
+<div class="release-meta">
+  <span>{text.systems}</span>
+  <span>{text.formats}</span>
+  <span>{text.version} : <span data-release-version>v1.0.20</span></span>
+  <a class="release-notes" href={releaseNotesUrl}>{text.notes}<span aria-hidden="true">→</span></a>
+</div>
+
+<script>
+  let releaseTag: string | undefined;
+  let releaseRequest: Promise<string | undefined> | undefined;
+
+  function updateReleaseMeta() {
+    const targets = document.querySelectorAll<HTMLElement>('[data-release-version]');
+    if (!targets.length) return;
+    if (releaseTag) {
+      targets.forEach((target) => { target.textContent = releaseTag!; });
+      return;
+    }
+    releaseRequest ??= fetch('https://api.github.com/repos/itsnazzym/Downloader/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json' },
+      signal: AbortSignal.timeout(5000),
+    })
+      .then((response) => response.ok ? response.json() : null)
+      .then((release) => {
+        const tag = typeof release?.tag_name === 'string' ? release.tag_name : '';
+        return /^v?\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/.test(tag) ? tag : undefined;
+      })
+      .catch(() => undefined);
+    void releaseRequest.then((tag) => {
+      if (!tag) return;
+      releaseTag = tag;
+      document.querySelectorAll<HTMLElement>('[data-release-version]').forEach((target) => { target.textContent = tag; });
+    });
+  }
+
+  document.addEventListener('astro:page-load', updateReleaseMeta);
+  if (document.readyState === 'complete') updateReleaseMeta();
+</script>

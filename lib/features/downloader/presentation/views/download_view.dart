@@ -10,6 +10,7 @@ import '../providers/creator_folders_provider.dart';
 import '../providers/filtered_downloads_provider.dart';
 import 'inspector/collapsed_inspector_rail.dart';
 import 'inspector/download_inspector.dart';
+import 'mobile/mobile_download_details_sheet.dart';
 import 'widgets/download_list.dart';
 import 'widgets/download_search_field.dart';
 import 'widgets/mobile_clipboard_paste_capsule.dart';
@@ -33,6 +34,14 @@ class DownloadView extends ConsumerWidget {
     if (isNarrow) {
       ref.listen<String?>(selectedDownloadIdProvider, (previous, next) {
         if (next == null || next == previous) return;
+        if (isMobile) {
+          MobileDownloadDetailsSheet.show(context, next).whenComplete(() {
+            if (ref.read(selectedDownloadIdProvider) == next) {
+              ref.read(selectedDownloadIdProvider.notifier).state = null;
+            }
+          });
+          return;
+        }
         showModalBottomSheet<void>(
           context: context,
           isScrollControlled: true,

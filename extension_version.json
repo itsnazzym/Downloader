@@ -3,8 +3,8 @@
         "moderndownloader@extension.addon": {
             "updates": [
                 {
-                    "version": "2.1.16",
-                    "update_link": "https://github.com/itsnazzym/Downloader/releases/download/v2.1.16/modern_downloader_firefox.xpi"
+                    "version": "2.1.30",
+                    "update_link": "https://github.com/itsnazzym/Downloader/releases/download/v2.1.30/modern_downloader_firefox.xpi"
                 }
             ]
         }

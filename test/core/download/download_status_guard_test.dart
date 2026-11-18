@@ -111,4 +111,73 @@ void main() {
       );
     });
   });
+
+  group('DownloadStatusGuard.isAgeVerificationFailure', () {
+    test('detects explicit age restricted error keywords', () {
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: 'Video is age-restricted and requires login',
+          url: 'https://youtube.com/watch?v=123',
+        ),
+        isTrue,
+      );
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: 'Sign in to confirm your age',
+          url: 'https://youtube.com/watch?v=456',
+        ),
+        isTrue,
+      );
+    });
+
+    test('detects no video format errors on adult sites like xHamster', () {
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error:
+              'Aucun format vidéo accessible. Le site a peut-être changé sa structure ou bloque l\'accès sans cookies/navigateur.',
+          url: 'https://fr.xhamster.com/videos/test-video-12345',
+        ),
+        isTrue,
+      );
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: 'ERROR: [xhamster] 12345: No video formats found!',
+          url: 'https://xhamster.com/videos/sample',
+        ),
+        isTrue,
+      );
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: 'Connexion ou cookies de session requis pour accéder à cette vidéo.',
+          url: 'https://www.pornhub.com/view_video.php?viewkey=ph123',
+        ),
+        isTrue,
+      );
+    });
+
+    test('does not flag normal errors or non-adult websites', () {
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: 'HTTP Error 404: Not Found',
+          url: 'https://fr.xhamster.com/videos/missing',
+        ),
+        isFalse,
+      );
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: 'Aucun format vidéo accessible.',
+          url: 'https://youtube.com/watch?v=regular',
+        ),
+        isFalse,
+      );
+      expect(
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: null,
+          url: 'https://xhamster.com/videos/sample',
+        ),
+        isFalse,
+      );
+    });
+  });
 }
+

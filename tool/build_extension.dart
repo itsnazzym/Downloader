@@ -24,12 +24,6 @@ Future<void> main(List<String> args) async {
   if (args.contains('--print-next-version')) {
     final next = incrementAddonVersion(currentVersion);
     stdout.writeln(next);
-    agentDebugLog(
-      hypothesisId: 'D',
-      location: 'tool/build_extension.dart:print-next-version',
-      message: 'Computed next AMO add-on version',
-      data: {'current': currentVersion, 'next': next},
-    );
     return;
   }
 
@@ -44,16 +38,13 @@ Future<void> main(List<String> args) async {
     version = incrementAddonVersion(currentVersion);
     await _writeSharedVersions(shared, version);
     stdout.writeln('Bumped add-on version $currentVersion → $version');
-    agentDebugLog(
-      hypothesisId: 'D',
-      location: 'tool/build_extension.dart:bump-patch',
-      message: 'Bumped add-on version to avoid AMO conflict',
-      data: {'from': currentVersion, 'to': version, 'releaseTag': releaseTag},
-    );
   }
 
   for (final browser in ['chrome', 'firefox']) {
     final out = Directory('${root.path}/extension/$browser');
+    if (out.existsSync()) {
+      await out.delete(recursive: true);
+    }
     out.createSync(recursive: true);
 
     final commonFiles = [
@@ -128,13 +119,6 @@ Future<void> main(List<String> args) async {
     stdout.writeln('Built extension/$browser');
   }
 
-  final chromeOut = Directory('${root.path}/extension/chrome');
-  final modernChromeOut = Directory('${root.path}/modern_downloader_chrome');
-  if (chromeOut.existsSync()) {
-    await _copyDir(chromeOut, modernChromeOut);
-    stdout.writeln('Synchronized modern_downloader_chrome with extension/chrome');
-  }
-
   final tag = (releaseTag != null && releaseTag.isNotEmpty)
       ? releaseTag
       : 'v$version';
@@ -154,12 +138,6 @@ Future<void> main(List<String> args) async {
   });
   await versionFile.writeAsString('$updateManifest\n');
   stdout.writeln('Updated extension_version.json → $version (tag $tag)');
-  agentDebugLog(
-    hypothesisId: 'D',
-    location: 'tool/build_extension.dart:write-update-manifest',
-    message: 'Wrote Firefox update manifest',
-    data: {'addonVersion': version, 'githubTag': tag},
-  );
 }
 
 String _githubRepo() {

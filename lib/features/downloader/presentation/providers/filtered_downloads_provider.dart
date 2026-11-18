@@ -80,7 +80,14 @@ final filteredDownloadsProvider = Provider<AsyncValue<List<DownloadItem>>>((
         if (query.isNotEmpty) {
           final title = (item.title ?? '').toLowerCase();
           final url = item.request.url.toLowerCase();
-          final handle = (CreatorFolderKey.of(item).handle ?? '').toLowerCase();
+          final handle =
+              (CreatorFolderKey.of(
+                        url: item.request.url,
+                        title: item.title,
+                        filePath: item.filePath,
+                      ).handle ??
+                      '')
+                  .toLowerCase();
           if (!title.contains(query) &&
               !url.contains(query) &&
               !handle.contains(query)) {

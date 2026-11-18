@@ -10,9 +10,11 @@ import 'package:modern_downloader/core/design_system/foundation/typography.dart'
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../domain/entities/download_item.dart';
 import '../../domain/enums/download_status.dart';
+import '../views/dialogs/age_verification_help_dialog.dart';
 import 'download_item_display.dart';
 
 class DownloadItemCard extends StatefulWidget {
@@ -134,8 +136,9 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
                                 : null,
                             minHeight: 2.5,
                             backgroundColor: colors.surfaceHighlight,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(colors.primary),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              colors.primary,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -204,6 +207,53 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
                             ),
                           ],
                         ),
+                        if (widget.item.status == DownloadStatus.failed &&
+                            DownloadStatusGuard.isAgeVerificationFailure(
+                              error: widget.item.error,
+                              url: widget.item.request.url,
+                            )) ...[
+                          const SizedBox(height: 4),
+                          InkWell(
+                            onTap: () => AgeVerificationHelpDialog.show(
+                              context,
+                              widget.item,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: Colors.amber.withValues(alpha: 0.4),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.shield_outlined,
+                                    size: 12,
+                                    color: Colors.amber,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Vérification d\'âge (+18) — Voir solutions',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.amber,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ],
                   ),
@@ -215,6 +265,24 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
                         widget.item.status == DownloadStatus.canceled ||
                         widget.item.status == DownloadStatus.completed)) ...[
                   const SizedBox(width: 8),
+                  if (widget.item.status == DownloadStatus.failed &&
+                      DownloadStatusGuard.isAgeVerificationFailure(
+                        error: widget.item.error,
+                        url: widget.item.request.url,
+                      ))
+                    IconButton(
+                      onPressed: () => AgeVerificationHelpDialog.show(
+                        context,
+                        widget.item,
+                      ),
+                      icon: const Icon(
+                        Icons.shield_outlined,
+                        color: Colors.amber,
+                        size: 18,
+                      ),
+                      tooltip: 'Résoudre la vérification d\'âge (+18)',
+                      padding: const EdgeInsets.all(8),
+                    ),
                   IconButton(
                     onPressed: widget.onRetry,
                     icon: Icon(
@@ -352,9 +420,7 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
           child: widget.item.thumbnailUrl != null
               ? Hero(
                   tag: 'thumbnail_${widget.item.id}',
-                  child: _buildThumbnailImage(
-                    widget.item.thumbnailUrl!,
-                  ),
+                  child: _buildThumbnailImage(widget.item.thumbnailUrl!),
                 )
               : (ExtractionPlaceholders.showThumbnailSpinner(
                       status: widget.item.status,
@@ -437,6 +503,25 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
 
   /// Helper method to display thumbnail from local file or network URL
   Widget _buildThumbnailImage(String url) {
+    if (url.startsWith('assets/showcase/')) {
+      return Image.asset(url, fit: BoxFit.cover, width: 48, height: 48);
+    }
+    // Showcase thumbnails stay in Flutter's memory image cache; do not use
+    // CachedNetworkImage here because it writes image files to disk.
+    if (widget.item.id.startsWith('showcase-') &&
+        url.startsWith('https://i.ytimg.com/')) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        width: 48,
+        height: 48,
+        errorBuilder: (context, _, _) => Icon(
+          Icons.movie_outlined,
+          color: AppColors.of(context).textSecondary,
+          size: 24,
+        ),
+      );
+    }
     // Only treat as network URL if it explicitly starts with http:// or https://
     final isNetworkUrl =
         url.startsWith('http://') || url.startsWith('https://');

@@ -10,6 +10,7 @@ class ContentHash {
     required File file,
     required FileStat stat,
     SendMemoryStore? store,
+    bool onlyIfCached = false,
   }) async {
     final path = file.absolute.path;
     final mtimeMs = stat.modified.millisecondsSinceEpoch;
@@ -19,6 +20,7 @@ class ContentHash {
       mtimeMs: mtimeMs,
     );
     if (cached != null) return cached;
+    if (onlyIfCached) return '';
     final sha = await PayloadScanner.sha256File(file);
     store?.putHashCache(
       path,

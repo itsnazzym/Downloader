@@ -20,6 +20,9 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:path/path.dart' as p;
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:modern_downloader/showcase/showcase_mode.dart';
+import 'package:modern_downloader/showcase/showcase_data.dart';
+import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 
 class TransferView extends ConsumerStatefulWidget {
   const TransferView({super.key});
@@ -79,10 +82,12 @@ class _TransferViewState extends ConsumerState<TransferView> {
                 progress: state.progress,
                 diagnostic: state.diagnosticMessage,
                 lastError: state.lastError,
-                onRetry: () =>
-                    ref.read(transferControllerProvider.notifier).retryLastTransfer(),
-                onCancel: () =>
-                    ref.read(transferControllerProvider.notifier).cancelTransfer(),
+                onRetry: () => ref
+                    .read(transferControllerProvider.notifier)
+                    .retryLastTransfer(),
+                onCancel: () => ref
+                    .read(transferControllerProvider.notifier)
+                    .cancelTransfer(),
               ),
             ),
           if (state.isScanningSubnet)
@@ -147,7 +152,9 @@ class _TransferViewState extends ConsumerState<TransferView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           title: Row(
             children: [
               Container(
@@ -156,7 +163,11 @@ class _TransferViewState extends ConsumerState<TransferView> {
                   color: colors.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.pin_outlined, color: colors.primary, size: 20),
+                child: Icon(
+                  Icons.pin_outlined,
+                  color: colors.primary,
+                  size: 20,
+                ),
               ),
               const Gap(12),
               Expanded(
@@ -176,12 +187,18 @@ class _TransferViewState extends ConsumerState<TransferView> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline_rounded, size: 16, color: colors.textSecondary),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 16,
+                      color: colors.textSecondary,
+                    ),
                     const Gap(8),
                     Expanded(
                       child: Text(
@@ -220,7 +237,9 @@ class _TransferViewState extends ConsumerState<TransferView> {
                   fillColor: Colors.white.withValues(alpha: 0.06),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    borderSide: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -298,20 +317,16 @@ class _HeaderBar extends ConsumerWidget {
             runSpacing: 6,
             children: [
               if (state.lanIp != null)
-                _NetworkStatusChip(
-                  ip: state.lanIp!,
-                  port: state.port ?? 0,
-                ),
-              if (state.pin.isNotEmpty)
-                _PinBadge(pin: state.pin),
+                _NetworkStatusChip(ip: state.lanIp!, port: state.port ?? 0),
+              if (state.pin.isNotEmpty) _PinBadge(pin: state.pin),
             ],
           ),
           const Gap(4),
           Text(
             state.portConflict
                 ? (PlatformInfo.isMobile
-                    ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
-                    : l10n.transferPortBusy)
+                      ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
+                      : l10n.transferPortBusy)
                 : l10n.transferSubtitle,
             style: AppTypography.caption.copyWith(color: colors.textSecondary),
           ),
@@ -336,22 +351,20 @@ class _HeaderBar extends ConsumerWidget {
                     style: AppTypography.h1.copyWith(color: colors.textPrimary),
                   ),
                   if (state.lanIp != null)
-                    _NetworkStatusChip(
-                      ip: state.lanIp!,
-                      port: state.port ?? 0,
-                    ),
-                  if (state.pin.isNotEmpty)
-                    _PinBadge(pin: state.pin),
+                    _NetworkStatusChip(ip: state.lanIp!, port: state.port ?? 0),
+                  if (state.pin.isNotEmpty) _PinBadge(pin: state.pin),
                 ],
               ),
               const Gap(4),
               Text(
                 state.portConflict
                     ? (PlatformInfo.isMobile
-                        ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
-                        : l10n.transferPortBusy)
+                          ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
+                          : l10n.transferPortBusy)
                     : l10n.transferSubtitle,
-                style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                style: AppTypography.caption.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -378,14 +391,16 @@ class _PinBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(99),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.1),
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.lock_outline_rounded, size: 13, color: colors.textSecondary),
+            Icon(
+              Icons.lock_outline_rounded,
+              size: 13,
+              color: colors.textSecondary,
+            ),
             const Gap(5),
             Text(
               pin,
@@ -416,9 +431,7 @@ class _NetworkStatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.success.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(99),
-        border: Border.all(
-          color: colors.success.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: colors.success.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -447,10 +460,7 @@ class _NetworkStatusChip extends StatelessWidget {
 }
 
 class _SegmentedTabSwitcher extends StatelessWidget {
-  const _SegmentedTabSwitcher({
-    required this.selected,
-    required this.onSelect,
-  });
+  const _SegmentedTabSwitcher({required this.selected, required this.onSelect});
 
   final TransferTab selected;
   final ValueChanged<TransferTab> onSelect;
@@ -511,7 +521,9 @@ class _TabPill extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? colors.primary.withValues(alpha: 0.22) : Colors.transparent,
+          color: selected
+              ? colors.primary.withValues(alpha: 0.22)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(99),
           border: selected
               ? Border.all(color: colors.primary.withValues(alpha: 0.4))
@@ -559,20 +571,21 @@ class _LiveTransferBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
-    final isFailed = progress?.phase == TransferPhase.failed || diagnostic != null;
+    final isFailed =
+        progress?.phase == TransferPhase.failed || diagnostic != null;
     final isDone = progress?.phase == TransferPhase.done;
 
     final borderColor = isFailed
         ? colors.error.withValues(alpha: 0.35)
         : (isDone
-            ? colors.success.withValues(alpha: 0.35)
-            : colors.primary.withValues(alpha: 0.35));
+              ? colors.success.withValues(alpha: 0.35)
+              : colors.primary.withValues(alpha: 0.35));
 
     final bgColor = isFailed
         ? colors.error.withValues(alpha: 0.08)
         : (isDone
-            ? colors.success.withValues(alpha: 0.08)
-            : colors.primary.withValues(alpha: 0.08));
+              ? colors.success.withValues(alpha: 0.08)
+              : colors.primary.withValues(alpha: 0.08));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -590,8 +603,8 @@ class _LiveTransferBanner extends StatelessWidget {
                 isFailed
                     ? Icons.warning_amber_rounded
                     : (isDone
-                        ? Icons.check_circle_outline_rounded
-                        : Icons.sync_rounded),
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.sync_rounded),
                 size: 20,
                 color: isFailed
                     ? colors.error
@@ -658,7 +671,10 @@ class _LiveTransferBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${FormatUtils.formatBytes(progress!.bytesDone)} / ${FormatUtils.formatBytes(progress!.bytesTotal)}',
+                  (progress!.phase == TransferPhase.preparing &&
+                          progress!.currentName.isNotEmpty)
+                      ? progress!.currentName
+                      : '${FormatUtils.formatBytes(progress!.bytesDone)} / ${FormatUtils.formatBytes(progress!.bytesTotal)}',
                   style: AppTypography.mono.copyWith(
                     color: colors.textSecondary,
                     fontSize: 11,
@@ -711,7 +727,9 @@ class _SubnetScanBanner extends StatelessWidget {
               const Gap(10),
               Text(
                 l10n.transferScanningSubnet,
-                style: AppTypography.caption.copyWith(color: colors.textPrimary),
+                style: AppTypography.caption.copyWith(
+                  color: colors.textPrimary,
+                ),
               ),
               const Spacer(),
               if (progress != null)
@@ -763,6 +781,16 @@ class _SendTabContent extends StatelessWidget {
           onlyNew: state.onlyNewVideos,
           onSend: (peer) {
             final container = ProviderScope.containerOf(context);
+            if (container.read(showcaseModeProvider)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Mode démo : envoi simulé, aucun fichier transmis.',
+                  ),
+                ),
+              );
+              return;
+            }
             unawaited(
               container.read(transferControllerProvider.notifier).sendTo(peer),
             );
@@ -770,13 +798,7 @@ class _SendTabContent extends StatelessWidget {
         );
 
         if (!wide) {
-          return ListView(
-            children: [
-              payload,
-              const Gap(18),
-              peers,
-            ],
-          );
+          return ListView(children: [payload, const Gap(18), peers]);
         }
 
         return Row(
@@ -897,7 +919,9 @@ class _MePanelState extends ConsumerState<_MePanel> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                isMobile ? Icons.smartphone_rounded : Icons.desktop_windows_rounded,
+                isMobile
+                    ? Icons.smartphone_rounded
+                    : Icons.desktop_windows_rounded,
                 size: 22,
                 color: colors.primary,
               ),
@@ -933,7 +957,9 @@ class _MePanelState extends ConsumerState<_MePanel> {
               decoration: BoxDecoration(
                 color: colors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: colors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
                 children: [
@@ -979,10 +1005,14 @@ class _MePanelState extends ConsumerState<_MePanel> {
                     tooltip: 'Diffuser une annonce réseau',
                     icon: const Icon(Icons.wifi_tethering_rounded, size: 20),
                     onPressed: () {
-                      ref.read(transferControllerProvider.notifier).triggerDiscoveryPulse();
+                      ref
+                          .read(transferControllerProvider.notifier)
+                          .triggerDiscoveryPulse();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Signal de découverte diffusé sur le réseau'),
+                          content: Text(
+                            'Signal de découverte diffusé sur le réseau',
+                          ),
                           duration: Duration(seconds: 2),
                         ),
                       );
@@ -1019,10 +1049,14 @@ class _MePanelState extends ConsumerState<_MePanel> {
                   tooltip: l10n.transferCopyLink,
                   icon: const Icon(Icons.copy_rounded, size: 18),
                   onPressed: () {
-                    unawaited(Clipboard.setData(ClipboardData(text: state.pin)));
+                    unawaited(
+                      Clipboard.setData(ClipboardData(text: state.pin)),
+                    );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('PIN ${state.pin} ${l10n.transferCopied}'),
+                        content: Text(
+                          'PIN ${state.pin} ${l10n.transferCopied}',
+                        ),
                         duration: const Duration(seconds: 2),
                       ),
                     );
@@ -1045,11 +1079,16 @@ class _MePanelState extends ConsumerState<_MePanel> {
               },
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1081,7 +1120,9 @@ class _MePanelState extends ConsumerState<_MePanel> {
               TextButton.icon(
                 onPressed: () => setState(() => _showQr = !_showQr),
                 icon: Icon(
-                  _showQr ? Icons.keyboard_arrow_up_rounded : Icons.qr_code_2_rounded,
+                  _showQr
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.qr_code_2_rounded,
                   size: 18,
                   color: colors.primary,
                 ),
@@ -1206,9 +1247,7 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
             const Gap(14),
             Text(
               l10n.transferNoDevices,
-              style: AppTypography.body.copyWith(
-                color: colors.textSecondary,
-              ),
+              style: AppTypography.body.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const Gap(14),
@@ -1225,12 +1264,14 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
                           .read(transferControllerProvider.notifier)
                           .triggerDiscoveryPulse()
                           .whenComplete(() {
-                        if (mounted &&
-                            !ref.read(transferControllerProvider).isScanningSubnet) {
-                          _rotationController.stop();
-                          _rotationController.reset();
-                        }
-                      }),
+                            if (mounted &&
+                                !ref
+                                    .read(transferControllerProvider)
+                                    .isScanningSubnet) {
+                              _rotationController.stop();
+                              _rotationController.reset();
+                            }
+                          }),
                     );
                   },
                   icon: const Icon(Icons.sync_rounded, size: 16),
@@ -1262,7 +1303,10 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
               if (peers.isNotEmpty) ...[
                 const Gap(8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
@@ -1292,12 +1336,14 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
                         .read(transferControllerProvider.notifier)
                         .triggerDiscoveryPulse()
                         .whenComplete(() {
-                      if (mounted &&
-                          !ref.read(transferControllerProvider).isScanningSubnet) {
-                        _rotationController.stop();
-                        _rotationController.reset();
-                      }
-                    }),
+                          if (mounted &&
+                              !ref
+                                  .read(transferControllerProvider)
+                                  .isScanningSubnet) {
+                            _rotationController.stop();
+                            _rotationController.reset();
+                          }
+                        }),
                   );
                 },
               ),
@@ -1493,7 +1539,10 @@ class _PeerTile extends ConsumerWidget {
               ),
               const Gap(4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: (onlyNew && preview.found > 0 && preview.newest == 0)
                       ? colors.success.withValues(alpha: 0.18)
@@ -1506,11 +1555,14 @@ class _PeerTile extends ConsumerWidget {
                     Text(
                       (onlyNew && preview.found > 0)
                           ? (preview.newest > 0
-                              ? l10n.transferSendNewOnly(preview.newest)
-                              : 'À jour (${preview.already})')
+                                ? l10n.transferSendNewOnly(preview.newest)
+                                : 'À jour (${preview.already})')
                           : l10n.transferSend,
                       style: AppTypography.label.copyWith(
-                        color: (onlyNew && preview.found > 0 && preview.newest == 0)
+                        color:
+                            (onlyNew &&
+                                preview.found > 0 &&
+                                preview.newest == 0)
                             ? colors.success
                             : colors.primary,
                         fontWeight: FontWeight.w600,
@@ -1521,7 +1573,10 @@ class _PeerTile extends ConsumerWidget {
                       width: 18,
                       height: 18,
                       decoration: BoxDecoration(
-                        color: (onlyNew && preview.found > 0 && preview.newest == 0)
+                        color:
+                            (onlyNew &&
+                                preview.found > 0 &&
+                                preview.newest == 0)
                             ? colors.success
                             : colors.primary,
                         shape: BoxShape.circle,
@@ -1649,11 +1704,7 @@ class _DirectIpDialogState extends ConsumerState<_DirectIpDialog> {
 }
 
 class _PayloadPanel extends ConsumerStatefulWidget {
-  const _PayloadPanel({
-    super.key,
-    required this.state,
-    required this.fill,
-  });
+  const _PayloadPanel({super.key, required this.state, required this.fill});
 
   final TransferUiState state;
   final bool fill;
@@ -1665,6 +1716,36 @@ class _PayloadPanel extends ConsumerStatefulWidget {
 class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
   final _query = TextEditingController();
   final _scrollController = ScrollController();
+  late final _demoMedia = createShowcaseDownloads()
+      .where((item) => item.status == DownloadStatus.completed)
+      .toList(growable: false);
+  final Set<String> _demoSelectedIds = {
+    'showcase-squeezie-imposteur',
+    'showcase-jujutsu-kaisen-trailer',
+    'showcase-one-piece-trailer',
+  };
+
+  Widget _demoThumbnail(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri != null && isAllowedShowcaseThumbnailUrl(uri)) {
+      return Image.network(
+        url,
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+        errorBuilder: (context, _, _) => const Icon(Icons.movie_outlined),
+      );
+    }
+    return Image.asset(url, width: 48, height: 48, fit: BoxFit.cover);
+  }
+
+  void _showDemoFileNotice() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Mode démo : aucun fichier personnel accessible.'),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -1689,13 +1770,13 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
         '$selectedCreators créateur${selectedCreators > 1 ? 's' : ''}',
       if (extraFolders > 0)
         '$extraFolders dossier${extraFolders > 1 ? 's' : ''}',
-      if (extraFiles > 0)
-        '$extraFiles fichier${extraFiles > 1 ? 's' : ''}',
+      if (extraFiles > 0) '$extraFiles fichier${extraFiles > 1 ? 's' : ''}',
     ];
     return parts.join(' • ');
   }
 
   Future<void> _pickFoldersFlow() async {
+    if (ref.read(showcaseModeProvider)) return;
     try {
       final path = await FilePicker.platform.getDirectoryPath();
       if (path == null || path.isEmpty || !mounted) return;
@@ -1732,15 +1813,20 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
     final state = widget.state;
+    final isShowcase = ref.watch(showcaseModeProvider);
     final folders = ref.watch(creatorFoldersProvider).folders;
     final selected = state.selectedCreatorKeys;
-    final allSelected = folders.isNotEmpty && selected.length >= folders.length;
+    final allSelected = isShowcase
+        ? _demoSelectedIds.length == _demoMedia.length
+        : folders.isNotEmpty && selected.length >= folders.length;
     final hits = TransferCreatorQuery.matches(folders, _query.text);
     final folderByKey = {for (final folder in folders) folder.key: folder};
-    final hasAnyPayload = selected.isNotEmpty ||
+    final hasAnyPayload =
+        selected.isNotEmpty ||
         state.extraFolders.isNotEmpty ||
         state.extraFiles.isNotEmpty ||
-        state.selectedFilesCount > 0;
+        state.selectedFilesCount > 0 ||
+        (isShowcase && _demoSelectedIds.isNotEmpty);
 
     return _DoppelrandCard(
       fill: widget.fill,
@@ -1756,19 +1842,30 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
               const Spacer(),
               if (hasAnyPayload)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colors.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(99),
-                    border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
+                    border: Border.all(
+                      color: colors.primary.withValues(alpha: 0.25),
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.inventory_2_outlined, size: 13, color: colors.primary),
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 13,
+                        color: colors.primary,
+                      ),
                       const Gap(6),
                       Text(
-                        '${state.selectedFilesCount} vidéo${state.selectedFilesCount > 1 ? 's' : ''} • ${FormatUtils.formatBytes(state.selectedTotalBytes)}',
+                        isShowcase
+                            ? '${_demoSelectedIds.length} médias · simulation'
+                            : '${state.selectedFilesCount} vidéo${state.selectedFilesCount > 1 ? 's' : ''} • ${FormatUtils.formatBytes(state.selectedTotalBytes)}',
                         style: AppTypography.mono.copyWith(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -1790,6 +1887,18 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                 label: l10n.transferEntireLibrary,
                 selected: allSelected,
                 onTap: () {
+                  if (isShowcase) {
+                    setState(() {
+                      if (allSelected) {
+                        _demoSelectedIds.clear();
+                      } else {
+                        _demoSelectedIds.addAll(
+                          _demoMedia.map((item) => item.id),
+                        );
+                      }
+                    });
+                    return;
+                  }
                   if (allSelected) {
                     ref
                         .read(transferControllerProvider.notifier)
@@ -1804,12 +1913,16 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
               _QuickAction(
                 icon: Icons.create_new_folder_outlined,
                 label: 'Dossiers...',
-                onTap: _pickFoldersFlow,
+                onTap: isShowcase ? _showDemoFileNotice : _pickFoldersFlow,
               ),
               _QuickAction(
                 icon: Icons.video_library_outlined,
                 label: 'Vidéos...',
                 onTap: () {
+                  if (isShowcase) {
+                    _showDemoFileNotice();
+                    return;
+                  }
                   unawaited(
                     ref
                         .read(transferControllerProvider.notifier)
@@ -1819,7 +1932,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
               ),
             ],
           ),
-          if (hasAnyPayload && state.sendPreview.found > 0) ...[
+          if (!isShowcase && hasAnyPayload && state.sendPreview.found > 0) ...[
             const Gap(12),
             _SendMemoryStatusBanner(
               preview: state.sendPreview,
@@ -1850,7 +1963,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                   : null,
             ),
           ],
-          if (hasAnyPayload) ...[
+          if (!isShowcase && hasAnyPayload) ...[
             const Gap(12),
             _PayloadCompressionBanner(
               count: state.selectedFilesCount,
@@ -1879,7 +1992,9 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
             },
             style: AppTypography.body.copyWith(color: colors.textPrimary),
             decoration: InputDecoration(
-              hintText: l10n.transferSearchCreator,
+              hintText: isShowcase
+                  ? 'Rechercher un média de démonstration...'
+                  : l10n.transferSearchCreator,
               prefixIcon: const Icon(Icons.search_rounded, size: 20),
               suffixIcon: _query.text.isEmpty
                   ? null
@@ -1911,18 +2026,23 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
             ),
           ),
           const Gap(10),
-          if (selected.isNotEmpty || state.extraFolders.isNotEmpty || state.extraFiles.isNotEmpty)
+          if ((isShowcase && _demoSelectedIds.isNotEmpty) ||
+              selected.isNotEmpty ||
+              state.extraFolders.isNotEmpty ||
+              state.extraFiles.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      _selectionSummary(
-                        selectedCreators: selected.length,
-                        extraFolders: state.extraFolders.length,
-                        extraFiles: state.extraFiles.length,
-                      ),
+                      isShowcase
+                          ? '${_demoSelectedIds.length} médias sélectionnés · aucune donnée envoyée'
+                          : _selectionSummary(
+                              selectedCreators: selected.length,
+                              extraFolders: state.extraFolders.length,
+                              extraFiles: state.extraFiles.length,
+                            ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.mono.copyWith(
@@ -1934,6 +2054,10 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                   const Gap(8),
                   TextButton(
                     onPressed: () {
+                      if (isShowcase) {
+                        setState(_demoSelectedIds.clear);
+                        return;
+                      }
                       ref
                           .read(transferControllerProvider.notifier)
                           .clearAllPayload();
@@ -1950,29 +2074,99 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                 child: ListView(
                   controller: _scrollController,
                   padding: EdgeInsets.zero,
-                  children: _buildPayloadList(
+                  children: isShowcase
+                      ? _buildDemoMediaList(colors)
+                      : _buildPayloadList(
+                          state: state,
+                          folders: folders,
+                          selected: selected,
+                          allSelected: allSelected,
+                          hits: hits,
+                          folderByKey: folderByKey,
+                        ),
+                ),
+              ),
+            )
+          else
+            ...(isShowcase
+                ? _buildDemoMediaList(colors)
+                : _buildPayloadList(
                     state: state,
                     folders: folders,
                     selected: selected,
                     allSelected: allSelected,
                     hits: hits,
                     folderByKey: folderByKey,
-                  ),
-                ),
-              ),
-            )
-          else
-            ..._buildPayloadList(
-              state: state,
-              folders: folders,
-              selected: selected,
-              allSelected: allSelected,
-              hits: hits,
-              folderByKey: folderByKey,
-            ),
+                  )),
         ],
       ),
     );
+  }
+
+  List<Widget> _buildDemoMediaList(AppColors colors) {
+    final query = _query.text.trim().toLowerCase();
+    return [
+      for (final item in _demoMedia)
+        if (query.isEmpty || (item.title ?? '').toLowerCase().contains(query))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Material(
+              color: colors.surfaceHighlight.withValues(alpha: .55),
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => setState(() {
+                  if (!_demoSelectedIds.add(item.id)) {
+                    _demoSelectedIds.remove(item.id);
+                  }
+                }),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _demoSelectedIds.contains(item.id),
+                        onChanged: (_) => setState(() {
+                          if (!_demoSelectedIds.add(item.id)) {
+                            _demoSelectedIds.remove(item.id);
+                          }
+                        }),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: _demoThumbnail(item.thumbnailUrl!),
+                      ),
+                      const Gap(10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title ?? 'Média',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: colors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              item.totalSize,
+                              style: AppTypography.mono.copyWith(
+                                color: colors.textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+    ];
   }
 
   List<Widget> _buildPayloadList({
@@ -1998,9 +2192,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                   : l10n.transferEntireLibrary,
             ),
             onDeleted: () {
-              ref
-                  .read(transferControllerProvider.notifier)
-                  .clearCreators();
+              ref.read(transferControllerProvider.notifier).clearCreators();
             },
           ),
         ),
@@ -2077,9 +2269,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
           title: p.basename(path.replaceAll(r'\', '/')),
           subtitle: path,
           onRemove: () {
-            ref
-                .read(transferControllerProvider.notifier)
-                .removeExtraFile(path);
+            ref.read(transferControllerProvider.notifier).removeExtraFile(path);
           },
         ),
       ],
@@ -2088,9 +2278,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
         if (hits.isEmpty)
           Text(
             l10n.transferNoCreatorMatch,
-            style: AppTypography.body.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: AppTypography.body.copyWith(color: colors.textSecondary),
           )
         else
           for (final folder in hits) ...[
@@ -2146,9 +2334,7 @@ class _SendMemoryStatusBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2217,7 +2403,9 @@ class _SendMemoryStatusBanner extends StatelessWidget {
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 15,
-                    color: onlyNewVideos ? colors.primary : colors.textSecondary,
+                    color: onlyNewVideos
+                        ? colors.primary
+                        : colors.textSecondary,
                   ),
                   const Gap(8),
                   Expanded(
@@ -2322,7 +2510,10 @@ class _PayloadCompressionBanner extends StatelessWidget {
                     if (compressZip) ...[
                       const Gap(8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: colors.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(6),
@@ -2342,8 +2533,10 @@ class _PayloadCompressionBanner extends StatelessWidget {
                 const Gap(2),
                 Text(
                   compressZip
-                      ? 'Plusieurs fichiers → une archive ZIP (sans compression, vidéos déjà compressées)'
-                      : 'Les fichiers partent tels quels vers LocalSend (sans sous-dossiers)',
+                      ? (count > 50
+                          ? 'ZIP actif. Pour de gros dossiers, désactiver le ZIP accélère l\'envoi direct vers la galerie.'
+                          : 'Plusieurs fichiers → une archive ZIP (sans compression, vidéos déjà compressées)')
+                      : 'Les fichiers partent tels quels vers LocalSend (directement dans la galerie)',
                   style: AppTypography.caption.copyWith(
                     color: compressZip ? colors.primary : colors.textSecondary,
                     fontSize: 11,
@@ -2354,12 +2547,16 @@ class _PayloadCompressionBanner extends StatelessWidget {
           ),
           const Gap(10),
           Tooltip(
-            message: 'Regrouper plusieurs fichiers en une archive ZIP (copie, pas de compression)',
+            message:
+                'Regrouper plusieurs fichiers en une archive ZIP (copie, pas de compression)',
             child: InkWell(
               onTap: onToggleZip,
               borderRadius: BorderRadius.circular(99),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: compressZip
                       ? colors.primary
@@ -2375,7 +2572,9 @@ class _PayloadCompressionBanner extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      compressZip ? Icons.check_rounded : Icons.archive_outlined,
+                      compressZip
+                          ? Icons.check_rounded
+                          : Icons.archive_outlined,
                       size: 15,
                       color: compressZip ? Colors.white : colors.textSecondary,
                     ),
@@ -2449,7 +2648,11 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                   color: colors.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.folder_copy_rounded, color: colors.primary, size: 20),
+                child: Icon(
+                  Icons.folder_copy_rounded,
+                  color: colors.primary,
+                  size: 20,
+                ),
               ),
               const Gap(12),
               Expanded(
@@ -2462,7 +2665,9 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                     ),
                     Text(
                       'Dossiers trouvés dans $parentName',
-                      style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                      style: AppTypography.caption.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -2481,9 +2686,14 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
               fillColor: Colors.white.withValues(alpha: 0.05),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
             ),
           ),
           const Gap(10),
@@ -2535,7 +2745,9 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                 ? Center(
                     child: Text(
                       'Aucun dossier ne correspond',
-                      style: AppTypography.caption.copyWith(color: colors.textSecondary),
+                      style: AppTypography.caption.copyWith(
+                        color: colors.textSecondary,
+                      ),
                     ),
                   )
                 : ListView.separated(
@@ -2562,17 +2774,25 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                         secondary: Icon(
                           Icons.folder_outlined,
                           size: 20,
-                          color: isChecked ? colors.primary : colors.textSecondary,
+                          color: isChecked
+                              ? colors.primary
+                              : colors.textSecondary,
                         ),
                         title: Text(
                           name,
                           style: AppTypography.body.copyWith(
-                            color: isChecked ? colors.textPrimary : colors.textSecondary,
-                            fontWeight: isChecked ? FontWeight.w600 : FontWeight.w400,
+                            color: isChecked
+                                ? colors.textPrimary
+                                : colors.textSecondary,
+                            fontWeight: isChecked
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
                         activeColor: colors.primary,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
                         dense: true,
                       );
                     },

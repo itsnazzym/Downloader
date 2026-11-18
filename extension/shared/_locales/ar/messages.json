@@ -1,104 +1,740 @@
 {
-  "extName": { "message": "Modern Downloader" },
-  "extShortName": { "message": "MD Download" },
-  "extDescription": { "message": "أرسل روابط الفيديو إلى تطبيق Modern Downloader." },
-  "sendTab": { "message": "إرسال هذا التبويب" },
-  "testConnection": { "message": "اختبار الاتصال" },
-  "recentDownloads": { "message": "التنزيلات الأخيرة" },
-  "noDownloads": { "message": "لا توجد تنزيلات" },
-  "browser": { "message": "المتصفح" },
-  "port": { "message": "المنفذ" },
-  "token": { "message": "الرمز" },
-  "autoCookies": { "message": "كوكيز تلقائية" },
-  "adultSites": { "message": "مواقع للبالغين" },
-  "appearance": { "message": "المظهر" },
-  "connected": { "message": "متصل" },
-  "disconnected": { "message": "غير متصل" },
-  "disconnectedHint": { "message": "غير متصل (تحقق من التطبيق والرمز)" },
-  "authFailed": { "message": "فشل التحقق — راجع الرمز" },
-  "invalidPort": { "message": "يجب أن يكون المنفذ بين 1024 و 65535" },
-  "appOffline": { "message": "التطبيق غير متصل" },
-  "needTweetUrl": { "message": "استخدم رابط التغريدة وليس ملف الفيديو" },
-  "download": { "message": "تنزيل" },
-  "downloaded": { "message": "تم التنزيل" },
-  "sendFailed": { "message": "تعذر إرسال التبويب" },
-  "tabSent": { "message": "تم إرسال التبويب" },
-  "testFailed": { "message": "فشل اختبار الاتصال" },
-  "testOk": { "message": "PING/PONG OK" },
-  "xFeed": { "message": "خلاصة X" },
-  "xFeedTitle": { "message": "خلاصة X" },
-  "xFeedDescription": { "message": "مرّر في X لجمع مقاطع الفيديو؛ ستبقى المنشورات الجديدة في هذه القائمة." },
-  "xFeedGobirdDescription": { "message": "يقوم gobird بتصفح الخلاصة الرئيسية، وتبقى مقاطع الفيديو الجديدة من التمرير في هذه القائمة." },
-  "xFeedLocalSource": { "message": "لك — محلي" },
-  "xFeedGobirdSource": { "message": "gobird تجريبي" },
-  "xFeedFallbackSource": { "message": "احتياطي محلي (فشل gobird)" },
-  "xFeedGobirdFailed": { "message": "فشل gobird. يتم عرض الموجز المحلي بدلًا منه." },
-  "xFeedGobirdMissingBinary": { "message": "ملف gobird غير موجود في التطبيق. أعد تشغيل prepare_gobird أو استخدم نسخة إصدار." },
-  "xFeedGobirdAuthFailed": { "message": "لم يستلم gobird ملفات تعريف ارتباط جلسة X. ابقَ مسجّل الدخول في x.com مع تفعيل ملفات الارتباط التلقائية ثم اضغط تحليل." },
-  "xFeedGobirdRateLimited": { "message": "تم تقييد gobird من قبل X. حاول لاحقًا." },
-  "xFeedGobirdDisabled": { "message": "gobird معطّل في إعدادات التطبيق." },
-  "xFeedGobirdAppOffline": { "message": "Modern Downloader غير متصل أو لم يجب. شغّل التطبيق ثم أعد المحاولة." },
-  "analyzeXFeed": { "message": "تحليل الخلاصة المحملة" },
-  "openXPage": { "message": "فتح X" },
-  "selectAll": { "message": "تحديد الكل" },
-  "clearSelection": { "message": "مسح" },
-  "xFeedDisplayLimit": { "message": "عرض" },
-  "xFeedSelectCountLabel": { "message": "تحديد" },
-  "xFeedSelectCountPlaceholder": { "message": "العدد" },
-  "xFeedShowing": { "message": "يظهر {count}" },
-  "xFeedReady": { "message": "افتح X.com وحمّل الخلاصة ثم حلّلها." },
-  "xFeedNoItems": { "message": "لم يتم العثور على مقاطع فيديو محملة." },
-  "downloadSelected": { "message": "تنزيل المحدد" },
-  "xFeedSelection": { "message": "تم تحديد {count}" },
-  "xFeedAnalyzing": { "message": "جارٍ تحليل منشورات X المحملة…" },
-  "xFeedGobirdPaginating": { "message": "ترقيم صفحات gobird جارٍ… تستمر مقاطع الفيديو المحلية في الظهور." },
-  "xFeedNotXPage": { "message": "افتح X.com أولاً في علامة التبويب النشطة." },
-  "xFeedAnalyzeFailed": { "message": "تعذر تحليل خلاصة X المحملة." },
-  "xFeedFound": { "message": "تم العثور على {count} من مقاطع الفيديو" },
-  "xFeedLive": { "message": "جمع مباشر في الوقت الفعلي" },
-  "xFeedSnapshot": { "message": "لقطة كاملة" },
-  "xFeedSnapshotLive": { "message": "لقطة + جمع مباشر في الوقت الفعلي" },
-  "xFeedLimitReached": { "message": "تم عرض أول {count}" },
-  "xFeedDurationUnknown": { "message": "المدة غير متاحة" },
-  "xFeedResolutionUnknown": { "message": "الدقة غير متاحة" },
-  "xFeedSizeUnknown": { "message": "سيتم التحقق عند التنزيل" },
-  "xFeedVideoAlt": { "message": "صورة مصغرة للفيديو" },
-  "xFeedVideo": { "message": "فيديو" },
-  "xFeedAuthorUnknown": { "message": "مستخدم X" },
-  "xFeedNoSelection": { "message": "حدد مقطع فيديو واحداً على الأقل." },
-  "xFeedSending": { "message": "جارٍ إرسال {count} من مقاطع الفيديو إلى Modern Downloader…" },
-  "xFeedSent": { "message": "تم إرسال {count} من مقاطع الفيديو" },
-  "xFeedFailed": { "message": "فشل {count}" },
-  "xFeedDuplicatesSkipped": { "message": "تم تخطي {count} من العناصر المكررة" },
-  "xFeedSendFailed": { "message": "تعذر إرسال مقاطع الفيديو المحددة." },
-  "xFeedOpened": { "message": "تم فتح لوحة خلاصة X" },
-  "xFeedOpenFailed": { "message": "تعذر فتح لوحة خلاصة X" },
-  "btnColor": { "message": "اللون" },
-  "btnPosition": { "message": "الموضع" },
-  "btnSize": { "message": "الحجم" },
-  "qualityMenu": { "message": "قائمة الجودة" },
-  "posTopRight": { "message": "أعلى اليمين" },
-  "posTopLeft": { "message": "أعلى اليسار" },
-  "posBottomRight": { "message": "أسفل اليمين" },
-  "posBottomLeft": { "message": "أسفل اليسار" },
-  "sizeSmall": { "message": "صغير" },
-  "sizeNormal": { "message": "عادي" },
-  "sizeLarge": { "message": "كبير" },
-  "quality": { "message": "الجودة" },
-  "qualityBest": { "message": "أفضل جودة" },
-  "qualityAudio": { "message": "صوت" },
-  "qualityAudioOnly": { "message": "صوت فقط" },
-  "offline": { "message": "غير متصل" },
-  "failed": { "message": "فشل" },
-  "needTweet": { "message": "يلزم رابط التغريدة" },
-  "unsupportedUrl": { "message": "ليست فيديو" },
-  "statusQueued": { "message": "في الانتظار" },
-  "statusExtracting": { "message": "جارٍ الاستخراج" },
-  "statusDownloading": { "message": "جارٍ التنزيل" },
-  "statusProcessing": { "message": "جارٍ المعالجة" },
-  "statusCompleted": { "message": "مكتمل" },
-  "statusFailed": { "message": "فشل" },
-  "statusCanceled": { "message": "ملغى" },
-  "statusPaused": { "message": "متوقف مؤقتًا" },
-  "statusDuplicate": { "message": "مكرر" }
+    "extName": {
+        "message": "Modern Downloader"
+    },
+    "extShortName": {
+        "message": "MD Download"
+    },
+    "extDescription": {
+        "message": "أرسل روابط الفيديو إلى تطبيق Modern Downloader."
+    },
+    "sendTab": {
+        "message": "إرسال هذا التبويب"
+    },
+    "testConnection": {
+        "message": "اختبار الاتصال"
+    },
+    "recentDownloads": {
+        "message": "التنزيلات الأخيرة"
+    },
+    "noDownloads": {
+        "message": "لا توجد تنزيلات"
+    },
+    "browser": {
+        "message": "المتصفح"
+    },
+    "port": {
+        "message": "المنفذ"
+    },
+    "token": {
+        "message": "الرمز"
+    },
+    "autoCookies": {
+        "message": "كوكيز تلقائية"
+    },
+    "adultSites": {
+        "message": "مواقع للبالغين"
+    },
+    "appearance": {
+        "message": "المظهر"
+    },
+    "connected": {
+        "message": "متصل"
+    },
+    "disconnected": {
+        "message": "غير متصل"
+    },
+    "disconnectedHint": {
+        "message": "غير متصل (تحقق من التطبيق والرمز)"
+    },
+    "authFailed": {
+        "message": "فشل التحقق — راجع الرمز"
+    },
+    "invalidPort": {
+        "message": "يجب أن يكون المنفذ بين 1024 و 65535"
+    },
+    "tokenIsPathError": {
+        "message": "تم إدخال مسار مجلد بدل رمز واجهة التطبيق!"
+    },
+    "appOffline": {
+        "message": "التطبيق غير متصل"
+    },
+    "needTweetUrl": {
+        "message": "استخدم رابط التغريدة وليس ملف الفيديو"
+    },
+    "download": {
+        "message": "تنزيل"
+    },
+    "downloaded": {
+        "message": "تم التنزيل"
+    },
+    "sendFailed": {
+        "message": "تعذر إرسال التبويب"
+    },
+    "tabSent": {
+        "message": "تم إرسال التبويب"
+    },
+    "testFailed": {
+        "message": "فشل اختبار الاتصال"
+    },
+    "testOk": {
+        "message": "PING/PONG OK"
+    },
+    "xFeed": {
+        "message": "خلاصة X"
+    },
+    "mediaFeedTitle": {
+        "message": "الفيديوهات المكتشفة"
+    },
+    "mediaFeedDescription": {
+        "message": "من الصفحات المفتوحة"
+    },
+    "xFeedTitle": {
+        "message": "خلاصة X"
+    },
+    "xFeedDescription": {
+        "message": "مرّر في X لجمع مقاطع الفيديو؛ ستبقى المنشورات الجديدة في هذه القائمة."
+    },
+    "xFeedGobirdDescription": {
+        "message": "يقوم gobird بتصفح الخلاصة الرئيسية، وتبقى مقاطع الفيديو الجديدة من التمرير في هذه القائمة."
+    },
+    "xFeedLocalSource": {
+        "message": "لك — محلي"
+    },
+    "xFeedGobirdSource": {
+        "message": "gobird تجريبي"
+    },
+    "xFeedFallbackSource": {
+        "message": "احتياطي محلي (فشل gobird)"
+    },
+    "xFeedGobirdFailed": {
+        "message": "فشل gobird. يتم عرض الموجز المحلي بدلًا منه."
+    },
+    "xFeedGobirdMissingBinary": {
+        "message": "ملف gobird غير موجود في التطبيق. أعد تشغيل prepare_gobird أو استخدم نسخة إصدار."
+    },
+    "xFeedGobirdAuthFailed": {
+        "message": "لم يستلم gobird ملفات تعريف ارتباط جلسة X. ابقَ مسجّل الدخول في x.com مع تفعيل ملفات الارتباط التلقائية ثم اضغط تحليل."
+    },
+    "xFeedGobirdRateLimited": {
+        "message": "تم تقييد gobird من قبل X. حاول لاحقًا."
+    },
+    "xFeedGobirdDisabled": {
+        "message": "gobird معطّل في إعدادات التطبيق."
+    },
+    "xFeedGobirdAppOffline": {
+        "message": "Modern Downloader غير متصل أو لم يجب. شغّل التطبيق ثم أعد المحاولة."
+    },
+    "analyzeXFeed": {
+        "message": "تحليل الخلاصة المحملة"
+    },
+    "openXPage": {
+        "message": "فتح X"
+    },
+    "selectAll": {
+        "message": "تحديد الكل"
+    },
+    "clearSelection": {
+        "message": "مسح"
+    },
+    "xFeedDisplayLimit": {
+        "message": "عرض"
+    },
+    "xFeedSelectCountLabel": {
+        "message": "تحديد"
+    },
+    "xFeedSelectCountPlaceholder": {
+        "message": "العدد"
+    },
+    "xFeedShowing": {
+        "message": "يظهر {count}"
+    },
+    "xFeedReady": {
+        "message": "افتح صفحة تحتوي على فيديوهات ثم حلّلها."
+    },
+    "xFeedNoItems": {
+        "message": "لم يتم العثور على مقاطع فيديو محملة."
+    },
+    "downloadSelected": {
+        "message": "تنزيل المحدد"
+    },
+    "xFeedSelection": {
+        "message": "تم تحديد {count}"
+    },
+    "xFeedAnalyzing": {
+        "message": "جارٍ تحليل منشورات X المحملة…"
+    },
+    "xFeedGobirdPaginating": {
+        "message": "ترقيم صفحات gobird جارٍ… تستمر مقاطع الفيديو المحلية في الظهور."
+    },
+    "xFeedNotXPage": {
+        "message": "افتح X.com أولاً في علامة التبويب النشطة."
+    },
+    "xFeedAnalyzeFailed": {
+        "message": "تعذر تحليل خلاصة X المحملة."
+    },
+    "xFeedFound": {
+        "message": "تم العثور على {count} من مقاطع الفيديو"
+    },
+    "xFeedLive": {
+        "message": "جمع مباشر في الوقت الفعلي"
+    },
+    "xFeedSnapshot": {
+        "message": "لقطة كاملة"
+    },
+    "xFeedSnapshotLive": {
+        "message": "لقطة + جمع مباشر في الوقت الفعلي"
+    },
+    "xFeedLimitReached": {
+        "message": "تم عرض أول {count}"
+    },
+    "xFeedDurationUnknown": {
+        "message": "المدة غير متاحة"
+    },
+    "xFeedResolutionUnknown": {
+        "message": "الدقة غير متاحة"
+    },
+    "xFeedSizeUnknown": {
+        "message": "سيتم التحقق عند التنزيل"
+    },
+    "xFeedVideoAlt": {
+        "message": "صورة مصغرة للفيديو"
+    },
+    "xFeedVideo": {
+        "message": "فيديو"
+    },
+    "xFeedAuthorUnknown": {
+        "message": "مستخدم X"
+    },
+    "xFeedNoSelection": {
+        "message": "حدد مقطع فيديو واحداً على الأقل."
+    },
+    "xFeedSending": {
+        "message": "جارٍ إرسال {count} من مقاطع الفيديو إلى Modern Downloader…"
+    },
+    "xFeedSent": {
+        "message": "تم إرسال {count} من مقاطع الفيديو"
+    },
+    "xFeedFailed": {
+        "message": "فشل {count}"
+    },
+    "xFeedDuplicatesSkipped": {
+        "message": "تم تخطي {count} من العناصر المكررة"
+    },
+    "xFeedSendFailed": {
+        "message": "تعذر إرسال مقاطع الفيديو المحددة."
+    },
+    "xFeedOpened": {
+        "message": "تم فتح لوحة الفيديو"
+    },
+    "xFeedOpenFailed": {
+        "message": "تعذر فتح لوحة الفيديو"
+    },
+    "btnColor": {
+        "message": "اللون"
+    },
+    "btnPosition": {
+        "message": "الموضع"
+    },
+    "btnSize": {
+        "message": "الحجم"
+    },
+    "qualityMenu": {
+        "message": "قائمة الجودة"
+    },
+    "posTopRight": {
+        "message": "أعلى اليمين"
+    },
+    "posTopLeft": {
+        "message": "أعلى اليسار"
+    },
+    "posBottomRight": {
+        "message": "أسفل اليمين"
+    },
+    "posBottomLeft": {
+        "message": "أسفل اليسار"
+    },
+    "sizeSmall": {
+        "message": "صغير"
+    },
+    "sizeNormal": {
+        "message": "عادي"
+    },
+    "sizeLarge": {
+        "message": "كبير"
+    },
+    "quality": {
+        "message": "الجودة"
+    },
+    "qualityBest": {
+        "message": "أفضل جودة"
+    },
+    "qualityAudio": {
+        "message": "صوت"
+    },
+    "qualityAudioOnly": {
+        "message": "صوت فقط"
+    },
+    "offline": {
+        "message": "غير متصل"
+    },
+    "failed": {
+        "message": "فشل"
+    },
+    "needTweet": {
+        "message": "يلزم رابط التغريدة"
+    },
+    "unsupportedUrl": {
+        "message": "ليست فيديو"
+    },
+    "statusQueued": {
+        "message": "في الانتظار"
+    },
+    "statusExtracting": {
+        "message": "جارٍ الاستخراج"
+    },
+    "statusDownloading": {
+        "message": "جارٍ التنزيل"
+    },
+    "statusProcessing": {
+        "message": "جارٍ المعالجة"
+    },
+    "statusCompleted": {
+        "message": "مكتمل"
+    },
+    "statusFailed": {
+        "message": "فشل"
+    },
+    "statusCanceled": {
+        "message": "ملغى"
+    },
+    "statusPaused": {
+        "message": "متوقف مؤقتًا"
+    },
+    "statusDuplicate": {
+        "message": "مكرر"
+    },
+    "exploreVideos": {
+        "message": "استكشاف الفيديوهات"
+    },
+    "exploreDescription": {
+        "message": "اعثر على فيديوهات الصفحة المفتوحة وأرسلها إلى التطبيق."
+    },
+    "openVideoPanel": {
+        "message": "فتح لوحة الفيديو"
+    },
+    "connectionSettings": {
+        "message": "الاتصال والتفضيلات"
+    },
+    "syncTikTok": {
+        "message": "مزامنة مجموعات تيك توك"
+    },
+    "syncInProgress": {
+        "message": "طُلبت المزامنة…"
+    },
+    "syncStarted": {
+        "message": "بدأت المزامنة في صفحة تيك توك."
+    },
+    "syncOpenTikTok": {
+        "message": "افتح مجموعات تيك توك ثم حاول مجددًا."
+    },
+    "showToken": {
+        "message": "إظهار الرمز"
+    },
+    "hideToken": {
+        "message": "إخفاء الرمز"
+    },
+    "feedCompact": {
+        "message": "قائمة"
+    },
+    "feedCards": {
+        "message": "بطاقات"
+    },
+    "feedAll": {
+        "message": "الكل"
+    },
+    "feedCurrent": {
+        "message": "الحالي"
+    },
+    "feedNetwork": {
+        "message": "الشبكة"
+    },
+    "feedVideos": {
+        "message": "الفيديوهات"
+    },
+    "feedAccounts": {
+        "message": "الحسابات"
+    },
+    "feedAnalyze": {
+        "message": "تحليل"
+    },
+    "feedScanAll": {
+        "message": "تحميل الكل"
+    },
+    "feedOpenPage": {
+        "message": "فتح الصفحة"
+    },
+    "feedHideDownloaded": {
+        "message": "إخفاء الفيديوهات المنزلة"
+    },
+    "feedAutoRemove": {
+        "message": "إزالة بعد الإرسال"
+    },
+    "feedCopy": {
+        "message": "نسخ"
+    },
+    "feedExport": {
+        "message": "تصدير"
+    },
+    "feedSendSelection": {
+        "message": "إرسال المحدد"
+    },
+    "feedSendAccounts": {
+        "message": "إرسال {count} حسابات"
+    },
+    "feedFilterCreator": {
+        "message": "عرض الفيديوهات"
+    },
+    "feedShowMore": {
+        "message": "عرض المزيد"
+    },
+    "feedPreview": {
+        "message": "معاينة الفيديو"
+    },
+    "contentSyncButton": {
+        "message": "مزامنة المجموعات"
+    },
+    "contentSyncInProgress": {
+        "message": "جارٍ مزامنة المجموعات…"
+    },
+    "contentSyncDiscovering": {
+        "message": "المجموعات المكتشفة"
+    },
+    "contentSyncProgress": {
+        "message": "المجموعات المعالجة"
+    },
+    "contentSyncVideosSent": {
+        "message": "فيديوهات مرسلة"
+    },
+    "contentSyncComplete": {
+        "message": "مكتملة"
+    },
+    "contentSyncIncomplete": {
+        "message": "غير مكتملة"
+    },
+    "contentSyncMissing": {
+        "message": "مفقودة"
+    },
+    "contentSyncCollections": {
+        "message": "مجموعات"
+    },
+    "contentSyncNoVideos": {
+        "message": "وُجدت مجموعات لكن الفيديوهات غير متاحة"
+    },
+    "contentSyncNoCollections": {
+        "message": "افتح المفضلة في تيك توك ثم المجموعات."
+    },
+    "contentSyncFailed": {
+        "message": "فشلت المزامنة"
+    },
+    "feedScanning": {
+        "message": "جارٍ البحث عن الفيديوهات…"
+    },
+    "feedCollectionQueued": {
+        "message": "أُرسلت المجموعة إلى التطبيق وطُلبت التنزيلات."
+    },
+    "feedLoadProfile": {
+        "message": "تحميل الملف الشخصي"
+    },
+    "feedCollectionHint": {
+        "message": "إرسال المجموعة دون تمرير"
+    },
+    "feedSendCollection": {
+        "message": "إرسال المجموعة"
+    },
+    "feedFilterActive": {
+        "message": "الفلتر النشط"
+    },
+    "feedAccountVideos": {
+        "message": "فيديوهات هذا الحساب"
+    },
+    "feedLoadAccountVideos": {
+        "message": "تحميل فيديوهات الحساب"
+    },
+    "feedSendAccount": {
+        "message": "إرسال الحساب"
+    },
+    "feedStop": {
+        "message": "إيقاف"
+    },
+    "feedCreator": {
+        "message": "صانع المحتوى"
+    },
+    "feedSendAccountHint": {
+        "message": "سيسترجع Modern Downloader فيديوهات الملف الشخصي."
+    },
+    "feedLoadAccountHint": {
+        "message": "افتح تيك توك وابحث عن فيديوهات هذا الملف الشخصي."
+    },
+    "feedFilterAccountHint": {
+        "message": "عرض الفيديوهات المكتشفة من هذا الملف الشخصي."
+    },
+    "feedAccountTools": {
+        "message": "أدوات الحسابات"
+    },
+    "feedSendAccountsHint": {
+        "message": "إرسال الملفات الشخصية المكتشفة إلى التطبيق."
+    },
+    "feedViewAccounts": {
+        "message": "عرض الحسابات"
+    },
+    "feedViewAccountsHint": {
+        "message": "عرض الحسابات المكتشفة في هذه اللوحة."
+    },
+    "feedCopyAccounts": {
+        "message": "نسخ الروابط"
+    },
+    "feedCopyAccountsHint": {
+        "message": "نسخ روابط ملفات تيك توك الشخصية."
+    },
+    "feedExportAccounts": {
+        "message": "تصدير القائمة (.txt)"
+    },
+    "feedExportAccountsHint": {
+        "message": "حفظ روابط الحسابات المكتشفة."
+    },
+    "feedLocateVideo": {
+        "message": "عرض على الصفحة"
+    },
+    "feedAlreadyDownloaded": {
+        "message": "تم تنزيله مسبقاً أو مكرر"
+    },
+    "feedAlreadyDownloadedRetry": {
+        "message": "تم تنزيله مسبقاً (انقر لإعادة التنزيل)"
+    },
+    "feedTargetVideoHint": {
+        "message": "انقر للتركيز وعرض هذا الفيديو على الصفحة 🎯"
+    },
+    "feedPreviewHint": {
+        "message": "معاينة الفيديو (انقر للتشغيل)"
+    },
+    "feedNoAccountsToCopy": {
+        "message": "لا توجد حسابات لنسخها."
+    },
+    "feedNoAccountsToExport": {
+        "message": "لا توجد حسابات لتصديرها."
+    },
+    "feedAccountsExported": {
+        "message": "تم تصدير {count} حساب إلى comptes_tiktok.txt"
+    },
+    "feedTrackActiveTab": {
+        "message": "متابعة: "
+    },
+    "feedActiveTab": {
+        "message": "علامة التبويب النشطة"
+    },
+    "feedVideosLoadedFromProfile": {
+        "message": "فيديو تم تحميله من الملف الشخصي العام"
+    },
+    "feedLoadAllVideosProfile": {
+        "message": "تحميل جميع فيديوهات الحساب"
+    },
+    "feedRecoverAccounts": {
+        "message": "استرداد الحسابات"
+    },
+    "feedDuplicatesSkipped": {
+        "message": "تم تجاهل {count} مكرر تم تنزيله بالفعل"
+    },
+    "feedNavUnavailable": {
+        "message": "تيك توك لا يسمح بالانتقال إلى الفيديو التالي في هذه الصفحة."
+    },
+    "feedDeepScanPartial": {
+        "message": "تم التقاط {count} فيديو. توقفت الصفحة عن تحميل فيديوهات جديدة."
+    },
+    "feedDeepScanSuccess": {
+        "message": "تم تحميل {count} فيديو بنجاح!"
+    },
+    "feedLockTab": {
+        "message": "قفل"
+    },
+    "feedUnlockTab": {
+        "message": "إلغاء القفل"
+    },
+    "feedJumpActiveTitle": {
+        "message": "التركيز على الفيديو قيد التشغيل"
+    },
+    "feedClearTitle": {
+        "message": "مسح خلاصة الفيديوهات"
+    },
+    "feedFiltersAria": {
+        "message": "فلاتر الخلاصة"
+    },
+    "feedNavAria": {
+        "message": "تنقل اللوحة"
+    },
+    "feedLayoutAria": {
+        "message": "طريقة عرض الفيديو"
+    },
+    "feedTrackActiveTabLabel": {
+        "message": "متابعة: علامة التبويب النشطة"
+    },
+    "feedAnalyzeTitle": {
+        "message": "تحليل الفيديوهات المعروضة حالياً على الشاشة"
+    },
+    "feedScanAllTitle": {
+        "message": "التمرير التلقائي لاكتشاف المزيد من الفيديوهات"
+    },
+    "downloadSingle": {
+        "message": "تنزيل هذا الفيديو"
+    },
+    "feedNoAccounts": {
+        "message": "لم يتم العثور على حسابات حالياً."
+    },
+    "feedAccountsSelected": {
+        "message": "تم تحديد {count} حساب"
+    },
+    "feedAccountsFound": {
+        "message": "تم العثور على {count} حساب"
+    },
+    "feedSelectAccount": {
+        "message": "تحديد {name}"
+    },
+    "feedAccountVideoCount": {
+        "message": "{count} فيديو في المجموعة"
+    },
+    "feedLoadAccountTitle": {
+        "message": "تحميل فيديوهات {name}"
+    },
+    "feedOpenAccountTitle": {
+        "message": "فتح الملف الشخصي في تبويب جديد"
+    },
+    "feedSelectAccountFirst": {
+        "message": "يرجى تحديد حساب واحد على الأقل."
+    },
+    "feedSendingAccounts": {
+        "message": "جاري إرسال {count} حساب إلى Modern Downloader…"
+    },
+    "feedSent": {
+        "message": "تم الإرسال"
+    },
+    "feedAccountsSent": {
+        "message": "تم إرسال {count} حساب إلى Modern Downloader."
+    },
+    "feedSending": {
+        "message": "جاري الإرسال…"
+    },
+    "feedAccountSent": {
+        "message": "تم إرسال الحساب @{name} إلى التطبيق."
+    },
+    "feedError": {
+        "message": "خطأ"
+    },
+    "feedAccountSendFailed": {
+        "message": "فشل إرسال الحساب @{name}."
+    },
+    "feedVideosFromAccount": {
+        "message": "{count} فيديو من @{name}"
+    },
+    "feedDownloadedHidden": {
+        "message": "تم إخفاء {count} محملة مسبقاً"
+    },
+    "feedNoAccountVideos": {
+        "message": "لا توجد فيديوهات لـ @{name}"
+    },
+    "itemUrlInvalid": {
+        "message": "الرابط غير صالح."
+    },
+    "itemSent": {
+        "message": "تم إرسال التحميل إلى التطبيق…"
+    },
+    "itemSendFailed": {
+        "message": "فشل الإرسال."
+    },
+    "connecting": {
+        "message": "جاري الاتصال…"
+    },
+    "closeBtn": {
+        "message": "إغلاق"
+    },
+    "selectionToolbarAria": {
+        "message": "عناصر التحكم في التحديد"
+    },
+    "feedNowPlaying": {
+        "message": "قيد التشغيل"
+    },
+    "feedVideosCaptured": {
+        "message": "تم التقاط {count} فيديو"
+    },
+    "feedAccountsCopied": {
+        "message": "تم نسخ {count} رابط للملف الشخصي إلى الحافظة!"
+    },
+    "feedAccountsDetected": {
+        "message": "تم اكتشاف {count} حساب"
+    },
+    "feedScanningProfile": {
+        "message": "جاري فحص الملف الشخصي @{name} لتحميل جميع فيديوهاته…"
+    },
+    "feedOpeningProfile": {
+        "message": "فتح @{name} وبدء الفحص…"
+    },
+    "feedProfileSentSuccess": {
+        "message": "تم إرسال الملف الشخصي الكامل @{name} إلى التطبيق!"
+    },
+    "feedProfileSentError": {
+        "message": "فشل الإرسال إلى التطبيق"
+    },
+    "feedHookLockedTab": {
+        "message": "مقفل: {target}"
+    },
+    "feedTargetPage": {
+        "message": "الصفحة المستهدفة"
+    },
+    "feedHookInfoLocked": {
+        "message": "الإضافة مقفلة على هذه الصفحة. تستمر في الالتقاط والتمرير حتى لو قمت بتبديل التبويب أو النافذة."
+    },
+    "feedUnlockTabHint": {
+        "message": "إلغاء قفل الإضافة لاستعادة التتبع الديناميكي للتبويب النشط"
+    },
+    "feedHookReleased": {
+        "message": "تم إلغاء القفل. التتبع الديناميكي نشط."
+    },
+    "feedHookNoTab": {
+        "message": "تعذر القفل: لم يتم اكتشاف أي تبويب نشط."
+    },
+    "feedHookSuccess": {
+        "message": "تم قفل الإضافة على هذا التبويب! تستمر الإجراءات في الخلفية."
+    },
+    "feedHookTabClosed": {
+        "message": "تم إغلاق التبويب المقفل. العودة إلى التتبع المباشر."
+    },
+    "feedCollectionFailed": {
+        "message": "فشل إرسال المجموعة إلى التطبيق."
+    },
+    "feedScanProfileAuto": {
+        "message": "فحص الملف الشخصي بالكامل (تلقائي)"
+    },
+    "feedCollection": {
+        "message": "مجموعة"
+    },
+    "feedViewVideosTitle": {
+        "message": "عرض واستخراج فيديوهات الخلاصة"
+    },
+    "feedViewCreatorsTitle": {
+        "message": "استخراج جميع حسابات المبدعين بدلاً من الفيديوهات"
+    },
+    "feedHookTabTitle": {
+        "message": "انقر لقفل الإضافة على هذا التبويب"
+    },
+    "feedHookActionTitle": {
+        "message": "قفل على هذا التبويب لمتابعة الإجراءات في الخلفية"
+    },
+    "feedHideDownloadedHint": {
+        "message": "إخفاء الفيديوهات المحملة سابقاً من الخلاصة"
+    },
+    "feedAutoRemoveHint": {
+        "message": "إزالة تلقائية من القائمة بعد التحميل"
+    },
+    "feedCollectionVideosLoaded": {
+        "message": "{count} فيديو في هذه المجموعة · انقر لتحميل جميع الفيديوهات المنشورة من @{name}"
+    }
 }

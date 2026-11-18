@@ -4,12 +4,10 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/showcase/showcase_mode.dart';
 import '../widgets/tiktok_filter_pane.dart';
 import '../widgets/tiktok_video_card.dart';
-import '../widgets/tiktok_sound_card.dart';
 import '../modes/tiktok_collections_view.dart';
-import '../modes/tiktok_tinder_view.dart';
-import '../modes/tiktok_feed_view.dart';
 import '../archive_hub_view.dart';
 
 class TikTokArchiveDesktopView extends ConsumerStatefulWidget {
@@ -18,10 +16,12 @@ class TikTokArchiveDesktopView extends ConsumerStatefulWidget {
   const TikTokArchiveDesktopView({super.key, required this.catalog});
 
   @override
-  ConsumerState<TikTokArchiveDesktopView> createState() => _TikTokArchiveDesktopViewState();
+  ConsumerState<TikTokArchiveDesktopView> createState() =>
+      _TikTokArchiveDesktopViewState();
 }
 
-class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopView> {
+class _TikTokArchiveDesktopViewState
+    extends ConsumerState<TikTokArchiveDesktopView> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -48,16 +48,14 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
     final state = ref.watch(tikTokArchiveProvider);
     final filteredVideos = ref.watch(filteredTikTokVideosProvider);
     final notifier = ref.read(tikTokArchiveProvider.notifier);
-    final filter = state.filter;
     final viewMode = state.viewMode;
 
     return Scaffold(
       backgroundColor: colors.background,
       body: Row(
         children: [
-          // Left Pane: Filters, KPIs & Collections (only in list mode or when relevant)
-          if (viewMode == TikTokViewMode.list)
-            const TikTokFilterPane(),
+          // Filters stay beside the full video list on wide screens.
+          if (viewMode == TikTokViewMode.list) const TikTokFilterPane(),
 
           // Right Pane: Main View Area
           Expanded(
@@ -65,71 +63,59 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
               children: [
                 // Top Global Mode Selector & Navigation Bar
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: colors.surface.withValues(alpha: 0.6),
-                    border: Border(bottom: BorderSide(color: colors.borderSubtle)),
+                    border: Border(
+                      bottom: BorderSide(color: colors.borderSubtle),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20),
-                        tooltip: 'Retour au Hub Archives & Imports',
-                        onPressed: () => notifier.setViewMode(TikTokViewMode.hub),
-                      ),
-                      const SizedBox(width: 8),
-                      // View Mode Switcher
-                      SegmentedButton<TikTokViewMode>(
-                        segments: const [
-                          ButtonSegment(
-                            value: TikTokViewMode.hub,
-                            label: Text('Hub'),
-                            icon: Icon(Icons.inventory_2_rounded, size: 16),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      children: [
+                        SegmentedButton<TikTokViewMode>(
+                          segments: const [
+                            ButtonSegment(
+                              value: TikTokViewMode.collections,
+                              label: Text('Collections'),
+                              icon: Icon(Icons.folder_rounded, size: 16),
+                            ),
+                            ButtonSegment(
+                              value: TikTokViewMode.list,
+                              label: Text('Vidéos'),
+                              icon: Icon(Icons.list_alt_rounded, size: 16),
+                            ),
+                          ],
+                          selected: {viewMode},
+                          onSelectionChanged: (set) =>
+                              notifier.setViewMode(set.first),
+                        ),
+                        const Spacer(),
+                        if (constraints.maxWidth >= 640)
+                          OutlinedButton.icon(
+                            onPressed: () =>
+                                notifier.setViewMode(TikTokViewMode.hub),
+                            icon: const Icon(
+                              Icons.file_upload_outlined,
+                              size: 18,
+                            ),
+                            label: const Text('Importer / synchroniser'),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 44),
+                            ),
+                          )
+                        else
+                          IconButton(
+                            tooltip: 'Importer ou synchroniser',
+                            onPressed: () =>
+                                notifier.setViewMode(TikTokViewMode.hub),
+                            icon: const Icon(Icons.file_upload_outlined),
                           ),
-                          ButtonSegment(
-                            value: TikTokViewMode.collections,
-                            label: Text('Dossiers'),
-                            icon: Icon(Icons.folder_rounded, size: 16),
-                          ),
-                          ButtonSegment(
-                            value: TikTokViewMode.list,
-                            label: Text('Liste'),
-                            icon: Icon(Icons.list_alt_rounded, size: 16),
-                          ),
-                          ButtonSegment(
-                            value: TikTokViewMode.feed,
-                            label: Text('Feed'),
-                            icon: Icon(Icons.view_carousel_rounded, size: 16),
-                          ),
-                          ButtonSegment(
-                            value: TikTokViewMode.tinder,
-                            label: Text('Tinder'),
-                            icon: Icon(Icons.swipe_rounded, size: 16),
-                          ),
-                        ],
-                        selected: {viewMode},
-                        onSelectionChanged: (set) => notifier.setViewMode(set.first),
-                      ),
-                      const Spacer(),
-
-                      // Audio vs Video quick filter
-                      SegmentedButton<bool>(
-                        segments: const [
-                          ButtonSegment(
-                            value: false,
-                            label: Text('Vidéos'),
-                            icon: Icon(Icons.video_collection_outlined, size: 16),
-                          ),
-                          ButtonSegment(
-                            value: true,
-                            label: Text('Musiques'),
-                            icon: Icon(Icons.music_note_outlined, size: 16),
-                          ),
-                        ],
-                        selected: {filter.showSounds},
-                        onSelectionChanged: (set) => notifier.setShowSounds(set.first),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
@@ -165,12 +151,6 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
       case TikTokViewMode.collections:
         return TikTokCollectionsView(catalog: widget.catalog);
 
-      case TikTokViewMode.feed:
-        return TikTokFeedView(videos: filteredVideos);
-
-      case TikTokViewMode.tinder:
-        return TikTokTinderView(videos: filteredVideos);
-
       case TikTokViewMode.list:
         return _buildListView(colors, state, filteredVideos, notifier);
     }
@@ -182,11 +162,8 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
     List<TikTokArchiveItem> filteredVideos,
     TikTokArchiveNotifier notifier,
   ) {
-    final filter = state.filter;
-
     return Column(
       children: [
-        // Search & Batch Controls Toolbar
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
@@ -201,12 +178,14 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
                     child: TextField(
                       controller: _searchController,
                       onChanged: (val) => notifier.setSearchQuery(val),
-                      style: AppTypography.bodySmall.copyWith(color: colors.textPrimary),
+                      style: AppTypography.bodySmall.copyWith(
+                        color: colors.textPrimary,
+                      ),
                       decoration: InputDecoration(
-                        hintText: filter.showSounds
-                            ? 'Rechercher un son ou une musique...'
-                            : 'Rechercher par ID TikTok ou collection...',
-                        hintStyle: AppTypography.bodySmall.copyWith(color: colors.textDisabled),
+                        hintText: 'Rechercher une vidéo ou une collection...',
+                        hintStyle: AppTypography.bodySmall.copyWith(
+                          color: colors.textDisabled,
+                        ),
                         prefixIcon: const Icon(Icons.search_rounded, size: 18),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
@@ -220,7 +199,10 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
                         isDense: true,
                         filled: true,
                         fillColor: colors.inputBackground,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: colors.borderSubtle),
@@ -232,104 +214,52 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
               ),
               const SizedBox(height: 10),
 
-              // Batch Action Controls
               Row(
                 children: [
-                  if (!filter.showSounds) ...[
-                    Text(
-                      '${filteredVideos.length} éléments affichés',
-                      style: AppTypography.caption.copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Text(
+                    '${filteredVideos.length} vidéos',
+                    style: AppTypography.caption.copyWith(
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
-                    if (state.selectedIds.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${state.selectedIds.length} sélectionnés',
-                          style: AppTypography.mono.copyWith(
-                            fontSize: 11,
-                            color: colors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                    const Spacer(),
+                  ),
+                  const Spacer(),
+                  if (state.selectedIds.isEmpty)
                     TextButton.icon(
-                      onPressed: () {
-                        if (state.selectedIds.length == filteredVideos.length) {
-                          notifier.clearSelection();
-                        } else {
-                          notifier.selectAll(filteredVideos);
-                        }
-                      },
-                      icon: Icon(
-                        state.selectedIds.length == filteredVideos.length && filteredVideos.isNotEmpty
-                            ? Icons.deselect_rounded
-                            : Icons.select_all_rounded,
-                        size: 16,
-                      ),
-                      label: Text(
-                        state.selectedIds.length == filteredVideos.length && filteredVideos.isNotEmpty
-                            ? 'Tout désélectionner'
-                            : 'Tout sélectionner',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    if (state.selectedIds.isNotEmpty)
-                      FilledButton.icon(
-                        onPressed: state.isBatchDownloading
-                            ? null
-                            : () async {
-                                _showNotice('Téléchargement du lot démarré');
-                                await notifier.downloadSelected();
-                              },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: colors.primary,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        icon: const Icon(Icons.download_rounded, size: 16),
-                        label: Text('Télécharger (${state.selectedIds.length})'),
-                      ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: state.isBatchDownloading || filteredVideos.isEmpty
+                      onPressed: filteredVideos.isEmpty
                           ? null
-                          : () async {
-                              _showNotice('Téléchargement des 50 premiers démarré');
-                              await notifier.downloadBatch(filteredVideos, limit: 50);
-                            },
-                      style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
-                      icon: const Icon(Icons.playlist_play_rounded, size: 16),
-                      label: const Text('Lot de 50'),
+                          : () => notifier.selectAll(filteredVideos),
+                      icon: const Icon(Icons.select_all_rounded, size: 16),
+                      label: const Text('Tout sélectionner'),
+                    )
+                  else ...[
+                    TextButton(
+                      onPressed: notifier.clearSelection,
+                      child: Text(
+                        '${state.selectedIds.length} sélectionnées · Effacer',
+                      ),
                     ),
-                  ] else ...[
-                    Text(
-                      '${widget.catalog.sounds.length} sons favoris répertoriés',
-                      style: AppTypography.caption.copyWith(color: colors.textSecondary),
-                    ),
-                    const Spacer(),
                     FilledButton.icon(
-                      onPressed: state.isBatchDownloading || widget.catalog.sounds.isEmpty
+                      onPressed: state.isBatchDownloading
                           ? null
                           : () async {
-                              _showNotice('Téléchargement des 50 sons MP3 démarré');
-                              await notifier.downloadSounds(widget.catalog.sounds, limit: 50);
+                              await notifier.downloadSelected();
+                              _showNotice(
+                                'Vidéos ajoutées à la file de téléchargement.',
+                              );
                             },
                       style: FilledButton.styleFrom(
-                        backgroundColor: Colors.amber[800],
+                        backgroundColor: colors.primary,
                         visualDensity: VisualDensity.compact,
                       ),
                       icon: const Icon(Icons.download_rounded, size: 16),
-                      label: const Text('Télécharger lot de 50 MP3'),
+                      label: Text(
+                        state.isBatchDownloading
+                            ? (state.batchSkippedCount > 0
+                                ? 'En cours (${state.batchCompletedCount}/${state.batchTotalCount}) · ${state.batchSkippedCount} ignorées'
+                                : 'En cours (${state.batchCompletedCount}/${state.batchTotalCount})')
+                            : 'Télécharger la sélection',
+                      ),
                     ),
                   ],
                 ],
@@ -352,7 +282,9 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      '${state.batchCompletedCount} / ${state.batchTotalCount}',
+                      state.batchSkippedCount > 0
+                          ? '${state.batchCompletedCount} / ${state.batchTotalCount} (${state.batchSkippedCount} ignorées)'
+                          : '${state.batchCompletedCount} / ${state.batchTotalCount}',
                       style: AppTypography.mono.copyWith(fontSize: 12),
                     ),
                   ],
@@ -362,11 +294,8 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
           ),
         ),
 
-        // List Content
         Expanded(
-          child: filter.showSounds
-              ? _buildSoundsList(widget.catalog.sounds, colors, notifier)
-              : _buildVideosList(colors, filteredVideos, state, notifier),
+          child: _buildVideosList(colors, filteredVideos, state, notifier),
         ),
       ],
     );
@@ -383,7 +312,11 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.filter_alt_off_rounded, size: 48, color: colors.textDisabled),
+            Icon(
+              Icons.filter_alt_off_rounded,
+              size: 48,
+              color: colors.textDisabled,
+            ),
             const SizedBox(height: 12),
             Text(
               'Aucune vidéo ne correspond aux filtres actifs',
@@ -413,41 +346,12 @@ class _TikTokArchiveDesktopViewState extends ConsumerState<TikTokArchiveDesktopV
             isSelected: isSelected,
             onToggleSelect: () => notifier.toggleSelection(video.id),
             onDownload: () async {
+              if (ref.read(showcaseModeProvider)) {
+                _showNotice('Mode démo : téléchargement simulé.');
+                return;
+              }
               _showNotice('Téléchargement lancé : ${video.id}');
               await notifier.downloadBatch([video], limit: 1);
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSoundsList(
-    List<TikTokSoundItem> sounds,
-    AppColors colors,
-    TikTokArchiveNotifier notifier,
-  ) {
-    if (sounds.isEmpty) {
-      return Center(
-        child: Text(
-          'Aucun son trouvé dans l\'archive',
-          style: AppTypography.body.copyWith(color: colors.textSecondary),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      itemCount: sounds.length,
-      itemBuilder: (context, index) {
-        final sound = sounds[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: TikTokSoundCard(
-            sound: sound,
-            onDownloadMp3: () async {
-              _showNotice('Extraction audio lancée : ${sound.title}');
-              await notifier.downloadSounds([sound], limit: 1);
             },
           ),
         );

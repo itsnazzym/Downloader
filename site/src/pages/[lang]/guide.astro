@@ -1,0 +1,110 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import GuideSteps from '../../components/GuideSteps';
+import ActionLink from '../../components/ActionLink';
+
+export function getStaticPaths() {
+  return ['fr', 'en', 'ar'].map((lang) => ({ params: { lang }, props: { lang } }));
+}
+
+const copy = {
+  fr: {
+    title: 'Guide des plugins',
+    description: 'Installez Modern Downloader, choisissez un plugin depuis le catalogue et gérez-le dans l’application.',
+    eyebrow: 'Guide rapide',
+    heading: 'Vos plugins, en quelques étapes.',
+    intro: 'Le catalogue vous aide à trouver les fonctionnalités. L’application les active et les désactive.',
+    flow: ['Explorer le catalogue', 'Ouvrir dans Modern Downloader', 'Activer ou installer dans l’app'],
+    steps: [
+      { number: '01', title: 'Installez Modern Downloader', body: 'Choisissez l’installeur Windows ou la version portable depuis le site, puis ouvrez l’application.' },
+      { number: '02', title: 'Choisissez un plugin', body: 'Parcourez le catalogue et ouvrez la fonctionnalité qui vous intéresse. Le site transmet votre choix à l’application.' },
+      { number: '03', title: 'Suivez les étapes dans l’app', body: 'L’application affiche la demande d’activation ou le guide d’installation de l’extension. Les modules facultatifs peuvent ensuite être désactivés dans les réglages.' },
+    ],
+    manageTitle: 'Vous pouvez changer d’avis.',
+    manageBody: 'Désactivez les modules facultatifs depuis les réglages de plugins. Le noyau Téléchargements et bibliothèque reste disponible.',
+    note: 'Les modules et automatismes sont intégrés à l’app. Les extensions de navigateur sont des installations complémentaires; le catalogue lui-même ne télécharge aucun code.',
+    browse: 'Ouvrir le catalogue',
+    download: 'Télécharger l’application',
+  },
+  en: {
+    title: 'Plugin guide',
+    description: 'Install Modern Downloader, choose a plugin from the catalog and manage it in the app.',
+    eyebrow: 'Quick guide',
+    heading: 'Your plugins, in a few steps.',
+    intro: 'The catalog helps you find features. The app enables and disables them.',
+    flow: ['Explore the catalog', 'Open Modern Downloader', 'Enable or install in the app'],
+    steps: [
+      { number: '01', title: 'Install Modern Downloader', body: 'Choose the Windows installer or portable version on this site, then open the app.' },
+      { number: '02', title: 'Choose a plugin', body: 'Browse the catalog and open the feature you want. The site passes your choice to the app.' },
+      { number: '03', title: 'Follow the in-app steps', body: 'The app shows an activation request or the extension installation guide. Optional modules can be turned off later in settings.' },
+    ],
+    manageTitle: 'You can change your mind.',
+    manageBody: 'Turn optional modules off in plugin settings. Downloads and library stay available.',
+    note: 'Modules and automations are built into the app. Browser extensions are companion installs; the catalog itself does not download code.',
+    browse: 'Open the catalog',
+    download: 'Download the app',
+  },
+  ar: {
+    title: 'دليل الإضافات',
+    description: 'ثبّت Modern Downloader واختر إضافة من الكتالوج وأدرها في التطبيق.',
+    eyebrow: 'دليل سريع',
+    heading: 'إضافاتك في خطوات بسيطة.',
+    intro: 'يساعدك الكتالوج في العثور على الميزات. ويتولى التطبيق تفعيلها وتعطيلها.',
+    flow: ['استكشف الكتالوج', 'افتح Modern Downloader', 'فعّل أو ثبّت في التطبيق'],
+    steps: [
+      { number: '01', title: 'ثبّت Modern Downloader', body: 'اختر مثبّت Windows أو النسخة المحمولة من هذا الموقع، ثم افتح التطبيق.' },
+      { number: '02', title: 'اختر إضافة', body: 'تصفّح الكتالوج وافتح الميزة التي تريدها. يرسل الموقع اختيارك إلى التطبيق.' },
+      { number: '03', title: 'اتبع الخطوات في التطبيق', body: 'يعرض التطبيق طلب التفعيل أو دليل تثبيت الإضافة. ويمكنك تعطيل الوحدات الاختيارية لاحقاً من الإعدادات.' },
+    ],
+    manageTitle: 'يمكنك تغيير اختيارك.',
+    manageBody: 'عطّل الوحدات الاختيارية من إعدادات الإضافات. وتظل التنزيلات والمكتبة متاحة.',
+    note: 'الوحدات والأتمتة مضمّنة في التطبيق. إضافات المتصفح تثبيتات مصاحبة، والكتالوج نفسه لا ينزّل أي شيفرة.',
+    browse: 'افتح الكتالوج',
+    download: 'تنزيل التطبيق',
+  },
+};
+
+const languageCode = String(Astro.props.lang) as keyof typeof copy;
+const text = copy[languageCode] ?? copy.en;
+const basePath = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const sourcesUrl = `${basePath}${languageCode}/sources/`;
+---
+
+<SiteLayout
+  lang={languageCode}
+  currentPage="guide"
+  title={`${text.title} — Modern Downloader`}
+  description={text.description}
+>
+  <main id="main" class="guide-main">
+    <section class="guide-hero" aria-labelledby="guide-title">
+      <div class="guide-hero-copy" data-reveal>
+        <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>{text.eyebrow}</p>
+        <h1 id="guide-title">{text.heading}</h1>
+        <p>{text.intro}</p>
+      </div>
+      <div class="guide-flow" aria-label={text.heading} data-reveal>
+        {text.flow.map((label, index) => (
+          <div class="guide-flow-row"><span class="guide-flow-index">0{index + 1}</span><span>{label}</span>{index < text.flow.length - 1 && <span class="guide-flow-arrow" aria-hidden="true">↓</span>}</div>
+        ))}
+      </div>
+    </section>
+
+    <GuideSteps client:visible steps={text.steps} label={text.heading} />
+
+    <section class="guide-callout" aria-labelledby="manage-title" data-reveal>
+      <div>
+        <p class="eyebrow">Modern Downloader</p>
+        <h2 id="manage-title">{text.manageTitle}</h2>
+        <p>{text.manageBody}</p>
+      </div>
+      <div class="guide-actions">
+        <ActionLink href={sourcesUrl} label={text.browse} arrow="right" />
+        <ActionLink downloadDialog label={text.download} kind="secondary" arrow="up" />
+      </div>
+    </section>
+    <p class="guide-note"><span aria-hidden="true">●</span>{text.note}</p>
+  </main>
+</SiteLayout>

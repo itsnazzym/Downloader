@@ -408,5 +408,29 @@ void main() {
         expect(fixed.first.filePath, real.path);
       },
     );
+
+    test('reconciles a 2500-item library from one filesystem index', () async {
+      final items = <DownloadItem>[];
+      for (var index = 0; index < 2500; index++) {
+        final file = File(
+          '${dir.path}${Platform.pathSeparator}video [$index].mp4',
+        );
+        await file.writeAsBytes(const [1]);
+        items.add(
+          DownloadItem(
+            id: 'large-$index',
+            request: const DownloadRequest(url: 'https://example.com/imported'),
+            title: 'video [$index]',
+            status: DownloadStatus.completed,
+            progress: 1,
+            filePath: file.path,
+          ),
+        );
+      }
+
+      final fixed = await scanner.scanAndFix(items, dir.path);
+
+      expect(fixed, hasLength(2500));
+    });
   });
 }

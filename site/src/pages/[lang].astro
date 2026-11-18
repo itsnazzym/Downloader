@@ -1,0 +1,140 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ReleaseMeta from '../components/ReleaseMeta.astro';
+import ShowcaseGallery from '../components/ShowcaseGallery.astro';
+import ActionLink from '../components/ActionLink';
+import catalog from '../../plugin-catalog.json';
+
+export function getStaticPaths() {
+  return ['fr', 'en', 'ar'].map((lang) => ({ params: { lang }, props: { lang } }));
+}
+
+const copy = {
+  fr: {
+    title: 'Modern Downloader — Téléchargements et bibliothèque',
+    description: 'Téléchargez vos médias, retrouvez-les dans votre bibliothèque et choisissez les modules utiles dans Modern Downloader.',
+    eyebrow: 'Une application Windows. Vos médias, à votre façon.',
+    headline: ['Téléchargez vos médias.', 'Retrouvez-les simplement.'],
+    intro: 'Modern Downloader réunit les téléchargements, une bibliothèque locale et des modules que vous pouvez activer selon vos besoins.',
+    download: 'Télécharger pour Windows', browse: 'Explorer les plugins', github: 'Voir le projet sur GitHub',
+    included: 'Dans l’application', coreTitle: 'Du lien au fichier, puis à votre bibliothèque.',
+    coreBody: 'Lancez un téléchargement, suivez sa progression et retrouvez le résultat dans votre bibliothèque locale.',
+    coreLink: 'Découvrir les fonctionnalités', library: 'Bibliothèque locale', downloads: 'Téléchargements',
+    steps: ['Ajouter un lien', 'Suivre le téléchargement', 'Retrouver le fichier'],
+    sectionLabel: 'Fonctionnalités', sectionTitle: 'Une base simple. Des outils en plus.',
+    sectionBody: 'Le téléchargement et la bibliothèque restent au centre. Les autres fonctions sont accessibles depuis le catalogue.',
+    kind: { core: 'Inclus', module: 'Module', download_hook: 'Automatisation', external_extension: 'Extension' },
+    viewPlugin: 'Voir dans le catalogue', all: 'Voir toutes les fonctionnalités Windows', guide: 'Comment fonctionnent les plugins ?',
+    closeTitle: 'Commencez avec l’essentiel.', closeBody: 'Installez l’application et ajoutez les outils dont vous avez réellement l’usage.',
+  },
+  en: {
+    title: 'Modern Downloader — Downloads and library',
+    description: 'Download media, find it in your library, and choose the modules you need in Modern Downloader.',
+    eyebrow: 'One Windows app. Your media, your way.',
+    headline: ['Download your media.', 'Find it again with ease.'],
+    intro: 'Modern Downloader brings together downloads, a local library, and modules you can enable as needed.',
+    download: 'Download for Windows', browse: 'Explore plugins', github: 'View project on GitHub',
+    included: 'In the app', coreTitle: 'From link to file to your library.',
+    coreBody: 'Start a download, follow its progress, and find the result in your local library.',
+    coreLink: 'Explore features', library: 'Local library', downloads: 'Downloads',
+    steps: ['Add a link', 'Follow the download', 'Find the file'],
+    sectionLabel: 'Features', sectionTitle: 'A simple foundation. More tools when needed.',
+    sectionBody: 'Downloads and library stay at the center. Browse the catalog for everything else.',
+    kind: { core: 'Included', module: 'Module', download_hook: 'Automation', external_extension: 'Extension' },
+    viewPlugin: 'View in catalog', all: 'See all Windows features', guide: 'How do plugins work?',
+    closeTitle: 'Start with the essentials.', closeBody: 'Install the app, then add the tools you actually use.',
+  },
+  ar: {
+    title: 'Modern Downloader — التنزيلات والمكتبة',
+    description: 'نزّل الوسائط واعثر عليها في مكتبتك واختر الوحدات التي تحتاجها في Modern Downloader.',
+    eyebrow: 'تطبيق واحد لويندوز. وسائطك بطريقتك.',
+    headline: ['نزّل وسائطك.', 'واعثر عليها بسهولة.'],
+    intro: 'يجمع Modern Downloader التنزيلات والمكتبة المحلية والوحدات التي يمكنك تفعيلها عند الحاجة.',
+    download: 'التنزيل لنظام Windows', browse: 'استكشف الإضافات', github: 'عرض المشروع على GitHub',
+    included: 'داخل التطبيق', coreTitle: 'من الرابط إلى الملف ثم إلى مكتبتك.',
+    coreBody: 'ابدأ التنزيل وتابع تقدمه ثم اعثر على الملف في مكتبتك المحلية.',
+    coreLink: 'استكشف الميزات', library: 'مكتبة محلية', downloads: 'التنزيلات',
+    steps: ['أضف رابطاً', 'تابع التنزيل', 'اعثر على الملف'],
+    sectionLabel: 'الميزات', sectionTitle: 'أساس بسيط. وأدوات إضافية عند الحاجة.',
+    sectionBody: 'تبقى التنزيلات والمكتبة في المركز. استكشف بقية الأدوات من الكتالوج.',
+    kind: { core: 'مضمّن', module: 'وحدة', download_hook: 'أتمتة', external_extension: 'إضافة' },
+    viewPlugin: 'عرض في الكتالوج', all: 'عرض جميع ميزات Windows', guide: 'كيف تعمل الإضافات؟',
+    closeTitle: 'ابدأ بالأساسيات.', closeBody: 'ثبّت التطبيق ثم أضف الأدوات التي تستخدمها فعلاً.',
+  },
+};
+
+const languageCode = String(Astro.props.lang) as keyof typeof copy;
+const text = copy[languageCode] ?? copy.en;
+const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const routeFor = (page = 'sources') => basePath + languageCode + '/' + page + '/';
+const githubUrl = 'https://github.com/itsnazzym/Downloader';
+const featureIds = ['tiktok_archives', 'device_transfer', 'builtin_smart_organizer', 'chrome_extension', 'statistics', 'builtin_auto_rename'];
+const features = featureIds.map((id) => catalog.plugins.find((plugin) => plugin.id === id)).filter((plugin) => plugin !== undefined);
+---
+
+<SiteLayout lang={languageCode} currentPage="home" title={text.title} description={text.description}>
+  <main id="main" class="home-main">
+    <section class="home-hero" aria-labelledby="home-title">
+      <p class="hero-kicker" data-intro>{text.eyebrow}</p>
+      <h1 id="home-title" data-intro>{text.headline.map((line, index) => <span class={index === 1 ? 'hero-second-line' : ''}>{line}</span>)}</h1>
+      <p class="hero-intro" data-intro>{text.intro}</p>
+      <div class="hero-actions" data-intro>
+        <ActionLink downloadDialog label={text.download} mark="windows" />
+        <ActionLink href={routeFor()} label={text.browse} kind="secondary" arrow="up" />
+      </div>
+      <div data-intro><ReleaseMeta lang={languageCode} /></div>
+    </section>
+
+    <ShowcaseGallery lang={languageCode} basePath={basePath} />
+
+    <section class="product-statement" aria-labelledby="core-title" data-reveal>
+      <div class="statement-topline"><span>MODERN DOWNLOADER / 01</span><span>{text.included}</span></div>
+      <div class="statement-content">
+        <div class="statement-copy">
+          <p class="section-index">{text.downloads} <span>→</span> {text.library}</p>
+          <h2 id="core-title">{text.coreTitle}</h2>
+          <p>{text.coreBody}</p>
+          <a href="#features" class="text-link">{text.coreLink}<span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="statement-flow">
+          {text.steps.map((step, index) => <div><span>0{index + 1}</span><strong>{step}</strong></div>)}
+        </div>
+      </div>
+      <div class="statement-bottomline"><span>01 / 03</span><span>WINDOWS</span></div>
+    </section>
+
+    <section class="features-section" id="features" aria-labelledby="features-title">
+      <div class="features-heading" data-reveal>
+        <p class="section-index">{text.sectionLabel} / 02</p>
+        <h2 id="features-title">{text.sectionTitle}</h2>
+        <p>{text.sectionBody}</p>
+      </div>
+      <div class="feature-list">
+        {features.map((plugin, index) => (
+          <a class="feature-row" href={routeFor() + plugin.id + '/'} data-reveal data-reveal-delay={Math.min(index * 65, 195)}>
+            <span class="feature-number">0{index + 1}</span>
+            <div class="feature-copy">
+              <span class="feature-kind">{text.kind[plugin.kind as keyof typeof text.kind]}</span>
+              <h3>{plugin.name[languageCode] ?? plugin.name.en}</h3>
+              <p>{plugin.description[languageCode] ?? plugin.description.en}</p>
+            </div>
+            <span class="feature-row-link"><span class="sr-only">{text.viewPlugin}</span><span aria-hidden="true">↗</span></span>
+          </a>
+        ))}
+      </div>
+      <a class="all-features-link" href={routeFor()}>{text.all}<span aria-hidden="true">↗</span></a>
+    </section>
+
+    <section class="download-section" aria-labelledby="download-title" data-reveal>
+      <p class="section-index">MODERN DOWNLOADER / 03</p>
+      <h2 id="download-title">{text.closeTitle}</h2>
+      <p>{text.closeBody}</p>
+      <div class="download-actions">
+        <ActionLink downloadDialog label={text.download} />
+        <ActionLink href={routeFor('guide')} label={text.guide} kind="secondary" />
+      </div>
+      <ReleaseMeta lang={languageCode} />
+      <a class="download-github" href={githubUrl}>{text.github}<span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+</SiteLayout>

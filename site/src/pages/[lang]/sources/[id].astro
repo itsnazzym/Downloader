@@ -1,0 +1,123 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import ActionLink from '../../../components/ActionLink';
+import { Badge } from '../../../components/ui/badge';
+import catalog from '../../../../plugin-catalog.json';
+
+export function getStaticPaths() {
+  const desktopPlugins = catalog.plugins.filter((plugin) => plugin.platforms.includes('windows'));
+  return ['fr', 'en', 'ar'].flatMap((lang) =>
+    desktopPlugins.map((plugin) => ({
+      params: { lang, id: plugin.id },
+      props: { lang, plugin },
+    })),
+  );
+}
+
+const copy = {
+  fr: {
+    catalog: 'Catalogue', category: 'Fonctionnalité', what: 'Ce que fait cet outil',
+    access: 'Comment y accéder', management: 'Dans l’application',
+    included: 'Inclus en permanence', optional: 'Module facultatif',
+    browser: 'Extension de navigateur',
+    coreAccess: 'Installez Modern Downloader. Les téléchargements et la bibliothèque sont disponibles dès le départ.',
+    moduleAccess: 'Ouvrez cette fiche dans Modern Downloader, puis confirmez son activation dans l’application.',
+    automationAccess: 'Ouvrez cette fiche dans Modern Downloader, puis activez l’automatisation dans les réglages des plugins.',
+    extensionAccess: 'Ouvrez cette fiche dans Modern Downloader pour accéder au guide d’installation de l’extension.',
+    coreManagement: 'Le noyau Téléchargements et bibliothèque reste disponible.',
+    optionalManagement: 'Vous pouvez désactiver ce module plus tard dans les réglages des plugins.',
+    extensionManagement: 'L’extension se gère séparément dans votre navigateur.',
+    openApp: 'Ouvrir dans l’app', download: 'Télécharger l’application',
+    guide: 'Lire le guide', other: 'Autres fonctionnalités', all: 'Voir tout le catalogue',
+  },
+  en: {
+    catalog: 'Catalog', category: 'Feature', what: 'What this tool does',
+    access: 'How to access it', management: 'In the app',
+    included: 'Always included', optional: 'Optional module',
+    browser: 'Browser extension',
+    coreAccess: 'Install Modern Downloader. Downloads and the library are available from the start.',
+    moduleAccess: 'Open this feature in Modern Downloader, then confirm activation in the app.',
+    automationAccess: 'Open this feature in Modern Downloader, then enable the automation in plugin settings.',
+    extensionAccess: 'Open this feature in Modern Downloader to see the extension installation guide.',
+    coreManagement: 'Core downloads and library remain available.',
+    optionalManagement: 'You can turn this module off later in plugin settings.',
+    extensionManagement: 'Manage the extension separately in your browser.',
+    openApp: 'Open in app', download: 'Download the app',
+    guide: 'Read the guide', other: 'More features', all: 'View the full catalog',
+  },
+  ar: {
+    catalog: 'الكتالوج', category: 'ميزة', what: 'ما الذي تفعله هذه الأداة',
+    access: 'كيفية الوصول إليها', management: 'داخل التطبيق',
+    included: 'مضمّنة دائماً', optional: 'وحدة اختيارية',
+    browser: 'إضافة متصفح',
+    coreAccess: 'ثبّت Modern Downloader. تتوفر التنزيلات والمكتبة منذ البداية.',
+    moduleAccess: 'افتح هذه الميزة في Modern Downloader ثم أكّد تفعيلها داخل التطبيق.',
+    automationAccess: 'افتح هذه الميزة في Modern Downloader ثم فعّل الأتمتة من إعدادات الإضافات.',
+    extensionAccess: 'افتح هذه الميزة في Modern Downloader لعرض دليل تثبيت الإضافة.',
+    coreManagement: 'تظل التنزيلات والمكتبة الأساسيتان متاحتين.',
+    optionalManagement: 'يمكنك تعطيل هذه الوحدة لاحقاً من إعدادات الإضافات.',
+    extensionManagement: 'تُدار الإضافة بشكل منفصل داخل المتصفح.',
+    openApp: 'فتح في التطبيق', download: 'تنزيل التطبيق',
+    guide: 'اقرأ الدليل', other: 'ميزات أخرى', all: 'عرض الكتالوج كاملاً',
+  },
+};
+
+const languageCode = String(Astro.props.lang) as keyof typeof copy;
+const text = copy[languageCode] ?? copy.en;
+const plugin = Astro.props.plugin as (typeof catalog.plugins)[number];
+const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const catalogUrl = `${basePath}${languageCode}/sources/`;
+const guideUrl = `${basePath}${languageCode}/guide/`;
+const primaryUrl = plugin.kind === 'core' ? undefined : `moderndownloader://plugin/${plugin.id}`;
+const primaryLabel = plugin.kind === 'core' ? text.download : text.openApp;
+const access = plugin.kind === 'core' ? text.coreAccess : plugin.kind === 'module' ? text.moduleAccess : plugin.kind === 'download_hook' ? text.automationAccess : text.extensionAccess;
+const management = plugin.kind === 'core' ? text.coreManagement : plugin.kind === 'external_extension' ? text.extensionManagement : text.optionalManagement;
+const status = plugin.kind === 'core' ? text.included : plugin.kind === 'external_extension' ? text.browser : text.optional;
+const desktopPlugins = catalog.plugins.filter((entry) => entry.platforms.includes('windows'));
+const pluginIndex = desktopPlugins.findIndex((entry) => entry.id === plugin.id);
+const related = [1, 2].map((offset) => desktopPlugins[(pluginIndex + offset) % desktopPlugins.length]);
+const name = plugin.name[languageCode] ?? plugin.name.en;
+const description = plugin.description[languageCode] ?? plugin.description.en;
+---
+
+<SiteLayout
+  lang={languageCode}
+  currentPage="sources"
+  pagePath={`sources/${plugin.id}`}
+  title={`${name} — Modern Downloader`}
+  description={description}
+>
+  <main id="main" class="plugin-detail-main">
+    <nav class="plugin-breadcrumb" aria-label={text.catalog}>
+      <a href={catalogUrl}>{text.catalog}</a><span aria-hidden="true">/</span><span aria-current="page">{name}</span>
+    </nav>
+    <header class="plugin-detail-hero" data-reveal>
+      <div>
+        <p class="section-index">{text.category} / {String(pluginIndex + 1).padStart(2, '0')}</p>
+        <h1>{name}</h1>
+        <p>{description}</p>
+        <div class="plugin-detail-actions">
+          <ActionLink href={primaryUrl} downloadDialog={plugin.kind === 'core'} label={primaryLabel} arrow="up" />
+          <ActionLink href={guideUrl} label={text.guide} kind="secondary" arrow="up" />
+        </div>
+      </div>
+      <aside class="plugin-detail-aside">
+        <Badge variant="outline" className="detail-status">{status}</Badge>
+        <span class="detail-id">{plugin.id.replaceAll('_', ' / ')}</span>
+      </aside>
+    </header>
+
+    <section class="plugin-detail-info" aria-label={text.what}>
+      <article data-reveal><span>01</span><div><h2>{text.what}</h2><p>{description}</p></div></article>
+      <article data-reveal data-reveal-delay="70"><span>02</span><div><h2>{text.access}</h2><p>{access}</p></div></article>
+      <article data-reveal data-reveal-delay="140"><span>03</span><div><h2>{text.management}</h2><p>{management}</p></div></article>
+    </section>
+
+    <section class="plugin-related" aria-labelledby="related-title" data-reveal>
+      <div class="plugin-related-heading"><h2 id="related-title">{text.other}</h2><a href={catalogUrl}>{text.all}<span aria-hidden="true">↗</span></a></div>
+      <div class="plugin-related-list">
+        {related.map((item) => <a href={`${catalogUrl}${item.id}/`}><span>{item.name[languageCode] ?? item.name.en}</span><span aria-hidden="true">↗</span></a>)}
+      </div>
+    </section>
+  </main>
+</SiteLayout>

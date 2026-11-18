@@ -1,0 +1,25 @@
+---
+const basePath = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content={`0;url=${basePath}fr/`} />
+    <title>Modern Downloader — accueil</title>
+  </head>
+  <body>
+    <script is:inline define:vars={{ basePath }}>
+      const languages = ['fr', 'en', 'ar'];
+      const preferred = navigator.languages
+        .map((language) => language.toLowerCase().split('-')[0])
+        .find((language) => languages.includes(language)) || 'fr';
+      window.location.replace(`${basePath}${preferred}/`);
+    </script>
+    <p><a href={`${basePath}fr/`}>Accueil Modern Downloader</a></p>
+  </body>
+</html>

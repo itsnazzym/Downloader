@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/features/archive/data/services/tiktok_video_cache_service.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
 
 class MockTikTokArchiveRepository implements ITikTokArchiveRepository {
   TikTokArchiveCatalog? _cached;
@@ -26,6 +30,25 @@ class MockTikTokArchiveRepository implements ITikTokArchiveRepository {
   Future<void> clearCatalog() async {
     _cached = null;
   }
+}
+
+ProviderContainer _createArchiveTestContainer(
+  ITikTokArchiveRepository repository,
+) {
+  final container = ProviderContainer(
+    overrides: [
+      tikTokArchiveRepositoryProvider.overrideWithValue(repository),
+      tiktokVideoCacheServiceProvider.overrideWith((ref) {
+        final service = TikTokVideoCacheService(
+          cacheDirectory: Directory.systemTemp,
+        );
+        ref.onDispose(service.dispose);
+        return service;
+      }),
+    ],
+  );
+  addTearDown(container.dispose);
+  return container;
 }
 
 void main() {
@@ -76,12 +99,8 @@ void main() {
 
   group('TikTokArchiveProvider Tests', () {
     test('loads cached catalog and filters by year and collection', () async {
-      final container = ProviderContainer(
-        overrides: [
-          tikTokArchiveRepositoryProvider.overrideWithValue(
-            MockTikTokArchiveRepository(sampleCatalog),
-          ),
-        ],
+      final container = _createArchiveTestContainer(
+        MockTikTokArchiveRepository(sampleCatalog),
       );
 
       // Initialize notifier and await initialization
@@ -105,145 +124,305 @@ void main() {
       expect(filtered.length, equals(1));
       expect(filtered.first.id, equals('1002'));
 
+      container
+          .read(tikTokArchiveProvider.notifier)
+          .selectCollection('Vidéos Likées');
+      filtered = container.read(filteredTikTokVideosProvider);
+      expect(filtered.map((video) => video.id), containsAll(['1002', '1003']));
+
       // Filter by Favorites Only
       container.read(tikTokArchiveProvider.notifier).selectCollection(null);
-      container.read(tikTokArchiveProvider.notifier).setStatusFilter(TikTokStatusFilter.favoritesOnly);
+      container
+          .read(tikTokArchiveProvider.notifier)
+          .setStatusFilter(TikTokStatusFilter.favoritesOnly);
       filtered = container.read(filteredTikTokVideosProvider);
       expect(filtered.length, equals(2));
 
       // Toggle selection
       container.read(tikTokArchiveProvider.notifier).toggleSelection('1001');
-      expect(container.read(tikTokArchiveProvider).selectedIds, contains('1001'));
+      expect(
+        container.read(tikTokArchiveProvider).selectedIds,
+        contains('1001'),
+      );
 
       container.read(tikTokArchiveProvider.notifier).clearSelection();
       expect(container.read(tikTokArchiveProvider).selectedIds, isEmpty);
     });
 
-    test('defaults to TikTokViewMode.hub and updates collection mapping accurately', () async {
-      final container = ProviderContainer(
-        overrides: [
-          tikTokArchiveRepositoryProvider.overrideWithValue(
-            MockTikTokArchiveRepository(sampleCatalog),
+    test(
+      'mapping proposals require approval before collection assignment',
+      () async {
+        final container = _createArchiveTestContainer(
+          MockTikTokArchiveRepository(sampleCatalog),
+        );
+
+        final notifier = container.read(tikTokArchiveProvider.notifier);
+        await notifier.initialized;
+
+        final state = container.read(tikTokArchiveProvider);
+        // Cached mapped libraries open directly to their collections.
+        expect(state.viewMode, equals(TikTokViewMode.collections));
+
+        notifier.setViewMode(TikTokViewMode.collections);
+        expect(
+          container.read(tikTokArchiveProvider).viewMode,
+          equals(TikTokViewMode.collections),
+        );
+
+        await notifier.updateCollectionMapping({
+          'Gaming': ['1003'],
+        });
+
+        var updatedState = container.read(tikTokArchiveProvider);
+        var gamingCol = updatedState.catalog!.collections.firstWhere(
+          (c) => c.name == 'Gaming',
+        );
+        expect(gamingCol.videoCount, 0);
+        expect(updatedState.catalog!.suggestions.single.videoId, '1003');
+        expect(
+          updatedState.catalog!.videos
+              .firstWhere((v) => v.id == '1003')
+              .collectionName,
+          isNull,
+        );
+
+        await notifier.applyCollectionSuggestions({
+          updatedState.catalog!.suggestions.single.key,
+        });
+        updatedState = container.read(tikTokArchiveProvider);
+        gamingCol = updatedState.catalog!.collections.firstWhere(
+          (c) => c.name == 'Gaming',
+        );
+        expect(gamingCol.videoCount, equals(1));
+
+        final video1003 = updatedState.catalog!.videos.firstWhere(
+          (v) => v.id == '1003',
+        );
+        expect(video1003.collectionName, equals('Gaming'));
+      },
+    );
+
+    test(
+      'legacy mapping creates a reviewable collection without assigning videos',
+      () async {
+        final repository = MockTikTokArchiveRepository();
+        final container = _createArchiveTestContainer(repository);
+
+        final notifier = container.read(tikTokArchiveProvider.notifier);
+        await notifier.updateCollectionMapping(
+          {
+            'Saved clips': ['7400000000000000001', '7400000000000000002'],
+          },
+          collectionTotals: {'Saved clips': 2},
+        );
+
+        final catalog = container.read(tikTokArchiveProvider).catalog!;
+        expect(catalog.videos.length, 2);
+        expect(catalog.totalFavorites, 2);
+        final collection = catalog.collections.firstWhere(
+          (item) => item.name == 'Saved clips',
+        );
+        expect(collection.videoCount, 0);
+        expect(collection.declaredTotal, 2);
+        expect(catalog.suggestions.length, 2);
+        expect(
+          catalog.videos.every((video) => video.collectionName == null),
+          isTrue,
+        );
+        expect(
+          catalog.videos.first.url,
+          'https://www.tiktokv.com/share/video/7400000000000000001/',
+        );
+        expect((await repository.getCachedCatalog())!.videos.length, 2);
+
+        await notifier.applyCollectionSuggestions(
+          catalog.suggestions.map((suggestion) => suggestion.key).toSet(),
+        );
+        final approved = container.read(tikTokArchiveProvider).catalog!;
+        expect(
+          approved.collections
+              .firstWhere((item) => item.name == 'Saved clips')
+              .videoCount,
+          2,
+        );
+        expect(
+          approved.videos.every(
+            (video) => video.collectionName == 'Saved clips',
           ),
-        ],
-      );
+          isTrue,
+        );
+      },
+    );
 
-      final notifier = container.read(tikTokArchiveProvider.notifier);
-      await notifier.initialized;
+    test(
+      'partial sync saves verified IDs without guessing from nearby dates',
+      () async {
+        final testCatalog = TikTokArchiveCatalog(
+          videos: [
+            TikTokArchiveItem(
+              id: 'v_verified',
+              url: 'https://www.tiktokv.com/share/video/v_verified/',
+              date: DateTime(2026, 8, 10),
+              isFavorite: true,
+            ),
+            TikTokArchiveItem(
+              id: 'v_in_window',
+              url: 'https://www.tiktokv.com/share/video/v_in_window/',
+              date: DateTime(
+                2026,
+                8,
+                11,
+              ), // 1 day after verified -> within +/- 2 days anchor
+              isFavorite: true,
+            ),
+            TikTokArchiveItem(
+              id: 'v_far_away',
+              url: 'https://www.tiktokv.com/share/video/v_far_away/',
+              date: DateTime(2024, 1, 1), // 2.5 years away -> must be ignored
+              isFavorite: true,
+            ),
+            TikTokArchiveItem(
+              id: 'v_not_favorite',
+              url: 'https://www.tiktokv.com/share/video/v_not_favorite/',
+              date: DateTime(
+                2026,
+                8,
+                10,
+              ), // Same date but not a favorite -> must be ignored
+              isFavorite: false,
+              isLiked: true,
+            ),
+          ],
+          collections: const [
+            TikTokCollectionItem(name: 'AutoTech', videoCount: 0),
+          ],
+          sounds: const [],
+          totalFavorites: 3,
+          totalLikes: 1,
+          totalOverlap: 0,
+          yearCounts: {2026: 3, 2024: 1},
+        );
 
-      final state = container.read(tikTokArchiveProvider);
-      // Verify default view mode is hub
-      expect(state.viewMode, equals(TikTokViewMode.hub));
+        final container = _createArchiveTestContainer(
+          MockTikTokArchiveRepository(testCatalog),
+        );
 
-      // Switch to collections mode
-      notifier.setViewMode(TikTokViewMode.collections);
-      expect(container.read(tikTokArchiveProvider).viewMode, equals(TikTokViewMode.collections));
+        final notifier = container.read(tikTokArchiveProvider.notifier);
+        await notifier.initialized;
 
-      // Update mapping: assign video '1003' to collection 'Gaming'
-      await notifier.updateCollectionMapping({
-        'Gaming': ['1003'],
-      });
+        await notifier.applyCollectionSync(const [
+          TikTokCollectionSnapshot(
+            id: 'collection-autotech',
+            name: 'AutoTech',
+            declaredTotal: 3,
+            videoIds: ['v_verified', 'v_not_favorite'],
+            complete: false,
+            error: 'count_mismatch',
+          ),
+        ], collectionListComplete: false);
 
-      final updatedState = container.read(tikTokArchiveProvider);
-      final gamingCol = updatedState.catalog!.collections.firstWhere((c) => c.name == 'Gaming');
-      expect(gamingCol.videoCount, equals(1));
+        final state = container.read(tikTokArchiveProvider);
+        final col = state.catalog!.collections.firstWhere(
+          (c) => c.name == 'AutoTech',
+        );
 
-      final video1003 = updatedState.catalog!.videos.firstWhere((v) => v.id == '1003');
-      expect(video1003.collectionName, equals('Gaming'));
-    });
+        expect(col.videoCount, equals(2));
+        expect(col.declaredTotal, equals(3));
+        expect(col.syncComplete, isFalse);
+        expect(state.catalog!.suggestions, isEmpty);
 
-    test('applies strict anchor heuristic only when declaredTotal > verifiedCount', () async {
-      final testCatalog = TikTokArchiveCatalog(
-        videos: [
-          TikTokArchiveItem(
-            id: 'v_verified',
-            url: 'https://www.tiktokv.com/share/video/v_verified/',
-            date: DateTime(2026, 8, 10),
+        final vVerified = state.catalog!.videos.firstWhere(
+          (v) => v.id == 'v_verified',
+        );
+        final vInWindow = state.catalog!.videos.firstWhere(
+          (v) => v.id == 'v_in_window',
+        );
+        final vFarAway = state.catalog!.videos.firstWhere(
+          (v) => v.id == 'v_far_away',
+        );
+        final vNotFavorite = state.catalog!.videos.firstWhere(
+          (v) => v.id == 'v_not_favorite',
+        );
+
+        expect(vVerified.collectionId, 'collection-autotech');
+        expect(vInWindow.collectionId, isNull);
+        expect(vFarAway.collectionName, isNull);
+        expect(vNotFavorite.collectionId, 'collection-autotech');
+        final newlyFavoritedLike = state.catalog!.videos.firstWhere(
+          (video) => video.id == 'v_not_favorite',
+        );
+        expect(newlyFavoritedLike.isFavorite, isTrue);
+        expect(state.catalog!.totalFavorites, 4);
+        expect(state.catalog!.totalOverlap, 1);
+
+        await notifier.resetCollectionToUnclassified('collection-autotech');
+
+        final resetState = container.read(tikTokArchiveProvider);
+        final resetCol = resetState.catalog!.collections.firstWhere(
+          (c) => c.name == 'AutoTech',
+        );
+        expect(resetCol.videoCount, equals(0));
+        expect(resetCol.heuristicCount, equals(0));
+
+        final vVerifiedAfterReset = resetState.catalog!.videos.firstWhere(
+          (v) => v.id == 'v_verified',
+        );
+        final vInWindowAfterReset = resetState.catalog!.videos.firstWhere(
+          (v) => v.id == 'v_in_window',
+        );
+        expect(vVerifiedAfterReset.collectionName, isNull);
+        expect(vInWindowAfterReset.collectionName, isNull);
+      },
+    );
+
+    test(
+      'large suggestion batches are reconciled without blocking the UI isolate',
+      () async {
+        final now = DateTime(2026, 1, 1);
+        final videos = List.generate(
+          2500,
+          (index) => TikTokArchiveItem(
+            id: 'large-$index',
+            url: 'https://www.tiktok.com/video/$index',
+            date: now,
             isFavorite: true,
           ),
-          TikTokArchiveItem(
-            id: 'v_in_window',
-            url: 'https://www.tiktokv.com/share/video/v_in_window/',
-            date: DateTime(2026, 8, 11), // 1 day after verified -> within +/- 2 days anchor
-            isFavorite: true,
-          ),
-          TikTokArchiveItem(
-            id: 'v_far_away',
-            url: 'https://www.tiktokv.com/share/video/v_far_away/',
-            date: DateTime(2024, 1, 1), // 2.5 years away -> must be ignored
-            isFavorite: true,
-          ),
-          TikTokArchiveItem(
-            id: 'v_not_favorite',
-            url: 'https://www.tiktokv.com/share/video/v_not_favorite/',
-            date: DateTime(2026, 8, 10), // Same date but not a favorite -> must be ignored
-            isFavorite: false,
-            isLiked: true,
-          ),
-        ],
-        collections: const [
-          TikTokCollectionItem(name: 'AutoTech', videoCount: 0),
-        ],
-        sounds: const [],
-        totalFavorites: 3,
-        totalLikes: 1,
-        totalOverlap: 0,
-        yearCounts: {2026: 3, 2024: 1},
-      );
+        );
+        final largeCatalog = TikTokArchiveCatalog(
+          videos: videos,
+          collections: const [],
+          sounds: const [],
+          totalFavorites: videos.length,
+          totalLikes: 0,
+          totalOverlap: 0,
+          yearCounts: {2026: videos.length},
+        );
+        final repository = MockTikTokArchiveRepository(largeCatalog);
+        final container = _createArchiveTestContainer(repository);
 
-      final container = ProviderContainer(
-        overrides: [
-          tikTokArchiveRepositoryProvider.overrideWithValue(
-            MockTikTokArchiveRepository(testCatalog),
-          ),
-        ],
-      );
+        final notifier = container.read(tikTokArchiveProvider.notifier);
+        await notifier.initialized;
+        await notifier.updateCollectionMapping({
+          'Large folder': videos.map((video) => video.id).toList(),
+        });
+        final pending = container.read(tikTokArchiveProvider).catalog!;
+        expect(pending.suggestions, hasLength(2500));
+        expect(
+          pending.videos.every((video) => video.collectionIds.isEmpty),
+          isTrue,
+        );
 
-      final notifier = container.read(tikTokArchiveProvider.notifier);
-      await notifier.initialized;
-
-      // Sync mapping: AutoTech has 1 verified video ('v_verified'), but declaredTotal = 2
-      await notifier.updateCollectionMapping(
-        {
-          'AutoTech': ['v_verified'],
-        },
-        collectionTotals: {
-          'AutoTech': 2,
-        },
-      );
-
-      final state = container.read(tikTokArchiveProvider);
-      final col = state.catalog!.collections.firstWhere((c) => c.name == 'AutoTech');
-
-      // AutoTech should have exactly 2 videos (1 verified + 1 completed via anchor heuristic)
-      expect(col.videoCount, equals(2));
-      expect(col.declaredTotal, equals(2));
-      expect(col.heuristicCount, equals(1));
-
-      // Check which videos were assigned
-      final vVerified = state.catalog!.videos.firstWhere((v) => v.id == 'v_verified');
-      final vInWindow = state.catalog!.videos.firstWhere((v) => v.id == 'v_in_window');
-      final vFarAway = state.catalog!.videos.firstWhere((v) => v.id == 'v_far_away');
-      final vNotFavorite = state.catalog!.videos.firstWhere((v) => v.id == 'v_not_favorite');
-
-      expect(vVerified.collectionName, equals('AutoTech'));
-      expect(vInWindow.collectionName, equals('AutoTech')); // Captured by anchor window
-      expect(vFarAway.collectionName, isNull); // Kept unclassified
-      expect(vNotFavorite.collectionName, isNull); // Kept unclassified
-
-      // Test resetCollectionToUnclassified
-      await notifier.resetCollectionToUnclassified('AutoTech');
-
-      final resetState = container.read(tikTokArchiveProvider);
-      final resetCol = resetState.catalog!.collections.firstWhere((c) => c.name == 'AutoTech');
-      expect(resetCol.videoCount, equals(0));
-      expect(resetCol.heuristicCount, equals(0));
-
-      final vVerifiedAfterReset = resetState.catalog!.videos.firstWhere((v) => v.id == 'v_verified');
-      final vInWindowAfterReset = resetState.catalog!.videos.firstWhere((v) => v.id == 'v_in_window');
-      expect(vVerifiedAfterReset.collectionName, isNull);
-      expect(vInWindowAfterReset.collectionName, isNull);
-    });
+        await notifier.applyCollectionSuggestions(
+          pending.suggestions.map((suggestion) => suggestion.key).toSet(),
+        );
+        final approved = container.read(tikTokArchiveProvider).catalog!;
+        expect(approved.suggestions, isEmpty);
+        expect(approved.collections.single.videoCount, 2500);
+        expect(
+          approved.videos.every((video) => video.collectionIds.length == 1),
+          isTrue,
+        );
+      },
+    );
   });
 }
-

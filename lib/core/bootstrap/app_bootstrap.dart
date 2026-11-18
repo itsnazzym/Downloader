@@ -9,6 +9,7 @@ import '../launch/protocol_url_parser.dart';
 import '../logger/logger_service.dart';
 import '../platform/default_library_path_resolver.dart';
 import '../platform/platform_info.dart';
+import '../plugins/feature_activation.dart';
 import '../providers/launch_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/notification_service.dart';
@@ -17,6 +18,8 @@ import '../services/notification_service.dart';
 /// Handles desktop window initialization, protocol handlers, and post-frame background setups.
 class AppBootstrap {
   AppBootstrap._();
+
+  static Future<void>? _postFrameInitialization;
 
   /// Configures window manager options and displays the desktop window.
   static Future<void> initDesktopWindow() async {
@@ -61,28 +64,49 @@ class AppBootstrap {
   }
 
   /// Parses deep link / protocol launch arguments into the launch provider.
-  static void handleLaunchArgs(
-    List<String> args,
-    ProviderContainer container,
-  ) {
+  static void handleLaunchArgs(List<String> args, ProviderContainer container) {
     if (args.isEmpty) return;
     final protocolArg = args.firstWhere(
       (arg) => arg.contains('moderndownloader://'),
       orElse: () => '',
     );
     if (protocolArg.isNotEmpty) {
-      final initialUrl = ProtocolUrlParser.extractMediaUrl(protocolArg);
-      if (initialUrl != null) {
-        container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
-          initialUrl,
-          shouldAutoStart: PlatformInfo.isMobile,
-        );
-      }
+      dispatchProtocolUrl(protocolArg, container);
     }
   }
 
+  /// Dispatches one allowlisted app intent: a download URL or a catalog ID.
+  static bool dispatchProtocolUrl(
+    String protocolUrl,
+    ProviderContainer container,
+  ) {
+    final pluginId = ProtocolUrlParser.extractPluginId(protocolUrl);
+    final descriptor = pluginId == null
+        ? null
+        : container.read(featureCatalogProvider).byId[pluginId];
+    if (descriptor != null &&
+        descriptor.supportsPlatform(
+          PlatformInfo.isAndroid ? 'android' : 'windows',
+        )) {
+      container.read(pluginInstallRequestProvider.notifier).state = pluginId;
+      return true;
+    }
+
+    final mediaUrl = ProtocolUrlParser.extractMediaUrl(protocolUrl);
+    if (mediaUrl == null) return false;
+    container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
+      mediaUrl,
+      shouldAutoStart: PlatformInfo.isMobile,
+    );
+    return true;
+  }
+
   /// Asynchronous background services initialized right after the first frame renders.
-  static Future<void> initAfterFirstFrame(ProviderContainer container) async {
+  static Future<void> initAfterFirstFrame(ProviderContainer container) {
+    return _postFrameInitialization ??= _initAfterFirstFrame(container);
+  }
+
+  static Future<void> _initAfterFirstFrame(ProviderContainer container) async {
     try {
       MediaKit.ensureInitialized();
     } catch (e) {
@@ -104,13 +128,9 @@ class AppBootstrap {
     try {
       final initialUrlStr = await protocolHandler.getInitialUrl();
       if (initialUrlStr != null) {
-        final extracted = ProtocolUrlParser.extractMediaUrl(initialUrlStr);
-        if (extracted != null &&
+        if (container.read(pluginInstallRequestProvider) == null &&
             container.read(launchDataProvider) == null) {
-          container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
-            extracted,
-            shouldAutoStart: PlatformInfo.isMobile,
-          );
+          dispatchProtocolUrl(initialUrlStr, container);
         }
       }
     } catch (e) {
@@ -131,15 +151,10 @@ class _ProtocolListener extends ProtocolListener {
 
   @override
   void onProtocolUrlReceived(String url) {
-    final extractedUrl = ProtocolUrlParser.extractMediaUrl(url);
-    if (extractedUrl != null) {
-      container.read(launchDataProvider.notifier).state = LaunchData.fromUrl(
-        extractedUrl,
-        shouldAutoStart: PlatformInfo.isMobile,
-      );
+    if (AppBootstrap.dispatchProtocolUrl(url, container)) {
       if (PlatformInfo.isDesktop) {
-        windowManager.show();
-        windowManager.focus();
+        unawaited(windowManager.show());
+        unawaited(windowManager.focus());
       }
     }
   }

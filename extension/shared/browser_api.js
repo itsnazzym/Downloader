@@ -104,12 +104,45 @@
     };
   }
 
-  var api = raw;
+  function wrapSendMessage(fn, ctx) {
+    if (!fn) return undefined;
+    return function () {
+      var args = Array.prototype.slice.call(arguments);
+      var last = args[args.length - 1];
+      var hasCallback = typeof last === 'function';
+      if (hasCallback) {
+        var userCb = args.pop();
+        var p;
+        try {
+          p = fn.apply(ctx, args);
+        } catch (e) {
+          try { userCb(undefined); } catch (_) {}
+          return undefined;
+        }
+        if (p && typeof p.then === 'function') {
+          p.then(function (res) {
+            try { userCb(res); } catch (_) {}
+          }).catch(function () {
+            try { userCb(undefined); } catch (_) {}
+          });
+          return undefined;
+        }
+        return p;
+      }
+      var res = fn.apply(ctx, args);
+      if (res && typeof res.then === 'function') {
+        return res;
+      }
+      return Promise.resolve(res);
+    };
+  }
+
+  var api;
 
   // Ensure promise helpers for the common Chrome callback APIs we use.
   if (typeof browser === 'undefined') {
     var runtimeWrapper = Object.create(raw.runtime);
-    runtimeWrapper.sendMessage = promisify(raw.runtime.sendMessage, raw.runtime);
+    runtimeWrapper.sendMessage = wrapSendMessage(raw.runtime.sendMessage, raw.runtime);
 
     api = {
       runtime: runtimeWrapper,
@@ -137,6 +170,11 @@
             return tabsWrapper;
           })()
         : undefined,
+      scripting: raw.scripting
+        ? {
+            executeScript: promisify(raw.scripting.executeScript, raw.scripting),
+          }
+        : undefined,
       contextMenus: raw.contextMenus,
       action: raw.action || raw.browserAction,
       browserAction: raw.browserAction || raw.action,
@@ -158,6 +196,11 @@
           }
         : undefined,
     };
+  } else {
+    var ffRuntime = Object.create(raw.runtime);
+    ffRuntime.sendMessage = wrapSendMessage(raw.runtime.sendMessage, raw.runtime);
+    api = Object.create(raw);
+    api.runtime = ffRuntime;
   }
 
   global.MD_API = api;

@@ -1,5 +1,4 @@
-import 'package:modern_downloader/core/services/progressive_organizer_service.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:modern_downloader/core/download/creator_metadata_parser.dart';
 
 /// Identity used to group downloads into a creator folder.
 class CreatorIdentity {
@@ -30,19 +29,20 @@ class CreatorIdentity {
 class CreatorFolderKey {
   const CreatorFolderKey._();
 
-  static CreatorIdentity of(DownloadItem item) {
-    final fromUrl = ProgressiveOrganizerService.extractCreatorFromUrl(
-      item.request.url,
-    );
+  static CreatorIdentity of({
+    required String url,
+    String? title,
+    String? filePath,
+  }) {
+    final fromUrl = CreatorMetadataParser.extractCreatorFromUrl(url);
     if (fromUrl != null && fromUrl.trim().isNotEmpty) {
       return _fromRaw(fromUrl);
     }
 
-    final fromTitle =
-        ProgressiveOrganizerService.extractCreatorFromTitleOrFilename(
-          item.title,
-          item.filePath,
-        );
+    final fromTitle = CreatorMetadataParser.extractCreatorFromTitleOrFilename(
+      title,
+      filePath,
+    );
     if (fromTitle != null && fromTitle.trim().isNotEmpty) {
       return _fromRaw(fromTitle);
     }
@@ -51,7 +51,7 @@ class CreatorFolderKey {
   }
 
   static CreatorIdentity _fromRaw(String raw) {
-    final handle = ProgressiveOrganizerService.sanitizeFolderName(raw);
+    final handle = CreatorMetadataParser.sanitizeFolderName(raw);
     if (handle.isEmpty || handle.toLowerCase() == 'inconnu') {
       return const CreatorIdentity(key: CreatorIdentity.unknownKey);
     }

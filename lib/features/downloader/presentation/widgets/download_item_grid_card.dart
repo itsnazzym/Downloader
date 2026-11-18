@@ -209,6 +209,9 @@ class _DownloadItemGridCardState extends State<DownloadItemGridCard> {
 
   /// Helper method to display thumbnail from local file or network URL
   Widget _buildThumbnailImage(String url) {
+    if (url.startsWith('assets/showcase/')) {
+      return Image.asset(url, fit: BoxFit.cover);
+    }
     // Only treat as network URL if it explicitly starts with http:// or https://
     final isNetworkUrl =
         url.startsWith('http://') || url.startsWith('https://');

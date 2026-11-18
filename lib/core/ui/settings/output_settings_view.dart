@@ -13,7 +13,7 @@ import '../../download/download_path_resolver.dart';
 
 import 'widgets/storage_chart.dart';
 import 'widgets/library_migration_dialog.dart';
-import 'widgets/reorganize_library_dialog.dart';
+import '../../../features/downloader/presentation/views/dialogs/reorganize_library_dialog.dart';
 import '../../../features/onboarding/presentation/onboarding_targets.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/settings_tiles.dart';

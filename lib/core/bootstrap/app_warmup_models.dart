@@ -7,12 +7,7 @@ enum WarmupStageId {
   storageCatalog,
 }
 
-enum WarmupStageStatus {
-  pending,
-  running,
-  completed,
-  failed,
-}
+enum WarmupStageStatus { pending, running, completed, failed }
 
 @immutable
 class WarmupStageItem {
@@ -28,10 +23,7 @@ class WarmupStageItem {
     this.status = WarmupStageStatus.pending,
   });
 
-  WarmupStageItem copyWith({
-    WarmupStageStatus? status,
-    String? description,
-  }) {
+  WarmupStageItem copyWith({WarmupStageStatus? status, String? description}) {
     return WarmupStageItem(
       id: id,
       title: title,
@@ -83,7 +75,7 @@ class AppWarmupState {
         WarmupStageItem(
           id: WarmupStageId.storageCatalog,
           title: 'Stockage & Catalogues',
-          description: 'Préchauffage de l\'index TikTok et nettoyage du cache',
+          description: 'Chargement de la bibliothèque sauvegardée',
         ),
       ],
     );

@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/plugins/feature_activation.dart';
 import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
-class FloatingNavDock extends StatelessWidget {
+class FloatingNavDock extends ConsumerWidget {
   final String currentLocation;
   const FloatingNavDock({super.key, required this.currentLocation});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
     final reduce = MediaQuery.of(context).disableAnimations;
+    final features = ref.watch(featureActivationProvider);
+    final catalog = ref.watch(featureCatalogProvider);
+    final locale = Localizations.localeOf(context).languageCode;
 
     final dock = Align(
       alignment: Alignment.bottomCenter,
@@ -32,33 +37,39 @@ class FloatingNavDock extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _DockItem(
-                  icon: Icons.download_rounded,
-                  label: l10n.mainPage,
-                  selected: currentLocation == '/',
-                  onTap: () => context.go('/'),
-                ),
-                const SizedBox(width: 6),
-                _DockItem(
-                  icon: Icons.add_rounded,
-                  label: l10n.newDownload,
-                  selected: false,
-                  emphasized: true,
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const AddDownloadDialog(),
-                    );
-                  },
-                ),
-                const SizedBox(width: 6),
-                _DockItem(
-                  icon: Icons.bar_chart_rounded,
-                  label: l10n.statistics,
-                  selected: currentLocation == '/stats',
-                  onTap: () => context.go('/stats'),
-                ),
-                const SizedBox(width: 6),
+                if (features.isEnabledById('statistics'))
+                  _DockItem(
+                    icon: Icons.download_rounded,
+                    label: l10n.mainPage,
+                    selected: currentLocation == '/',
+                    onTap: () => context.go('/'),
+                  ),
+                if (features.isEnabledById('statistics'))
+                  const SizedBox(width: 6),
+                if (features.isEnabledById('device_transfer'))
+                  _DockItem(
+                    icon: Icons.add_rounded,
+                    label: l10n.newDownload,
+                    selected: false,
+                    emphasized: true,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const AddDownloadDialog(),
+                      );
+                    },
+                  ),
+                if (features.isEnabledById('device_transfer'))
+                  const SizedBox(width: 6),
+                if (features.isEnabledById('tiktok_archives'))
+                  _DockItem(
+                    icon: Icons.bar_chart_rounded,
+                    label: l10n.statistics,
+                    selected: currentLocation == '/stats',
+                    onTap: () => context.go('/stats'),
+                  ),
+                if (features.isEnabledById('tiktok_archives'))
+                  const SizedBox(width: 6),
                 _DockItem(
                   icon: Icons.ios_share_rounded,
                   label: l10n.transferTitle,
@@ -68,7 +79,7 @@ class FloatingNavDock extends StatelessWidget {
                 const SizedBox(width: 6),
                 _DockItem(
                   icon: Icons.folder_zip_rounded,
-                  label: 'Archives',
+                  label: catalog.byId['tiktok_archives']!.nameFor(locale),
                   selected: currentLocation == '/archive',
                   onTap: () => context.go('/archive'),
                 ),

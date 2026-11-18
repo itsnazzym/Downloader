@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:uuid/uuid.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
@@ -10,23 +11,116 @@ import 'package:modern_downloader/features/downloader/domain/entities/download_i
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
-import 'package:modern_downloader/core/services/metadata_extractor_service.dart';
-import 'package:modern_downloader/core/services/thumbnail_service.dart';
 import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 
+class _IndexedVideoFile {
+  const _IndexedVideoFile({
+    required this.path,
+    required this.name,
+    required this.sizeBytes,
+  });
+
+  final String path;
+  final String name;
+  final int sizeBytes;
+
+  String get pathKey => path.toLowerCase();
+
+  factory _IndexedVideoFile.fromMap(Map<String, Object?> source) {
+    return _IndexedVideoFile(
+      path: source['path']! as String,
+      name: source['name']! as String,
+      sizeBytes: source['sizeBytes']! as int,
+    );
+  }
+}
+
+class LibraryScanResult {
+  const LibraryScanResult({required this.fixedItems, required this.newItems});
+
+  final List<DownloadItem> fixedItems;
+  final List<DownloadItem> newItems;
+}
+
+/// Filesystem traversal and stat calls must never execute on Flutter's UI
+/// isolate. The worker returns only primitive values, which are safe to pass
+/// back across an isolate boundary.
+List<Map<String, Object?>> _indexVideoFiles(String basePath) {
+  final directory = Directory(basePath);
+  if (!directory.existsSync()) return const [];
+
+  final files = <Map<String, Object?>>[];
+  try {
+    for (final entity in directory.listSync(
+      recursive: true,
+      followLinks: false,
+    )) {
+      if (entity is! File || !DownloadFileResolver.isVideoPath(entity.path)) {
+        continue;
+      }
+      try {
+        files.add(<String, Object?>{
+          'path': entity.path,
+          'name': entity.uri.pathSegments.last,
+          'sizeBytes': entity.lengthSync(),
+        });
+      } catch (_) {
+        // A file can disappear while the library is being indexed.
+      }
+    }
+  } catch (_) {
+    return files;
+  }
+  return files;
+}
+
 class LibraryScannerService {
-  final BinaryLocator _binaryLocator;
-  late final ThumbnailService _thumbnailService;
+  static const int _maxFuzzyComparisons = 25000;
 
   /// Cache of all video files found during scanning
-  List<File>? _videoFileCache;
+  List<_IndexedVideoFile>? _videoFileCache;
+  List<String> _videoNormalizedNames = const <String>[];
+  Map<String, _IndexedVideoFile> _videoByPath = <String, _IndexedVideoFile>{};
+  Map<String, _IndexedVideoFile> _videoById = <String, _IndexedVideoFile>{};
+  Map<String, _IndexedVideoFile> _videoByNormalizedName =
+      <String, _IndexedVideoFile>{};
+  DateTime? _videoCacheBuiltAt;
+  bool _allowFuzzyMatching = false;
 
-  LibraryScannerService(this._binaryLocator) {
-    _thumbnailService = ThumbnailService(_binaryLocator);
+  LibraryScannerService(BinaryLocator _);
+
+  LibraryScannerService._worker();
+
+  /// Indexes and reconciles the catalogue in one worker isolate. Keeping both
+  /// passes together reuses the same filesystem index and avoids CPU or stat
+  /// work on Flutter's UI isolate.
+  Future<LibraryScanResult> scanLibrary(
+    List<DownloadItem> items,
+    String basePath,
+  ) {
+    return Isolate.run(() async {
+      final worker = LibraryScannerService._worker();
+      final fixedItems = await worker._scanAndFixInWorker(items, basePath);
+      final newItems = await worker._scanForNewFilesInWorker(
+        fixedItems,
+        basePath,
+      );
+      return LibraryScanResult(fixedItems: fixedItems, newItems: newItems);
+    });
   }
 
   /// Scans current items and fixes paths, thumbnails, and status
   Future<List<DownloadItem>> scanAndFix(
+    List<DownloadItem> items,
+    String basePath,
+  ) async {
+    return Isolate.run(() {
+      final worker = LibraryScannerService._worker();
+      return worker._scanAndFixInWorker(items, basePath);
+    });
+  }
+
+  Future<List<DownloadItem>> _scanAndFixInWorker(
     List<DownloadItem> items,
     String basePath,
   ) async {
@@ -35,8 +129,9 @@ class LibraryScannerService {
 
     // Build cache of all video files in basePath (recursive)
     await _buildVideoCache(basePath);
-    var generatedThumbs = 0;
-
+    final indexedFileCount = _videoFileCache?.length ?? 0;
+    _allowFuzzyMatching =
+        items.length * indexedFileCount <= _maxFuzzyComparisons;
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
       if (i > 0 && i % 30 == 0) {
@@ -61,7 +156,8 @@ class LibraryScannerService {
         // File found - mark as completed if it was failed or paused
         if (fixedItem.status == DownloadStatus.failed ||
             fixedItem.status == DownloadStatus.paused) {
-          fixedItem = _promoteToCompletedIfValid(fixedItem) ?? fixedItem;
+          fixedItem =
+              _promoteToCompletedIfValid(fixedItem, locatedPath) ?? fixedItem;
         }
       } else {
         if (fixedItem.status == DownloadStatus.completed) {
@@ -76,7 +172,10 @@ class LibraryScannerService {
       // Clear COMPLETED + Retry 3/3 ghost state when the file is valid.
       if (fixedItem.status == DownloadStatus.completed &&
           _hasStaleRetryState(fixedItem)) {
-        final promoted = _promoteToCompletedIfValid(fixedItem);
+        final promoted = _promoteToCompletedIfValid(
+          fixedItem,
+          fixedItem.filePath,
+        );
         if (promoted != null) {
           fixedItem = promoted;
         }
@@ -86,9 +185,7 @@ class LibraryScannerService {
       // Backfill totalSize from the real file so the grid does not show
       // "Unknown Size" for completed downloads already on disk.
       if (fixedItem.totalSize.isEmpty) {
-        final diskSize = DownloadFileResolver.formattedFileSize(
-          fixedItem.filePath,
-        );
+        final diskSize = _formattedSizeForPath(fixedItem.filePath);
         if (diskSize != null) {
           fixedItem = fixedItem.copyWith(
             totalSize: diskSize,
@@ -97,45 +194,9 @@ class LibraryScannerService {
         }
       }
 
-      // 2. Check/Fix Thumbnail - validate existing and generate if missing
-      if (fixedItem.filePath != null &&
-          DownloadFileResolver.existsOnDisk(fixedItem.filePath!)) {
-        // First, validate existing thumbnailUrl - clear if file doesn't exist
-        if (fixedItem.thumbnailUrl != null &&
-            !fixedItem.thumbnailUrl!.startsWith('http')) {
-          // It's a local path - check if file exists
-          String decodedPath = fixedItem.thumbnailUrl!;
-          try {
-            decodedPath = Uri.decodeFull(fixedItem.thumbnailUrl!);
-          } catch (_) {}
-
-          if (!File(decodedPath).existsSync()) {
-            // Thumbnail file is missing - clear it so we can regenerate
-            fixedItem = fixedItem.copyWith(clearThumbnailUrl: true);
-          }
-        }
-
-        // Now try to find or generate thumbnail if needed
-        if (fixedItem.thumbnailUrl == null ||
-            !fixedItem.thumbnailUrl!.startsWith('http')) {
-          // First try existing sidecar
-          var thumb = _findSidecarThumbnail(fixedItem.filePath!);
-
-          // If no sidecar, generate one (bounded to prevent freezing startup)
-          if (thumb == null && generatedThumbs < 5) {
-            thumb = await _thumbnailService.generateThumbnail(
-              fixedItem.filePath!,
-            );
-            if (thumb != null) {
-              generatedThumbs++;
-            }
-          }
-
-          if (thumb != null) {
-            fixedItem = fixedItem.copyWith(thumbnailUrl: thumb);
-          }
-        }
-      }
+      // 2. Thumbnails are lazy. Starting ffmpeg for a library-wide thumbnail
+      // sweep causes long startup stalls on large libraries. Existing paths are
+      // preserved; missing previews are handled by the row placeholder.
 
       // 3. Infer origin from folder / URL — never invent "Local".
       if (fixedItem.filePath != null) {
@@ -166,12 +227,19 @@ class LibraryScannerService {
     List<DownloadItem> knownItems,
     String downloadPath,
   ) async {
+    return Isolate.run(() {
+      final worker = LibraryScannerService._worker();
+      return worker._scanForNewFilesInWorker(knownItems, downloadPath);
+    });
+  }
+
+  Future<List<DownloadItem>> _scanForNewFilesInWorker(
+    List<DownloadItem> knownItems,
+    String downloadPath,
+  ) async {
     final newItems = <DownloadItem>[];
     try {
-      final dir = Directory(downloadPath);
-      if (!dir.existsSync()) return [];
-
-      final extractor = MetadataExtractorService(_binaryLocator);
+      await _ensureVideoCache(downloadPath);
 
       // Get all known paths (normalized) to avoid duplicates
       final knownPaths = knownItems
@@ -190,51 +258,42 @@ class LibraryScannerService {
         }
       }
 
-      // Scan recursively
-      await for (final entity in dir.list(recursive: true)) {
-        if (entity is File) {
-          if (knownPaths.contains(entity.path.toLowerCase())) continue;
-          final fileId = DownloadFileResolver.extractBracketId(entity.path);
-          if (fileId != null && knownIds.contains(fileId.toLowerCase())) {
-            continue;
-          }
-          if (_isVideo(entity.path)) {
-            LoggerService.i('LibraryScanner: Found new video ${entity.path}');
+      var nextSortOrder =
+          knownItems.fold<int>(
+            0,
+            (maxOrder, item) =>
+                item.sortOrder > maxOrder ? item.sortOrder : maxOrder,
+          ) +
+          1;
 
-            final id = const Uuid().v4();
-            final metadata = await extractor.extract(entity.path);
-            final filename = entity.uri.pathSegments.last;
-            final cleanTitle = TitleCleanerService.clean(
-              metadata?.title ?? filename,
-            );
-
-            final detected = MediaSourceResolver.resolve(
-              url: metadata?.sourceUrl,
-              filePath: entity.path,
-            );
-            final requestUrl =
-                metadata?.sourceUrl ??
-                (detected != null
-                    ? 'https://${detected.toLowerCase()}.detected/imported'
-                    : 'https://unknown.invalid/imported');
-            final diskSize = DownloadFileResolver.formattedFileSize(
-              entity.path,
-            );
-            final newItem = DownloadItem(
-              id: id,
-              request: DownloadRequest(url: requestUrl),
-              title: cleanTitle,
-              status: DownloadStatus.completed,
-              progress: 1.0,
-              filePath: entity.path,
-              totalSize: diskSize ?? '',
-              downloadedSize: diskSize ?? '',
-              sortOrder: 9999,
-              thumbnailUrl: _findSidecarThumbnail(entity.path),
-            );
-            newItems.add(newItem);
-          }
+      for (final entity in _videoFileCache ?? const <_IndexedVideoFile>[]) {
+        if (knownPaths.contains(entity.pathKey)) continue;
+        final fileId = DownloadFileResolver.extractBracketId(entity.path);
+        if (fileId != null && knownIds.contains(fileId.toLowerCase())) {
+          continue;
         }
+        LoggerService.i('LibraryScanner: Found new video ${entity.path}');
+
+        final id = const Uuid().v4();
+        final cleanTitle = TitleCleanerService.clean(entity.name);
+        final detected = MediaSourceResolver.resolve(filePath: entity.path);
+        final requestUrl = detected != null
+            ? 'https://${detected.toLowerCase()}.detected/imported'
+            : 'https://unknown.invalid/imported';
+        final diskSize = FormatUtils.formatBytes(entity.sizeBytes);
+        newItems.add(
+          DownloadItem(
+            id: id,
+            request: DownloadRequest(url: requestUrl),
+            title: cleanTitle,
+            status: DownloadStatus.completed,
+            progress: 1.0,
+            filePath: entity.path,
+            totalSize: diskSize,
+            downloadedSize: diskSize,
+            sortOrder: nextSortOrder++,
+          ),
+        );
       }
     } catch (e) {
       LoggerService.e('LibraryScanner: Error scanning for new files', e);
@@ -245,23 +304,42 @@ class LibraryScannerService {
   /// Builds a cache of all video files in the given path (recursive).
   /// Always rebuilds so files added since the last scan can be recovered.
   Future<void> _buildVideoCache(String basePath) async {
-    _videoFileCache = [];
-
     try {
-      final dir = Directory(basePath);
-      if (!dir.existsSync()) return;
-
-      await for (final entity in dir.list(recursive: true)) {
-        if (entity is File && _isVideo(entity.path)) {
-          _videoFileCache!.add(entity);
+      final records = _indexVideoFiles(basePath);
+      final indexed = records.map(_IndexedVideoFile.fromMap).toList();
+      _videoFileCache = indexed;
+      _videoByPath = {for (final file in indexed) file.pathKey: file};
+      _videoById = <String, _IndexedVideoFile>{};
+      _videoByNormalizedName = <String, _IndexedVideoFile>{};
+      _videoNormalizedNames = <String>[];
+      for (final file in indexed) {
+        final id = DownloadFileResolver.extractBracketId(file.name);
+        if (id != null && id.isNotEmpty) {
+          _videoById.putIfAbsent(id.toLowerCase(), () => file);
         }
+        final normalizedName = _normalize(file.name);
+        _videoNormalizedNames.add(normalizedName);
+        _videoByNormalizedName.putIfAbsent(normalizedName, () => file);
       }
+      _videoCacheBuiltAt = DateTime.now();
       LoggerService.i(
-        'LibraryScanner: Cached ${_videoFileCache!.length} video files from $basePath',
+        'LibraryScanner: Indexed ${indexed.length} video files from $basePath',
       );
     } catch (e) {
       LoggerService.e('LibraryScanner: Error building cache', e);
     }
+  }
+
+  Future<void> _ensureVideoCache(String basePath) async {
+    final cacheAge = _videoCacheBuiltAt == null
+        ? null
+        : DateTime.now().difference(_videoCacheBuiltAt!);
+    if (_videoFileCache != null &&
+        cacheAge != null &&
+        cacheAge < const Duration(minutes: 1)) {
+      return;
+    }
+    await _buildVideoCache(basePath);
   }
 
   String _basename(String path) {
@@ -275,18 +353,26 @@ class LibraryScannerService {
         DownloadFileResolver.extractBracketId(item.filePath) ??
         DownloadFileResolver.extractBracketId(item.title);
 
-    if (item.filePath != null &&
-        item.filePath!.trim().isNotEmpty &&
-        DownloadFileResolver.existsOnDisk(item.filePath!)) {
-      return item.filePath;
+    if (item.filePath != null && item.filePath!.trim().isNotEmpty) {
+      final existing = _videoByPath[item.filePath!.toLowerCase()];
+      if (existing != null) return existing.path;
     }
 
-    final resolved = DownloadFileResolver.resolve(
-      candidatePath: item.filePath,
-      outputFolder: basePath,
-      videoId: videoId,
-    );
-    if (resolved != null) return resolved;
+    if (videoId != null && videoId.isNotEmpty) {
+      final byId = _videoById[videoId.toLowerCase()];
+      if (byId != null) return byId.path;
+    }
+
+    if (item.filePath != null && item.filePath!.trim().isNotEmpty) {
+      final byOldName =
+          _videoByNormalizedName[_normalize(_basename(item.filePath!))];
+      if (byOldName != null) return byOldName.path;
+    }
+
+    if (item.title != null && item.title!.trim().isNotEmpty) {
+      final byTitle = _videoByNormalizedName[_normalize(item.title!)];
+      if (byTitle != null) return byTitle.path;
+    }
 
     return _findFileFor(item);
   }
@@ -298,7 +384,7 @@ class LibraryScannerService {
   }) {
     if (_videoFileCache == null) return null;
 
-    bool isCandidate(File file) {
+    bool isCandidate(_IndexedVideoFile file) {
       if (DownloadFileResolver.isFragmentPath(file.path)) return false;
       return !excludePaths.contains(file.path.toLowerCase());
     }
@@ -308,15 +394,8 @@ class LibraryScannerService {
     final idFromTitle = DownloadFileResolver.extractBracketId(item.title);
     final videoId = idFromPath ?? idFromTitle;
     if (videoId != null && videoId.isNotEmpty) {
-      final needle = videoId.toLowerCase();
-      for (final file in _videoFileCache!) {
-        if (!isCandidate(file)) continue;
-        final filename = _basename(file.path);
-        final lower = filename.toLowerCase();
-        if (lower.contains('[$needle]')) {
-          return file.path;
-        }
-      }
+      final byId = _videoById[videoId.toLowerCase()];
+      if (byId != null && isCandidate(byId)) return byId.path;
     }
 
     if (item.title == null) return null;
@@ -329,24 +408,26 @@ class LibraryScannerService {
       final oldFilename = _basename(item.filePath!);
       final normalizedOldFilename = _normalize(oldFilename);
 
-      for (final file in _videoFileCache!) {
-        if (!isCandidate(file)) continue;
-        final filename = _basename(file.path);
-        final normalizedFilename = _normalize(filename);
-
-        if (normalizedFilename == normalizedOldFilename) {
-          return file.path;
-        }
-      }
+      final byName = _videoByNormalizedName[normalizedOldFilename];
+      if (byName != null && isCandidate(byName)) return byName.path;
     }
+
+    final exactTitle = _videoByNormalizedName[normalizedTitle];
+    if (exactTitle != null && isCandidate(exactTitle)) return exactTitle.path;
+
+    // Fuzzy matching is a legacy recovery path. Bound the total candidate
+    // comparisons across the whole reconciliation pass, not only the number
+    // of files: thousands of failed rows and a modest folder can still make
+    // an items × files scan expensive.
+    if (!_allowFuzzyMatching) return null;
 
     // Best title match — never take the first weak overlap (e.g. "Hijab").
     String? bestPath;
     var bestScore = 0.0;
-    for (final file in _videoFileCache!) {
+    for (var i = 0; i < _videoFileCache!.length; i++) {
+      final file = _videoFileCache![i];
       if (!isCandidate(file)) continue;
-      final filename = _basename(file.path);
-      final score = _fileMatchScore(normalizedTitle, _normalize(filename));
+      final score = _fileMatchScore(normalizedTitle, _videoNormalizedNames[i]);
       if (score > bestScore) {
         bestScore = score;
         bestPath = file.path;
@@ -392,11 +473,10 @@ class LibraryScannerService {
           excludePaths: exclude,
         );
         if (found != null) {
-          final diskSize = DownloadFileResolver.formattedFileSize(found);
+          final diskSize = _formattedSizeForPath(found);
           result[i] = loser.copyWith(
             filePath: found,
             clearThumbnailUrl: true,
-            thumbnailUrl: _findSidecarThumbnail(found),
             totalSize: diskSize ?? loser.totalSize,
             downloadedSize: diskSize ?? loser.downloadedSize,
           );
@@ -531,60 +611,11 @@ class LibraryScannerService {
     return count >= (word.runes.length / 2).ceil();
   }
 
-  String? _findSidecarThumbnail(String videoPath) {
-    try {
-      final dotIndex = videoPath.lastIndexOf('.');
-      if (dotIndex == -1) return null;
-      final basePath = videoPath.substring(0, dotIndex);
-      final videoFile = File(videoPath);
-      final videoDir = videoFile.parent;
-      final videoName = videoFile.uri.pathSegments.isNotEmpty
-          ? videoFile.uri.pathSegments.last.replaceAll(RegExp(r'\.[^.]+$'), '')
-          : videoPath
-                .split(RegExp(r'[/\\]'))
-                .last
-                .replaceAll(RegExp(r'\.[^.]+$'), '');
-
-      final exts = ['.jpg', '.jpeg', '.webp', '.png'];
-      // 1. Check sidecar next to video
-      for (final ext in exts) {
-        final path = '$basePath$ext';
-        if (File(path).existsSync()) return path;
-      }
-
-      // 2. Check Thumbnails subfolders
-      final candidateDirs = <Directory>[
-        Directory('${videoDir.path}/Thumbnails'),
-        Directory('${videoDir.parent.path}/Thumbnails'),
-      ];
-
-      for (final thumbDir in candidateDirs) {
-        if (!thumbDir.existsSync()) continue;
-        for (final ext in exts) {
-          final directPath = '${thumbDir.path}/$videoName$ext';
-          if (File(directPath).existsSync()) return directPath;
-        }
-
-        // 3. Bracket ID matching in Thumbnails/
-        final videoId = DownloadFileResolver.extractBracketId(videoPath);
-        if (videoId != null && videoId.isNotEmpty) {
-          final needle = '[$videoId]'.toLowerCase();
-          try {
-            for (final entity in thumbDir.listSync()) {
-              if (entity is File &&
-                  entity.path.toLowerCase().contains(needle)) {
-                return entity.path;
-              }
-            }
-          } catch (_) {}
-        }
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  bool _isVideo(String path) {
-    return DownloadFileResolver.isVideoPath(path);
+  String? _formattedSizeForPath(String? path) {
+    if (path == null || path.isEmpty) return null;
+    final bytes = _videoByPath[path.toLowerCase()]?.sizeBytes;
+    if (bytes == null || bytes <= 0) return null;
+    return FormatUtils.formatBytes(bytes);
   }
 
   bool _hasStaleRetryState(DownloadItem item) {
@@ -596,27 +627,24 @@ class LibraryScannerService {
 
   /// Promote failed/paused → completed only when the file is a non-fragment
   /// with length &gt; 0. Clears stale error / Retry speed / 0% progress.
-  DownloadItem? _promoteToCompletedIfValid(DownloadItem item) {
-    final path = item.filePath;
+  DownloadItem? _promoteToCompletedIfValid(
+    DownloadItem item,
+    String? resolvedPath,
+  ) {
+    final path = resolvedPath ?? item.filePath;
     if (path == null || path.isEmpty) return null;
     if (DownloadFileResolver.isFragmentPath(path)) return null;
 
-    try {
-      final file = File(path);
-      if (!DownloadFileResolver.existsOnDisk(path)) return null;
-      final bytes = file.lengthSync();
-      if (bytes <= 0) return null;
-      final size = FormatUtils.formatBytes(bytes);
-      return item.copyWith(
-        status: DownloadStatus.completed,
-        progress: 1.0,
-        speed: 'Terminé',
-        totalSize: size,
-        downloadedSize: size,
-        clearError: true,
-      );
-    } catch (_) {
-      return null;
-    }
+    final bytes = _videoByPath[path.toLowerCase()]?.sizeBytes;
+    if (bytes == null || bytes <= 0) return null;
+    final size = FormatUtils.formatBytes(bytes);
+    return item.copyWith(
+      status: DownloadStatus.completed,
+      progress: 1.0,
+      speed: 'Terminé',
+      totalSize: size,
+      downloadedSize: size,
+      clearError: true,
+    );
   }
 }

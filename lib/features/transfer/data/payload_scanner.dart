@@ -12,6 +12,13 @@ import 'package:uuid/uuid.dart';
 
 typedef ContentHashResolver = Future<String> Function(File file, FileStat stat);
 
+typedef ScanProgressCallback = void Function(
+  int scannedDirs,
+  int totalDirs,
+  int filesFound,
+  int totalBytes,
+);
+
 class PayloadBundle {
   const PayloadBundle({required this.files, required this.manifest});
 
@@ -31,6 +38,7 @@ class PayloadScanner {
     String filePath,
     Set<String> seenNames, {
     String? folderPrefix,
+    Map<String, int>? counters,
   }) {
     final base = p.basename(filePath);
     if (!seenNames.contains(base)) {
@@ -49,11 +57,15 @@ class PayloadScanner {
     }
     final ext = p.extension(base);
     final withoutExt = p.basenameWithoutExtension(base);
-    var count = 1;
+    final key = folderPrefix != null && folderPrefix.trim().isNotEmpty
+        ? '${folderPrefix}_$withoutExt'
+        : withoutExt;
+    var count = counters != null ? (counters[key] ?? 1) : 1;
     while (true) {
       final candidate = '$withoutExt ($count)$ext';
       if (!seenNames.contains(candidate)) {
         seenNames.add(candidate);
+        if (counters != null) counters[key] = count + 1;
         return candidate;
       }
       count++;
@@ -66,8 +78,11 @@ class PayloadScanner {
     required bool hash,
     ContentHashResolver? hashOf,
   }) async {
+    if (hashOf != null) {
+      final res = await hashOf(file, stat);
+      if (res.isNotEmpty) return res;
+    }
     if (!hash) return null;
-    if (hashOf != null) return hashOf(file, stat);
     return sha256File(file);
   }
 
@@ -77,11 +92,22 @@ class PayloadScanner {
     bool flatten = false,
     Set<String>? usedNames,
     ContentHashResolver? hashOf,
+    ScanProgressCallback? onProgress,
   }) async {
     final files = <TransferFile>[];
     final entries = <LibraryManifestEntry>[];
     final seen = usedNames ?? <String>{};
+    final counters = <String, int>{};
+    var scannedDirs = 0;
+    var totalBytes = 0;
+    final totalDirs = dirs.length;
+
     for (final dir in dirs) {
+      scannedDirs++;
+      if (onProgress != null &&
+          (scannedDirs % 25 == 0 || scannedDirs == totalDirs)) {
+        onProgress(scannedDirs, totalDirs, files.length, totalBytes);
+      }
       if (!await dir.exists()) continue;
       final prefix = p.basename(dir.path);
       await for (final entity in dir.list(
@@ -91,7 +117,12 @@ class PayloadScanner {
         if (entity is! File) continue;
         if (!TransferMediaFilter.isTransferableMedia(entity.path)) continue;
         final name = flatten
-            ? _flatUniqueName(entity.path, seen, folderPrefix: prefix)
+            ? _flatUniqueName(
+                entity.path,
+                seen,
+                folderPrefix: prefix,
+                counters: counters,
+              )
             : (() {
                 final rel = p
                     .split(p.relative(entity.path, from: dir.path))
@@ -118,6 +149,7 @@ class PayloadScanner {
             creatorKey: prefix.toLowerCase(),
           ),
         );
+        totalBytes += stat.size;
         entries.add(
           LibraryManifestEntry(
             relativePath: name,
@@ -126,6 +158,9 @@ class PayloadScanner {
           ),
         );
       }
+    }
+    if (onProgress != null) {
+      onProgress(scannedDirs, totalDirs, files.length, totalBytes);
     }
     return PayloadBundle(
       files: files,
@@ -143,13 +178,14 @@ class PayloadScanner {
     final files = <TransferFile>[];
     final entries = <LibraryManifestEntry>[];
     final seen = usedNames ?? <String>{};
+    final counters = <String, int>{};
     for (final file in filesList) {
       if (!await file.exists()) continue;
       if (!TransferMediaFilter.isTransferableMedia(file.path)) continue;
       final stat = await file.stat();
       if (stat.size <= 0) continue;
       final name = flatten
-          ? _flatUniqueName(file.path, seen)
+          ? _flatUniqueName(file.path, seen, counters: counters)
           : p.basename(file.path);
       final hashHex = await _hashOf(file, stat, hash: hash, hashOf: hashOf);
       files.add(
@@ -182,6 +218,7 @@ class PayloadScanner {
     final files = <TransferFile>[];
     final entries = <LibraryManifestEntry>[];
     final seen = usedNames ?? <String>{};
+    final counters = <String, int>{};
     for (final item in items) {
       final path = item.filePath;
       if (path == null || path.isEmpty) continue;
@@ -189,7 +226,12 @@ class PayloadScanner {
       final file = File(path);
       if (!await file.exists()) continue;
       final name = flatten
-          ? _flatUniqueName(path, seen, folderPrefix: creatorHandle)
+          ? _flatUniqueName(
+              path,
+              seen,
+              folderPrefix: creatorHandle,
+              counters: counters,
+            )
           : (() {
               final relative = _relativeFor(
                 path: path,

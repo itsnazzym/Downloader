@@ -23,12 +23,14 @@ void main() {
       expect(proxy, TorProxyGuard.proxyUrl);
     });
 
-    test('returns null when Tor is enabled but port is closed', () async {
-      final proxy = await TorProxyGuard.resolveProxyUrl(
-        useTorProxy: true,
-        probe: (host, port, timeout) async => false,
+    test('fails closed when Tor is enabled but proxy is unavailable', () async {
+      await expectLater(
+        TorProxyGuard.resolveProxyUrl(
+          useTorProxy: true,
+          probe: (host, port, timeout) async => false,
+        ),
+        throwsA(isA<TorProxyUnavailableException>()),
       );
-      expect(proxy, isNull);
     });
   });
 }

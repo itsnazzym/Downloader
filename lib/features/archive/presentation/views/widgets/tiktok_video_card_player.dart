@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:modern_downloader/features/archive/data/services/tiktok_video_cache_service.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
@@ -23,7 +24,8 @@ class TikTokVideoCardPlayer extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TikTokVideoCardPlayer> createState() => _TikTokVideoCardPlayerState();
+  ConsumerState<TikTokVideoCardPlayer> createState() =>
+      _TikTokVideoCardPlayerState();
 }
 
 class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
@@ -47,10 +49,13 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
   void _requestPlaybackIfNeeded() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(tiktokPreloadControllerProvider).requestVideo(
-        widget.video.id,
-        highPriority: widget.isActive,
-      );
+      ref
+          .read(tiktokPreloadControllerProvider)
+          .requestVideo(
+            widget.video.id,
+            highPriority: widget.isActive,
+            url: widget.video.url,
+          );
     });
   }
 
@@ -78,17 +83,23 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
     _controller = controller;
     _loadedPath = filePath;
 
-    _subscriptions.add(player.stream.playing.listen((playing) {
-      if (mounted) setState(() => _isPlaying = playing);
-    }));
+    _subscriptions.add(
+      player.stream.playing.listen((playing) {
+        if (mounted) setState(() => _isPlaying = playing);
+      }),
+    );
 
-    _subscriptions.add(player.stream.position.listen((pos) {
-      if (mounted) setState(() => _position = pos);
-    }));
+    _subscriptions.add(
+      player.stream.position.listen((pos) {
+        if (mounted) setState(() => _position = pos);
+      }),
+    );
 
-    _subscriptions.add(player.stream.duration.listen((dur) {
-      if (mounted) setState(() => _duration = dur);
-    }));
+    _subscriptions.add(
+      player.stream.duration.listen((dur) {
+        if (mounted) setState(() => _duration = dur);
+      }),
+    );
 
     player.setPlaylistMode(PlaylistMode.loop);
     player.setVolume(isMuted ? 0.0 : 100.0);
@@ -166,7 +177,9 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final videoStateAsync = ref.watch(tiktokVideoStateProvider(widget.video.id));
+    final videoStateAsync = ref.watch(
+      tiktokVideoStateProvider(widget.video.id),
+    );
     final isMuted = ref.watch(tiktokMutedProvider);
 
     // Sync volume when muted state changes globally
@@ -191,7 +204,18 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
               widget.onNext!();
             }
           });
-          return const SizedBox.shrink();
+          return widget.onNext == null
+              ? _buildDownloadErrorCard(
+                  colors,
+                  'Cette vidéo a été supprimée ou rendue privée sur TikTok.',
+                  retry: false,
+                )
+              : const SizedBox.shrink();
+        }
+
+        if (state.status == TikTokVideoStatus.idle &&
+            state.errorMessage != null) {
+          return _buildDownloadErrorCard(colors, state.errorMessage!);
         }
 
         return _buildLoadingCard(colors, state.progress);
@@ -266,11 +290,7 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
                     color: Colors.black.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    _actionIcon,
-                    color: Colors.white,
-                    size: 44,
-                  ),
+                  child: Icon(_actionIcon, color: Colors.white, size: 44),
                 ),
               ),
             ),
@@ -355,7 +375,7 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
             Text(
               progress > 0.05
                   ? 'Téléchargement de la vidéo ($pct%)'
-                  : 'Préchargement en arrière-plan...',
+                  : 'Téléchargement dans le dossier de sortie...',
               style: AppTypography.body.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colors.textPrimary,
@@ -363,11 +383,53 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Stockage local pour une lecture fluide sans latence',
+              'La lecture démarre dès que le fichier est prêt.',
               style: AppTypography.caption.copyWith(
                 color: colors.textSecondary,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadErrorCard(
+    AppColors colors,
+    String message, {
+    bool retry = true,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              retry ? Icons.cloud_off_rounded : Icons.link_off_rounded,
+              size: 42,
+              color: colors.textSecondary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(color: colors.textPrimary),
+            ),
+            if (retry) ...[
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: () => ref
+                    .read(tiktokPreloadControllerProvider)
+                    .requestVideo(
+                      widget.video.id,
+                      highPriority: true,
+                      url: widget.video.url,
+                    ),
+                icon: const Icon(Icons.refresh_rounded, size: 17),
+                label: const Text('Réessayer le téléchargement'),
+              ),
+            ],
           ],
         ),
       ),

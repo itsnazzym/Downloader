@@ -1,107 +1,740 @@
 {
-  "extName": { "message": "Modern Downloader" },
-  "extShortName": { "message": "MD Download" },
-  "extDescription": { "message": "Send video links to the Modern Downloader desktop app." },
-  "sendTab": { "message": "Send this tab" },
-  "testConnection": { "message": "Test connection" },
-  "recentDownloads": { "message": "Recent Downloads" },
-  "noDownloads": { "message": "No active downloads" },
-  "browser": { "message": "Browser" },
-  "port": { "message": "Port" },
-  "token": { "message": "Token" },
-  "autoCookies": { "message": "Auto-Cookies" },
-  "adultSites": { "message": "Adult sites" },
-  "appearance": { "message": "Appearance" },
-  "connected": { "message": "Connected" },
-  "disconnected": { "message": "Disconnected" },
-  "disconnectedHint": { "message": "Disconnected (Check App + token)" },
-  "authFailed": { "message": "Auth failed — check token" },
-  "invalidPort": { "message": "Port must be 1024–65535" },
-  "tokenIsPathError": { "message": "Folder path detected instead of API token!" },
-  "appOffline": { "message": "App offline" },
-  "needTweetUrl": { "message": "Use the tweet link, not the video file" },
-  "download": { "message": "Download" },
-  "downloaded": { "message": "Downloaded" },
-  "sendFailed": { "message": "Could not send tab" },
-  "tabSent": { "message": "Tab sent to app" },
-  "testFailed": { "message": "Connection test failed" },
-  "testOk": { "message": "PING/PONG OK" },
-  "xFeed": { "message": "X Feed" },
-  "mediaFeedTitle": { "message": "Media & Reels Feed" },
-  "mediaFeedDescription": { "message": "Collect videos and Reels as you browse social feeds." },
-  "xFeedTitle": { "message": "X Feed" },
-  "xFeedDescription": { "message": "Scroll X to collect videos; new posts stay in this list." },
-  "xFeedGobirdDescription": { "message": "gobird paginates the home feed, and new videos from scrolling stay in this list." },
-  "xFeedLocalSource": { "message": "For You — local" },
-  "xFeedGobirdSource": { "message": "gobird experimental" },
-  "xFeedFallbackSource": { "message": "Local fallback (gobird failed)" },
-  "xFeedGobirdFailed": { "message": "gobird failed. Showing the local DOM feed instead." },
-  "xFeedGobirdMissingBinary": { "message": "gobird binary not found in the app. Re-run prepare_gobird or use a release build." },
-  "xFeedGobirdAuthFailed": { "message": "gobird did not receive X session cookies. Stay logged in on x.com with Auto-Cookies enabled, then click Analyze." },
-  "xFeedGobirdRateLimited": { "message": "gobird was rate-limited by X. Try again later." },
-  "xFeedGobirdDisabled": { "message": "gobird is disabled in app settings." },
-  "xFeedGobirdAppOffline": { "message": "Modern Downloader is offline or did not answer. Start the app and retry." },
-  "analyzeXFeed": { "message": "Analyze loaded feed" },
-  "openXPage": { "message": "Open X" },
-  "selectAll": { "message": "Select all" },
-  "clearSelection": { "message": "Clear" },
-  "xFeedDisplayLimit": { "message": "Show" },
-  "xFeedSelectCountLabel": { "message": "Select" },
-  "xFeedSelectCountPlaceholder": { "message": "Number" },
-  "xFeedShowing": { "message": "showing {count}" },
-  "xFeedReady": { "message": "Open X.com, load the feed, then analyze it." },
-  "xFeedNoItems": { "message": "No loaded video posts found." },
-  "downloadSelected": { "message": "Download selected" },
-  "xFeedSelection": { "message": "{count} selected" },
-  "xFeedAnalyzing": { "message": "Analyzing loaded X posts…" },
-  "xFeedGobirdPaginating": { "message": "gobird pagination in progress… local videos keep appearing." },
-  "xFeedNotXPage": { "message": "Open X.com in the active tab first." },
-  "xFeedAnalyzeFailed": { "message": "Could not analyze the loaded X feed." },
-  "xFeedFound": { "message": "{count} video posts found" },
-  "xFeedLive": { "message": "live collection" },
-  "xFeedSnapshot": { "message": "full snapshot" },
-  "xFeedSnapshotLive": { "message": "snapshot + live collection" },
-  "xFeedLimitReached": { "message": "First {count} shown" },
-  "xFeedDurationUnknown": { "message": "Duration unavailable" },
-  "xFeedResolutionUnknown": { "message": "Resolution unavailable" },
-  "xFeedSizeUnknown": { "message": "Checked when downloading" },
-  "xFeedVideoAlt": { "message": "Video thumbnail" },
-  "xFeedVideo": { "message": "Video" },
-  "xFeedAuthorUnknown": { "message": "X user" },
-  "xFeedNoSelection": { "message": "Select at least one video." },
-  "xFeedSending": { "message": "Sending {count} videos to Modern Downloader…" },
-  "xFeedSent": { "message": "{count} videos sent" },
-  "xFeedFailed": { "message": "{count} failed" },
-  "xFeedDuplicatesSkipped": { "message": "{count} duplicates skipped" },
-  "xFeedSendFailed": { "message": "Could not send selected videos." },
-  "xFeedOpened": { "message": "X Feed panel opened" },
-  "xFeedOpenFailed": { "message": "Could not open X Feed panel" },
-  "btnColor": { "message": "Color" },
-  "btnPosition": { "message": "Position" },
-  "btnSize": { "message": "Size" },
-  "qualityMenu": { "message": "Quality menu" },
-  "posTopRight": { "message": "Top right" },
-  "posTopLeft": { "message": "Top left" },
-  "posBottomRight": { "message": "Bottom right" },
-  "posBottomLeft": { "message": "Bottom left" },
-  "sizeSmall": { "message": "Small" },
-  "sizeNormal": { "message": "Normal" },
-  "sizeLarge": { "message": "Large" },
-  "quality": { "message": "Quality" },
-  "qualityBest": { "message": "Best Quality" },
-  "qualityAudio": { "message": "Audio" },
-  "qualityAudioOnly": { "message": "Audio Only" },
-  "offline": { "message": "Offline" },
-  "failed": { "message": "Failed" },
-  "needTweet": { "message": "Need tweet" },
-  "unsupportedUrl": { "message": "Not a video" },
-  "statusQueued": { "message": "Queued" },
-  "statusExtracting": { "message": "Extracting" },
-  "statusDownloading": { "message": "Downloading" },
-  "statusProcessing": { "message": "Processing" },
-  "statusCompleted": { "message": "Completed" },
-  "statusFailed": { "message": "Failed" },
-  "statusCanceled": { "message": "Canceled" },
-  "statusPaused": { "message": "Paused" },
-  "statusDuplicate": { "message": "Duplicate" }
+    "extName": {
+        "message": "Modern Downloader"
+    },
+    "extShortName": {
+        "message": "MD Download"
+    },
+    "extDescription": {
+        "message": "Send video links to the Modern Downloader desktop app."
+    },
+    "sendTab": {
+        "message": "Send this tab"
+    },
+    "testConnection": {
+        "message": "Test connection"
+    },
+    "recentDownloads": {
+        "message": "Recent Downloads"
+    },
+    "noDownloads": {
+        "message": "No active downloads"
+    },
+    "browser": {
+        "message": "Browser"
+    },
+    "port": {
+        "message": "Port"
+    },
+    "token": {
+        "message": "Token"
+    },
+    "autoCookies": {
+        "message": "Auto-Cookies"
+    },
+    "adultSites": {
+        "message": "Adult sites"
+    },
+    "appearance": {
+        "message": "Appearance"
+    },
+    "connected": {
+        "message": "Connected"
+    },
+    "disconnected": {
+        "message": "Disconnected"
+    },
+    "disconnectedHint": {
+        "message": "Disconnected (Check App + token)"
+    },
+    "authFailed": {
+        "message": "Auth failed — check token"
+    },
+    "invalidPort": {
+        "message": "Port must be 1024–65535"
+    },
+    "tokenIsPathError": {
+        "message": "Folder path detected instead of API token!"
+    },
+    "appOffline": {
+        "message": "App offline"
+    },
+    "needTweetUrl": {
+        "message": "Use the tweet link, not the video file"
+    },
+    "download": {
+        "message": "Download"
+    },
+    "downloaded": {
+        "message": "Downloaded"
+    },
+    "sendFailed": {
+        "message": "Could not send tab"
+    },
+    "tabSent": {
+        "message": "Tab sent to app"
+    },
+    "testFailed": {
+        "message": "Connection test failed"
+    },
+    "testOk": {
+        "message": "PING/PONG OK"
+    },
+    "xFeed": {
+        "message": "X Feed"
+    },
+    "mediaFeedTitle": {
+        "message": "Videos found"
+    },
+    "mediaFeedDescription": {
+        "message": "From open pages"
+    },
+    "xFeedTitle": {
+        "message": "X Feed"
+    },
+    "xFeedDescription": {
+        "message": "Scroll X to collect videos; new posts stay in this list."
+    },
+    "xFeedGobirdDescription": {
+        "message": "gobird paginates the home feed, and new videos from scrolling stay in this list."
+    },
+    "xFeedLocalSource": {
+        "message": "For You — local"
+    },
+    "xFeedGobirdSource": {
+        "message": "gobird experimental"
+    },
+    "xFeedFallbackSource": {
+        "message": "Local fallback (gobird failed)"
+    },
+    "xFeedGobirdFailed": {
+        "message": "gobird failed. Showing the local DOM feed instead."
+    },
+    "xFeedGobirdMissingBinary": {
+        "message": "gobird binary not found in the app. Re-run prepare_gobird or use a release build."
+    },
+    "xFeedGobirdAuthFailed": {
+        "message": "gobird did not receive X session cookies. Stay logged in on x.com with Auto-Cookies enabled, then click Analyze."
+    },
+    "xFeedGobirdRateLimited": {
+        "message": "gobird was rate-limited by X. Try again later."
+    },
+    "xFeedGobirdDisabled": {
+        "message": "gobird is disabled in app settings."
+    },
+    "xFeedGobirdAppOffline": {
+        "message": "Modern Downloader is offline or did not answer. Start the app and retry."
+    },
+    "analyzeXFeed": {
+        "message": "Analyze loaded feed"
+    },
+    "openXPage": {
+        "message": "Open X"
+    },
+    "selectAll": {
+        "message": "Select all"
+    },
+    "clearSelection": {
+        "message": "Clear"
+    },
+    "xFeedDisplayLimit": {
+        "message": "Show"
+    },
+    "xFeedSelectCountLabel": {
+        "message": "Select"
+    },
+    "xFeedSelectCountPlaceholder": {
+        "message": "Number"
+    },
+    "xFeedShowing": {
+        "message": "showing {count}"
+    },
+    "xFeedReady": {
+        "message": "Open a page with videos, then analyze it."
+    },
+    "xFeedNoItems": {
+        "message": "No loaded video posts found."
+    },
+    "downloadSelected": {
+        "message": "Download selected"
+    },
+    "xFeedSelection": {
+        "message": "{count} selected"
+    },
+    "xFeedAnalyzing": {
+        "message": "Analyzing loaded X posts…"
+    },
+    "xFeedGobirdPaginating": {
+        "message": "gobird pagination in progress… local videos keep appearing."
+    },
+    "xFeedNotXPage": {
+        "message": "Open X.com in the active tab first."
+    },
+    "xFeedAnalyzeFailed": {
+        "message": "Could not analyze the loaded X feed."
+    },
+    "xFeedFound": {
+        "message": "{count} video posts found"
+    },
+    "xFeedLive": {
+        "message": "live collection"
+    },
+    "xFeedSnapshot": {
+        "message": "full snapshot"
+    },
+    "xFeedSnapshotLive": {
+        "message": "snapshot + live collection"
+    },
+    "xFeedLimitReached": {
+        "message": "First {count} shown"
+    },
+    "xFeedDurationUnknown": {
+        "message": "Duration unavailable"
+    },
+    "xFeedResolutionUnknown": {
+        "message": "Resolution unavailable"
+    },
+    "xFeedSizeUnknown": {
+        "message": "Checked when downloading"
+    },
+    "xFeedVideoAlt": {
+        "message": "Video thumbnail"
+    },
+    "xFeedVideo": {
+        "message": "Video"
+    },
+    "xFeedAuthorUnknown": {
+        "message": "X user"
+    },
+    "xFeedNoSelection": {
+        "message": "Select at least one video."
+    },
+    "xFeedSending": {
+        "message": "Sending {count} videos to Modern Downloader…"
+    },
+    "xFeedSent": {
+        "message": "{count} videos sent"
+    },
+    "xFeedFailed": {
+        "message": "{count} failed"
+    },
+    "xFeedDuplicatesSkipped": {
+        "message": "{count} duplicates skipped"
+    },
+    "xFeedSendFailed": {
+        "message": "Could not send selected videos."
+    },
+    "xFeedOpened": {
+        "message": "Video panel opened"
+    },
+    "xFeedOpenFailed": {
+        "message": "Could not open video panel"
+    },
+    "btnColor": {
+        "message": "Color"
+    },
+    "btnPosition": {
+        "message": "Position"
+    },
+    "btnSize": {
+        "message": "Size"
+    },
+    "qualityMenu": {
+        "message": "Quality menu"
+    },
+    "posTopRight": {
+        "message": "Top right"
+    },
+    "posTopLeft": {
+        "message": "Top left"
+    },
+    "posBottomRight": {
+        "message": "Bottom right"
+    },
+    "posBottomLeft": {
+        "message": "Bottom left"
+    },
+    "sizeSmall": {
+        "message": "Small"
+    },
+    "sizeNormal": {
+        "message": "Normal"
+    },
+    "sizeLarge": {
+        "message": "Large"
+    },
+    "quality": {
+        "message": "Quality"
+    },
+    "qualityBest": {
+        "message": "Best Quality"
+    },
+    "qualityAudio": {
+        "message": "Audio"
+    },
+    "qualityAudioOnly": {
+        "message": "Audio Only"
+    },
+    "offline": {
+        "message": "Offline"
+    },
+    "failed": {
+        "message": "Failed"
+    },
+    "needTweet": {
+        "message": "Need tweet"
+    },
+    "unsupportedUrl": {
+        "message": "Not a video"
+    },
+    "statusQueued": {
+        "message": "Queued"
+    },
+    "statusExtracting": {
+        "message": "Extracting"
+    },
+    "statusDownloading": {
+        "message": "Downloading"
+    },
+    "statusProcessing": {
+        "message": "Processing"
+    },
+    "statusCompleted": {
+        "message": "Completed"
+    },
+    "statusFailed": {
+        "message": "Failed"
+    },
+    "statusCanceled": {
+        "message": "Canceled"
+    },
+    "statusPaused": {
+        "message": "Paused"
+    },
+    "statusDuplicate": {
+        "message": "Duplicate"
+    },
+    "exploreVideos": {
+        "message": "Explore videos"
+    },
+    "exploreDescription": {
+        "message": "Find videos on the open page and send them to the app."
+    },
+    "openVideoPanel": {
+        "message": "Open video panel"
+    },
+    "connectionSettings": {
+        "message": "Connection and preferences"
+    },
+    "syncTikTok": {
+        "message": "Sync TikTok collections"
+    },
+    "syncInProgress": {
+        "message": "Sync requested…"
+    },
+    "syncStarted": {
+        "message": "Sync started on the TikTok page."
+    },
+    "syncOpenTikTok": {
+        "message": "Open TikTok collections and try again."
+    },
+    "showToken": {
+        "message": "Show token"
+    },
+    "hideToken": {
+        "message": "Hide token"
+    },
+    "feedCompact": {
+        "message": "List"
+    },
+    "feedCards": {
+        "message": "Cards"
+    },
+    "feedAll": {
+        "message": "All"
+    },
+    "feedCurrent": {
+        "message": "Current"
+    },
+    "feedNetwork": {
+        "message": "Network"
+    },
+    "feedVideos": {
+        "message": "Videos"
+    },
+    "feedAccounts": {
+        "message": "Accounts"
+    },
+    "feedAnalyze": {
+        "message": "Analyze"
+    },
+    "feedScanAll": {
+        "message": "Load all"
+    },
+    "feedOpenPage": {
+        "message": "Open page"
+    },
+    "feedHideDownloaded": {
+        "message": "Hide downloaded videos"
+    },
+    "feedAutoRemove": {
+        "message": "Remove after sending"
+    },
+    "feedCopy": {
+        "message": "Copy"
+    },
+    "feedExport": {
+        "message": "Export"
+    },
+    "feedSendSelection": {
+        "message": "Send selected"
+    },
+    "feedSendAccounts": {
+        "message": "Send {count} accounts"
+    },
+    "feedFilterCreator": {
+        "message": "View videos"
+    },
+    "feedShowMore": {
+        "message": "Show more"
+    },
+    "feedPreview": {
+        "message": "Video preview"
+    },
+    "contentSyncButton": {
+        "message": "Sync collections"
+    },
+    "contentSyncInProgress": {
+        "message": "Syncing collections…"
+    },
+    "contentSyncDiscovering": {
+        "message": "Collections found"
+    },
+    "contentSyncProgress": {
+        "message": "Collections processed"
+    },
+    "contentSyncVideosSent": {
+        "message": "videos sent"
+    },
+    "contentSyncComplete": {
+        "message": "complete"
+    },
+    "contentSyncIncomplete": {
+        "message": "incomplete"
+    },
+    "contentSyncMissing": {
+        "message": "missing"
+    },
+    "contentSyncCollections": {
+        "message": "collections"
+    },
+    "contentSyncNoVideos": {
+        "message": "Collections found, videos unavailable"
+    },
+    "contentSyncNoCollections": {
+        "message": "Open TikTok Favorites, then Collections."
+    },
+    "contentSyncFailed": {
+        "message": "Sync failed"
+    },
+    "feedScanning": {
+        "message": "Finding videos…"
+    },
+    "feedCollectionQueued": {
+        "message": "Collection sent to the app. Downloads were requested."
+    },
+    "feedLoadProfile": {
+        "message": "Load profile"
+    },
+    "feedCollectionHint": {
+        "message": "Send the collection without scrolling"
+    },
+    "feedSendCollection": {
+        "message": "Send collection"
+    },
+    "feedFilterActive": {
+        "message": "Active filter"
+    },
+    "feedAccountVideos": {
+        "message": "Videos from this account"
+    },
+    "feedLoadAccountVideos": {
+        "message": "Load account videos"
+    },
+    "feedSendAccount": {
+        "message": "Send account"
+    },
+    "feedStop": {
+        "message": "Stop"
+    },
+    "feedCreator": {
+        "message": "CREATOR"
+    },
+    "feedSendAccountHint": {
+        "message": "Modern Downloader will retrieve the profile videos."
+    },
+    "feedLoadAccountHint": {
+        "message": "Open TikTok and find videos from this profile."
+    },
+    "feedFilterAccountHint": {
+        "message": "Show videos already found from this profile."
+    },
+    "feedAccountTools": {
+        "message": "ACCOUNT TOOLS"
+    },
+    "feedSendAccountsHint": {
+        "message": "Send detected profiles to the app."
+    },
+    "feedViewAccounts": {
+        "message": "View accounts"
+    },
+    "feedViewAccountsHint": {
+        "message": "Show detected accounts in this panel."
+    },
+    "feedCopyAccounts": {
+        "message": "Copy links"
+    },
+    "feedCopyAccountsHint": {
+        "message": "Copy TikTok profile URLs."
+    },
+    "feedExportAccounts": {
+        "message": "Export list (.txt)"
+    },
+    "feedExportAccountsHint": {
+        "message": "Save URLs of detected accounts."
+    },
+    "feedLocateVideo": {
+        "message": "Show on page"
+    },
+    "feedAlreadyDownloaded": {
+        "message": "Already downloaded or duplicate"
+    },
+    "feedAlreadyDownloadedRetry": {
+        "message": "Already downloaded (click to re-download)"
+    },
+    "feedTargetVideoHint": {
+        "message": "Click to target and show this video on the page 🎯"
+    },
+    "feedPreviewHint": {
+        "message": "Video preview (click to play)"
+    },
+    "feedNoAccountsToCopy": {
+        "message": "No accounts to copy."
+    },
+    "feedNoAccountsToExport": {
+        "message": "No accounts to export."
+    },
+    "feedAccountsExported": {
+        "message": "{count} account(s) exported to comptes_tiktok.txt"
+    },
+    "feedTrackActiveTab": {
+        "message": "Tracking: "
+    },
+    "feedActiveTab": {
+        "message": "Active tab"
+    },
+    "feedVideosLoadedFromProfile": {
+        "message": "video(s) loaded from public profile"
+    },
+    "feedLoadAllVideosProfile": {
+        "message": "Load all profile videos"
+    },
+    "feedRecoverAccounts": {
+        "message": "Recover accounts"
+    },
+    "feedDuplicatesSkipped": {
+        "message": "{count} duplicate(s) already downloaded skipped"
+    },
+    "feedNavUnavailable": {
+        "message": "TikTok does not allow navigating to the next video on this page. Open For You and retry."
+    },
+    "feedDeepScanPartial": {
+        "message": "{count} videos captured. The feed is no longer loading new videos."
+    },
+    "feedDeepScanSuccess": {
+        "message": "{count} videos successfully loaded!"
+    },
+    "feedLockTab": {
+        "message": "Lock"
+    },
+    "feedUnlockTab": {
+        "message": "Unlock"
+    },
+    "feedJumpActiveTitle": {
+        "message": "Target the currently playing video"
+    },
+    "feedClearTitle": {
+        "message": "Clear video feed"
+    },
+    "feedFiltersAria": {
+        "message": "Feed filters"
+    },
+    "feedNavAria": {
+        "message": "Panel navigation"
+    },
+    "feedLayoutAria": {
+        "message": "Video presentation"
+    },
+    "feedTrackActiveTabLabel": {
+        "message": "Tracking: Active tab"
+    },
+    "feedAnalyzeTitle": {
+        "message": "Analyze videos currently visible on screen"
+    },
+    "feedScanAllTitle": {
+        "message": "Automatically scroll page to discover more videos"
+    },
+    "downloadSingle": {
+        "message": "Download this video"
+    },
+    "feedNoAccounts": {
+        "message": "No accounts found for now."
+    },
+    "feedAccountsSelected": {
+        "message": "{count} accounts selected"
+    },
+    "feedAccountsFound": {
+        "message": "{count} accounts found"
+    },
+    "feedSelectAccount": {
+        "message": "Select {name}"
+    },
+    "feedAccountVideoCount": {
+        "message": "{count} videos in collection"
+    },
+    "feedLoadAccountTitle": {
+        "message": "Load videos from {name}"
+    },
+    "feedOpenAccountTitle": {
+        "message": "Open profile in a new tab"
+    },
+    "feedSelectAccountFirst": {
+        "message": "Select at least one account."
+    },
+    "feedSendingAccounts": {
+        "message": "Sending {count} accounts to Modern Downloader…"
+    },
+    "feedSent": {
+        "message": "Sent"
+    },
+    "feedAccountsSent": {
+        "message": "{count} accounts sent to Modern Downloader."
+    },
+    "feedSending": {
+        "message": "Sending…"
+    },
+    "feedAccountSent": {
+        "message": "Account @{name} sent to the app."
+    },
+    "feedError": {
+        "message": "Error"
+    },
+    "feedAccountSendFailed": {
+        "message": "Failed to send account @{name}."
+    },
+    "feedVideosFromAccount": {
+        "message": "{count} videos from @{name}"
+    },
+    "feedDownloadedHidden": {
+        "message": "{count} already downloaded hidden"
+    },
+    "feedNoAccountVideos": {
+        "message": "No videos for @{name}"
+    },
+    "itemUrlInvalid": {
+        "message": "Invalid URL."
+    },
+    "itemSent": {
+        "message": "Download sent to app…"
+    },
+    "itemSendFailed": {
+        "message": "Failed to send."
+    },
+    "connecting": {
+        "message": "Connecting…"
+    },
+    "closeBtn": {
+        "message": "Close"
+    },
+    "selectionToolbarAria": {
+        "message": "Selection controls"
+    },
+    "feedNowPlaying": {
+        "message": "Now playing"
+    },
+    "feedVideosCaptured": {
+        "message": "{count} video(s) captured"
+    },
+    "feedAccountsCopied": {
+        "message": "{count} profile URL(s) copied to clipboard!"
+    },
+    "feedAccountsDetected": {
+        "message": "{count} account(s) detected"
+    },
+    "feedScanningProfile": {
+        "message": "Scanning profile @{name} to load all its videos…"
+    },
+    "feedOpeningProfile": {
+        "message": "Opening @{name} and starting scan…"
+    },
+    "feedProfileSentSuccess": {
+        "message": "Full profile @{name} sent to the app!"
+    },
+    "feedProfileSentError": {
+        "message": "Failed to send to the app"
+    },
+    "feedHookLockedTab": {
+        "message": "Locked: {target}"
+    },
+    "feedTargetPage": {
+        "message": "Target page"
+    },
+    "feedHookInfoLocked": {
+        "message": "Extension is locked to this page. It keeps capturing and scrolling even if you switch tabs or windows."
+    },
+    "feedUnlockTabHint": {
+        "message": "Unlock extension to restore dynamic tracking of the active tab"
+    },
+    "feedHookReleased": {
+        "message": "Lock released. Dynamic tracking active."
+    },
+    "feedHookNoTab": {
+        "message": "Cannot lock: no active tab detected."
+    },
+    "feedHookSuccess": {
+        "message": "Extension locked to this tab! Actions continue in background."
+    },
+    "feedHookTabClosed": {
+        "message": "Locked tab closed. Returned to direct tracking."
+    },
+    "feedCollectionFailed": {
+        "message": "Failed to send collection to app."
+    },
+    "feedScanProfileAuto": {
+        "message": "Scan entire profile (Auto)"
+    },
+    "feedCollection": {
+        "message": "Collection"
+    },
+    "feedViewVideosTitle": {
+        "message": "Show and collect feed videos"
+    },
+    "feedViewCreatorsTitle": {
+        "message": "Collect all creator accounts instead of videos"
+    },
+    "feedHookTabTitle": {
+        "message": "Click to lock the extension to this tab"
+    },
+    "feedHookActionTitle": {
+        "message": "Lock to this tab to continue actions in background"
+    },
+    "feedHideDownloadedHint": {
+        "message": "Hide already downloaded videos from the feed"
+    },
+    "feedAutoRemoveHint": {
+        "message": "Automatically remove from list after download"
+    },
+    "feedCollectionVideosLoaded": {
+        "message": "{count} video(s) in this collection · Click to load all published videos from @{name}"
+    }
 }

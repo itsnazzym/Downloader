@@ -346,5 +346,70 @@ void main() {
       );
       expect(outgoing.isEmpty, isTrue);
     });
+
+    test('Unhashed files (null sha256 from lazy scanner) are counted and sent as new', () async {
+      final store = SendMemoryStore(storeFile);
+      await store.load();
+      const targetDevice = 'phone_lazy';
+
+      // 1 transferred file with known SHA
+      final f1 = createTestFile('TikTok_ABC/old_transferred.mp4', [1, 2, 3]);
+      final h1 = await PayloadScanner.sha256File(f1);
+      await store.commit(targetDevice, [
+        TransferredFileRecord(
+          sha256: h1,
+          size: f1.lengthSync(),
+          firstTransferredAt: DateTime.now(),
+          lastFileName: 'old_transferred.mp4',
+        ),
+      ]);
+
+      // 2 brand new unhashed files (sha256: null, typical of fast directory scans)
+      final files = [
+        TransferFile(
+          id: '1',
+          fileName: 'old_transferred.mp4',
+          size: f1.lengthSync(),
+          sha256: h1,
+          creatorKey: 'TikTok_ABC',
+          localPath: f1.path,
+        ),
+        TransferFile(
+          id: '2',
+          fileName: 'new_video1.mp4',
+          size: 1000,
+          sha256: null,
+          creatorKey: 'TikTok_ABC',
+          localPath: 'TikTok_ABC/new_video1.mp4',
+        ),
+        TransferFile(
+          id: '3',
+          fileName: 'new_video2.mp4',
+          size: 2000,
+          sha256: null,
+          creatorKey: 'TikTok_XYZ',
+          localPath: 'TikTok_XYZ/new_video2.mp4',
+        ),
+      ];
+
+      final preview = SendMemoryFilter.preview(
+        files: files,
+        fingerprint: targetDevice,
+        isTransferred: (sha) => store.isTransferred(targetDevice, sha),
+      );
+
+      expect(preview.found, 3);
+      expect(preview.already, 1);
+      expect(preview.newest, 2);
+      expect(preview.newBytes, 3000);
+
+      final outgoing = SendMemoryFilter.outgoing(
+        files: files,
+        fingerprint: targetDevice,
+        isTransferred: (sha) => store.isTransferred(targetDevice, sha),
+      );
+      expect(outgoing.length, 2);
+      expect(outgoing.map((f) => f.fileName).toSet(), {'new_video1.mp4', 'new_video2.mp4'});
+    });
   });
 }

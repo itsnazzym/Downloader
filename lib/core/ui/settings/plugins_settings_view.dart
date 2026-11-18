@@ -21,6 +21,9 @@ import '../../design_system/components/app_button.dart';
 import '../../design_system/components/app_toast.dart';
 
 import '../../plugins/plugin_manager.dart';
+import '../../plugins/feature_activation.dart';
+import '../../plugins/feature_catalog.dart';
+import '../../platform/platform_info.dart';
 
 import '../../providers/settings_provider.dart';
 
@@ -33,9 +36,12 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'widgets/settings_app_bar_leading.dart';
+import '../../../showcase/showcase_mode.dart';
 
 class PluginsSettingsView extends ConsumerWidget {
-  const PluginsSettingsView({super.key});
+  const PluginsSettingsView({this.pluginId, super.key});
+
+  final String? pluginId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,6 +50,9 @@ class PluginsSettingsView extends ConsumerWidget {
     final pluginState = ref.watch(pluginManagerProvider);
 
     final pluginManager = ref.read(pluginManagerProvider.notifier);
+    final catalog = ref.watch(featureCatalogProvider);
+    final activation = ref.watch(featureActivationProvider);
+    final locale = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -107,6 +116,58 @@ class PluginsSettingsView extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
 
                     children: [
+                      if (pluginId != null &&
+                          catalog.byId[pluginId]?.supportsPlatform(
+                                PlatformInfo.isAndroid ? 'android' : 'windows',
+                              ) ==
+                              true) ...[
+                        _PluginInstallRequestCard(
+                          plugin: catalog.byId[pluginId]!,
+                          locale: locale,
+                        ),
+                        const Gap(AppSpacing.l),
+                      ],
+
+                      Text(
+                        l10n.pluginFeaturesTitle,
+
+                        style: AppTypography.h3.copyWith(
+                          color: AppColors.of(context).textPrimary,
+                        ),
+                      ),
+
+                      const Gap(AppSpacing.xs),
+
+                      Text(
+                        l10n.pluginFeaturesHint,
+                        style: AppTypography.bodySmall,
+                      ),
+
+                      const Gap(AppSpacing.m),
+
+                      ...catalog.modules
+                          .where(
+                            (plugin) => plugin.supportsPlatform(
+                              PlatformInfo.isAndroid ? 'android' : 'windows',
+                            ),
+                          )
+                          .map(
+                            (plugin) => _FeatureModuleCard(
+                              plugin: plugin,
+                              locale: locale,
+                              enabled: activation.isEnabled(plugin),
+                              onToggle: plugin.isCore
+                                  ? null
+                                  : (enabled) => ref
+                                        .read(
+                                          featureActivationProvider.notifier,
+                                        )
+                                        .setEnabled(plugin.id, enabled),
+                            ),
+                          ),
+
+                      const Gap(AppSpacing.xl),
+
                       Text(
                         l10n.pluginsSectionTitle,
 
@@ -132,6 +193,8 @@ class PluginsSettingsView extends ConsumerWidget {
                             .map(
                               (entry) => _PluginCard(
                                 entry: entry,
+                                descriptor: catalog.byId[entry.plugin.id],
+                                locale: locale,
 
                                 onToggle: (enabled) {
                                   pluginManager.togglePlugin(
@@ -149,10 +212,11 @@ class PluginsSettingsView extends ConsumerWidget {
 
                       const Gap(AppSpacing.xl),
 
-                      KeyedSubtree(
-                        key: OnboardingTargets.extensions,
-                        child: const _BrowserExtensionsPanel(),
-                      ),
+                      if (!ref.watch(showcaseModeProvider))
+                        KeyedSubtree(
+                          key: OnboardingTargets.extensions,
+                          child: const _BrowserExtensionsPanel(),
+                        ),
                     ],
                   ),
           ),
@@ -192,10 +256,17 @@ class PluginsSettingsView extends ConsumerWidget {
 
 class _PluginCard extends StatelessWidget {
   final PluginEntry entry;
+  final FeaturePluginDescriptor? descriptor;
+  final String locale;
 
   final ValueChanged<bool> onToggle;
 
-  const _PluginCard({required this.entry, required this.onToggle});
+  const _PluginCard({
+    required this.entry,
+    required this.descriptor,
+    required this.locale,
+    required this.onToggle,
+  });
 
   IconData _getIcon(String name) {
     switch (name) {
@@ -268,7 +339,7 @@ class _PluginCard extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        entry.plugin.name,
+                        descriptor?.nameFor(locale) ?? entry.plugin.name,
 
                         maxLines: 1,
 
@@ -339,7 +410,8 @@ class _PluginCard extends StatelessWidget {
                 const Gap(AppSpacing.xxs),
 
                 Text(
-                  entry.plugin.description,
+                  descriptor?.descriptionFor(locale) ??
+                      entry.plugin.description,
 
                   style: AppTypography.bodySmall,
 
@@ -389,6 +461,202 @@ class _PluginCard extends StatelessWidget {
             inactiveThumbColor: AppColors.of(context).textDisabled,
 
             inactiveTrackColor: AppColors.of(context).surfaceHighlight,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureModuleCard extends StatelessWidget {
+  const _FeatureModuleCard({
+    required this.plugin,
+    required this.locale,
+    required this.enabled,
+    required this.onToggle,
+  });
+
+  final FeaturePluginDescriptor plugin;
+  final String locale;
+  final bool enabled;
+  final ValueChanged<bool>? onToggle;
+
+  IconData _iconFor(String name) {
+    switch (name) {
+      case 'travel_explore':
+        return Icons.travel_explore_rounded;
+      case 'inventory_2':
+        return Icons.inventory_2_outlined;
+      case 'bar_chart':
+        return Icons.bar_chart_rounded;
+      case 'ios_share':
+        return Icons.ios_share_rounded;
+      default:
+        return Icons.video_library_outlined;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colors = AppColors.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.s),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.m,
+        vertical: AppSpacing.s,
+      ),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.border.withValues(alpha: 0.7)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _iconFor(plugin.icon),
+            size: 22,
+            color: enabled ? colors.textPrimary : colors.textDisabled,
+          ),
+          const Gap(AppSpacing.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        plugin.nameFor(locale),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.label.copyWith(
+                          color: enabled
+                              ? colors.textPrimary
+                              : colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    if (plugin.isCore) ...[
+                      const Gap(AppSpacing.xs),
+                      Text(
+                        l10n.pluginRequired,
+                        style: AppTypography.caption.copyWith(
+                          color: colors.success,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const Gap(AppSpacing.xxs),
+                Text(
+                  plugin.descriptionFor(locale),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const Gap(AppSpacing.s),
+          if (plugin.isCore)
+            Icon(Icons.lock_outline_rounded, color: colors.textSecondary)
+          else
+            Switch(
+              value: enabled,
+              onChanged: onToggle,
+              activeThumbColor: colors.success,
+              inactiveThumbColor: colors.textDisabled,
+              inactiveTrackColor: colors.surfaceHighlight,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PluginInstallRequestCard extends ConsumerWidget {
+  const _PluginInstallRequestCard({required this.plugin, required this.locale});
+
+  final FeaturePluginDescriptor plugin;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final colors = AppColors.of(context);
+    final activation = ref.watch(featureActivationProvider);
+    final lifecycle = ref.watch(pluginManagerProvider);
+    final enabled = plugin.isModule
+        ? activation.isEnabled(plugin)
+        : lifecycle.plugins
+              .where((entry) => entry.plugin.id == plugin.id)
+              .any((entry) => entry.isEnabled);
+
+    VoidCallback? onPressed;
+    String actionLabel = l10n.pluginActivate;
+    if (plugin.isModule) {
+      if (enabled) {
+        actionLabel = l10n.pluginOpen;
+        onPressed = () => context.go(plugin.route);
+      } else {
+        onPressed = () async {
+          await ref
+              .read(featureActivationProvider.notifier)
+              .setEnabled(plugin.id, true);
+          if (context.mounted) context.go(plugin.route);
+        };
+      }
+    } else if (plugin.isDownloadHook) {
+      if (enabled) {
+        actionLabel = l10n.configurePlugin;
+        onPressed = () => context.go('/settings/plugins');
+      } else if (lifecycle.isLoaded) {
+        onPressed = () => ref
+            .read(pluginManagerProvider.notifier)
+            .togglePlugin(plugin.id, true);
+      }
+    } else if (plugin.isExternalExtension) {
+      actionLabel = plugin.id == 'chrome_extension'
+          ? l10n.installInChrome
+          : l10n.installInFirefox;
+      onPressed = () => ExtensionInstallGuideDialog.show(
+        context,
+        plugin.id == 'chrome_extension'
+            ? ExtensionInstallFlow.chromeInstall
+            : ExtensionInstallFlow.firefoxInstall,
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.m),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            plugin.nameFor(locale),
+            style: AppTypography.h3.copyWith(color: colors.textPrimary),
+          ),
+          const Gap(AppSpacing.xs),
+          Text(
+            plugin.isExternalExtension
+                ? l10n.pluginExternalHint
+                : l10n.pluginWebRequest,
+            style: AppTypography.bodySmall,
+          ),
+          const Gap(AppSpacing.m),
+          AppButton.primary(
+            label: actionLabel,
+            icon: plugin.isExternalExtension
+                ? Icons.open_in_new_rounded
+                : (enabled ? Icons.arrow_forward_rounded : Icons.add_rounded),
+            onPressed: onPressed,
           ),
         ],
       ),
