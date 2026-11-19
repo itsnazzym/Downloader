@@ -9,7 +9,7 @@ void main() {
     final controller = MobileOnboardingController(store);
     // Tests run on the desktop host.
     expect(PlatformInfo.isMobile, isFalse);
-    expect(controller.debugState, isFalse);
+    expect(controller.state, isFalse);
   });
 
   test('replay shows it again and finish stores completion', () async {
@@ -17,10 +17,10 @@ void main() {
     final controller = MobileOnboardingController(store);
 
     controller.replay();
-    expect(controller.debugState, isTrue);
+    expect(controller.state, isTrue);
 
     await controller.finish();
-    expect(controller.debugState, isFalse);
+    expect(controller.state, isFalse);
     expect(store.completed, isTrue);
   });
 }
