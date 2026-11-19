@@ -3,8 +3,17 @@ import 'package:gap/gap.dart';
 import 'package:modern_downloader/core/design_system/foundation/colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
+import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
+
+/// True when the settings building blocks render in the OLED language
+/// (hairline outlines, ink-filled selection, no glass): on phones, and when
+/// the active preset is the OLED one. Desktop presets keep their own look.
+bool useOledSettingsStyle(BuildContext context) =>
+    PlatformInfo.isMobile || AppColors.of(context).preset.id == 'oled';
 
 Map<String, String> languageOptionLabels(AppLocalizations l10n) {
   return {
@@ -36,6 +45,24 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (useOledSettingsStyle(context)) {
+      return Padding(
+        padding: const EdgeInsets.only(
+          top: AppSpacing.s,
+          bottom: AppSpacing.s,
+          left: 4,
+        ),
+        child: Text(
+          title,
+          style: OledText.ui(
+            context,
+            size: 13,
+            weight: FontWeight.w600,
+            color: OledTokens.of(context).ink2,
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(
         top: AppSpacing.s,
@@ -75,8 +102,57 @@ class SliderTile extends StatelessWidget {
     required this.icon,
   });
 
+  Widget _buildOled(BuildContext context) {
+    final t = OledTokens.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s),
+      child: OledCard(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: _OledLabel(title, subtitle)),
+                const Gap(AppSpacing.s),
+                Text(
+                  value.toInt().toString(),
+                  style: OledText.dot(context, size: 28),
+                ),
+              ],
+            ),
+            SliderTheme(
+              data: SliderThemeData(
+                trackHeight: 2,
+                thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 9,
+                  elevation: 0,
+                  pressedElevation: 0,
+                ),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+                tickMarkShape: SliderTickMarkShape.noTickMark,
+                activeTrackColor: t.ink,
+                inactiveTrackColor: t.lineStrong,
+                thumbColor: t.ink,
+                overlayColor: t.ink.withValues(alpha: 0.08),
+              ),
+              child: Slider(
+                value: value,
+                min: min,
+                max: max,
+                divisions: divisions,
+                onChanged: onChanged,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
       padding: const EdgeInsets.only(
@@ -182,8 +258,29 @@ class SwitchTile extends StatelessWidget {
     required this.icon,
   });
 
+  Widget _buildOled(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s),
+      child: OledCard(
+        onTap: () => onChanged(!value),
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Row(
+            children: [
+              Expanded(child: _OledLabel(title, subtitle)),
+              const Gap(AppSpacing.s),
+              OledToggle(value: value, onChanged: onChanged),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
       padding: const EdgeInsets.all(AppSpacing.m),
@@ -248,8 +345,47 @@ class DropdownTile extends StatelessWidget {
     this.optionLabels,
   });
 
+  Widget _buildOled(BuildContext context) {
+    final labels = <String, String>{
+      for (final e in options) e: optionLabels?[e] ?? e,
+    };
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s),
+      child: OledCard(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _OledLabel(title, ''),
+            const Gap(12),
+            if (options.length <= 3)
+              OledSegmented<String>(
+                options: labels,
+                value: value,
+                onChanged: onChanged,
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final e in options)
+                    OledChip(
+                      label: labels[e] ?? e,
+                      selected: e == value,
+                      onTap: () => onChanged(e),
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
       padding: const EdgeInsets.symmetric(
@@ -324,8 +460,36 @@ class ActionTile extends StatelessWidget {
     this.subtitleMaxLines = 2,
   });
 
+  Widget _buildOled(BuildContext context) {
+    final t = OledTokens.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s),
+      child: OledCard(
+        onTap: onTap,
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: _OledLabel(
+                title,
+                subtitle,
+                subtitleMaxLines: subtitleMaxLines,
+              ),
+            ),
+            const Gap(AppSpacing.xs),
+            if (trailing != null)
+              trailing!
+            else
+              Icon(Icons.chevron_right_rounded, color: t.ink3, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (useOledSettingsStyle(context)) return _buildOled(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.m),
       child: Material(
@@ -396,8 +560,54 @@ class StatusTile extends StatelessWidget {
 
   const StatusTile(this.name, this.status, {super.key});
 
+  Widget _buildOled(BuildContext context) {
+    final t = OledTokens.of(context);
+    final ok = status.isInstalled;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s),
+      child: OledCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(
+              ok
+                  ? Icons.check_circle_outline_rounded
+                  : Icons.error_outline_rounded,
+              color: ok ? t.ink : t.warn,
+              size: 20,
+            ),
+            const Gap(12),
+            Expanded(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: OledText.ui(context, size: 15, weight: FontWeight.w600),
+              ),
+            ),
+            const Gap(12),
+            Flexible(
+              child: Text(
+                status.version ?? context.l10n.settingsTilesNotFound,
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: OledText.ui(
+                  context,
+                  size: 13,
+                  color: ok ? t.ink2 : t.warn,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
       padding: const EdgeInsets.all(AppSpacing.m),
@@ -440,7 +650,7 @@ class StatusTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                status.version ?? "Not found",
+                status.version ?? context.l10n.settingsTilesNotFound,
                 textAlign: TextAlign.right,
                 maxLines: 1,
                 style: AppTypography.mono.copyWith(
@@ -455,6 +665,45 @@ class StatusTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Title and optional description of an OLED settings row.
+class _OledLabel extends StatelessWidget {
+  const _OledLabel(this.title, this.subtitle, {this.subtitleMaxLines});
+
+  final String title;
+  final String subtitle;
+  final int? subtitleMaxLines;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = OledTokens.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: OledText.ui(context, size: 15, weight: FontWeight.w600),
+        ),
+        if (subtitle.isNotEmpty) ...[
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            maxLines: subtitleMaxLines,
+            overflow: subtitleMaxLines == null ? null : TextOverflow.ellipsis,
+            style: OledText.ui(
+              context,
+              size: 12,
+              weight: FontWeight.w400,
+              color: t.ink2,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

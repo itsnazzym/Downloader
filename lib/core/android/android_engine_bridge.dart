@@ -43,11 +43,19 @@ class AndroidEngineBridge {
         name.startsWith('aria2');
   }
 
-  Future<void> ensureInitialized() async {
+  /// [autoUpdate] false skips the yt-dlp update the native engine otherwise
+  /// runs on first start (the "Mise à jour automatique" setting).
+  Future<void> ensureInitialized({
+    bool autoUpdate = true,
+    String channel = 'nightly',
+  }) async {
     if (_initialized) return;
     _ensureEventListener();
     try {
-      await _methods.invokeMethod<void>('init');
+      await _methods.invokeMethod<void>('init', {
+        'autoUpdate': autoUpdate,
+        'channel': channel,
+      });
       _initialized = true;
     } on PlatformException catch (e) {
       LoggerService.e('Android engine init failed', e);
@@ -66,6 +74,31 @@ class AndroidEngineBridge {
     }
   }
 
+  /// Total and free bytes of the volume holding the default output folder.
+  Future<({int total, int free})?> diskSpace() async {
+    try {
+      final m = await _methods.invokeMethod<Map<Object?, Object?>>('diskSpace');
+      final total = (m?['total'] as num?)?.toInt();
+      final free = (m?['free'] as num?)?.toInt();
+      if (total == null || free == null || total <= 0) return null;
+      return (total: total, free: free);
+    } on PlatformException catch (e) {
+      LoggerService.w('diskSpace failed: $e');
+      return null;
+    }
+  }
+
+  /// True when the active network is metered (mobile data, tethering).
+  /// Unknown or failing checks count as not metered.
+  Future<bool> isMeteredNetwork() async {
+    try {
+      return await _methods.invokeMethod<bool>('isMetered') ?? false;
+    } on PlatformException catch (e) {
+      LoggerService.w('isMetered failed: $e');
+      return false;
+    }
+  }
+
   Future<String?> webViewCookies(String url) async {
     try {
       return await _methods.invokeMethod<String>('webViewCookies', {
@@ -77,9 +110,12 @@ class AndroidEngineBridge {
     }
   }
 
-  Future<String> updateYtDlp() async {
+  /// [channel] is 'nightly' or 'stable'; the other one is the fallback.
+  Future<String> updateYtDlp({String channel = 'nightly'}) async {
     try {
-      final result = await _methods.invokeMethod<String>('updateYtDlp');
+      final result = await _methods.invokeMethod<String>('updateYtDlp', {
+        'channel': channel,
+      });
       return result ?? 'updated';
     } on PlatformException catch (e) {
       LoggerService.w('Android yt-dlp update failed: $e');

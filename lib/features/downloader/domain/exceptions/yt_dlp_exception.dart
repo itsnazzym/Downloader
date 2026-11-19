@@ -70,7 +70,9 @@ class YtDlpException implements Exception {
     if (check.contains('no video formats found') ||
         check.contains('no formats found') ||
         check.contains('unable to extract video data') ||
-        check.contains('attempting impersonation, but no impersonate target is available')) {
+        check.contains(
+          'attempting impersonation, but no impersonate target is available',
+        )) {
       return NoVideoFormatsException(log: data);
     }
     if (check.contains('cloudflare') ||
@@ -80,7 +82,8 @@ class YtDlpException implements Exception {
         check.contains('impersonate')) {
       return ExtractorProtectionException(log: data);
     }
-    if ((check.contains('sign in to confirm') && !check.contains('not a bot')) ||
+    if ((check.contains('sign in to confirm') &&
+            !check.contains('not a bot')) ||
         check.contains('login required') ||
         check.contains('requires authentication')) {
       return AuthRequiredException(log: data);
@@ -198,4 +201,17 @@ class AuthRequiredException extends YtDlpException {
         'Connexion ou cookies de session requis pour accéder à cette vidéo.',
         originalLog: log,
       );
+}
+
+/// Raised before a download starts when "Wi-Fi only" is on and the device is
+/// on a metered connection. Not retried; the item fails with this message.
+class WifiOnlyBlockedException implements Exception {
+  const WifiOnlyBlockedException();
+
+  static const String message =
+      'Wi-Fi only is on and the device is using mobile data. '
+      'Connect to Wi-Fi, then retry.';
+
+  @override
+  String toString() => message;
 }

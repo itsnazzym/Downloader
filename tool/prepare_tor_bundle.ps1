@@ -8,7 +8,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $version = '15.0.23'
 $archiveName = "tor-expert-bundle-windows-x86_64-$version.tar.gz"
-$archiveUrl = "https://dist.torproject.org/torbrowser/$version/$archiveName"
+# dist.torproject.org only keeps the newest releases; the archive keeps every
+# version, so the pinned bundle (and its checksum) stays downloadable.
+$archiveUrl = "https://archive.torproject.org/tor-package-archive/torbrowser/$version/$archiveName"
 $expectedSha256 = '231dad6b9cb401a54c260db7046965ef04e4f72ff071b140d423fb5da281ab1e'
 
 $repoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path

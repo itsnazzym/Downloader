@@ -16,6 +16,9 @@ permissions:
 
 env:
   FLUTTER_CHANNEL: stable
+  # Pinned: Flutter 3.50+ requires Gradle 9 / AGP 9, which this project does not
+  # use yet (the Android build failed on "stable" once it moved to 3.50).
+  FLUTTER_VERSION: "3.44.8"
 
 jobs:
   # -------------------------------------------------------------
@@ -33,6 +36,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
@@ -75,6 +79,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
@@ -182,6 +187,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
@@ -382,6 +388,7 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
@@ -390,22 +397,28 @@ jobs:
 
       - name: Compile Android APK
         run: >
-          flutter build apk --release
+          flutter build apk --release --split-per-abi
           --build-name=${{ needs.version.outputs.semver }}
           --build-number=${{ needs.version.outputs.build_number }}
 
       - name: Stage APK artifact
         run: |
           set -euo pipefail
-          src="build/app/outputs/flutter-apk/app-release.apk"
-          test -f "$src"
-          cp "$src" ModernDownloader-Android.apk
+          # One APK per CPU type: a phone only needs its own engine copy
+          # (about 75 MB instead of 210 MB for the universal APK).
+          out="build/app/outputs/flutter-apk"
+          test -f "$out/app-arm64-v8a-release.apk"
+          test -f "$out/app-armeabi-v7a-release.apk"
+          cp "$out/app-arm64-v8a-release.apk" ModernDownloader-Android.apk
+          cp "$out/app-armeabi-v7a-release.apk" ModernDownloader-Android-armv7.apk
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
-          path: ModernDownloader-Android.apk
+          path: |
+            ModernDownloader-Android.apk
+            ModernDownloader-Android-armv7.apk
           retention-days: 14
           if-no-files-found: error
 
@@ -432,4 +445,5 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             dist/ModernDownloader-Android.apk
+            dist/ModernDownloader-Android-armv7.apk
 

@@ -209,7 +209,6 @@ class _SmartOrganizerSettingsViewState
     );
   }
 
-
   Future<void> _organizeFolder() async {
     final dirPath = await FilePicker.platform.getDirectoryPath();
     if (dirPath == null) return;
@@ -281,6 +280,10 @@ class _SmartOrganizerSettingsViewState
         leading: const SettingsAppBarLeading(),
         title: Text(context.l10n.smartOrganization),
         backgroundColor: AppColors.of(context).background,
+        surfaceTintColor: useOledSettingsStyle(context)
+            ? Colors.transparent
+            : null,
+        scrolledUnderElevation: useOledSettingsStyle(context) ? 0 : null,
         elevation: 0,
         foregroundColor: AppColors.of(context).textPrimary,
       ),
@@ -326,10 +329,14 @@ class _SmartOrganizerSettingsViewState
                 Row(
                   children: [
                     TextButton.icon(
-                      icon: const Icon(Icons.playlist_add_check_rounded, size: 18),
-                      label: const Text('Règles recommandées'),
+                      icon: const Icon(
+                        Icons.playlist_add_check_rounded,
+                        size: 18,
+                      ),
+                      label: Text(context.l10n.settingsSmartRecommendedRules),
                       onPressed: () async {
-                        for (final preset in SmartOrganizerPlugin.defaultPresets) {
+                        for (final preset
+                            in SmartOrganizerPlugin.defaultPresets) {
                           if (!_rules.any((r) => r.id == preset.id)) {
                             _rules.add(preset);
                           }

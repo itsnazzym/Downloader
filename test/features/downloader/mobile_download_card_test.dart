@@ -31,10 +31,14 @@ void main() {
     );
   }
 
-  testWidgets('MobileDownloadCard renders failed download without crashing', (tester) async {
+  testWidgets('MobileDownloadCard renders failed download without crashing', (
+    tester,
+  ) async {
     final item = DownloadItem(
       id: 'test_1',
-      request: const DownloadRequest(url: 'https://xhamster.com/videos/test-123'),
+      request: const DownloadRequest(
+        url: 'https://xhamster.com/videos/test-123',
+      ),
       status: DownloadStatus.failed,
       error: 'yt-dlp exited with code 1: No video formats found!',
       title: 'Ep7t8d4tldfnKXVO9',
@@ -45,21 +49,26 @@ void main() {
     expect(find.byType(MobileDownloadCard), findsOneWidget);
   });
 
-  testWidgets('MobileDownloadCard renders completed download without crashing', (tester) async {
-    final item = const DownloadItem(
-      id: 'test_2',
-      request: DownloadRequest(url: 'https://youtube.com/watch?v=123'),
-      status: DownloadStatus.completed,
-      totalSize: '24.5 MB',
-      title: 'My Video',
-    );
+  testWidgets(
+    'MobileDownloadCard renders completed download without crashing',
+    (tester) async {
+      final item = const DownloadItem(
+        id: 'test_2',
+        request: DownloadRequest(url: 'https://youtube.com/watch?v=123'),
+        status: DownloadStatus.completed,
+        totalSize: '24.5 MB',
+        title: 'My Video',
+      );
 
-    await tester.pumpWidget(buildTestWidget(item));
-    await tester.pumpAndSettle();
-    expect(find.byType(MobileDownloadCard), findsOneWidget);
-  });
+      await tester.pumpWidget(buildTestWidget(item));
+      await tester.pumpAndSettle();
+      expect(find.byType(MobileDownloadCard), findsOneWidget);
+    },
+  );
 
-  testWidgets('MobileDownloadCard renders downloading state without crashing', (tester) async {
+  testWidgets('MobileDownloadCard renders downloading state without crashing', (
+    tester,
+  ) async {
     final item = const DownloadItem(
       id: 'test_3',
       request: DownloadRequest(url: 'https://youtube.com/watch?v=123'),

@@ -16,6 +16,7 @@ class LibraryStatsBuilder {
     DateTime? now,
     int Function(String path)? fileLengthBytes,
     DateTime Function(String path)? fileModified,
+    int historyDays = 7,
   }) {
     final clock = now ?? DateTime.now();
     final seen = <String>{};
@@ -25,7 +26,7 @@ class LibraryStatsBuilder {
     var bytesToday = 0;
     final sources = <String, int>{};
     final byDay = <String, DailyStats>{
-      for (var i = 6; i >= 0; i--)
+      for (var i = historyDays - 1; i >= 0; i--)
         _dayKey(clock.subtract(Duration(days: i))): DailyStats(
           date: _dayKey(clock.subtract(Duration(days: i))),
         ),

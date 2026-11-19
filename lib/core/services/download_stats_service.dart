@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../platform/platform_info.dart';
 import '../providers/settings_provider.dart';
 import '../logger/logger_service.dart';
 import 'library_stats_builder.dart';
@@ -208,11 +209,14 @@ class DownloadStatsNotifier extends StateNotifier<DownloadStats> {
     while (mounted) {
       final revision = _librarySnapshotRevision;
       final snapshot = _pendingLibrarySnapshot;
+      // The mobile activity heatmap shows 12 weeks; desktop plots 7 days.
+      final historyDays = PlatformInfo.isMobile ? 84 : 7;
       if (snapshot == null) break;
 
       try {
         final rebuilt = await Isolate.run(
-          () => LibraryStatsBuilder.fromItems(snapshot),
+          () =>
+              LibraryStatsBuilder.fromItems(snapshot, historyDays: historyDays),
         );
         if (!mounted) return;
         if (revision != _librarySnapshotRevision) continue;

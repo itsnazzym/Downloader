@@ -1,13 +1,11 @@
 {
   "@@locale": "ar",
-
   "appTitle": "Modern Downloader",
   "downloads": "التنزيلات",
   "statistics": "الإحصائيات",
   "settings": "الإعدادات",
   "appearance": "المظهر",
   "plugins": "الإضافات",
-
   "newDownload": "تنزيل جديد",
   "pasteUrl": "الصق الرابط هنا",
   "xCdnUrlRejected": "الصق رابط التغريدة (x.com/.../status/...) وليس ملف الفيديو.",
@@ -23,7 +21,6 @@
   "clearHistory": "مسح السجل",
   "selectAll": "تحديد الكل",
   "deselectAll": "إلغاء تحديد الكل",
-
   "statusQueued": "في الانتظار",
   "statusDownloading": "جاري التنزيل",
   "statusCompleted": "مكتمل",
@@ -32,13 +29,11 @@
   "statusPaused": "متوقف مؤقتاً",
   "statusExtracting": "جاري الاستخراج",
   "statusDuplicate": "مكرر",
-
   "sidebarAll": "الكل",
   "sidebarActive": "النشطة",
   "sidebarCompleted": "المكتملة",
   "sidebarFailed": "الفاشلة",
   "sidebarBySource": "حسب المصدر",
-
   "settingsGeneral": "عام",
   "settingsOutput": "الإخراج",
   "settingsAdvanced": "متقدم",
@@ -46,7 +41,6 @@
   "settingsSystem": "النظام",
   "settingsAppearance": "المظهر",
   "settingsPlugins": "الإضافات",
-
   "audioOnly": "صوت فقط",
   "audioOnlyDesc": "استخراج الصوت فقط (MP3) من الفيديوهات",
   "autoStart": "بدء تلقائي",
@@ -69,7 +63,6 @@
   "showNotificationsDesc": "إشعارات سطح المكتب للتنزيلات",
   "clipboardMonitor": "مراقبة الحافظة",
   "clipboardMonitorDesc": "الكشف التلقائي عن الروابط من الحافظة",
-
   "language": "اللغة",
   "languageDesc": "اختر لغتك المفضلة",
   "theme": "السمة",
@@ -79,7 +72,6 @@
   "darkMode": "الوضع الداكن",
   "lightMode": "الوضع الفاتح",
   "systemMode": "النظام",
-
   "totalDownloads": "إجمالي التنزيلات",
   "downloadsToday": "تنزيلات اليوم",
   "totalData": "إجمالي البيانات",
@@ -91,14 +83,12 @@
   "settingsShortcut": "فتح الإعدادات",
   "dashboardShortcut": "لوحة المعلومات",
   "minimizeShortcut": "تصغير",
-
   "inspector": "المفتش",
   "title": "العنوان",
   "status": "الحالة",
   "progress": "التقدم",
   "logs": "السجلات",
   "selectDownload": "اختر تنزيلاً",
-
   "checkDependencies": "فحص المتطلبات",
   "checkDependenciesDesc": "فحص حالة yt-dlp و ffmpeg و aria2c",
   "verifyingBinaries": "جاري التحقق من الملفات...",
@@ -107,19 +97,28 @@
   "organizeLibraryDesc": "ترتيب الملفات حسب المصدر، نقل الصور المصغرة، تنظيف الملفات المؤقتة",
   "organizationComplete": "اكتمل التنظيم",
   "filesMoved": "الملفات المنقولة: {count}",
-  "@filesMoved": { "placeholders": { "count": { "type": "int" } } },
+  "@filesMoved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "filesDeleted": "الملفات المؤقتة المحذوفة: {count}",
-  "@filesDeleted": { "placeholders": { "count": { "type": "int" } } },
-
+  "@filesDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noPluginsInstalled": "لا توجد إضافات مثبتة",
   "pluginEnabled": "مفعّلة",
   "pluginDisabled": "معطّلة",
   "builtIn": "مدمجة",
-
   "mediaPlayer": "مشغل الوسائط",
   "playbackSpeed": "سرعة التشغيل",
   "volume": "مستوى الصوت",
-
   "ok": "موافق",
   "confirm": "تأكيد",
   "close": "إغلاق",
@@ -131,7 +130,6 @@
   "error": "خطأ",
   "success": "نجاح",
   "warning": "تحذير",
-
   "librarySection": "المكتبة",
   "sourcesSection": "المصادر",
   "mainPage": "الرئيسية",
@@ -140,7 +138,9 @@
   "videosDownloadingCount": "{count} فيديوهات قيد التنزيل",
   "@videosDownloadingCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "videoDownloadingSingular": "فيديو واحد قيد التنزيل",
@@ -149,7 +149,9 @@
   "moreDownloadingVideos": "+{count}",
   "@moreDownloadingVideos": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "searchDownloads": "تصفية العناوين أو الروابط",
@@ -157,14 +159,17 @@
   "searchMatchCount": "{visible} / {total}",
   "@searchMatchCount": {
     "placeholders": {
-      "visible": { "type": "int" },
-      "total": { "type": "int" }
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "clearHistoryConfirm": "هل تريد حذف التنزيلات المكتملة والفاشلة والملغاة؟ ستبقى التنزيلات النشطة.",
   "refreshLibrary": "تحديث المكتبة",
   "yourListIsEmpty": "قائمة التنزيلات فارغة.",
-
   "sortAndView": "الترتيب والعرض",
   "sortBy": "ترتيب حسب",
   "sortDateNewest": "التاريخ (الأحدث)",
@@ -180,15 +185,37 @@
   "folderBack": "العودة إلى المجلدات",
   "folderOpenHint": "فتح المجلد",
   "folderVideoCount": "{count} فيديو",
-  "@folderVideoCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@folderVideoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "playlistDetected": "تم اكتشاف قائمة تشغيل ({count} فيديو)",
-  "@playlistDetected": { "placeholders": { "count": { "type": "int" } } },
+  "@playlistDetected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "downloadSelected": "تنزيل المحدد ({count})",
-  "@downloadSelected": { "placeholders": { "count": { "type": "int" } } },
+  "@downloadSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "startedCountDownloads": "بدأ {count} تنزيلات",
-  "@startedCountDownloads": { "placeholders": { "count": { "type": "int" } } },
-
+  "@startedCountDownloads": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "downloadFolder": "مجلد التنزيل",
   "selectFolder": "اختر مجلداً...",
   "organizeBySite": "تنظيم حسب الموقع",
@@ -218,7 +245,6 @@
   "smartOrganizationDesc": "قواعد الفرز التلقائي والتخمين الذكي",
   "outputFolderNotConfigured": "مجلد الإخراج غير مهيأ",
   "pluginsEmptyHint": "تضيف الإضافات وظائف إلى Modern Downloader",
-
   "statusProcessing": "معالجة",
   "statsSubtitle": "تتبع نشاط التنزيل واستخدام التخزين",
   "statsToday": "اليوم",
@@ -232,8 +258,12 @@
   "chartDownloadsTooltip": "{count} تنزيلات\n{bytes}",
   "@chartDownloadsTooltip": {
     "placeholders": {
-      "count": { "type": "int" },
-      "bytes": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "bytes": {
+        "type": "String"
+      }
     }
   },
   "currentAccent": "اللون الحالي",
@@ -249,7 +279,11 @@
   "generatedOnFirstLaunch": "يُنشأ عند أول تشغيل",
   "serverPortRestartHint": "أعد تشغيل التطبيق بعد التغيير. الحالي: {port}",
   "@serverPortRestartHint": {
-    "placeholders": { "port": { "type": "int" } }
+    "placeholders": {
+      "port": {
+        "type": "int"
+      }
+    }
   },
   "torBypassDesc": "شغّل Tor في الخلفية ومرّر التنزيلات عبره (127.0.0.1:9050)",
   "torProxyStarting": "جارٍ تشغيل Tor…",
@@ -282,17 +316,29 @@
   "storageFree": "متاح",
   "storageTotalLabel": "الإجمالي: {size}",
   "@storageTotalLabel": {
-    "placeholders": { "size": { "type": "String" } }
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   },
   "storageFolder": "المجلد",
   "storageOtherUsed": "مستخدم آخر",
   "storageFolderOfUsed": "{percent}% من المستخدم",
   "@storageFolderOfUsed": {
-    "placeholders": { "percent": { "type": "String" } }
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "storageFileCount": "{count, plural, =0{0 ملف} =1{ملف واحد} other{{count} ملفات}}",
   "@storageFileCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "storageTypeVideo": "فيديو",
   "storageTypeAudio": "صوت",
@@ -301,23 +347,55 @@
   "storageScanInProgress": "جارٍ تحليل المجلد...",
   "storageLastScanned": "تم التحليل الساعة {time}",
   "@storageLastScanned": {
-    "placeholders": { "time": { "type": "String" } }
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "storageScanCached": "مخزّن مؤقتاً",
   "storageScanError": "تعذر قراءة هذا المجلد",
   "startingOrganization": "بدء التنظيم...",
   "organizationFailed": "فشل التنظيم: {error}",
   "@organizationFailed": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
   "thumbnailsOrganized": "الصور المصغرة المنظمة: {count}",
-  "@thumbnailsOrganized": { "placeholders": { "count": { "type": "int" } } },
+  "@thumbnailsOrganized": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "foldersCreated": "المجلدات المنشأة: {count}",
-  "@foldersCreated": { "placeholders": { "count": { "type": "int" } } },
+  "@foldersCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "emptyFoldersDeleted": "المجلدات الفارغة المحذوفة: {count}",
-  "@emptyFoldersDeleted": { "placeholders": { "count": { "type": "int" } } },
+  "@emptyFoldersDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "organizationErrors": "حدثت {count} أخطاء",
-  "@organizationErrors": { "placeholders": { "count": { "type": "int" } } },
+  "@organizationErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "nameLabel": "الاسم",
   "editRule": "تعديل القاعدة",
   "newRule": "قاعدة جديدة",
@@ -347,35 +425,58 @@
   "ollamaMustRun": "تأكد من تشغيل Ollama (`ollama serve`).",
   "requestingOllamaPull": "جاري سحب النموذج {model} عبر Ollama... قد يستغرق ذلك وقتاً.",
   "@requestingOllamaPull": {
-    "placeholders": { "model": { "type": "String" } }
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
   },
   "organizationCompleteDetail": "اكتمل التنظيم. تم فحص {scanned} ملفاً ونقل {moved}.",
   "@organizationCompleteDetail": {
     "placeholders": {
-      "scanned": { "type": "int" },
-      "moved": { "type": "int" }
+      "scanned": {
+        "type": "int"
+      },
+      "moved": {
+        "type": "int"
+      }
     }
   },
   "toolsSection": "أدوات",
   "configurePlugin": "إعداد الإضافة",
   "pluginError": "خطأ: {error}",
   "@pluginError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "setupPreparing": "جارٍ تجهيز أدوات التنزيل…",
   "setupCheckingTools": "التحقق من الأدوات المثبتة",
   "setupDownloading": "جارٍ تنزيل {name}…",
   "@setupDownloading": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "setupExtracting": "جارٍ استخراج {name}…",
   "@setupExtracting": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "setupVerifying": "جارٍ التحقق من {name}…",
   "@setupVerifying": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "setupUpdatingYtDlp": "جارٍ تحديث yt-dlp…",
   "setupReady": "كل الأدوات جاهزة",
@@ -384,11 +485,14 @@
   "setupContinueAnyway": "المتابعة على أي حال",
   "setupDownloadPercent": "{percent}%",
   "@setupDownloadPercent": {
-    "placeholders": { "percent": { "type": "int" } }
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
   },
   "previewSetup": "عرض شاشة الإعداد (مؤقت)",
   "previewSetupDesc": "إعادة تشغيل فحص الأدوات وتثبيتها على كامل الشاشة",
-
   "pluginsSectionTitle": "إضافات سير التنزيل",
   "pluginsSectionHint": "تضيف هذه الإضافات إجراءات قبل التنزيل أو بعد اكتماله.",
   "browserExtensionsTitle": "إضافة المتصفح",
@@ -422,7 +526,11 @@
   "firefoxInstallStarted": "سيثبت Firefox الإضافة. إذا تم الحظر، استخدم التثبيت اليدوي.",
   "extensionPathCopied": "تم نسخ المسار: {path}",
   "@extensionPathCopied": {
-    "placeholders": { "path": { "type": "String" } }
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "extensionInstallFailed": "تعذر فتح المتصفح. جرّب تنزيل ZIP.",
   "extractingTitle": "جارٍ استخراج العنوان...",
@@ -433,7 +541,6 @@
   "expandSidebar": "توسيع الشريط الجانبي",
   "collapseInspector": "طي المفتش",
   "expandInspector": "توسيع المفتش",
-
   "experimentalXFeedSection": "خلاصة X التجريبية",
   "experimentalXFeedGobird": "استخدام gobird (تجريبي)",
   "experimentalXFeedGobirdDesc": "خلاصة الصفحة الرئيسية للقراءة فقط عبر gobird المضمّن. معطّل افتراضيًا. يخالف شروط خدمة X وقد يعرّض الحساب للإيقاف.",
@@ -446,7 +553,11 @@
   "gobirdBinaryStatus": "ثنائي gobird",
   "gobirdBinaryFound": "موجود: {version}",
   "@gobirdBinaryFound": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
   "gobirdBinaryMissing": "غير مضمّن — المحرك التجريبي غير متاح",
   "gobirdDisableNow": "إيقاف gobird الآن",
@@ -455,10 +566,11 @@
   "duplicatesSkipped": "تم تخطي {count} من العناصر المكررة",
   "@duplicatesSkipped": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "trayShow": "إظهار",
   "trayExit": "خروج",
   "needTweetLink": "يلزم رابط التغريدة",
@@ -474,18 +586,25 @@
   "languageArabic": "العربية",
   "qualityManual": "يدوي",
   "qualityManualPlus": "يدوي+",
-
   "notificationDownloadCompleted": "اكتمل التنزيل",
   "notificationDownloadFailed": "فشل التنزيل",
   "notificationLinkDetected": "تم اكتشاف رابط",
   "notificationLinkDetectedBody": "انقر للتنزيل: {url}",
   "@notificationLinkDetectedBody": {
-    "placeholders": { "url": { "type": "String" } }
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
   },
   "notificationLinksQueuedTitle": "روابط في قائمة الانتظار",
   "notificationLinksQueuedBody": "{count, plural, =1{رابط واحد في قائمة الانتظار} other{{count} روابط في قائمة الانتظار}}",
   "@notificationLinksQueuedBody": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "notificationExtensionConnected": "تم توصيل الإضافة",
   "notificationExtensionConnectedBody": "تم توصيل إضافة المتصفح بنجاح.",
@@ -493,21 +612,27 @@
   "notificationBatchCompleteBody": "اكتمل {count} من التنزيلات — {totalSize} إجماليًا",
   "@notificationBatchCompleteBody": {
     "placeholders": {
-      "count": { "type": "int" },
-      "totalSize": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "totalSize": {
+        "type": "String"
+      }
     }
   },
   "notificationYtDlpUpdated": "تم تحديث yt-dlp",
   "notificationYtDlpUpdatedBody": "تم التحديث إلى {version}",
   "@notificationYtDlpUpdatedBody": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
-
   "browseX": "تصفح X",
   "browseXHint": "سجّل الدخول إن لزم، ثم اضغط تنزيل على أي فيديو.",
   "mobileLibrary": "المكتبة",
   "shareDownloadStarted": "بدأ التنزيل من المشاركة",
-
   "transferTitle": "نقل",
   "transferSubtitle": "نفس Wi-Fi. امسح رمز QR أو اضغط على جهاز.",
   "transferPortBusy": "المنفذ 53317 مشغول. رمز QR يعمل؛ قد يفشل LocalSend نحو هذا الجهاز.",
@@ -519,7 +644,11 @@
   "transferClearSelection": "مسح",
   "transferSelectedFolders": "{count, plural, =1{{count} مجلد} other{{count} مجلدات}}",
   "@transferSelectedFolders": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "transferNoCreatorMatch": "لا نتيجة",
   "transferNoDevices": "لا جهاز بعد — امسح رمز QR على الهاتف.",
@@ -540,9 +669,15 @@
   "transferIncomingBody": "{alias} يريد إرسال {count} ملفات ({size})",
   "@transferIncomingBody": {
     "placeholders": {
-      "alias": { "type": "String" },
-      "count": { "type": "int" },
-      "size": { "type": "String" }
+      "alias": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
     }
   },
   "transferAccept": "قبول",
@@ -565,44 +700,57 @@
   "transferVideosFound": "{count} موجودة",
   "@transferVideosFound": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferAlreadyTransferred": "{count} تم نقلها مسبقاً",
   "@transferAlreadyTransferred": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferNewVideos": "{count} جديدة",
   "@transferNewVideos": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferSendNewOnly": "إرسال {count} فيديو جديد",
   "@transferSendNewOnly": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferSendAll": "إرسال الكل ({count})",
   "@transferSendAll": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferOnlyNewToggle": "إرسال الفيديوهات الجديدة فقط",
   "transferFolderBreakdown": "{newCount} جديدة • {alreadyCount} منقولة",
   "@transferFolderBreakdown": {
     "placeholders": {
-      "newCount": { "type": "int" },
-      "alreadyCount": { "type": "int" }
+      "newCount": {
+        "type": "int"
+      },
+      "alreadyCount": {
+        "type": "int"
+      }
     }
   },
   "transferForgetDeviceHistory": "نسيان سجل هذا الجهاز",
   "transferHistoryCleared": "تم مسح سجل النقل",
-
   "onboardingStart": "ابدأ",
   "onboardingNext": "التالي",
   "onboardingDone": "تم",
@@ -639,5 +787,280 @@
   "pluginInactiveBody": "لا تزال الميزة متاحة وبياناتها محفوظة. يمكنك إعادة تفعيلها من إعدادات الإضافات.",
   "pluginManage": "إدارة الإضافات",
   "pluginWebRequest": "طلب موقع Modern Downloader هذه الميزة. أكّد هنا لإضافتها إلى واجهتك.",
-  "pluginExternalHint": "تُثبّت هذه الإضافة في المتصفح. اتبع خطوات الإعداد الموجودة أدناه."
+  "pluginExternalHint": "تُثبّت هذه الإضافة في المتصفح. اتبع خطوات الإعداد الموجودة أدناه.",
+  "addSheetTitle": "تنزيل جديد",
+  "addSheetPasteCopiedLink": "لصق الرابط المنسوخ: {url}",
+  "addSheetModeVideo": "فيديو",
+  "addSheetModeAudioOnly": "صوت فقط",
+  "addSheetBrowserSession": "جلسة المتصفح",
+  "addSheetQualityChosen": "الجودة المختارة",
+  "addSheetQualityChosenWithSize": "الجودة المختارة، {size}",
+  "addSheetStarting": "جارٍ البدء…",
+  "addSheetDownload": "تنزيل",
+  "addSheetPreviewUnavailable": "المعاينة غير متاحة. قد ينجح التنزيل مع ذلك.",
+  "addSheetAnalyzing": "جارٍ تحليل الرابط…",
+  "addSheetUrlHint": "الصق رابط الفيديو أو الوسائط",
+  "addSheetValidLink": "رابط صالح",
+  "addSheetClear": "مسح",
+  "addSheetPaste": "لصق",
+  "addSheetInvalidUrl": "يرجى إدخال رابط صالح.",
+  "addSheetUnsupportedUrl": "الرابط غير مدعوم أو النطاق مقيّد.",
+  "addSheetError": "خطأ: {error}",
+  "addSheetDetailBest": "أعلى دقة متاحة",
+  "addSheetDetail1080": "دقة عالية",
+  "addSheetDetail720": "متوازن",
+  "addSheetDetail480": "موفّر للبيانات",
+  "addSheetDetailAudio": "صوت مستخرج بأفضل جودة متاحة",
+  "addSheetReadoutMax": "الأقصى",
+  "addSheetUntitledMedia": "وسائط بلا عنوان",
+  "sizeUnitKb": "ك.ب",
+  "sizeUnitMb": "م.ب",
+  "sizeUnitGb": "ج.ب",
+  "archiveMobileTitle": "أرشيف تيك توك",
+  "archiveMobileFilters": "عوامل التصفية",
+  "archiveMobileReset": "إعادة تعيين",
+  "archiveMobileType": "النوع",
+  "archiveMobileFilterAll": "الكل",
+  "archiveMobileFilterFavorites": "المفضلة",
+  "archiveMobileFilterLikes": "الإعجابات",
+  "archiveMobileYear": "السنة",
+  "archiveMobileAllYears": "الكل",
+  "archiveMobileApplyFilters": "تطبيق عوامل التصفية",
+  "archiveMobileBackToVideos": "العودة إلى الفيديوهات",
+  "archiveMobileDownload": "تنزيل",
+  "archiveMobileBatchStarted": "بدأ تنزيل الدفعة",
+  "archiveMobileSyncTooltip": "استيراد أو مزامنة",
+  "archiveMobileBackToLibrary": "العودة إلى المكتبة",
+  "archiveMobileBatchRunning": "تنزيل الدفعة قيد التنفيذ",
+  "archiveMobileSkippedVideos": "{count, plural, zero{{count} فيديو متجاوز} one{فيديو واحد متجاوز} two{فيديوان متجاوزان} few{{count} فيديوهات متجاوزة} many{{count} فيديو متجاوز} other{{count} فيديو متجاوز}}",
+  "archiveMobileStopBatch": "إيقاف الدفعة",
+  "archiveMobileSyncingCollections": "مزامنة المجموعات",
+  "archiveMobileSyncWaiting": "في انتظار استجابة المتصفح. أبقِ صفحة تيك توك مفتوحة.",
+  "archiveMobileChipAll": "الكل",
+  "archiveMobileSearchHint": "ابحث عن فيديو أو مجموعة",
+  "archiveMobileClearSearch": "مسح البحث",
+  "archiveMobileVideoCount": "{count, plural, zero{{count} فيديو} one{فيديو واحد} two{فيديوان} few{{count} فيديوهات} many{{count} فيديو} other{{count} فيديو}}",
+  "archiveMobileClearSelection": "مسح التحديد",
+  "archiveMobileSelectAll": "تحديد الكل",
+  "archiveMobileManageCollections": "إدارة المجموعات",
+  "archiveMobilePlayFullscreen": "تشغيل الفيديوهات بملء الشاشة",
+  "archiveMobileNoVideos": "لم يتم العثور على أي فيديو",
+  "archiveMobileVideoAdded": "تمت إضافة الفيديو إلى قائمة التنزيل.",
+  "archiveMobileTileLabel": "فيديو {date}",
+  "archiveMobileProgress": "التقدم",
+  "archiveMobileSelectedLabel": "{count, plural, one{محدد} other{محدد}}",
+  "statsMobileBackToLibrary": "العودة إلى المكتبة",
+  "statsMobileTotalSinceInstall": "إجمالي ما تم تنزيله منذ التثبيت",
+  "statsMobileActivity": "النشاط",
+  "statsMobileLast12Weeks": "آخر 12 أسبوعًا",
+  "statsMobileLess": "أقل",
+  "statsMobileMore": "أكثر",
+  "statsMobileBySource": "التنزيلات حسب المصدر",
+  "statsMobileDownloadsSummary": "{total, plural, zero{{total} تنزيل} one{تنزيل واحد} two{تنزيلان} few{{total} تنزيلات} many{{total} تنزيلًا} other{{total} تنزيل}}، {today} اليوم",
+  "statsMobileHeatmapLabel": "خريطة حرارية للتنزيلات اليومية",
+  "statsMobileOthers": "أخرى",
+  "statsMobileUnitB": "بايت",
+  "statsMobileUnitKB": "ك.ب",
+  "statsMobileUnitMB": "م.ب",
+  "statsMobileUnitGB": "ج.ب",
+  "statsMobileUnitTB": "ت.ب",
+  "settingsHubEngine": "محرك yt-dlp",
+  "settingsHubUnavailable": "غير متاح",
+  "settingsHubChecking": "جارٍ التحقق…",
+  "settingsHubCheckUpdates": "التحقق من التحديثات",
+  "settingsHubAutoUpdate": "التحديث التلقائي",
+  "settingsHubChannel": "قناة التحديث",
+  "settingsHubChannelNightly": "ليلي",
+  "settingsHubChannelStable": "مستقر",
+  "settingsHubUpdateFailed": "تعذّر التحقق، حاول لاحقًا.",
+  "settingsHubUpToDate": "yt-dlp محدّث بالفعل",
+  "settingsHubUpdated": "تم تحديث yt-dlp",
+  "settingsHubUpdateError": "خطأ في التحديث: {error}",
+  "settingsHubParallel": "التنزيلات المتوازية",
+  "settingsHubParallelHint": "سرعة أكبر وحرارة أعلى",
+  "settingsHubStorage": "التخزين",
+  "settingsHubStorageFree": "{free} متاح من {total}",
+  "settingsHubWifiOnly": "الواي فاي فقط",
+  "settingsHubWifiOnlyHint": "عدم بدء أي تنزيل عبر بيانات الجوال",
+  "detailsWifiOnlyHeadline": "خيار الواي فاي فقط مفعّل: اتصل بالواي فاي ثم أعد المحاولة",
+  "detailsStatusFailed": "فشل",
+  "detailsStatusDownloading": "جارٍ التنزيل",
+  "detailsStatusExtracting": "جارٍ تحليل الرابط",
+  "detailsStatusDuplicate": "مضاف مسبقًا",
+  "detailsDiagnostic": "التشخيص",
+  "detailsStepResolve": "تحليل الرابط",
+  "detailsStepReadPage": "قراءة الصفحة",
+  "detailsStepExtractFormats": "استخراج الصيغ",
+  "detailsStepDownload": "التنزيل",
+  "detailsStepMerge": "دمج الصوت والفيديو",
+  "detailsStepFailMerge": "فشل تجميع الملف",
+  "detailsStepFailTransfer": "تم قطع النقل",
+  "detailsStepFailNoMedia": "لا توجد وسائط متاحة",
+  "detailsEngineUpdated": "تم تحديث المحرك: {status}",
+  "detailsYtDlpUpdateSuccess": "نجح تحديث yt-dlp: {status}",
+  "detailsEngineUpdateError": "حدث خطأ أثناء التحديث: {error}",
+  "detailsLinkCopied": "تم نسخ الرابط إلى الحافظة",
+  "detailsShare": "مشاركة",
+  "detailsOpenWith": "فتح باستخدام",
+  "detailsCopyLink": "نسخ الرابط",
+  "detailsRestart": "إعادة البدء",
+  "detailsPlayVideo": "تشغيل الفيديو",
+  "detailsInfoTitle": "المعلومات",
+  "detailsInfoSource": "المصدر",
+  "detailsInfoSize": "الحجم",
+  "detailsInfoFile": "الملف",
+  "detailsInfoId": "المعرّف",
+  "detailsUpdatingEngine": "جارٍ تحديث المحرك…",
+  "detailsRepairAuto": "إصلاح تلقائي",
+  "detailsSignInBrowser": "تسجيل الدخول في المتصفح",
+  "detailsAgeSolutions": "عرض الحلول (+18)",
+  "detailsTechnicalDetails": "التفاصيل التقنية",
+  "detailsNoLogs": "لا يوجد سجل متاح.",
+  "detailsCopyLogs": "نسخ السجلات",
+  "detailsLogsCopied": "تم نسخ السجلات",
+  "detailsHeadlineAgeVerification": "التحقق من العمر مطلوب",
+  "detailsHeadlineHostRefused": "رفض {host} الطلب",
+  "detailsHeadlineTooManyRequests": "طلبات كثيرة جدًا، الوصول مقيّد",
+  "detailsHeadlinePrivateVideo": "فيديو خاص أو محذوف",
+  "detailsHeadlineGeoBlocked": "المحتوى محظور في بلدك",
+  "detailsHeadlineCopyright": "تمت إزالته بسبب حقوق النشر",
+  "detailsHeadlineSuspended": "الحساب أو المحتوى معلّق",
+  "detailsHeadlineNoMedia": "لا توجد وسائط في هذا الرابط",
+  "detailsHeadlineUnsupportedUrl": "الرابط غير مدعوم",
+  "detailsHeadlineUnavailable": "المحتوى غير متاح",
+  "detailsHeadlineLiveOffline": "البث المباشر غير متصل",
+  "detailsHeadlineAntiBot": "تم اكتشاف حماية ضد الروبوتات",
+  "detailsHeadlineNoFormats": "لا توجد صيغة متاحة",
+  "detailsHeadlineLoginRequired": "تسجيل الدخول مطلوب",
+  "detailsHeadlineNetwork": "مشكلة في الشبكة",
+  "detailsHeadlineFailed": "فشل التنزيل",
+  "downloadCardDeleteConfirm": "هل تريد حذف \"{title}\"؟",
+  "downloadCardAgeVerification": "التحقق من العمر (+18)، عرض الحلول",
+  "downloadCardFailedMeta": "{source}، فشل. عرض التشخيص",
+  "downloadCardQueuePosition": "الموضع {position} في قائمة الانتظار",
+  "downloadCardSizeOf": "{done} من {total}",
+  "libraryHeaderArchive": "أرشيف TikTok",
+  "libraryHeaderFailed": "الفاشلة",
+  "libraryHeaderFolders": "المجلدات",
+  "libraryHeaderMoreActive": "+{count} قيد التنفيذ",
+  "libraryHeaderLiveSpeed": "السرعة المباشرة",
+  "libraryHeaderRemaining": "المتبقي {eta}",
+  "libraryHeaderUnitGBps": "جيجابايت/ث",
+  "libraryHeaderUnitMBps": "ميجابايت/ث",
+  "libraryHeaderUnitKBps": "كيلوبايت/ث",
+  "libraryHeaderUnitBps": "بايت/ث",
+  "clipboardCapsuleCopied": "تم نسخ الرابط، {platform}",
+  "clipboardCapsuleMediaLink": "رابط وسائط",
+  "clipboardCapsuleDownload": "تنزيل",
+  "clipboardCapsuleDismiss": "تجاهل",
+  "shellTabLibrary": "المكتبة",
+  "shellTabBrowse": "تصفح",
+  "shellTabSend": "إرسال",
+  "shellTabSettings": "الإعدادات",
+  "browserMobileTitle": "المتصفح",
+  "browserMobileBack": "السابق",
+  "browserMobileForward": "التالي",
+  "browserMobileReload": "إعادة التحميل",
+  "browserMobileReadyToDownload": "الصفحة جاهزة للتنزيل",
+  "browserMobileDownload": "تنزيل",
+  "oledKitStepperLess": "أقل",
+  "oledKitStepperMore": "أكثر",
+  "oledKitFragmentsReceived": "تم استلام {done} من {total} جزءًا",
+  "settingsTilesNotFound": "غير موجود",
+  "settingsOutputChangeFolderTitle": "تغيير المجلد",
+  "settingsOutputChangeFolderBody": "هل تريد نقل جميع مقاطع الفيديو والصور المصغرة الحالية تلقائيًا إلى هذا المجلد الجديد؟",
+  "settingsOutputChangeFolderOnly": "تغيير المجلد فقط",
+  "settingsOutputMigrateFiles": "نقل الملفات",
+  "settingsOutputMigrateLibraryTitle": "نقل المكتبة",
+  "settingsOutputMigrateLibraryDesc": "نقل جميع مقاطع الفيديو والصور المصغرة إلى قرص أو مجلد آخر",
+  "settingsOutputReorganizeTitle": "إعادة تنظيم مقاطع الفيديو الحالية",
+  "settingsOutputReorganizeDesc": "ترتيب مقاطع الفيديو التي تم تنزيلها في مجلدات فرعية حسب صانع المحتوى (مع محاكاة)",
+  "settingsSmartRecommendedRules": "القواعد الموصى بها",
+  "settingsSystemYtDlpUpdated": "تم تحديث yt-dlp: {result}",
+  "settingsSystemUpdateError": "خطأ في التحديث: {error}",
+  "settingsSystemUpdateEngineTitle": "تحديث محرك yt-dlp",
+  "settingsSystemUpdateEngineDownloading": "جارٍ تنزيل أحدث إصدار (nightly)...",
+  "settingsSystemUpdateEngineDesc": "التحقق من أحدث إصدار من yt-dlp وتثبيته",
+  "transferMobileAddFolders": "{count, plural, one{إضافة مجلد واحد} two{إضافة مجلدين} other{إضافة {count} مجلدات}}",
+  "transferMobileBroadcastDone": "تم بث إشارة الاكتشاف على الشبكة",
+  "transferMobileBroadcastTooltip": "بث إعلان على الشبكة",
+  "transferMobileBytesOf": "{done} من {total}",
+  "transferMobileCheckAll": "تحديد الكل",
+  "transferMobileUncheckAll": "إلغاء تحديد الكل",
+  "transferMobileClearList": "مسح القائمة",
+  "transferMobileCreatorCount": "{count, plural, one{صانع محتوى واحد} two{صانعا محتوى} other{{count} صنّاع محتوى}}",
+  "transferMobileDemoNoFiles": "وضع العرض التجريبي: لا يمكن الوصول إلى أي ملف شخصي.",
+  "transferMobileDemoSendSimulated": "وضع العرض التجريبي: إرسال محاكى، لم يُنقل أي ملف.",
+  "transferMobileDeviceNotFound": "لم يتم العثور على جهاز في هذا العنوان.",
+  "transferMobileDeviceUnreachable": "تعذّر الوصول إلى الجهاز ({address})",
+  "transferMobileDiagBusy": "الجهاز المستقبِل مشغول بنقل آخر.",
+  "transferMobileDiagChecksumMismatch": "خطأ في سلامة البيانات (عدم تطابق المجموع الاختباري).",
+  "transferMobileDiagCommunication": "خطأ في الاتصال بالجهاز.",
+  "transferMobileDiagConnectionRefused": "تم رفض الاتصال. افتح LocalSend على الجهاز المستقبِل وفعّل وضع الاستقبال.",
+  "transferMobileDiagPinRequired": "الجهاز المستقبِل يتطلب رمز PIN.",
+  "transferMobileDiagRejected": "رفض المستخدم النقل على الجهاز المستقبِل.",
+  "transferMobileDiagTimeout": "انتهت مهلة الاتصال. تأكد من أن الجهاز المستقبِل يعمل وأنه على شبكة Wi-Fi نفسها.",
+  "transferMobileDiagUnreachable": "تأكد من أن LocalSend مفتوح على هذا الجهاز وأنه على شبكة Wi-Fi نفسها.",
+  "transferMobileFileCount": "{count, plural, one{ملف واحد} two{ملفان} other{{count} ملفات}}",
+  "transferMobileFolderCount": "{count, plural, one{مجلد واحد} two{مجلدان} other{{count} مجلدات}}",
+  "transferMobileFolderPickError": "خطأ في اختيار المجلد: {error}",
+  "transferMobileFoldersAction": "المجلدات...",
+  "transferMobileVideosAction": "مقاطع الفيديو...",
+  "transferMobileHeaderReceiving": "الاستقبال",
+  "transferMobileHeaderSending": "الإرسال",
+  "transferMobileIpAddress": "عنوان IP",
+  "transferMobileKindDesktop": "حاسوب",
+  "transferMobileKindHeadless": "بدون شاشة",
+  "transferMobileKindMobile": "هاتف",
+  "transferMobileKindServer": "خادم",
+  "transferMobileKindWeb": "متصفح",
+  "transferMobileLibraryNewOfTotal": "{library} ({newest} جديد / {found})",
+  "transferMobileMarkKnown": "وضع علامة كجهاز معروف",
+  "transferMobileUnmarkKnown": "إزالة من الأجهزة المعروفة",
+  "transferMobileMediaCount": "{count, plural, one{ملف وسائط واحد} two{ملفا وسائط} other{{count} ملفات وسائط}}",
+  "transferMobileMediaFallback": "وسائط",
+  "transferMobileMediaSelected": "{count, plural, one{تم تحديد ملف وسائط واحد} two{تم تحديد ملفي وسائط} other{تم تحديد {count} ملفات وسائط}}",
+  "transferMobileNameNewCount": "{name} ({newest} جديد)",
+  "transferMobileNearbyCount": "{count, plural, =0{لا توجد أجهزة قريبة} one{جهاز واحد قريب} two{جهازان قريبان} other{{count} أجهزة قريبة}}",
+  "transferMobileNewVideosCount": "{count, plural, one{فيديو جديد واحد} two{فيديوان جديدان} other{{count} فيديوهات جديدة}}",
+  "transferMobileNoDataSent": "لم تُرسل أي بيانات",
+  "transferMobileNoFolderMatch": "لا يوجد مجلد مطابق",
+  "transferMobilePeerPinExplain": "يحمي هذا الجهاز المستقبِل عمليات الاستقبال برمز PIN محدد في إعدادات LocalSend الخاصة به.\n\nأدخل رمز PIN المضبوط على هاتفك (أو عطّل خيار PIN في إعدادات هاتفك للإرسال بدون رمز).",
+  "transferMobilePeerPinRequired": "رمز PIN مطلوب من {alias}",
+  "transferMobilePinExample": "مثال: 1234",
+  "transferMobilePinLabel": "رمز PIN الأمني",
+  "transferMobilePortAltActive": "المنفذ 53317 مشغول. المنفذ البديل {port} نشط.",
+  "transferMobilePortDefault": "المنفذ (الافتراضي: 53317)",
+  "transferMobileQrHide": "إخفاء رمز QR",
+  "transferMobileQrShow": "إظهار رمز QR",
+  "transferMobileQrShowMobileToMobile": "إظهار رمز QR (من هاتف إلى هاتف)",
+  "transferMobileReadyToReceive": "جاهز للاستقبال",
+  "transferMobileReceiveFiles": "استقبال الملفات",
+  "transferMobileRefresh": "تحديث",
+  "transferMobileRefreshSearch": "تحديث البحث",
+  "transferMobileScanFolders": "المجلدات {scanned} / {total} ({videos, plural, one{فيديو واحد} two{فيديوان} other{{videos} فيديوهات}})...",
+  "transferMobileScanVideosFound": "{count, plural, one{تم العثور على فيديو واحد...} two{تم العثور على فيديوين...} other{تم العثور على {count} فيديوهات...}}",
+  "transferMobileSearchDemoMedia": "ابحث عن ملف وسائط تجريبي...",
+  "transferMobileSelectedOfTotal": "{selected}/{total} محددة",
+  "transferMobileShowPinQr": "إظهار رمز PIN ورمز QR الخاصين بي",
+  "transferMobileSimulation": "محاكاة",
+  "transferMobileSubfoldersFilter": "تصفية المجلدات الفرعية...",
+  "transferMobileSubfoldersFoundIn": "المجلدات الموجودة في {name}",
+  "transferMobileSubfoldersTitle": "اختيار المجلدات",
+  "transferMobileUpToDate": "محدّث",
+  "transferMobileUpToDateCount": "محدّث ({count})",
+  "transferMobileVideoCount": "{count, plural, one{فيديو واحد} two{فيديوان} other{{count} فيديوهات}}",
+  "transferMobileVideosZipped": "{count} فيديوهات (مجمّعة في ZIP)",
+  "transferMobileVisibleOnLan": "مرئي على الشبكة المحلية",
+  "transferMobileVisibleOnWifi": "مرئي على شبكة Wi-Fi المحلية",
+  "transferMobileZipActive": "ZIP مفعّل",
+  "transferMobileZipArchive": "أرشفة بصيغة ZIP",
+  "transferMobileZipEnabled": "أرشيف ZIP: مفعّل",
+  "transferMobileZipHintLarge": "ZIP مفعّل. مع المجلدات الكبيرة، يؤدي تعطيل ZIP إلى تسريع الإرسال المباشر إلى المعرض.",
+  "transferMobileZipHintMulti": "عدة ملفات إلى أرشيف ZIP واحد (بدون ضغط، مقاطع الفيديو مضغوطة أصلًا)",
+  "transferMobileZipHintOff": "تُرسل الملفات كما هي إلى LocalSend (مباشرة إلى المعرض)",
+  "transferMobileZipTooltip": "تجميع عدة ملفات في أرشيف ZIP واحد (نسخ، بدون ضغط)",
+  "detailsStepFailMetered": "يتم استخدام بيانات الجوال",
+  "archiveMobileCollectionLiked": "الفيديوهات المعجب بها",
+  "archiveMobileCollectionUnsortedFavorites": "المفضلة غير المصنفة"
 }

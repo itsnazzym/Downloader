@@ -1,6 +1,9 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../platform/platform_info.dart';
 import '../theme/theme_presets.dart';
 
 /// App Settings State
@@ -38,6 +41,8 @@ class AppSettings {
   final bool organizeBySite; // Create subfolders per site
   final bool organizeByCreator; // Create subfolders per creator/account
   final bool autoUpdateYtDlp; // Auto-update yt-dlp on startup
+  final String ytDlpChannel; // Android engine: 'nightly' or 'stable'
+  final bool wifiOnly; // Android: refuse to start downloads on metered data
   final String locale; // 'en', 'fr', 'ar'
   final String
   themePreset; // 'midnight', 'ios', 'ocean', 'sunset', 'forest', 'neon', 'monochrome'
@@ -77,6 +82,8 @@ class AppSettings {
     this.organizeBySite = false,
     this.organizeByCreator = false,
     this.autoUpdateYtDlp = true,
+    this.ytDlpChannel = 'nightly',
+    this.wifiOnly = false,
     this.locale = 'en',
     this.themePreset = 'midnight',
     this.customAccentColor = 0xFF0D9488,
@@ -112,6 +119,8 @@ class AppSettings {
     bool? organizeBySite,
     bool? organizeByCreator,
     bool? autoUpdateYtDlp,
+    String? ytDlpChannel,
+    bool? wifiOnly,
     String? locale,
     String? themePreset,
     int? customAccentColor,
@@ -148,6 +157,8 @@ class AppSettings {
       organizeBySite: organizeBySite ?? this.organizeBySite,
       organizeByCreator: organizeByCreator ?? this.organizeByCreator,
       autoUpdateYtDlp: autoUpdateYtDlp ?? this.autoUpdateYtDlp,
+      ytDlpChannel: ytDlpChannel ?? this.ytDlpChannel,
+      wifiOnly: wifiOnly ?? this.wifiOnly,
       locale: locale ?? this.locale,
       themePreset: themePreset ?? this.themePreset,
       customAccentColor: customAccentColor ?? this.customAccentColor,
@@ -186,7 +197,19 @@ const _kCookieBrowser = 'cookie_browser';
 const _kOrganizeBySite = 'organize_by_site';
 const _kOrganizeByCreator = 'organize_by_creator';
 const _kAutoUpdateYtDlp = 'auto_update_ytdlp';
+const _kYtDlpChannel = 'ytdlp_channel';
+const _kWifiOnly = 'wifi_only';
 const _kLocale = 'locale';
+
+/// First-run language. Android follows the device (the mobile screens are
+/// written in French, so a French phone must not start in English); other
+/// platforms keep English.
+String _defaultLocale() {
+  if (!PlatformInfo.isAndroid) return 'en';
+  final code = PlatformDispatcher.instance.locale.languageCode;
+  return const {'en', 'fr', 'ar'}.contains(code) ? code : 'en';
+}
+
 const _kThemePreset = 'theme_preset';
 const _kCustomAccentColor = 'custom_accent_color';
 const _kExperimentalXFeedGobirdEnabled = 'experimental_x_feed_gobird_enabled';
@@ -243,8 +266,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       organizeBySite: prefs.getBool(_kOrganizeBySite) ?? false,
       organizeByCreator: prefs.getBool(_kOrganizeByCreator) ?? false,
       autoUpdateYtDlp: prefs.getBool(_kAutoUpdateYtDlp) ?? true,
-      locale: prefs.getString(_kLocale) ?? 'en',
-      themePreset: prefs.getString(_kThemePreset) ?? 'midnight',
+      ytDlpChannel: prefs.getString(_kYtDlpChannel) == 'stable'
+          ? 'stable'
+          : 'nightly',
+      wifiOnly: prefs.getBool(_kWifiOnly) ?? false,
+      locale: prefs.getString(_kLocale) ?? _defaultLocale(),
+      themePreset:
+          prefs.getString(_kThemePreset) ??
+          (PlatformInfo.isAndroid ? 'oled' : 'midnight'),
       customAccentColor: prefs.getInt(_kCustomAccentColor) ?? 0xFF0D9488,
       experimentalXFeedGobirdEnabled:
           prefs.getBool(_kExperimentalXFeedGobirdEnabled) ?? false,
@@ -395,6 +424,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setAutoUpdateYtDlp(bool value) {
     state = state.copyWith(autoUpdateYtDlp: value);
     prefs.setBool(_kAutoUpdateYtDlp, value);
+  }
+
+  void setYtDlpChannel(String value) {
+    final channel = value == 'stable' ? 'stable' : 'nightly';
+    state = state.copyWith(ytDlpChannel: channel);
+    prefs.setString(_kYtDlpChannel, channel);
+  }
+
+  void setWifiOnly(bool value) {
+    state = state.copyWith(wifiOnly: value);
+    prefs.setBool(_kWifiOnly, value);
   }
 
   void setLocale(String value) {

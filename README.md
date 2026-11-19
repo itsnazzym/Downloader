@@ -118,6 +118,8 @@ Bâti sur une interface épurée **Shadcn Dark** (`#000000` / `#09090b`), il com
 - [Flutter SDK](https://flutter.dev) (version `3.44.8` ou supérieure) & Dart SDK (`^3.10.7`)
 - Visual Studio 2022 avec la charge de travail *Desktop development with C++* (pour Windows)
 - PowerShell 7+ (recommandé pour les scripts de packaging)
+- Android : construire avec Flutter `3.44.x` (Gradle 8.13, AGP 8.11). Les Flutter plus récents (3.50 et suivants) exigent Gradle 9 et ne construisent pas encore ce projet.
+- YouTube (Windows) : yt-dlp utilise un runtime JavaScript (`deno` ou `node`) quand il est installé ; sans lui, l'extraction fonctionne mais certains formats peuvent manquer.
 
 ### Démarrage Rapide
 

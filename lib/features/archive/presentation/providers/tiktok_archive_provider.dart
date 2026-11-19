@@ -137,6 +137,16 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
   final ITikTokArchiveRepository _repository;
   final Ref _ref;
   Timer? _extensionSyncTimeout;
+
+  /// Set by [stopBatch]; the running batch loop checks it between items.
+  bool _batchStopRequested = false;
+
+  /// Stops queuing further items of the running batch. Downloads already
+  /// handed to the engine keep going.
+  void stopBatch() {
+    if (state.isBatchDownloading) _batchStopRequested = true;
+  }
+
   int _extensionSyncRequestId = 0;
 
   late final Future<void> initialized;
@@ -619,10 +629,12 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
       batchTotalCount: toDownload.length,
       batchCompletedCount: 0,
     );
+    _batchStopRequested = false;
 
     try {
       final downloader = _ref.read(downloadListProvider.notifier);
       for (int i = 0; i < toDownload.length; i++) {
+        if (_batchStopRequested) break;
         final sound = toDownload[i];
         await downloader.startDownload(
           sound.url,
@@ -633,6 +645,7 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
         await Future.delayed(const Duration(milliseconds: 300));
       }
     } finally {
+      _batchStopRequested = false;
       state = state.copyWith(isBatchDownloading: false);
     }
   }
@@ -656,12 +669,14 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
       batchCompletedCount: 0,
       batchSkippedCount: 0,
     );
+    _batchStopRequested = false;
 
     int skippedCount = 0;
 
     try {
       final downloader = _ref.read(downloadListProvider.notifier);
       for (int i = 0; i < toProcess.length; i++) {
+        if (_batchStopRequested) break;
         final item = toProcess[i];
         if (cacheService.isUnavailable(item.id)) {
           skippedCount++;
@@ -696,6 +711,7 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
         await Future.delayed(const Duration(milliseconds: 200));
       }
     } finally {
+      _batchStopRequested = false;
       state = state.copyWith(isBatchDownloading: false);
       if (skippedCount > 0) {
         final catalog = state.catalog;

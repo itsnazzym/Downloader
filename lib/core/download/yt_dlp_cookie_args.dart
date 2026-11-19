@@ -60,6 +60,41 @@ class YtDlpCookieArgs {
     return CookieBrowserArgs.ytDlpArgs(cookieBrowser);
   }
 
+  /// True when yt-dlp could not read the browser's cookie store (locked
+  /// profile, Chrome app-bound encryption, missing database). Retrying
+  /// without browser cookies still works for public media.
+  static bool isBrowserCookieError(String log) {
+    final lower = log.toLowerCase();
+    return lower.contains('failed to decrypt') ||
+        lower.contains('could not copy') && lower.contains('cookie') ||
+        lower.contains('cookies database') ||
+        lower.contains('cookie database');
+  }
+
+  /// Like [isBrowserCookieError] but only for `ERROR` lines, so a partial
+  /// decryption WARNING does not trigger a retry.
+  static bool hasBrowserCookieError(String log) {
+    for (final line in log.split(RegExp(r'\r?\n'))) {
+      if (line.trimLeft().startsWith('ERROR') && isBrowserCookieError(line)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// [args] without `--cookies-from-browser <browser>`.
+  static List<String> withoutBrowserCookies(List<String> args) {
+    final out = <String>[];
+    for (var i = 0; i < args.length; i++) {
+      if (args[i] == '--cookies-from-browser') {
+        i++; // skip its value
+        continue;
+      }
+      out.add(args[i]);
+    }
+    return out;
+  }
+
   static bool usesCookiesFile({String? cookiesFilePath, String? rawCookies}) {
     final filePath = cookiesFilePath?.trim();
     if (filePath != null && filePath.isNotEmpty) return true;

@@ -7,6 +7,8 @@ import '../../domain/entities/download_item.dart';
 import '../../domain/entities/download_request.dart';
 import '../../domain/enums/download_status.dart';
 import '../../domain/repositories/i_downloader_repository.dart';
+import '../../domain/exceptions/yt_dlp_exception.dart';
+import '../sources/fallback_media_resolver.dart';
 import '../sources/yt_dlp_source.dart';
 import '../sources/gallery_dl_source.dart';
 import '../sources/kick_source.dart';
@@ -40,6 +42,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final PluginManager _pluginManager;
   final String Function() _outputFolderGetter;
   final bool Function() _useTorProxyGetter;
+
+  /// Throws to refuse a download before it starts (e.g. Wi-Fi only on mobile
+  /// data). Checked once per download, before the disk-space check.
+  final Future<void> Function()? _networkPreflight;
+
+  /// Used when yt-dlp cannot read a link (X posts that need a login, players
+  /// without an extractor): finds a direct stream instead.
+  final FallbackMediaResolver _fallbackResolver;
   final KickSource _kickSource;
   final MediaFingerprintService _mediaFingerprintService;
 
@@ -68,7 +78,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     bool Function()? useTorProxyGetter,
     MediaFingerprintService? mediaFingerprintService,
     Future<void> Function()? waitForLibraryScan,
-  }) : _kickSource = kickSource ?? KickSource(),
+    Future<void> Function()? networkPreflight,
+    FallbackMediaResolver? fallbackResolver,
+  }) : _networkPreflight = networkPreflight,
+       _fallbackResolver = fallbackResolver ?? FallbackMediaResolver(),
+       _kickSource = kickSource ?? KickSource(),
        _useTorProxyGetter = useTorProxyGetter ?? (() => false),
        _mediaFingerprintService =
            mediaFingerprintService ??
@@ -337,6 +351,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
           try {
             // 2. Pre-flight Check: Disk Space
+            // Every attempt, not only the first: an automatic retry must not
+            // start on mobile data after the Wi-Fi was lost.
+            await _networkPreflight?.call();
             if (retryCount == 0) {
               await DiskSpaceService.checkDiskSpace(
                 currentRequest.outputFolder ?? _outputFolderGetter(),
@@ -505,32 +522,74 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               return;
             } catch (e) {
               if (_shouldAbort(id)) return;
-              final skipProbe = e is MetadataProbeLimitException;
-              if (!skipProbe) {
-                LoggerService.w(
-                  'Metadata extraction failed (retry possible): $e',
+              final resolved =
+                  (currentRequest.useTorProxy ||
+                      e is MetadataProbeLimitException)
+                  ? null
+                  : await _fallbackResolver.resolve(
+                      currentRequest.url,
+                      isCancelled: () => _shouldAbort(id),
+                    );
+              if (_shouldAbort(id)) return;
+              if (resolved != null) {
+                LoggerService.i(
+                  'yt-dlp could not read the link ($e); '
+                  'using a direct stream found via ${resolved.source}',
                 );
-                if (DownloadStatusGuard.isNonRetryableError(e)) {
-                  rethrow;
+                final stream = resolved.pick(currentRequest.preferredQuality);
+                finalTitle = TitleCleanerService.clean(resolved.title ?? '');
+                if (finalTitle.isEmpty) {
+                  finalTitle = TitleCleanerService.deriveTitleFromUrl(
+                    currentRequest.url,
+                  );
                 }
-                if (retryCount < maxRetries - 1) {
-                  retryCount++;
-                  continue;
+                finalThumbnail = resolved.thumbnail ?? finalThumbnail;
+                _update(
+                  _activeDownloads[id]!.copyWith(
+                    title: finalTitle,
+                    thumbnailUrl: finalThumbnail,
+                    clearError: true,
+                  ),
+                );
+                final mediaId =
+                    (resolved.id ??
+                            currentRequest.url.hashCode.toRadixString(36))
+                        .replaceAll(RegExp(r'[<>:"/\\|?*]'), '');
+                currentRequest = currentRequest.copyWith(
+                  forceStreamUrl: stream.url,
+                  forceThumbnailUrl: resolved.thumbnail,
+                  customFilename:
+                      '${TitleCleanerService.filenameStem(finalTitle)} '
+                      '[$mediaId].%(ext)s',
+                );
+              } else {
+                final skipProbe = e is MetadataProbeLimitException;
+                if (!skipProbe) {
+                  LoggerService.w(
+                    'Metadata extraction failed (retry possible): $e',
+                  );
+                  if (DownloadStatusGuard.isNonRetryableError(e)) {
+                    rethrow;
+                  }
+                  if (retryCount < maxRetries - 1) {
+                    retryCount++;
+                    continue;
+                  }
                 }
-              }
-              if (ExtractionPlaceholders.isGenericTitle(finalTitle) ||
-                  finalTitle.isEmpty) {
-                finalTitle = TitleCleanerService.deriveTitleFromUrl(
-                  currentRequest.url,
+                if (ExtractionPlaceholders.isGenericTitle(finalTitle) ||
+                    finalTitle.isEmpty) {
+                  finalTitle = TitleCleanerService.deriveTitleFromUrl(
+                    currentRequest.url,
+                  );
+                }
+                currentRequest = currentRequest.copyWith(
+                  customFilename: _uniqueFilename(
+                    finalTitle,
+                    XDownloadUrl.tweetIdFrom(currentRequest.url),
+                    currentRequest.url,
+                  ),
                 );
               }
-              currentRequest = currentRequest.copyWith(
-                customFilename: _uniqueFilename(
-                  finalTitle,
-                  XDownloadUrl.tweetIdFrom(currentRequest.url),
-                  currentRequest.url,
-                ),
-              );
             }
 
             if (_shouldAbort(id)) return;
@@ -649,6 +708,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           } catch (e) {
             if (e is MetadataProbeCancelledException) rethrow;
             if (e.toString().contains('Low Disk Space')) rethrow;
+            if (e is WifiOnlyBlockedException) rethrow;
             if (DownloadStatusGuard.isNonRetryableError(e)) {
               rethrow;
             }
@@ -671,6 +731,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         if (!DownloadStatusGuard.shouldRetryAfterError(
           _activeDownloads[id]?.status,
         )) {
+          return;
+        }
+        if (e is WifiOnlyBlockedException) {
+          // Refused on purpose: no fallback downloader, and no notification
+          // per item (a queued batch would raise one for each row).
+          _markDownloadFailed(id, e, notify: false);
           return;
         }
         if (!DownloadStatusGuard.isNonRetryableError(e) &&
@@ -735,11 +801,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     return '$stem [$unique].%(ext)s';
   }
 
-  void _markDownloadFailed(String id, Object error) {
+  void _markDownloadFailed(String id, Object error, {bool notify = true}) {
     final item = _activeDownloads[id];
     if (item == null) return;
     final message = DownloadStatusGuard.userFacingDownloadErrorMessage(error);
     _update(item.copyWith(status: DownloadStatus.failed, error: message));
+    if (!notify) return;
     unawaited(
       NotificationService().showDownloadFailed(
         item.title ?? 'Download Failed',

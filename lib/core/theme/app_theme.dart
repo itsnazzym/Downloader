@@ -23,7 +23,9 @@ class AppTheme {
       colorScheme: ColorScheme(
         brightness: brightness,
         primary: palette.primary,
-        onPrimary: Colors.white,
+        onPrimary: palette.primary.computeLuminance() > 0.5
+            ? Colors.black
+            : Colors.white,
         secondary: palette.accent,
         onSecondary: isDark ? Colors.black : Colors.white,
         surface: palette.surface,

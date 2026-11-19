@@ -1,13 +1,11 @@
 {
   "@@locale": "fr",
-
   "appTitle": "Modern Downloader",
   "downloads": "Téléchargements",
   "statistics": "Statistiques",
   "settings": "Paramètres",
   "appearance": "Apparence",
   "plugins": "Plugins",
-
   "newDownload": "Nouveau téléchargement",
   "pasteUrl": "Collez l'URL ici",
   "xCdnUrlRejected": "Collez le lien du tweet (x.com/.../status/...), pas le fichier vidéo.",
@@ -23,7 +21,6 @@
   "clearHistory": "Effacer l'historique",
   "selectAll": "Tout sélectionner",
   "deselectAll": "Tout désélectionner",
-
   "statusQueued": "En attente",
   "statusDownloading": "En cours",
   "statusCompleted": "Terminé",
@@ -32,13 +29,11 @@
   "statusPaused": "En pause",
   "statusExtracting": "Extraction",
   "statusDuplicate": "Doublon",
-
   "sidebarAll": "Tous",
   "sidebarActive": "Actifs",
   "sidebarCompleted": "Terminés",
   "sidebarFailed": "Échoués",
   "sidebarBySource": "Par source",
-
   "settingsGeneral": "Général",
   "settingsOutput": "Sortie",
   "settingsAdvanced": "Avancé",
@@ -46,7 +41,6 @@
   "settingsSystem": "Système",
   "settingsAppearance": "Apparence",
   "settingsPlugins": "Plugins",
-
   "audioOnly": "Audio uniquement",
   "audioOnlyDesc": "Extraire l'audio uniquement (MP3) des vidéos",
   "autoStart": "Démarrage auto",
@@ -69,7 +63,6 @@
   "showNotificationsDesc": "Notifications de bureau pour les téléchargements",
   "clipboardMonitor": "Surveillance du presse-papiers",
   "clipboardMonitorDesc": "Détecter automatiquement les URL du presse-papiers",
-
   "language": "Langue",
   "languageDesc": "Choisir votre langue préférée",
   "theme": "Thème",
@@ -79,7 +72,6 @@
   "darkMode": "Mode sombre",
   "lightMode": "Mode clair",
   "systemMode": "Système",
-
   "totalDownloads": "Total téléchargements",
   "downloadsToday": "Aujourd'hui",
   "totalData": "Données totales",
@@ -91,14 +83,12 @@
   "settingsShortcut": "Ouvrir les paramètres",
   "dashboardShortcut": "Tableau de bord",
   "minimizeShortcut": "Réduire",
-
   "inspector": "Inspecteur",
   "title": "Titre",
   "status": "Statut",
   "progress": "Progression",
   "logs": "Journaux",
   "selectDownload": "Sélectionner un téléchargement",
-
   "checkDependencies": "Vérifier les dépendances",
   "checkDependenciesDesc": "Vérifier l'état de yt-dlp, ffmpeg et aria2c",
   "verifyingBinaries": "Vérification des binaires...",
@@ -107,19 +97,28 @@
   "organizeLibraryDesc": "Trier les fichiers par source, organiser les miniatures, nettoyer les fichiers temporaires",
   "organizationComplete": "Organisation terminée",
   "filesMoved": "Fichiers déplacés : {count}",
-  "@filesMoved": { "placeholders": { "count": { "type": "int" } } },
+  "@filesMoved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "filesDeleted": "Fichiers temp supprimés : {count}",
-  "@filesDeleted": { "placeholders": { "count": { "type": "int" } } },
-
+  "@filesDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noPluginsInstalled": "Aucun plugin installé",
   "pluginEnabled": "Activée",
   "pluginDisabled": "Désactivée",
   "builtIn": "Intégrée",
-
   "mediaPlayer": "Lecteur multimédia",
   "playbackSpeed": "Vitesse de lecture",
   "volume": "Volume",
-
   "ok": "OK",
   "confirm": "Confirmer",
   "close": "Fermer",
@@ -131,7 +130,6 @@
   "error": "Erreur",
   "success": "Succès",
   "warning": "Attention",
-
   "librarySection": "Bibliothèque",
   "sourcesSection": "Sources",
   "mainPage": "Accueil",
@@ -140,7 +138,9 @@
   "videosDownloadingCount": "{count} vidéos se téléchargent",
   "@videosDownloadingCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "videoDownloadingSingular": "1 vidéo se télécharge",
@@ -149,7 +149,9 @@
   "moreDownloadingVideos": "+{count}",
   "@moreDownloadingVideos": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "searchDownloads": "Filtrer titres ou URLs",
@@ -157,14 +159,17 @@
   "searchMatchCount": "{visible} / {total}",
   "@searchMatchCount": {
     "placeholders": {
-      "visible": { "type": "int" },
-      "total": { "type": "int" }
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "clearHistoryConfirm": "Supprimer les téléchargements terminés, échoués et annulés ? Les téléchargements actifs restent.",
   "refreshLibrary": "Actualiser la bibliothèque",
   "yourListIsEmpty": "Votre liste de téléchargements est vide.",
-
   "sortAndView": "Tri et affichage",
   "sortBy": "Trier par",
   "sortDateNewest": "Date (plus récent)",
@@ -180,15 +185,37 @@
   "folderBack": "Retour aux dossiers",
   "folderOpenHint": "Ouvrir le dossier",
   "folderVideoCount": "{count} vidéos",
-  "@folderVideoCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@folderVideoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "playlistDetected": "Playlist détectée ({count} vidéos)",
-  "@playlistDetected": { "placeholders": { "count": { "type": "int" } } },
+  "@playlistDetected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "downloadSelected": "Télécharger la sélection ({count})",
-  "@downloadSelected": { "placeholders": { "count": { "type": "int" } } },
+  "@downloadSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "startedCountDownloads": "{count} téléchargements lancés",
-  "@startedCountDownloads": { "placeholders": { "count": { "type": "int" } } },
-
+  "@startedCountDownloads": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "downloadFolder": "Dossier de téléchargement",
   "selectFolder": "Choisir un dossier...",
   "organizeBySite": "Organiser par site",
@@ -218,7 +245,6 @@
   "smartOrganizationDesc": "Règles de tri automatique et détection intelligente",
   "outputFolderNotConfigured": "Dossier de sortie non configuré",
   "pluginsEmptyHint": "Les plugins étendent les fonctionnalités de Modern Downloader",
-
   "statusProcessing": "Traitement",
   "statsSubtitle": "Suivez votre activité de téléchargement et l'espace disque",
   "statsToday": "Aujourd'hui",
@@ -232,8 +258,12 @@
   "chartDownloadsTooltip": "{count} téléchargements\n{bytes}",
   "@chartDownloadsTooltip": {
     "placeholders": {
-      "count": { "type": "int" },
-      "bytes": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "bytes": {
+        "type": "String"
+      }
     }
   },
   "currentAccent": "Accent actuel",
@@ -249,7 +279,11 @@
   "generatedOnFirstLaunch": "Généré au premier lancement",
   "serverPortRestartHint": "Redémarrez l'application après modification. Actuel : {port}",
   "@serverPortRestartHint": {
-    "placeholders": { "port": { "type": "int" } }
+    "placeholders": {
+      "port": {
+        "type": "int"
+      }
+    }
   },
   "torBypassDesc": "Démarrer Tor en arrière-plan et y faire passer les téléchargements (127.0.0.1:9050)",
   "torProxyStarting": "Démarrage de Tor…",
@@ -282,17 +316,29 @@
   "storageFree": "Libre",
   "storageTotalLabel": "Total : {size}",
   "@storageTotalLabel": {
-    "placeholders": { "size": { "type": "String" } }
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   },
   "storageFolder": "Dossier",
   "storageOtherUsed": "Autre utilisé",
   "storageFolderOfUsed": "{percent}% de l'espace utilisé",
   "@storageFolderOfUsed": {
-    "placeholders": { "percent": { "type": "String" } }
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
   },
   "storageFileCount": "{count, plural, =0{0 fichier} =1{1 fichier} other{{count} fichiers}}",
   "@storageFileCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "storageTypeVideo": "Vidéo",
   "storageTypeAudio": "Audio",
@@ -301,23 +347,55 @@
   "storageScanInProgress": "Analyse du dossier...",
   "storageLastScanned": "Analysé à {time}",
   "@storageLastScanned": {
-    "placeholders": { "time": { "type": "String" } }
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "storageScanCached": "Données en cache",
   "storageScanError": "Impossible d'analyser ce dossier",
   "startingOrganization": "Organisation en cours...",
   "organizationFailed": "Organisation échouée : {error}",
   "@organizationFailed": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
   "thumbnailsOrganized": "Miniatures organisées : {count}",
-  "@thumbnailsOrganized": { "placeholders": { "count": { "type": "int" } } },
+  "@thumbnailsOrganized": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "foldersCreated": "Dossiers créés : {count}",
-  "@foldersCreated": { "placeholders": { "count": { "type": "int" } } },
+  "@foldersCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "emptyFoldersDeleted": "Dossiers vides supprimés : {count}",
-  "@emptyFoldersDeleted": { "placeholders": { "count": { "type": "int" } } },
+  "@emptyFoldersDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "organizationErrors": "{count} erreurs",
-  "@organizationErrors": { "placeholders": { "count": { "type": "int" } } },
+  "@organizationErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "nameLabel": "Nom",
   "editRule": "Modifier la règle",
   "newRule": "Nouvelle règle",
@@ -347,35 +425,58 @@
   "ollamaMustRun": "Vérifiez qu'Ollama tourne (`ollama serve`).",
   "requestingOllamaPull": "Téléchargement du modèle {model} via Ollama... Cela peut prendre du temps.",
   "@requestingOllamaPull": {
-    "placeholders": { "model": { "type": "String" } }
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
   },
   "organizationCompleteDetail": "Organisation terminée. {scanned} fichiers analysés, {moved} déplacés.",
   "@organizationCompleteDetail": {
     "placeholders": {
-      "scanned": { "type": "int" },
-      "moved": { "type": "int" }
+      "scanned": {
+        "type": "int"
+      },
+      "moved": {
+        "type": "int"
+      }
     }
   },
   "toolsSection": "Outils",
   "configurePlugin": "Configurer le plugin",
   "pluginError": "Erreur : {error}",
   "@pluginError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "setupPreparing": "Préparation des outils de téléchargement…",
   "setupCheckingTools": "Vérification des outils installés",
   "setupDownloading": "Téléchargement de {name}…",
   "@setupDownloading": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "setupExtracting": "Extraction de {name}…",
   "@setupExtracting": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "setupVerifying": "Vérification de {name}…",
   "@setupVerifying": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "setupUpdatingYtDlp": "Mise à jour de yt-dlp…",
   "setupReady": "Tous les outils sont prêts",
@@ -384,11 +485,14 @@
   "setupContinueAnyway": "Continuer quand même",
   "setupDownloadPercent": "{percent}%",
   "@setupDownloadPercent": {
-    "placeholders": { "percent": { "type": "int" } }
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
   },
   "previewSetup": "Voir l'écran de setup (temporaire)",
   "previewSetupDesc": "Relancer la vérification et l'installation des outils en plein écran",
-
   "pluginsSectionTitle": "Automatisations des téléchargements",
   "pluginsSectionHint": "Ces plugins appliquent des actions supplémentaires au début ou à la fin d’un téléchargement.",
   "browserExtensionsTitle": "Extension navigateur",
@@ -422,7 +526,11 @@
   "firefoxInstallStarted": "Firefox va installer l'extension. Si bloqué, utilisez Installation manuelle.",
   "extensionPathCopied": "Chemin copié : {path}",
   "@extensionPathCopied": {
-    "placeholders": { "path": { "type": "String" } }
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "extensionInstallFailed": "Impossible d'ouvrir le navigateur. Essayez Télécharger ZIP.",
   "extractingTitle": "Extraction du titre...",
@@ -433,7 +541,6 @@
   "expandSidebar": "Agrandir la barre latérale",
   "collapseInspector": "Réduire l'inspecteur",
   "expandInspector": "Agrandir l'inspecteur",
-
   "experimentalXFeedSection": "X Feed expérimental",
   "experimentalXFeedGobird": "Utiliser gobird (expérimental)",
   "experimentalXFeedGobirdDesc": "Fil d'accueil en lecture seule via gobird embarqué. Désactivé par défaut. Contrevient aux Conditions d'utilisation de X et peut entraîner une suspension de compte.",
@@ -446,7 +553,11 @@
   "gobirdBinaryStatus": "Binaire gobird",
   "gobirdBinaryFound": "Trouvé : {version}",
   "@gobirdBinaryFound": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
   "gobirdBinaryMissing": "Non embarqué — moteur expérimental indisponible",
   "gobirdDisableNow": "Désactiver gobird maintenant",
@@ -455,10 +566,11 @@
   "duplicatesSkipped": "{count} doublons ignorés",
   "@duplicatesSkipped": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "trayShow": "Afficher",
   "trayExit": "Quitter",
   "needTweetLink": "Lien de tweet requis",
@@ -474,18 +586,25 @@
   "languageArabic": "العربية",
   "qualityManual": "Manuel",
   "qualityManualPlus": "Manuel+",
-
   "notificationDownloadCompleted": "Téléchargement terminé",
   "notificationDownloadFailed": "Téléchargement échoué",
   "notificationLinkDetected": "Lien détecté",
   "notificationLinkDetectedBody": "Cliquez pour télécharger : {url}",
   "@notificationLinkDetectedBody": {
-    "placeholders": { "url": { "type": "String" } }
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
   },
   "notificationLinksQueuedTitle": "Liens en file",
   "notificationLinksQueuedBody": "{count, plural, =1{{count} lien en file} other{{count} liens en file}}",
   "@notificationLinksQueuedBody": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "notificationExtensionConnected": "Extension connectée",
   "notificationExtensionConnectedBody": "L'extension de navigateur est connectée.",
@@ -493,21 +612,27 @@
   "notificationBatchCompleteBody": "{count} téléchargements terminés — {totalSize} au total",
   "@notificationBatchCompleteBody": {
     "placeholders": {
-      "count": { "type": "int" },
-      "totalSize": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "totalSize": {
+        "type": "String"
+      }
     }
   },
   "notificationYtDlpUpdated": "yt-dlp mis à jour",
   "notificationYtDlpUpdatedBody": "Mis à jour vers {version}",
   "@notificationYtDlpUpdatedBody": {
-    "placeholders": { "version": { "type": "String" } }
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
-
   "browseX": "Parcourir X",
   "browseXHint": "Connectez-vous si besoin, puis appuyez sur Télécharger sur une vidéo.",
   "mobileLibrary": "Bibliothèque",
   "shareDownloadStarted": "Téléchargement lancé depuis le partage",
-
   "transferTitle": "Transfert",
   "transferSubtitle": "Même Wi-Fi. Scanne le QR ou appuie sur un appareil.",
   "transferPortBusy": "Le port 53317 est pris. Le QR marche encore ; LocalSend vers ce PC peut échouer.",
@@ -519,7 +644,11 @@
   "transferClearSelection": "Retirer",
   "transferSelectedFolders": "{count, plural, =1{{count} dossier} other{{count} dossiers}}",
   "@transferSelectedFolders": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "transferNoCreatorMatch": "Aucun créateur",
   "transferNoDevices": "Aucun appareil — scanne le QR sur le téléphone.",
@@ -540,9 +669,15 @@
   "transferIncomingBody": "{alias} veut envoyer {count} fichiers ({size})",
   "@transferIncomingBody": {
     "placeholders": {
-      "alias": { "type": "String" },
-      "count": { "type": "int" },
-      "size": { "type": "String" }
+      "alias": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
     }
   },
   "transferAccept": "Accepter",
@@ -565,44 +700,57 @@
   "transferVideosFound": "{count} trouvées",
   "@transferVideosFound": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferAlreadyTransferred": "{count} déjà transférées",
   "@transferAlreadyTransferred": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferNewVideos": "{count} nouvelles",
   "@transferNewVideos": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferSendNewOnly": "Transférer les {count} nouvelles vidéos",
   "@transferSendNewOnly": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferSendAll": "Tout transférer ({count})",
   "@transferSendAll": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "transferOnlyNewToggle": "Envoyer uniquement les nouveautés",
   "transferFolderBreakdown": "{newCount} nouvelle(s) • {alreadyCount} transférée(s)",
   "@transferFolderBreakdown": {
     "placeholders": {
-      "newCount": { "type": "int" },
-      "alreadyCount": { "type": "int" }
+      "newCount": {
+        "type": "int"
+      },
+      "alreadyCount": {
+        "type": "int"
+      }
     }
   },
   "transferForgetDeviceHistory": "Oublier l'historique de cet appareil",
   "transferHistoryCleared": "Historique de transfert effacé",
-
   "onboardingStart": "Commencer",
   "onboardingNext": "Suivant",
   "onboardingDone": "Terminer",
@@ -639,5 +787,280 @@
   "pluginInactiveBody": "Cette fonctionnalité est conservée et ses données restent intactes. Vous pouvez la réactiver dans les réglages des plugins.",
   "pluginManage": "Gérer les plugins",
   "pluginWebRequest": "Le site Modern Downloader vous propose cette fonctionnalité. Confirmez ici pour l’ajouter à votre interface.",
-  "pluginExternalHint": "Cette extension s’installe dans le navigateur. Les étapes existantes sont disponibles plus bas."
+  "pluginExternalHint": "Cette extension s’installe dans le navigateur. Les étapes existantes sont disponibles plus bas.",
+  "addSheetTitle": "Nouveau téléchargement",
+  "addSheetPasteCopiedLink": "Coller le lien copié : {url}",
+  "addSheetModeVideo": "Vidéo",
+  "addSheetModeAudioOnly": "Audio seul",
+  "addSheetBrowserSession": "Session du navigateur",
+  "addSheetQualityChosen": "Qualité choisie",
+  "addSheetQualityChosenWithSize": "Qualité choisie, {size}",
+  "addSheetStarting": "Démarrage…",
+  "addSheetDownload": "Télécharger",
+  "addSheetPreviewUnavailable": "Aperçu indisponible. Le téléchargement peut quand même fonctionner.",
+  "addSheetAnalyzing": "Analyse du lien…",
+  "addSheetUrlHint": "Collez le lien de la vidéo ou du média",
+  "addSheetValidLink": "Lien valide",
+  "addSheetClear": "Effacer",
+  "addSheetPaste": "Coller",
+  "addSheetInvalidUrl": "Veuillez saisir une URL valide.",
+  "addSheetUnsupportedUrl": "URL non supportée ou domaine restreint.",
+  "addSheetError": "Erreur : {error}",
+  "addSheetDetailBest": "Résolution maximale disponible",
+  "addSheetDetail1080": "Haute définition",
+  "addSheetDetail720": "Équilibré",
+  "addSheetDetail480": "Économe en données",
+  "addSheetDetailAudio": "Audio extrait, meilleure qualité disponible",
+  "addSheetReadoutMax": "Max",
+  "addSheetUntitledMedia": "Média sans titre",
+  "sizeUnitKb": "Ko",
+  "sizeUnitMb": "Mo",
+  "sizeUnitGb": "Go",
+  "archiveMobileTitle": "Archive TikTok",
+  "archiveMobileFilters": "Filtres",
+  "archiveMobileReset": "Réinitialiser",
+  "archiveMobileType": "Type",
+  "archiveMobileFilterAll": "Tous",
+  "archiveMobileFilterFavorites": "Favoris",
+  "archiveMobileFilterLikes": "Likes",
+  "archiveMobileYear": "Année",
+  "archiveMobileAllYears": "Toutes",
+  "archiveMobileApplyFilters": "Appliquer les filtres",
+  "archiveMobileBackToVideos": "Retour aux vidéos",
+  "archiveMobileDownload": "Télécharger",
+  "archiveMobileBatchStarted": "Téléchargement du lot démarré",
+  "archiveMobileSyncTooltip": "Importer ou synchroniser",
+  "archiveMobileBackToLibrary": "Retour à la bibliothèque",
+  "archiveMobileBatchRunning": "Téléchargement du lot en cours",
+  "archiveMobileSkippedVideos": "{count, plural, one{{count} vidéo ignorée} other{{count} vidéos ignorées}}",
+  "archiveMobileStopBatch": "Arrêter le lot",
+  "archiveMobileSyncingCollections": "Synchronisation des collections",
+  "archiveMobileSyncWaiting": "En attente de la réponse du navigateur. Garde une page TikTok ouverte.",
+  "archiveMobileChipAll": "Tout",
+  "archiveMobileSearchHint": "Rechercher une vidéo ou une collection",
+  "archiveMobileClearSearch": "Effacer la recherche",
+  "archiveMobileVideoCount": "{count, plural, one{{count} vidéo} other{{count} vidéos}}",
+  "archiveMobileClearSelection": "Effacer la sélection",
+  "archiveMobileSelectAll": "Tout sélectionner",
+  "archiveMobileManageCollections": "Gérer les collections",
+  "archiveMobilePlayFullscreen": "Lire les vidéos en plein écran",
+  "archiveMobileNoVideos": "Aucune vidéo trouvée",
+  "archiveMobileVideoAdded": "Vidéo ajoutée à la file de téléchargement.",
+  "archiveMobileTileLabel": "Vidéo {date}",
+  "archiveMobileProgress": "Progression",
+  "archiveMobileSelectedLabel": "{count, plural, one{sélectionnée} other{sélectionnées}}",
+  "statsMobileBackToLibrary": "Retour à la bibliothèque",
+  "statsMobileTotalSinceInstall": "Total téléchargé depuis l’installation",
+  "statsMobileActivity": "Activité",
+  "statsMobileLast12Weeks": "12 dernières semaines",
+  "statsMobileLess": "Moins",
+  "statsMobileMore": "Plus",
+  "statsMobileBySource": "Téléchargements par source",
+  "statsMobileDownloadsSummary": "{total, plural, one{{total} téléchargement} other{{total} téléchargements}}, {today} aujourd’hui",
+  "statsMobileHeatmapLabel": "Carte de chaleur des téléchargements par jour",
+  "statsMobileOthers": "Autres",
+  "statsMobileUnitB": "o",
+  "statsMobileUnitKB": "Ko",
+  "statsMobileUnitMB": "Mo",
+  "statsMobileUnitGB": "Go",
+  "statsMobileUnitTB": "To",
+  "settingsHubEngine": "Moteur yt-dlp",
+  "settingsHubUnavailable": "Indisponible",
+  "settingsHubChecking": "Vérification…",
+  "settingsHubCheckUpdates": "Vérifier les mises à jour",
+  "settingsHubAutoUpdate": "Mise à jour automatique",
+  "settingsHubChannel": "Canal de mise à jour",
+  "settingsHubChannelNightly": "Nightly",
+  "settingsHubChannelStable": "Stable",
+  "settingsHubUpdateFailed": "Vérification impossible, réessayez plus tard.",
+  "settingsHubUpToDate": "yt-dlp est déjà à jour",
+  "settingsHubUpdated": "yt-dlp mis à jour",
+  "settingsHubUpdateError": "Erreur de mise à jour : {error}",
+  "settingsHubParallel": "Téléchargements en parallèle",
+  "settingsHubParallelHint": "Plus de vitesse, plus de chauffe",
+  "settingsHubStorage": "Stockage",
+  "settingsHubStorageFree": "{free} libres sur {total}",
+  "settingsHubWifiOnly": "Wi-Fi uniquement",
+  "settingsHubWifiOnlyHint": "Ne jamais lancer de téléchargement en données mobiles",
+  "detailsWifiOnlyHeadline": "Wi-Fi uniquement est activé : connectez-vous au Wi-Fi puis réessayez",
+  "detailsStatusFailed": "Échec",
+  "detailsStatusDownloading": "Téléchargement",
+  "detailsStatusExtracting": "Analyse du lien",
+  "detailsStatusDuplicate": "Déjà présent",
+  "detailsDiagnostic": "Diagnostic",
+  "detailsStepResolve": "Résolution du lien",
+  "detailsStepReadPage": "Lecture de la page",
+  "detailsStepExtractFormats": "Extraction des formats",
+  "detailsStepDownload": "Téléchargement",
+  "detailsStepMerge": "Fusion audio et vidéo",
+  "detailsStepFailMerge": "L'assemblage du fichier a échoué",
+  "detailsStepFailTransfer": "Le transfert a été interrompu",
+  "detailsStepFailNoMedia": "Aucun média accessible",
+  "detailsEngineUpdated": "Moteur mis à jour : {status}",
+  "detailsYtDlpUpdateSuccess": "Mise à jour yt-dlp réussie : {status}",
+  "detailsEngineUpdateError": "Erreur lors de la mise à jour : {error}",
+  "detailsLinkCopied": "Lien copié dans le presse-papier",
+  "detailsShare": "Partager",
+  "detailsOpenWith": "Ouvrir avec",
+  "detailsCopyLink": "Copier le lien",
+  "detailsRestart": "Recommencer",
+  "detailsPlayVideo": "Lire la vidéo",
+  "detailsInfoTitle": "Informations",
+  "detailsInfoSource": "Source",
+  "detailsInfoSize": "Taille",
+  "detailsInfoFile": "Fichier",
+  "detailsInfoId": "Identifiant",
+  "detailsUpdatingEngine": "Mise à jour du moteur…",
+  "detailsRepairAuto": "Réparer automatiquement",
+  "detailsSignInBrowser": "Se connecter dans le navigateur",
+  "detailsAgeSolutions": "Voir les solutions (+18)",
+  "detailsTechnicalDetails": "Détails techniques",
+  "detailsNoLogs": "Aucun journal disponible.",
+  "detailsCopyLogs": "Copier les logs",
+  "detailsLogsCopied": "Logs copiés",
+  "detailsHeadlineAgeVerification": "Vérification d'âge requise",
+  "detailsHeadlineHostRefused": "{host} a refusé la requête",
+  "detailsHeadlineTooManyRequests": "Trop de requêtes, accès limité",
+  "detailsHeadlinePrivateVideo": "Vidéo privée ou retirée",
+  "detailsHeadlineGeoBlocked": "Contenu bloqué dans votre pays",
+  "detailsHeadlineCopyright": "Retirée pour droits d'auteur",
+  "detailsHeadlineSuspended": "Compte ou contenu suspendu",
+  "detailsHeadlineNoMedia": "Aucun média dans ce lien",
+  "detailsHeadlineUnsupportedUrl": "Lien non pris en charge",
+  "detailsHeadlineUnavailable": "Contenu indisponible",
+  "detailsHeadlineLiveOffline": "Le direct est hors ligne",
+  "detailsHeadlineAntiBot": "Protection anti-bot détectée",
+  "detailsHeadlineNoFormats": "Aucun format accessible",
+  "detailsHeadlineLoginRequired": "Connexion requise",
+  "detailsHeadlineNetwork": "Problème de réseau",
+  "detailsHeadlineFailed": "Le téléchargement a échoué",
+  "downloadCardDeleteConfirm": "Supprimer \"{title}\" ?",
+  "downloadCardAgeVerification": "Vérification d'âge (+18), voir les solutions",
+  "downloadCardFailedMeta": "{source}, échec. Voir le diagnostic",
+  "downloadCardQueuePosition": "Position {position} dans la file",
+  "downloadCardSizeOf": "{done} sur {total}",
+  "libraryHeaderArchive": "Archive TikTok",
+  "libraryHeaderFailed": "Échecs",
+  "libraryHeaderFolders": "Dossiers",
+  "libraryHeaderMoreActive": "+{count} en cours",
+  "libraryHeaderLiveSpeed": "Débit en direct",
+  "libraryHeaderRemaining": "Reste {eta}",
+  "libraryHeaderUnitGBps": "Go/s",
+  "libraryHeaderUnitMBps": "Mo/s",
+  "libraryHeaderUnitKBps": "Ko/s",
+  "libraryHeaderUnitBps": "o/s",
+  "clipboardCapsuleCopied": "Lien copié, {platform}",
+  "clipboardCapsuleMediaLink": "Lien média",
+  "clipboardCapsuleDownload": "Télécharger",
+  "clipboardCapsuleDismiss": "Ignorer",
+  "shellTabLibrary": "Biblio",
+  "shellTabBrowse": "Web",
+  "shellTabSend": "Envoi",
+  "shellTabSettings": "Réglages",
+  "browserMobileTitle": "Navigateur",
+  "browserMobileBack": "Précédent",
+  "browserMobileForward": "Suivant",
+  "browserMobileReload": "Recharger",
+  "browserMobileReadyToDownload": "Page prête à télécharger",
+  "browserMobileDownload": "Télécharger",
+  "oledKitStepperLess": "Moins",
+  "oledKitStepperMore": "Plus",
+  "oledKitFragmentsReceived": "{done} sur {total} fragments reçus",
+  "settingsTilesNotFound": "Introuvable",
+  "settingsOutputChangeFolderTitle": "Modifier le dossier",
+  "settingsOutputChangeFolderBody": "Souhaitez-vous migrer automatiquement toutes vos vidéos et miniatures existantes vers ce nouveau dossier ?",
+  "settingsOutputChangeFolderOnly": "Changer uniquement le dossier",
+  "settingsOutputMigrateFiles": "Migrer les fichiers",
+  "settingsOutputMigrateLibraryTitle": "Migrer la bibliothèque",
+  "settingsOutputMigrateLibraryDesc": "Déplacer toutes les vidéos et miniatures vers un autre disque/dossier",
+  "settingsOutputReorganizeTitle": "Réorganiser les vidéos existantes",
+  "settingsOutputReorganizeDesc": "Classer les vidéos déjà téléchargées dans des sous-dossiers par créateur (avec simulation)",
+  "settingsSmartRecommendedRules": "Règles recommandées",
+  "settingsSystemYtDlpUpdated": "yt-dlp mis à jour : {result}",
+  "settingsSystemUpdateError": "Erreur de mise à jour : {error}",
+  "settingsSystemUpdateEngineTitle": "Mettre à jour le moteur yt-dlp",
+  "settingsSystemUpdateEngineDownloading": "Téléchargement de la dernière version (nightly)...",
+  "settingsSystemUpdateEngineDesc": "Vérifier et installer la dernière version de yt-dlp",
+  "transferMobileAddFolders": "Ajouter ({count}) dossiers",
+  "transferMobileBroadcastDone": "Signal de découverte diffusé sur le réseau",
+  "transferMobileBroadcastTooltip": "Diffuser une annonce réseau",
+  "transferMobileBytesOf": "{done} sur {total}",
+  "transferMobileCheckAll": "Tout cocher",
+  "transferMobileUncheckAll": "Tout décocher",
+  "transferMobileClearList": "Effacer la liste",
+  "transferMobileCreatorCount": "{count, plural, one{{count} créateur} other{{count} créateurs}}",
+  "transferMobileDemoNoFiles": "Mode démo : aucun fichier personnel accessible.",
+  "transferMobileDemoSendSimulated": "Mode démo : envoi simulé, aucun fichier transmis.",
+  "transferMobileDeviceNotFound": "Appareil introuvable à cette adresse.",
+  "transferMobileDeviceUnreachable": "Appareil injoignable ({address})",
+  "transferMobileDiagBusy": "L'appareil récepteur est déjà occupé par un autre transfert.",
+  "transferMobileDiagChecksumMismatch": "Erreur d'intégrité des données (somme de contrôle non concordante).",
+  "transferMobileDiagCommunication": "Erreur de communication avec l'appareil.",
+  "transferMobileDiagConnectionRefused": "Connexion refusée. Ouvrez LocalSend sur l'appareil récepteur et activez le mode Recevoir.",
+  "transferMobileDiagPinRequired": "Code PIN requis par l'appareil récepteur.",
+  "transferMobileDiagRejected": "Transfert refusé par l'utilisateur sur l'appareil récepteur.",
+  "transferMobileDiagTimeout": "Délai de connexion dépassé. Vérifiez que l'appareil récepteur est allumé et sur le même Wi-Fi.",
+  "transferMobileDiagUnreachable": "Vérifiez que LocalSend est ouvert sur cet appareil, sur le même réseau Wi-Fi.",
+  "transferMobileFileCount": "{count, plural, one{{count} fichier} other{{count} fichiers}}",
+  "transferMobileFolderCount": "{count, plural, one{{count} dossier} other{{count} dossiers}}",
+  "transferMobileFolderPickError": "Erreur sélection dossier : {error}",
+  "transferMobileFoldersAction": "Dossiers...",
+  "transferMobileVideosAction": "Vidéos...",
+  "transferMobileHeaderReceiving": "Réception",
+  "transferMobileHeaderSending": "Envoi",
+  "transferMobileIpAddress": "Adresse IP",
+  "transferMobileKindDesktop": "Ordinateur",
+  "transferMobileKindHeadless": "Sans écran",
+  "transferMobileKindMobile": "Mobile",
+  "transferMobileKindServer": "Serveur",
+  "transferMobileKindWeb": "Navigateur",
+  "transferMobileLibraryNewOfTotal": "{library} ({newest, plural, one{{newest} nlle} other{{newest} nlles}} / {found})",
+  "transferMobileMarkKnown": "Marquer comme appareil connu",
+  "transferMobileUnmarkKnown": "Retirer des appareils connus",
+  "transferMobileMediaCount": "{count, plural, one{{count} média} other{{count} médias}}",
+  "transferMobileMediaFallback": "Média",
+  "transferMobileMediaSelected": "{count, plural, one{{count} média sélectionné} other{{count} médias sélectionnés}}",
+  "transferMobileNameNewCount": "{name} ({newest, plural, one{{newest} nlle} other{{newest} nlles}})",
+  "transferMobileNearbyCount": "{count, plural, =0{Aucun appareil à proximité} one{{count} appareil à proximité} other{{count} appareils à proximité}}",
+  "transferMobileNewVideosCount": "{count, plural, one{{count} nouvelle vidéo} other{{count} nouvelles vidéos}}",
+  "transferMobileNoDataSent": "aucune donnée envoyée",
+  "transferMobileNoFolderMatch": "Aucun dossier ne correspond",
+  "transferMobilePeerPinExplain": "Cet appareil récepteur protège ses réceptions par un code PIN défini dans ses paramètres LocalSend.\n\nSaisissez le code PIN configuré sur votre téléphone (ou désactivez l'option PIN dans les paramètres de votre téléphone pour envoyer sans code).",
+  "transferMobilePeerPinRequired": "Code PIN requis par {alias}",
+  "transferMobilePinExample": "Ex: 1234",
+  "transferMobilePinLabel": "Code PIN de sécurité",
+  "transferMobilePortAltActive": "Port 53317 occupé. Port alternatif {port} actif.",
+  "transferMobilePortDefault": "Port (défaut : 53317)",
+  "transferMobileQrHide": "Masquer le QR code",
+  "transferMobileQrShow": "Afficher le QR code",
+  "transferMobileQrShowMobileToMobile": "Afficher le QR code (mobile à mobile)",
+  "transferMobileReadyToReceive": "Prêt à recevoir",
+  "transferMobileReceiveFiles": "Recevoir des fichiers",
+  "transferMobileRefresh": "Actualiser",
+  "transferMobileRefreshSearch": "Actualiser la recherche",
+  "transferMobileScanFolders": "Dossiers {scanned} / {total} ({videos, plural, one{{videos} vidéo} other{{videos} vidéos}})...",
+  "transferMobileScanVideosFound": "{count, plural, one{{count} vidéo trouvée...} other{{count} vidéos trouvées...}}",
+  "transferMobileSearchDemoMedia": "Rechercher un média de démonstration...",
+  "transferMobileSelectedOfTotal": "{selected}/{total} sélectionnés",
+  "transferMobileShowPinQr": "Afficher mon code PIN et mon QR code",
+  "transferMobileSimulation": "simulation",
+  "transferMobileSubfoldersFilter": "Filtrer les sous-dossiers...",
+  "transferMobileSubfoldersFoundIn": "Dossiers trouvés dans {name}",
+  "transferMobileSubfoldersTitle": "Sélectionner des dossiers",
+  "transferMobileUpToDate": "À jour",
+  "transferMobileUpToDateCount": "À jour ({count})",
+  "transferMobileVideoCount": "{count, plural, one{{count} vidéo} other{{count} vidéos}}",
+  "transferMobileVideosZipped": "{count} vidéos (regroupées en ZIP)",
+  "transferMobileVisibleOnLan": "Visible sur le réseau local",
+  "transferMobileVisibleOnWifi": "Visible sur le Wi-Fi local",
+  "transferMobileZipActive": "ZIP actif",
+  "transferMobileZipArchive": "Archiver en ZIP",
+  "transferMobileZipEnabled": "Archive ZIP : Activé",
+  "transferMobileZipHintLarge": "ZIP actif. Pour de gros dossiers, désactiver le ZIP accélère l'envoi direct vers la galerie.",
+  "transferMobileZipHintMulti": "Plusieurs fichiers → une archive ZIP (sans compression, vidéos déjà compressées)",
+  "transferMobileZipHintOff": "Les fichiers partent tels quels vers LocalSend (directement dans la galerie)",
+  "transferMobileZipTooltip": "Regrouper plusieurs fichiers en une archive ZIP (copie, pas de compression)",
+  "detailsStepFailMetered": "Données mobiles utilisées",
+  "archiveMobileCollectionLiked": "Vidéos Likées",
+  "archiveMobileCollectionUnsortedFavorites": "Favoris non classés"
 }

@@ -2937,6 +2937,1656 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This extension is installed in your browser. Use the existing setup steps below.'**
   String get pluginExternalHint;
+
+  /// No description provided for @addSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New download'**
+  String get addSheetTitle;
+
+  /// No description provided for @addSheetPasteCopiedLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste copied link: {url}'**
+  String addSheetPasteCopiedLink(String url);
+
+  /// No description provided for @addSheetModeVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get addSheetModeVideo;
+
+  /// No description provided for @addSheetModeAudioOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio only'**
+  String get addSheetModeAudioOnly;
+
+  /// No description provided for @addSheetBrowserSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser session'**
+  String get addSheetBrowserSession;
+
+  /// No description provided for @addSheetQualityChosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected quality'**
+  String get addSheetQualityChosen;
+
+  /// No description provided for @addSheetQualityChosenWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected quality, {size}'**
+  String addSheetQualityChosenWithSize(String size);
+
+  /// No description provided for @addSheetStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting…'**
+  String get addSheetStarting;
+
+  /// No description provided for @addSheetDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get addSheetDownload;
+
+  /// No description provided for @addSheetPreviewUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview unavailable. The download may still work.'**
+  String get addSheetPreviewUnavailable;
+
+  /// No description provided for @addSheetAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing link…'**
+  String get addSheetAnalyzing;
+
+  /// No description provided for @addSheetUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the video or media link'**
+  String get addSheetUrlHint;
+
+  /// No description provided for @addSheetValidLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid link'**
+  String get addSheetValidLink;
+
+  /// No description provided for @addSheetClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get addSheetClear;
+
+  /// No description provided for @addSheetPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get addSheetPaste;
+
+  /// No description provided for @addSheetInvalidUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid URL.'**
+  String get addSheetInvalidUrl;
+
+  /// No description provided for @addSheetUnsupportedUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported URL or restricted domain.'**
+  String get addSheetUnsupportedUrl;
+
+  /// No description provided for @addSheetError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String addSheetError(String error);
+
+  /// No description provided for @addSheetDetailBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum resolution available'**
+  String get addSheetDetailBest;
+
+  /// No description provided for @addSheetDetail1080.
+  ///
+  /// In en, this message translates to:
+  /// **'High definition'**
+  String get addSheetDetail1080;
+
+  /// No description provided for @addSheetDetail720.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get addSheetDetail720;
+
+  /// No description provided for @addSheetDetail480.
+  ///
+  /// In en, this message translates to:
+  /// **'Data saver'**
+  String get addSheetDetail480;
+
+  /// No description provided for @addSheetDetailAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracted audio, best quality available'**
+  String get addSheetDetailAudio;
+
+  /// No description provided for @addSheetReadoutMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get addSheetReadoutMax;
+
+  /// No description provided for @addSheetUntitledMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled media'**
+  String get addSheetUntitledMedia;
+
+  /// No description provided for @sizeUnitKb.
+  ///
+  /// In en, this message translates to:
+  /// **'KB'**
+  String get sizeUnitKb;
+
+  /// No description provided for @sizeUnitMb.
+  ///
+  /// In en, this message translates to:
+  /// **'MB'**
+  String get sizeUnitMb;
+
+  /// No description provided for @sizeUnitGb.
+  ///
+  /// In en, this message translates to:
+  /// **'GB'**
+  String get sizeUnitGb;
+
+  /// No description provided for @archiveMobileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok archive'**
+  String get archiveMobileTitle;
+
+  /// No description provided for @archiveMobileFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get archiveMobileFilters;
+
+  /// No description provided for @archiveMobileReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get archiveMobileReset;
+
+  /// No description provided for @archiveMobileType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get archiveMobileType;
+
+  /// No description provided for @archiveMobileFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get archiveMobileFilterAll;
+
+  /// No description provided for @archiveMobileFilterFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get archiveMobileFilterFavorites;
+
+  /// No description provided for @archiveMobileFilterLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get archiveMobileFilterLikes;
+
+  /// No description provided for @archiveMobileYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get archiveMobileYear;
+
+  /// No description provided for @archiveMobileAllYears.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get archiveMobileAllYears;
+
+  /// No description provided for @archiveMobileApplyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply filters'**
+  String get archiveMobileApplyFilters;
+
+  /// No description provided for @archiveMobileBackToVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to videos'**
+  String get archiveMobileBackToVideos;
+
+  /// No description provided for @archiveMobileDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get archiveMobileDownload;
+
+  /// No description provided for @archiveMobileBatchStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch download started'**
+  String get archiveMobileBatchStarted;
+
+  /// No description provided for @archiveMobileSyncTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Import or sync'**
+  String get archiveMobileSyncTooltip;
+
+  /// No description provided for @archiveMobileBackToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to library'**
+  String get archiveMobileBackToLibrary;
+
+  /// No description provided for @archiveMobileBatchRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch download in progress'**
+  String get archiveMobileBatchRunning;
+
+  /// No description provided for @archiveMobileSkippedVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video skipped} other{{count} videos skipped}}'**
+  String archiveMobileSkippedVideos(int count);
+
+  /// No description provided for @archiveMobileStopBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop batch'**
+  String get archiveMobileStopBatch;
+
+  /// No description provided for @archiveMobileSyncingCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing collections'**
+  String get archiveMobileSyncingCollections;
+
+  /// No description provided for @archiveMobileSyncWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the browser\'s response. Keep a TikTok page open.'**
+  String get archiveMobileSyncWaiting;
+
+  /// No description provided for @archiveMobileChipAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get archiveMobileChipAll;
+
+  /// No description provided for @archiveMobileSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a video or a collection'**
+  String get archiveMobileSearchHint;
+
+  /// No description provided for @archiveMobileClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get archiveMobileClearSearch;
+
+  /// No description provided for @archiveMobileVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video} other{{count} videos}}'**
+  String archiveMobileVideoCount(int count);
+
+  /// No description provided for @archiveMobileClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get archiveMobileClearSelection;
+
+  /// No description provided for @archiveMobileSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get archiveMobileSelectAll;
+
+  /// No description provided for @archiveMobileManageCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage collections'**
+  String get archiveMobileManageCollections;
+
+  /// No description provided for @archiveMobilePlayFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Play videos full screen'**
+  String get archiveMobilePlayFullscreen;
+
+  /// No description provided for @archiveMobileNoVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'No videos found'**
+  String get archiveMobileNoVideos;
+
+  /// No description provided for @archiveMobileVideoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Video added to the download queue.'**
+  String get archiveMobileVideoAdded;
+
+  /// No description provided for @archiveMobileTileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video {date}'**
+  String archiveMobileTileLabel(String date);
+
+  /// No description provided for @archiveMobileProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get archiveMobileProgress;
+
+  /// No description provided for @archiveMobileSelectedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{selected} other{selected}}'**
+  String archiveMobileSelectedLabel(int count);
+
+  /// No description provided for @statsMobileBackToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to library'**
+  String get statsMobileBackToLibrary;
+
+  /// No description provided for @statsMobileTotalSinceInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Total downloaded since installation'**
+  String get statsMobileTotalSinceInstall;
+
+  /// No description provided for @statsMobileActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get statsMobileActivity;
+
+  /// No description provided for @statsMobileLast12Weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 12 weeks'**
+  String get statsMobileLast12Weeks;
+
+  /// No description provided for @statsMobileLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get statsMobileLess;
+
+  /// No description provided for @statsMobileMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get statsMobileMore;
+
+  /// No description provided for @statsMobileBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads by source'**
+  String get statsMobileBySource;
+
+  /// No description provided for @statsMobileDownloadsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, one{{total} download} other{{total} downloads}}, {today} today'**
+  String statsMobileDownloadsSummary(int total, int today);
+
+  /// No description provided for @statsMobileHeatmapLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Heatmap of downloads per day'**
+  String get statsMobileHeatmapLabel;
+
+  /// No description provided for @statsMobileOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Others'**
+  String get statsMobileOthers;
+
+  /// No description provided for @statsMobileUnitB.
+  ///
+  /// In en, this message translates to:
+  /// **'B'**
+  String get statsMobileUnitB;
+
+  /// No description provided for @statsMobileUnitKB.
+  ///
+  /// In en, this message translates to:
+  /// **'KB'**
+  String get statsMobileUnitKB;
+
+  /// No description provided for @statsMobileUnitMB.
+  ///
+  /// In en, this message translates to:
+  /// **'MB'**
+  String get statsMobileUnitMB;
+
+  /// No description provided for @statsMobileUnitGB.
+  ///
+  /// In en, this message translates to:
+  /// **'GB'**
+  String get statsMobileUnitGB;
+
+  /// No description provided for @statsMobileUnitTB.
+  ///
+  /// In en, this message translates to:
+  /// **'TB'**
+  String get statsMobileUnitTB;
+
+  /// No description provided for @settingsHubEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'yt-dlp engine'**
+  String get settingsHubEngine;
+
+  /// No description provided for @settingsHubUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get settingsHubUnavailable;
+
+  /// No description provided for @settingsHubChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get settingsHubChecking;
+
+  /// No description provided for @settingsHubCheckUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get settingsHubCheckUpdates;
+
+  /// No description provided for @settingsHubAutoUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic update'**
+  String get settingsHubAutoUpdate;
+
+  /// No description provided for @settingsHubChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Update channel'**
+  String get settingsHubChannel;
+
+  /// No description provided for @settingsHubChannelNightly.
+  ///
+  /// In en, this message translates to:
+  /// **'Nightly'**
+  String get settingsHubChannelNightly;
+
+  /// No description provided for @settingsHubChannelStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get settingsHubChannelStable;
+
+  /// No description provided for @settingsHubUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Check failed, try again later.'**
+  String get settingsHubUpdateFailed;
+
+  /// No description provided for @settingsHubUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'yt-dlp is up to date'**
+  String get settingsHubUpToDate;
+
+  /// No description provided for @settingsHubUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'yt-dlp updated'**
+  String get settingsHubUpdated;
+
+  /// No description provided for @settingsHubUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Update error: {error}'**
+  String settingsHubUpdateError(String error);
+
+  /// No description provided for @settingsHubParallel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parallel downloads'**
+  String get settingsHubParallel;
+
+  /// No description provided for @settingsHubParallelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'More speed, more heat'**
+  String get settingsHubParallelHint;
+
+  /// No description provided for @settingsHubStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get settingsHubStorage;
+
+  /// No description provided for @settingsHubStorageFree.
+  ///
+  /// In en, this message translates to:
+  /// **'{free} free of {total}'**
+  String settingsHubStorageFree(String free, String total);
+
+  /// No description provided for @settingsHubWifiOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi only'**
+  String get settingsHubWifiOnly;
+
+  /// No description provided for @settingsHubWifiOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Never start a download on mobile data'**
+  String get settingsHubWifiOnlyHint;
+
+  /// No description provided for @detailsWifiOnlyHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi only is on: connect to Wi-Fi, then retry'**
+  String get detailsWifiOnlyHeadline;
+
+  /// No description provided for @detailsStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get detailsStatusFailed;
+
+  /// No description provided for @detailsStatusDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading'**
+  String get detailsStatusDownloading;
+
+  /// No description provided for @detailsStatusExtracting.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing link'**
+  String get detailsStatusExtracting;
+
+  /// No description provided for @detailsStatusDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Already added'**
+  String get detailsStatusDuplicate;
+
+  /// No description provided for @detailsDiagnostic.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostic'**
+  String get detailsDiagnostic;
+
+  /// No description provided for @detailsStepResolve.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving link'**
+  String get detailsStepResolve;
+
+  /// No description provided for @detailsStepReadPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading page'**
+  String get detailsStepReadPage;
+
+  /// No description provided for @detailsStepExtractFormats.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting formats'**
+  String get detailsStepExtractFormats;
+
+  /// No description provided for @detailsStepDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading'**
+  String get detailsStepDownload;
+
+  /// No description provided for @detailsStepMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merging audio and video'**
+  String get detailsStepMerge;
+
+  /// No description provided for @detailsStepFailMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merging the file failed'**
+  String get detailsStepFailMerge;
+
+  /// No description provided for @detailsStepFailTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'The transfer was interrupted'**
+  String get detailsStepFailTransfer;
+
+  /// No description provided for @detailsStepFailNoMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'No accessible media'**
+  String get detailsStepFailNoMedia;
+
+  /// No description provided for @detailsEngineUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Engine updated: {status}'**
+  String detailsEngineUpdated(String status);
+
+  /// No description provided for @detailsYtDlpUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'yt-dlp update succeeded: {status}'**
+  String detailsYtDlpUpdateSuccess(String status);
+
+  /// No description provided for @detailsEngineUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during update: {error}'**
+  String detailsEngineUpdateError(String error);
+
+  /// No description provided for @detailsLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied to clipboard'**
+  String get detailsLinkCopied;
+
+  /// No description provided for @detailsShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get detailsShare;
+
+  /// No description provided for @detailsOpenWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Open with'**
+  String get detailsOpenWith;
+
+  /// No description provided for @detailsCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get detailsCopyLink;
+
+  /// No description provided for @detailsRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get detailsRestart;
+
+  /// No description provided for @detailsPlayVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Play video'**
+  String get detailsPlayVideo;
+
+  /// No description provided for @detailsInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Information'**
+  String get detailsInfoTitle;
+
+  /// No description provided for @detailsInfoSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get detailsInfoSource;
+
+  /// No description provided for @detailsInfoSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get detailsInfoSize;
+
+  /// No description provided for @detailsInfoFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get detailsInfoFile;
+
+  /// No description provided for @detailsInfoId.
+  ///
+  /// In en, this message translates to:
+  /// **'Identifier'**
+  String get detailsInfoId;
+
+  /// No description provided for @detailsUpdatingEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating engine…'**
+  String get detailsUpdatingEngine;
+
+  /// No description provided for @detailsRepairAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair automatically'**
+  String get detailsRepairAuto;
+
+  /// No description provided for @detailsSignInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in in the browser'**
+  String get detailsSignInBrowser;
+
+  /// No description provided for @detailsAgeSolutions.
+  ///
+  /// In en, this message translates to:
+  /// **'See solutions (18+)'**
+  String get detailsAgeSolutions;
+
+  /// No description provided for @detailsTechnicalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical details'**
+  String get detailsTechnicalDetails;
+
+  /// No description provided for @detailsNoLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'No logs available.'**
+  String get detailsNoLogs;
+
+  /// No description provided for @detailsCopyLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy logs'**
+  String get detailsCopyLogs;
+
+  /// No description provided for @detailsLogsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs copied'**
+  String get detailsLogsCopied;
+
+  /// No description provided for @detailsHeadlineAgeVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Age verification required'**
+  String get detailsHeadlineAgeVerification;
+
+  /// No description provided for @detailsHeadlineHostRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} refused the request'**
+  String detailsHeadlineHostRefused(String host);
+
+  /// No description provided for @detailsHeadlineTooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests, access limited'**
+  String get detailsHeadlineTooManyRequests;
+
+  /// No description provided for @detailsHeadlinePrivateVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Private or removed video'**
+  String get detailsHeadlinePrivateVideo;
+
+  /// No description provided for @detailsHeadlineGeoBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Content blocked in your country'**
+  String get detailsHeadlineGeoBlocked;
+
+  /// No description provided for @detailsHeadlineCopyright.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed for copyright'**
+  String get detailsHeadlineCopyright;
+
+  /// No description provided for @detailsHeadlineSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Account or content suspended'**
+  String get detailsHeadlineSuspended;
+
+  /// No description provided for @detailsHeadlineNoMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'No media in this link'**
+  String get detailsHeadlineNoMedia;
+
+  /// No description provided for @detailsHeadlineUnsupportedUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Link not supported'**
+  String get detailsHeadlineUnsupportedUrl;
+
+  /// No description provided for @detailsHeadlineUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Content unavailable'**
+  String get detailsHeadlineUnavailable;
+
+  /// No description provided for @detailsHeadlineLiveOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'The live stream is offline'**
+  String get detailsHeadlineLiveOffline;
+
+  /// No description provided for @detailsHeadlineAntiBot.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-bot protection detected'**
+  String get detailsHeadlineAntiBot;
+
+  /// No description provided for @detailsHeadlineNoFormats.
+  ///
+  /// In en, this message translates to:
+  /// **'No accessible format'**
+  String get detailsHeadlineNoFormats;
+
+  /// No description provided for @detailsHeadlineLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in required'**
+  String get detailsHeadlineLoginRequired;
+
+  /// No description provided for @detailsHeadlineNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network problem'**
+  String get detailsHeadlineNetwork;
+
+  /// No description provided for @detailsHeadlineFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The download failed'**
+  String get detailsHeadlineFailed;
+
+  /// No description provided for @downloadCardDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"?'**
+  String downloadCardDeleteConfirm(String title);
+
+  /// No description provided for @downloadCardAgeVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Age verification (18+), see solutions'**
+  String get downloadCardAgeVerification;
+
+  /// No description provided for @downloadCardFailedMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{source}, failed. See diagnostic'**
+  String downloadCardFailedMeta(String source);
+
+  /// No description provided for @downloadCardQueuePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position {position} in queue'**
+  String downloadCardQueuePosition(int position);
+
+  /// No description provided for @downloadCardSizeOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String downloadCardSizeOf(String done, String total);
+
+  /// No description provided for @libraryHeaderArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok archive'**
+  String get libraryHeaderArchive;
+
+  /// No description provided for @libraryHeaderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get libraryHeaderFailed;
+
+  /// No description provided for @libraryHeaderFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get libraryHeaderFolders;
+
+  /// No description provided for @libraryHeaderMoreActive.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} in progress'**
+  String libraryHeaderMoreActive(int count);
+
+  /// No description provided for @libraryHeaderLiveSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Live speed'**
+  String get libraryHeaderLiveSpeed;
+
+  /// No description provided for @libraryHeaderRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{eta} left'**
+  String libraryHeaderRemaining(String eta);
+
+  /// No description provided for @libraryHeaderUnitGBps.
+  ///
+  /// In en, this message translates to:
+  /// **'GB/s'**
+  String get libraryHeaderUnitGBps;
+
+  /// No description provided for @libraryHeaderUnitMBps.
+  ///
+  /// In en, this message translates to:
+  /// **'MB/s'**
+  String get libraryHeaderUnitMBps;
+
+  /// No description provided for @libraryHeaderUnitKBps.
+  ///
+  /// In en, this message translates to:
+  /// **'KB/s'**
+  String get libraryHeaderUnitKBps;
+
+  /// No description provided for @libraryHeaderUnitBps.
+  ///
+  /// In en, this message translates to:
+  /// **'B/s'**
+  String get libraryHeaderUnitBps;
+
+  /// No description provided for @clipboardCapsuleCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied, {platform}'**
+  String clipboardCapsuleCopied(String platform);
+
+  /// No description provided for @clipboardCapsuleMediaLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Media link'**
+  String get clipboardCapsuleMediaLink;
+
+  /// No description provided for @clipboardCapsuleDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get clipboardCapsuleDownload;
+
+  /// No description provided for @clipboardCapsuleDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get clipboardCapsuleDismiss;
+
+  /// No description provided for @shellTabLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get shellTabLibrary;
+
+  /// No description provided for @shellTabBrowse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse'**
+  String get shellTabBrowse;
+
+  /// No description provided for @shellTabSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get shellTabSend;
+
+  /// No description provided for @shellTabSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get shellTabSettings;
+
+  /// No description provided for @browserMobileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser'**
+  String get browserMobileTitle;
+
+  /// No description provided for @browserMobileBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get browserMobileBack;
+
+  /// No description provided for @browserMobileForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get browserMobileForward;
+
+  /// No description provided for @browserMobileReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get browserMobileReload;
+
+  /// No description provided for @browserMobileReadyToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Page ready to download'**
+  String get browserMobileReadyToDownload;
+
+  /// No description provided for @browserMobileDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get browserMobileDownload;
+
+  /// No description provided for @oledKitStepperLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get oledKitStepperLess;
+
+  /// No description provided for @oledKitStepperMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get oledKitStepperMore;
+
+  /// No description provided for @oledKitFragmentsReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} fragments received'**
+  String oledKitFragmentsReceived(int done, int total);
+
+  /// No description provided for @settingsTilesNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found'**
+  String get settingsTilesNotFound;
+
+  /// No description provided for @settingsOutputChangeFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change folder'**
+  String get settingsOutputChangeFolderTitle;
+
+  /// No description provided for @settingsOutputChangeFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to automatically migrate all your existing videos and thumbnails to this new folder?'**
+  String get settingsOutputChangeFolderBody;
+
+  /// No description provided for @settingsOutputChangeFolderOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only change the folder'**
+  String get settingsOutputChangeFolderOnly;
+
+  /// No description provided for @settingsOutputMigrateFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Migrate files'**
+  String get settingsOutputMigrateFiles;
+
+  /// No description provided for @settingsOutputMigrateLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Migrate library'**
+  String get settingsOutputMigrateLibraryTitle;
+
+  /// No description provided for @settingsOutputMigrateLibraryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Move all videos and thumbnails to another drive or folder'**
+  String get settingsOutputMigrateLibraryDesc;
+
+  /// No description provided for @settingsOutputReorganizeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorganize existing videos'**
+  String get settingsOutputReorganizeTitle;
+
+  /// No description provided for @settingsOutputReorganizeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort already downloaded videos into subfolders by creator (with preview)'**
+  String get settingsOutputReorganizeDesc;
+
+  /// No description provided for @settingsSmartRecommendedRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended rules'**
+  String get settingsSmartRecommendedRules;
+
+  /// No description provided for @settingsSystemYtDlpUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'yt-dlp updated: {result}'**
+  String settingsSystemYtDlpUpdated(String result);
+
+  /// No description provided for @settingsSystemUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Update error: {error}'**
+  String settingsSystemUpdateError(String error);
+
+  /// No description provided for @settingsSystemUpdateEngineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update the yt-dlp engine'**
+  String get settingsSystemUpdateEngineTitle;
+
+  /// No description provided for @settingsSystemUpdateEngineDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the latest version (nightly)...'**
+  String get settingsSystemUpdateEngineDownloading;
+
+  /// No description provided for @settingsSystemUpdateEngineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for and install the latest version of yt-dlp'**
+  String get settingsSystemUpdateEngineDesc;
+
+  /// No description provided for @transferMobileAddFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Add {count} folder} other{Add {count} folders}}'**
+  String transferMobileAddFolders(int count);
+
+  /// No description provided for @transferMobileBroadcastDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery signal broadcast on the network'**
+  String get transferMobileBroadcastDone;
+
+  /// No description provided for @transferMobileBroadcastTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Broadcast a network announcement'**
+  String get transferMobileBroadcastTooltip;
+
+  /// No description provided for @transferMobileBytesOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String transferMobileBytesOf(String done, String total);
+
+  /// No description provided for @transferMobileCheckAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get transferMobileCheckAll;
+
+  /// No description provided for @transferMobileUncheckAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get transferMobileUncheckAll;
+
+  /// No description provided for @transferMobileClearList.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear list'**
+  String get transferMobileClearList;
+
+  /// No description provided for @transferMobileCreatorCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} creator} other{{count} creators}}'**
+  String transferMobileCreatorCount(int count);
+
+  /// No description provided for @transferMobileDemoNoFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode: no personal files accessible.'**
+  String get transferMobileDemoNoFiles;
+
+  /// No description provided for @transferMobileDemoSendSimulated.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode: simulated send, no file transmitted.'**
+  String get transferMobileDemoSendSimulated;
+
+  /// No description provided for @transferMobileDeviceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No device found at this address.'**
+  String get transferMobileDeviceNotFound;
+
+  /// No description provided for @transferMobileDeviceUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Device unreachable ({address})'**
+  String transferMobileDeviceUnreachable(String address);
+
+  /// No description provided for @transferMobileDiagBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The receiving device is already busy with another transfer.'**
+  String get transferMobileDiagBusy;
+
+  /// No description provided for @transferMobileDiagChecksumMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Data integrity error (checksum mismatch).'**
+  String get transferMobileDiagChecksumMismatch;
+
+  /// No description provided for @transferMobileDiagCommunication.
+  ///
+  /// In en, this message translates to:
+  /// **'Error communicating with the device.'**
+  String get transferMobileDiagCommunication;
+
+  /// No description provided for @transferMobileDiagConnectionRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection refused. Open LocalSend on the receiving device and turn on Receive mode.'**
+  String get transferMobileDiagConnectionRefused;
+
+  /// No description provided for @transferMobileDiagPinRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN required by the receiving device.'**
+  String get transferMobileDiagPinRequired;
+
+  /// No description provided for @transferMobileDiagRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer declined by the user on the receiving device.'**
+  String get transferMobileDiagRejected;
+
+  /// No description provided for @transferMobileDiagTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection timed out. Check that the receiving device is on and on the same Wi-Fi.'**
+  String get transferMobileDiagTimeout;
+
+  /// No description provided for @transferMobileDiagUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Check that LocalSend is open on that device, on the same Wi-Fi network.'**
+  String get transferMobileDiagUnreachable;
+
+  /// No description provided for @transferMobileFileCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} file} other{{count} files}}'**
+  String transferMobileFileCount(int count);
+
+  /// No description provided for @transferMobileFolderCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} folder} other{{count} folders}}'**
+  String transferMobileFolderCount(int count);
+
+  /// No description provided for @transferMobileFolderPickError.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder selection error: {error}'**
+  String transferMobileFolderPickError(String error);
+
+  /// No description provided for @transferMobileFoldersAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders…'**
+  String get transferMobileFoldersAction;
+
+  /// No description provided for @transferMobileVideosAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos…'**
+  String get transferMobileVideosAction;
+
+  /// No description provided for @transferMobileHeaderReceiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiving'**
+  String get transferMobileHeaderReceiving;
+
+  /// No description provided for @transferMobileHeaderSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending'**
+  String get transferMobileHeaderSending;
+
+  /// No description provided for @transferMobileIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'IP address'**
+  String get transferMobileIpAddress;
+
+  /// No description provided for @transferMobileKindDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Computer'**
+  String get transferMobileKindDesktop;
+
+  /// No description provided for @transferMobileKindHeadless.
+  ///
+  /// In en, this message translates to:
+  /// **'Headless'**
+  String get transferMobileKindHeadless;
+
+  /// No description provided for @transferMobileKindMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get transferMobileKindMobile;
+
+  /// No description provided for @transferMobileKindServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get transferMobileKindServer;
+
+  /// No description provided for @transferMobileKindWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser'**
+  String get transferMobileKindWeb;
+
+  /// No description provided for @transferMobileLibraryNewOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{library} ({newest} new / {found})'**
+  String transferMobileLibraryNewOfTotal(String library, int newest, int found);
+
+  /// No description provided for @transferMobileMarkKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as known device'**
+  String get transferMobileMarkKnown;
+
+  /// No description provided for @transferMobileUnmarkKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from known devices'**
+  String get transferMobileUnmarkKnown;
+
+  /// No description provided for @transferMobileMediaCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} media item} other{{count} media items}}'**
+  String transferMobileMediaCount(int count);
+
+  /// No description provided for @transferMobileMediaFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get transferMobileMediaFallback;
+
+  /// No description provided for @transferMobileMediaSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} media item selected} other{{count} media items selected}}'**
+  String transferMobileMediaSelected(int count);
+
+  /// No description provided for @transferMobileNameNewCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({newest} new)'**
+  String transferMobileNameNewCount(String name, int newest);
+
+  /// No description provided for @transferMobileNearbyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No nearby devices} one{{count} nearby device} other{{count} nearby devices}}'**
+  String transferMobileNearbyCount(int count);
+
+  /// No description provided for @transferMobileNewVideosCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} new video} other{{count} new videos}}'**
+  String transferMobileNewVideosCount(int count);
+
+  /// No description provided for @transferMobileNoDataSent.
+  ///
+  /// In en, this message translates to:
+  /// **'no data sent'**
+  String get transferMobileNoDataSent;
+
+  /// No description provided for @transferMobileNoFolderMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No folder matches'**
+  String get transferMobileNoFolderMatch;
+
+  /// No description provided for @transferMobilePeerPinExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'This receiving device protects incoming transfers with a PIN set in its LocalSend settings.\n\nEnter the PIN configured on your phone (or turn off the PIN option in the settings of your phone to send without a code).'**
+  String get transferMobilePeerPinExplain;
+
+  /// No description provided for @transferMobilePeerPinRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN required by {alias}'**
+  String transferMobilePeerPinRequired(String alias);
+
+  /// No description provided for @transferMobilePinExample.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. 1234'**
+  String get transferMobilePinExample;
+
+  /// No description provided for @transferMobilePinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Security PIN'**
+  String get transferMobilePinLabel;
+
+  /// No description provided for @transferMobilePortAltActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Port 53317 is busy. Alternate port {port} is active.'**
+  String transferMobilePortAltActive(int port);
+
+  /// No description provided for @transferMobilePortDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Port (default: 53317)'**
+  String get transferMobilePortDefault;
+
+  /// No description provided for @transferMobileQrHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide QR code'**
+  String get transferMobileQrHide;
+
+  /// No description provided for @transferMobileQrShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR code'**
+  String get transferMobileQrShow;
+
+  /// No description provided for @transferMobileQrShowMobileToMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR code (phone to phone)'**
+  String get transferMobileQrShowMobileToMobile;
+
+  /// No description provided for @transferMobileReadyToReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to receive'**
+  String get transferMobileReadyToReceive;
+
+  /// No description provided for @transferMobileReceiveFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive files'**
+  String get transferMobileReceiveFiles;
+
+  /// No description provided for @transferMobileRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get transferMobileRefresh;
+
+  /// No description provided for @transferMobileRefreshSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh search'**
+  String get transferMobileRefreshSearch;
+
+  /// No description provided for @transferMobileScanFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders {scanned} / {total} ({videos, plural, one{{videos} video} other{{videos} videos}})…'**
+  String transferMobileScanFolders(int scanned, int total, int videos);
+
+  /// No description provided for @transferMobileScanVideosFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video found…} other{{count} videos found…}}'**
+  String transferMobileScanVideosFound(int count);
+
+  /// No description provided for @transferMobileSearchDemoMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a demo media item…'**
+  String get transferMobileSearchDemoMedia;
+
+  /// No description provided for @transferMobileSelectedOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{selected}/{total} selected'**
+  String transferMobileSelectedOfTotal(int selected, int total);
+
+  /// No description provided for @transferMobileShowPinQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Show my PIN and QR code'**
+  String get transferMobileShowPinQr;
+
+  /// No description provided for @transferMobileSimulation.
+  ///
+  /// In en, this message translates to:
+  /// **'simulation'**
+  String get transferMobileSimulation;
+
+  /// No description provided for @transferMobileSubfoldersFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter subfolders…'**
+  String get transferMobileSubfoldersFilter;
+
+  /// No description provided for @transferMobileSubfoldersFoundIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders found in {name}'**
+  String transferMobileSubfoldersFoundIn(String name);
+
+  /// No description provided for @transferMobileSubfoldersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select folders'**
+  String get transferMobileSubfoldersTitle;
+
+  /// No description provided for @transferMobileUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get transferMobileUpToDate;
+
+  /// No description provided for @transferMobileUpToDateCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date ({count})'**
+  String transferMobileUpToDateCount(int count);
+
+  /// No description provided for @transferMobileVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video} other{{count} videos}}'**
+  String transferMobileVideoCount(int count);
+
+  /// No description provided for @transferMobileVideosZipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos (bundled in a ZIP)'**
+  String transferMobileVideosZipped(int count);
+
+  /// No description provided for @transferMobileVisibleOnLan.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible on the local network'**
+  String get transferMobileVisibleOnLan;
+
+  /// No description provided for @transferMobileVisibleOnWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible on the local Wi-Fi'**
+  String get transferMobileVisibleOnWifi;
+
+  /// No description provided for @transferMobileZipActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ZIP on'**
+  String get transferMobileZipActive;
+
+  /// No description provided for @transferMobileZipArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive as ZIP'**
+  String get transferMobileZipArchive;
+
+  /// No description provided for @transferMobileZipEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'ZIP archive: On'**
+  String get transferMobileZipEnabled;
+
+  /// No description provided for @transferMobileZipHintLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'ZIP is on. For large folders, turning ZIP off speeds up direct sending to the gallery.'**
+  String get transferMobileZipHintLarge;
+
+  /// No description provided for @transferMobileZipHintMulti.
+  ///
+  /// In en, this message translates to:
+  /// **'Several files → one ZIP archive (no compression, videos are already compressed)'**
+  String get transferMobileZipHintMulti;
+
+  /// No description provided for @transferMobileZipHintOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Files are sent as they are to LocalSend (straight into the gallery)'**
+  String get transferMobileZipHintOff;
+
+  /// No description provided for @transferMobileZipTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle several files into a ZIP archive (copy, no compression)'**
+  String get transferMobileZipTooltip;
+
+  /// No description provided for @detailsStepFailMetered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile data in use'**
+  String get detailsStepFailMetered;
+
+  /// No description provided for @archiveMobileCollectionLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked videos'**
+  String get archiveMobileCollectionLiked;
+
+  /// No description provided for @archiveMobileCollectionUnsortedFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsorted favorites'**
+  String get archiveMobileCollectionUnsortedFavorites;
 }
 
 class _AppLocalizationsDelegate

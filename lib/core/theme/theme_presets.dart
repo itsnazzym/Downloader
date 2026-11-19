@@ -101,6 +101,28 @@ class ThemePresets {
     inputBackground: Color(0xFF1C1C20),
   );
 
+  /// Pure black for OLED screens. Ink-white primary, red reserved for live
+  /// activity (see OledTokens.live).
+  static const oled = ThemePreset(
+    id: 'oled',
+    name: 'OLED',
+    primary: Color(0xFFF4F4F2),
+    accent: Color(0xFFFF4A3D),
+    background: Color(0xFF000000),
+    surface: Color(0xFF0B0B0B),
+    surfaceHighlight: Color(0xFF161616),
+    textPrimary: Color(0xFFF4F4F2),
+    textSecondary: Color(0xFFA1A1A0),
+    textDisabled: Color(0xFF7C7C7B),
+    border: Color(0x1FFFFFFF),
+    borderSubtle: Color(0x14FFFFFF),
+    success: Color(0xFFF4F4F2),
+    error: Color(0xFFFF6B5E),
+    warning: Color(0xFFE9B44C),
+    info: Color(0xFFA1A1A0),
+    inputBackground: Color(0xFF000000),
+  );
+
   static const ios = ThemePreset(
     id: 'ios',
     name: 'iOS',
@@ -226,6 +248,7 @@ class ThemePresets {
 
   static const List<ThemePreset> all = [
     midnight,
+    oled,
     ios,
     ocean,
     sunset,

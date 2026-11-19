@@ -4,10 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.os.StatFs
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
@@ -35,30 +38,40 @@ class EnginePlugin(
     private var eventSink: EventChannel.EventSink? = null
     private val running = ConcurrentHashMap<String, Boolean>()
 
+    private fun channelFor(name: String?): YoutubeDL.UpdateChannel =
+        if (name == "stable") YoutubeDL.UpdateChannel.STABLE else YoutubeDL.UpdateChannel.NIGHTLY
+
+    private fun otherChannel(c: YoutubeDL.UpdateChannel): YoutubeDL.UpdateChannel =
+        if (c == YoutubeDL.UpdateChannel.STABLE) YoutubeDL.UpdateChannel.NIGHTLY else YoutubeDL.UpdateChannel.STABLE
+
     override fun onMethodCall(
         call: MethodCall,
         result: MethodChannel.Result,
     ) {
         when (call.method) {
             "init" -> {
+                val autoUpdate = call.argument<Boolean>("autoUpdate") ?: true
+                val preferred = channelFor(call.argument<String>("channel"))
                 executor.execute {
                     try {
                         YoutubeDL.getInstance().init(context)
                         FFmpeg.getInstance().init(context)
                         Aria2c.getInstance().init(context)
-                        try {
-                            YoutubeDL.getInstance().updateYoutubeDL(
-                                context,
-                                YoutubeDL.UpdateChannel.NIGHTLY,
-                            )
-                        } catch (e: Exception) {
+                        if (autoUpdate) {
                             try {
                                 YoutubeDL.getInstance().updateYoutubeDL(
                                     context,
-                                    YoutubeDL.UpdateChannel.STABLE,
+                                    preferred,
                                 )
-                            } catch (_: Exception) {}
-                            Log.w("EnginePlugin", "Auto-update yt-dlp on init fallback: ${e.message}")
+                            } catch (e: Exception) {
+                                try {
+                                    YoutubeDL.getInstance().updateYoutubeDL(
+                                        context,
+                                        otherChannel(preferred),
+                                    )
+                                } catch (_: Exception) {}
+                                Log.w("EnginePlugin", "Auto-update yt-dlp on init fallback: ${e.message}")
+                            }
                         }
                         mainResult(result) { it.success(null) }
                     } catch (e: Exception) {
@@ -85,17 +98,45 @@ class EnginePlugin(
                     result.error("output_dir", e.message, null)
                 }
             }
+            "diskSpace" -> {
+                try {
+                    val stat = StatFs(resolveOutputDir().absolutePath)
+                    result.success(
+                        mapOf(
+                            "total" to stat.totalBytes,
+                            "free" to stat.availableBytes,
+                        ),
+                    )
+                } catch (e: Exception) {
+                    result.error("disk_space", e.message, null)
+                }
+            }
             "webViewCookies" -> {
                 val url = call.argument<String>("url") ?: ""
                 result.success(CookieManager.getInstance().getCookie(url))
             }
+            "isMetered" -> {
+                try {
+                    val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+                    // No active network is not "metered": nothing could download.
+                    val network = cm?.activeNetwork
+                    val caps = if (network != null) cm.getNetworkCapabilities(network) else null
+                    result.success(
+                        caps != null &&
+                            !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED),
+                    )
+                } catch (e: Exception) {
+                    result.error("metered", e.message, null)
+                }
+            }
             "updateYtDlp" -> {
+                val preferred = channelFor(call.argument<String>("channel"))
                 executor.execute {
                     try {
                         var status = try {
                             YoutubeDL.getInstance().updateYoutubeDL(
                                 context,
-                                YoutubeDL.UpdateChannel.NIGHTLY,
+                                preferred,
                             )
                         } catch (_: Exception) {
                             null
@@ -103,7 +144,7 @@ class EnginePlugin(
                         if (status == null) {
                             status = YoutubeDL.getInstance().updateYoutubeDL(
                                 context,
-                                YoutubeDL.UpdateChannel.STABLE,
+                                otherChannel(preferred),
                             )
                         }
                         val version = try {

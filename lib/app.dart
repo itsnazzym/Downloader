@@ -20,6 +20,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/tor/tor_proxy_service.dart';
 import 'core/setup/dependency_bootstrap_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_presets.dart';
 import 'core/theme/theme_resolver.dart';
 import 'core/ui/setup/app_launch_overlay.dart';
 import 'features/downloader/presentation/providers/downloader_provider.dart';
@@ -255,10 +256,18 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
         themeMode = ThemeMode.system;
     }
 
-    final resolved = ThemeResolver.resolve(
-      presetId: settings.themePreset,
-      customAccentArgb: settings.customAccentColor,
-    );
+    // The OLED preset is dark-only. New Android installs start on it (see the
+    // settings default); any preset the user picked, Midnight included, stays.
+    final useOled = settings.themePreset == 'oled';
+    if (useOled) {
+      themeMode = ThemeMode.dark;
+    }
+    final resolved = useOled
+        ? ThemePresets.oled
+        : ThemeResolver.resolve(
+            presetId: settings.themePreset,
+            customAccentArgb: settings.customAccentColor,
+          );
 
     final bootstrap = ref.watch(dependencyBootstrapProvider);
     final warmup = ref.watch(appWarmupProvider);

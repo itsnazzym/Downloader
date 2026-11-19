@@ -82,10 +82,9 @@ class DownloadListNotifier
         if (videoId != null) {
           try {
             unawaited(
-              _ref.read(tiktokVideoCacheServiceProvider).recordUnavailable(
-                videoId,
-                bad.error ?? 'Unavailable video',
-              ),
+              _ref
+                  .read(tiktokVideoCacheServiceProvider)
+                  .recordUnavailable(videoId, bad.error ?? 'Unavailable video'),
             );
           } catch (_) {}
         }
@@ -176,6 +175,13 @@ class DownloadListNotifier
       final item = entry.value;
       final previous = _catalogById[id];
 
+      // Deleting a row makes the repository emit one last `canceled` copy of
+      // it. Once the row has left the catalog that echo must not bring it
+      // back (it showed up as a ghost row after "Retry").
+      if (previous == null && item.status == DownloadStatus.canceled) {
+        continue;
+      }
+
       if (_requiresCatalogUpdate(previous, item)) {
         if (previous == null) {
           _catalogIds.add(id);
@@ -202,8 +208,9 @@ class DownloadListNotifier
 
       if (item.status == DownloadStatus.failed) {
         final err = (item.error ?? '').toLowerCase();
-        final isPermanentUnavail =
-            DownloadStatusGuard.isPermanentDownloadError(err);
+        final isPermanentUnavail = DownloadStatusGuard.isPermanentDownloadError(
+          err,
+        );
         if (isPermanentUnavail &&
             (item.request.url.contains('tiktok.com') ||
                 item.request.url.contains('tiktokv.com'))) {
@@ -211,10 +218,12 @@ class DownloadListNotifier
           if (videoId != null) {
             try {
               unawaited(
-                _ref.read(tiktokVideoCacheServiceProvider).recordUnavailable(
-                  videoId,
-                  item.error ?? 'Unavailable video',
-                ),
+                _ref
+                    .read(tiktokVideoCacheServiceProvider)
+                    .recordUnavailable(
+                      videoId,
+                      item.error ?? 'Unavailable video',
+                    ),
               );
             } catch (_) {}
           }

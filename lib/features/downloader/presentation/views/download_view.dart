@@ -15,7 +15,7 @@ import 'widgets/download_list.dart';
 import 'widgets/download_search_field.dart';
 import 'widgets/mobile_clipboard_paste_capsule.dart';
 import 'widgets/toolbar/download_top_bar.dart';
-import 'widgets/toolbar/mobile_filter_chips_bar.dart';
+import 'widgets/toolbar/mobile_library_header.dart';
 
 /// Main container view for the Downloader screen.
 /// Coordinates the top toolbar, download list, responsive layout, and inspector pane.
@@ -83,10 +83,13 @@ class DownloadView extends ConsumerWidget {
               },
               child: Column(
                 children: [
-                  DownloadTopBar(key: OnboardingTargets.topBar),
-                  if (isMobile) const MobileFilterChipsBar(),
-                  if (isMobile) const MobileClipboardPasteCapsule(),
-                  const _DownloadTopHairline(),
+                  if (isMobile) ...[
+                    MobileLibraryHeader(key: OnboardingTargets.topBar),
+                    const MobileClipboardPasteCapsule(),
+                  ] else ...[
+                    DownloadTopBar(key: OnboardingTargets.topBar),
+                    const _DownloadTopHairline(),
+                  ],
                   Expanded(
                     child: DownloadList(key: OnboardingTargets.creatorList),
                   ),

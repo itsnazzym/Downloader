@@ -9,7 +9,13 @@ class PlatformInfo {
   static bool get isAndroid => Platform.isAndroid;
   static bool get isDesktop =>
       Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-  static bool get isMobile => Platform.isAndroid || Platform.isIOS;
+
+  /// Test hook: lets widget tests render the mobile branches on the host OS.
+  @visibleForTesting
+  static bool? debugForceMobile;
+
+  static bool get isMobile =>
+      debugForceMobile ?? (Platform.isAndroid || Platform.isIOS);
 
   static bool useMobileLayout(BuildContext context) {
     return isMobile ||

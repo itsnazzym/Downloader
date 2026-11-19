@@ -10,6 +10,7 @@ import 'package:modern_downloader/core/services/media_fingerprint_service.dart';
 import 'package:modern_downloader/features/downloader/data/datasources/persistence_service.dart';
 import 'package:modern_downloader/features/downloader/data/repositories/downloader_repository_impl.dart';
 import 'package:modern_downloader/features/downloader/data/services/library_scanner_service.dart';
+import 'package:modern_downloader/features/downloader/data/sources/fallback_media_resolver.dart';
 import 'package:modern_downloader/features/downloader/data/sources/gallery_dl_source.dart';
 import 'package:modern_downloader/features/downloader/data/sources/yt_dlp_source.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -71,6 +72,7 @@ class _FakeYtDlp extends YtDlpSource {
   final Completer<Map<String, dynamic>>? metadataHold;
   int metadataCalls = 0;
   int downloadCalls = 0;
+  DownloadRequest? lastRequest;
 
   @override
   Future<Map<String, dynamic>> fetchMetadata(
@@ -101,6 +103,7 @@ class _FakeYtDlp extends YtDlpSource {
     DownloadRequest request,
   ) async* {
     downloadCalls++;
+    lastRequest = request;
     if (downloadError != null) {
       throw downloadError!;
     }
@@ -156,7 +159,11 @@ void main() {
     }
   });
 
-  DownloaderRepositoryImpl buildRepo(_FakeYtDlp source) {
+  DownloaderRepositoryImpl buildRepo(
+    _FakeYtDlp source, {
+    Future<void> Function()? networkPreflight,
+    FallbackMediaResolver? fallbackResolver,
+  }) {
     return DownloaderRepositoryImpl(
       source,
       gallery,
@@ -164,6 +171,8 @@ void main() {
       _NoopScanner(),
       PluginManager(),
       () => tmp.path,
+      networkPreflight: networkPreflight,
+      fallbackResolver: fallbackResolver,
       mediaFingerprintService: MediaFingerprintService(persistence),
       waitForLibraryScan: () async {
         if (!loaded.isCompleted) loaded.complete();
@@ -208,6 +217,121 @@ void main() {
     final item = await failed.future.timeout(const Duration(seconds: 8));
     expect(item.status, DownloadStatus.failed);
     expect(item.error, isNotNull);
+  });
+
+  test('wifi-only preflight fails the item before any download', () async {
+    final source = _FakeYtDlp();
+    final repo = buildRepo(
+      source,
+      networkPreflight: () async => throw const WifiOnlyBlockedException(),
+    );
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    final failed = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.failed && !failed.isCompleted) {
+        failed.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      const DownloadRequest(url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+    );
+
+    final item = await failed.future.timeout(const Duration(seconds: 8));
+    expect(item.error, contains('Wi-Fi only'));
+    expect(source.downloadCalls, 0);
+  });
+
+  test('wifi-only refusal never falls back to gallery-dl', () async {
+    final source = _FakeYtDlp();
+    final repo = buildRepo(
+      source,
+      networkPreflight: () async => throw const WifiOnlyBlockedException(),
+    );
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final failed = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.failed && !failed.isCompleted) {
+        failed.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      const DownloadRequest(url: 'https://x.com/someone/status/1234567890123'),
+    );
+
+    final item = await failed.future.timeout(const Duration(seconds: 8));
+    expect(item.error, contains('Wi-Fi only'));
+    expect(gallery.downloadCalls, 0);
+    expect(source.downloadCalls, 0);
+  });
+
+  test('falls back to a direct stream when yt-dlp finds no video', () async {
+    final source = _FakeYtDlp(
+      metadataError: YtDlpException(
+        'ERROR: [twitter] 1: No video could be found in this tweet',
+      ),
+    );
+    final repo = buildRepo(
+      source,
+      fallbackResolver: FallbackMediaResolver(
+        fetchText: (url) async => url.host == 'api.fxtwitter.com'
+            ? '{"tweet":{"text":"hello https://t.co/x","author":{"screen_name":"abc"},'
+                  '"media":{"videos":[{"thumbnail_url":"https://img/t.jpg",'
+                  '"url":"https://video.twimg.com/v/avc1/720x1280/a.mp4",'
+                  '"formats":[{"container":"m3u8","url":"https://video.twimg.com/p.m3u8"},'
+                  '{"container":"mp4","url":"https://video.twimg.com/v/avc1/320x568/b.mp4"},'
+                  '{"container":"mp4","url":"https://video.twimg.com/v/avc1/720x1280/a.mp4"}]}]}}}'
+            : null,
+      ),
+    );
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final done = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.completed && !done.isCompleted) {
+        done.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      const DownloadRequest(
+        url: 'https://x.com/abc/status/2122798036061483429',
+      ),
+    );
+
+    await done.future.timeout(const Duration(seconds: 8));
+    expect(source.lastRequest?.forceStreamUrl, contains('720x1280/a.mp4'));
+    expect(source.lastRequest?.customFilename, startsWith('hello ['));
+  });
+
+  test('no fallback result keeps the yt-dlp failure', () async {
+    final source = _FakeYtDlp(
+      metadataError: YtDlpException(
+        'ERROR: [twitter] 1: No video could be found in this tweet',
+      ),
+    );
+    final repo = buildRepo(
+      source,
+      fallbackResolver: FallbackMediaResolver(fetchText: (_) async => null),
+    );
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final failed = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.failed && !failed.isCompleted) {
+        failed.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      const DownloadRequest(
+        url: 'https://x.com/abc/status/2122798036061483429',
+      ),
+    );
+
+    final item = await failed.future.timeout(const Duration(seconds: 8));
+    expect(item.error, contains('No video'));
+    expect(source.downloadCalls, 0);
   });
 
   test('deleteDownload removes item and cleans media files', () async {
