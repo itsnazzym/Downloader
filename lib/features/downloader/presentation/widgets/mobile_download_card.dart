@@ -11,6 +11,7 @@ import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/video_thumbnail_provider.dart';
 import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
@@ -277,7 +278,15 @@ class MobileDownloadCard extends ConsumerWidget {
     String? playablePath,
     WidgetRef ref,
   ) {
-    final thumbUrl = item.thumbnailUrl;
+    // No stored preview (library rebuilt after a reinstall): take one from the file.
+    final stored = item.thumbnailUrl;
+    final generated =
+        (stored == null || stored.isEmpty) &&
+            isCompleted &&
+            playablePath != null
+        ? ref.watch(videoThumbnailProvider(playablePath)).valueOrNull
+        : null;
+    final thumbUrl = stored != null && stored.isNotEmpty ? stored : generated;
 
     Widget thumb;
     if (thumbUrl != null && thumbUrl.isNotEmpty && !_isRemoteUrl(thumbUrl)) {
