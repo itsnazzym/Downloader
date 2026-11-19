@@ -24,6 +24,7 @@ import 'core/theme/theme_presets.dart';
 import 'core/theme/theme_resolver.dart';
 import 'core/ui/setup/app_launch_overlay.dart';
 import 'features/downloader/presentation/providers/downloader_provider.dart';
+import 'features/onboarding/presentation/mobile/mobile_onboarding.dart';
 import 'l10n/app_localizations.dart';
 
 /// Root application widget configuring routing, themes, locales, window lifecycle, and post-bootstrap services.
@@ -307,6 +308,11 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
                   _windowTickersEnabled,
               child: child ?? const SizedBox.shrink(),
             ),
+            if (PlatformInfo.isMobile)
+              MobileOnboardingGate(
+                ready:
+                    warmup.isCompleted && libraryReady && !bootstrap.blocksUi,
+              ),
             AppLaunchOverlay(libraryReady: libraryReady),
           ],
         );

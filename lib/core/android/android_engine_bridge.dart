@@ -195,12 +195,13 @@ class AndroidEngineBridge {
     int timeMs = 1000,
   }) async {
     try {
-      final success = await _methods.invokeMethod<bool>('getVideoThumbnail', {
+      // The native side answers with the written path, or null on failure.
+      final written = await _methods.invokeMethod<String>('getVideoThumbnail', {
         'videoPath': videoPath,
         'thumbnailPath': thumbnailPath,
         'timeMs': timeMs,
       });
-      return success ?? false;
+      return written != null;
     } on PlatformException catch (e) {
       LoggerService.w('AndroidEngineBridge getVideoThumbnail failed: $e');
       return false;

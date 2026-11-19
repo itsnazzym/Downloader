@@ -153,8 +153,10 @@ class YtDlpSource {
         ),
       );
 
-      // Browser headers for anti-bot & video platform compatibility
-      if (Platform.isAndroid) {
+      // Browser headers for anti-bot & video platform compatibility. TikTok
+      // answers "Video not available" to the Android user-agent, so it keeps
+      // yt-dlp's own.
+      if (Platform.isAndroid && !_isTikTokUrl(url)) {
         args.addAll([
           '--user-agent',
           kMobileChromeUserAgent,
@@ -363,10 +365,6 @@ class YtDlpSource {
       perJob: perJobFragments,
       activeCount: activeCount,
     );
-    final bufferSize = computeYtDlpBufferSize(
-      concurrentFragments: concurrentFragments,
-      activeCount: activeCount,
-    );
 
     // Native multi-fragment downloader scales beyond aria2c's 16-connection cap.
     // Max speed stays on; the global fragment budget only shares 64 across jobs.
@@ -377,7 +375,7 @@ class YtDlpSource {
         '($activeCount active, budget $kFragmentGlobalBudget).',
       );
       args.addAll(['--concurrent-fragments', concurrentFragments.toString()]);
-      args.addAll(['--buffer-size', bufferSize]);
+      args.addAll(['--buffer-size', kYtDlpBufferSize]);
       if (concurrentFragments >= 32 &&
           activeCount <= kBufferSizeCapActiveCount) {
         args.addAll(['--http-chunk-size', '10M']);
@@ -397,7 +395,7 @@ class YtDlpSource {
         'Aria2c not found, using native downloader with $concurrentFragments fragments.',
       );
       args.addAll(['--concurrent-fragments', concurrentFragments.toString()]);
-      args.addAll(['--buffer-size', '16M']);
+      args.addAll(['--buffer-size', kYtDlpBufferSize]);
     }
 
     // Skip playlist checks unless Twitter replies were requested
@@ -655,7 +653,8 @@ class YtDlpSource {
     if (request.userAgent != null) {
       args.addAll(['--user-agent', request.userAgent!]);
       LoggerService.debug('Using custom User-Agent: ${request.userAgent}');
-    } else if (Platform.isAndroid) {
+    } else if (Platform.isAndroid && !_isTikTokUrl(request.url)) {
+      // (TikTok refuses the Android user-agent: see fetchMetadata.)
       args.addAll([
         '--user-agent',
         kMobileChromeUserAgent,
@@ -908,6 +907,7 @@ class YtDlpSource {
         title: parser.extractedTitle,
         step: 'Fini',
         filePath: currentFilePath,
+        alreadyDownloaded: parser.wasAlreadyDownloaded,
       );
 
       if (currentFilePath != null) {
@@ -1029,6 +1029,9 @@ class DownloadProgressEvent {
   final String? filePath;
   final bool isDuplicate;
 
+  /// The file was already on disk and nothing was downloaded.
+  final bool alreadyDownloaded;
+
   DownloadProgressEvent({
     required this.progress,
     required this.totalSize,
@@ -1039,6 +1042,7 @@ class DownloadProgressEvent {
     this.step = '',
     this.filePath,
     this.isDuplicate = false,
+    this.alreadyDownloaded = false,
   });
 }
 

@@ -2698,4 +2698,196 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get browserSniffDrmNote =>
       'Les contenus protégés (DRM) sont détectés mais ne peuvent pas être téléchargés.';
+
+  @override
+  String get backAgainToExit => 'Appuyez encore sur retour pour quitter';
+
+  @override
+  String get archiveHubImport => 'Importer votre export TikTok';
+
+  @override
+  String get archiveHubImportHint =>
+      'Choisissez le fichier JSON exporté de TikTok.';
+
+  @override
+  String get archiveHubPick => 'Choisir un fichier';
+
+  @override
+  String get archiveHubOpen => 'Ouvrir la bibliothèque';
+
+  @override
+  String archiveHubCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count collections',
+      one: '$count collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveHubLoading => 'Indexation de votre bibliothèque…';
+
+  @override
+  String get launchWordmark => 'Modern Downloader';
+
+  @override
+  String get launchContinueAnyway => 'Continuer quand même';
+
+  @override
+  String get onbSkip => 'Passer';
+
+  @override
+  String get onbNext => 'Suivant';
+
+  @override
+  String get onbStart => 'Commencer';
+
+  @override
+  String get onbPage1Title => 'Collez un lien.\nC\'est tout.';
+
+  @override
+  String get onbPage1Body =>
+      'Partagez depuis n\'importe quelle app, ou touchez + pour ajouter un téléchargement.';
+
+  @override
+  String get onbPage2Title => 'Naviguez.\nOn détecte.';
+
+  @override
+  String get onbPage2Body =>
+      'Ouvrez un site dans l\'onglet Web. Les médias lus apparaissent, prêts à enregistrer.';
+
+  @override
+  String get onbPage3Title => 'Votre bibliothèque,\nhors ligne.';
+
+  @override
+  String get onbPage3Body =>
+      'Tout est stocké sur votre téléphone et se lit sans connexion.';
+
+  @override
+  String get onbPage4Title => 'Tout est prêt.';
+
+  @override
+  String get onbPage4Body =>
+      'Partagez un lien vers l\'app, ou touchez + pour commencer.';
+
+  @override
+  String onbPageLabel(int current, int total) {
+    return 'Page $current sur $total';
+  }
+
+  @override
+  String etaSeconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String etaMinutesSeconds(int minutes, int seconds) {
+    return '$minutes min $seconds s';
+  }
+
+  @override
+  String etaHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get archiveCollSearch => 'Rechercher une collection';
+
+  @override
+  String get archiveCollEmpty => 'Aucune collection trouvée';
+
+  @override
+  String get archiveCollShowVideos => 'Voir les vidéos';
+
+  @override
+  String archiveCollDownloadAll(int count) {
+    return 'Tout télécharger ($count)';
+  }
+
+  @override
+  String get archiveCollReset => 'Retirer les vidéos de cette collection';
+
+  @override
+  String get archiveCollResetTitle => 'Réinitialiser la collection';
+
+  @override
+  String archiveCollResetBody(int count, String name) {
+    return 'Retirer les $count vidéos de « $name » ? Les vidéos et leurs autres classements seront conservés.';
+  }
+
+  @override
+  String get archiveCollResetConfirm => 'Retirer';
+
+  @override
+  String archiveCollResetDone(String name) {
+    return '« $name » vidée';
+  }
+
+  @override
+  String get archiveCollDelete => 'Supprimer la collection';
+
+  @override
+  String archiveCollDeleteBody(int count, String name) {
+    return 'Supprimer définitivement « $name » ? Ses $count vidéos restent sur l\'appareil mais ne font plus partie de ce dossier.';
+  }
+
+  @override
+  String get archiveCollDeleteConfirm => 'Supprimer';
+
+  @override
+  String archiveCollDeleteDone(String name) {
+    return '« $name » supprimée';
+  }
+
+  @override
+  String get archiveCollClear => 'Réinitialiser toute l\'archive';
+
+  @override
+  String get archiveCollClearBody =>
+      'Supprimer toutes les collections, les classements et l\'import TikTok local ? Les vidéos déjà téléchargées sont conservées.';
+
+  @override
+  String get archiveCollClearConfirm => 'Tout supprimer';
+
+  @override
+  String get archiveCollClearDone => 'Archive TikTok réinitialisée';
+
+  @override
+  String get libraryPhaseAnalyzing => 'Analyse du lien…';
+
+  @override
+  String get libraryPhaseConnecting => 'Connexion au serveur…';
+
+  @override
+  String get libraryPhaseFinalizing => 'Finalisation du fichier…';
+
+  @override
+  String get libraryDoneTitle => 'Terminé';
+
+  @override
+  String get libraryDoneAverage => 'en moyenne';
+
+  @override
+  String libraryDoneSummary(String size, String time) {
+    return '$size en $time';
+  }
+
+  @override
+  String get alreadyTitle => 'Déjà dans votre bibliothèque';
+
+  @override
+  String alreadyBody(String title) {
+    return '« $title » était déjà téléchargé : rien n\'a été transféré. Ouvrez-le, ou remplacez-le par une nouvelle copie.';
+  }
+
+  @override
+  String get alreadyOpen => 'Ouvrir';
+
+  @override
+  String get alreadyReplace => 'Télécharger à nouveau';
+
+  @override
+  String get alreadyDismiss => 'Fermer';
 }

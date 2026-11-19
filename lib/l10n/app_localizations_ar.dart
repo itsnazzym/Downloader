@@ -2668,4 +2668,193 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get browserSniffDrmNote =>
       'يتم اكتشاف المحتوى المحمي (DRM) لكن لا يمكن تنزيله.';
+
+  @override
+  String get backAgainToExit => 'اضغط رجوع مرة أخرى للخروج';
+
+  @override
+  String get archiveHubImport => 'استيراد ملف TikTok';
+
+  @override
+  String get archiveHubImportHint => 'اختر ملف JSON المُصدَّر من TikTok.';
+
+  @override
+  String get archiveHubPick => 'اختيار ملف';
+
+  @override
+  String get archiveHubOpen => 'فتح المكتبة';
+
+  @override
+  String archiveHubCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveHubLoading => 'جارٍ فهرسة مكتبتك…';
+
+  @override
+  String get launchWordmark => 'Modern Downloader';
+
+  @override
+  String get launchContinueAnyway => 'المتابعة على أي حال';
+
+  @override
+  String get onbSkip => 'تخطي';
+
+  @override
+  String get onbNext => 'التالي';
+
+  @override
+  String get onbStart => 'ابدأ';
+
+  @override
+  String get onbPage1Title => 'الصق رابطًا.\nوانتهى الأمر.';
+
+  @override
+  String get onbPage1Body => 'شارك من أي تطبيق، أو المس + لإضافة تنزيل.';
+
+  @override
+  String get onbPage2Title => 'تصفّح.\nونحن نكتشف.';
+
+  @override
+  String get onbPage2Body =>
+      'افتح موقعًا في تبويب الويب. تظهر الوسائط التي يشغّلها جاهزة للحفظ.';
+
+  @override
+  String get onbPage3Title => 'مكتبتك،\nبدون إنترنت.';
+
+  @override
+  String get onbPage3Body => 'كل شيء مخزّن على هاتفك ويعمل بدون اتصال.';
+
+  @override
+  String get onbPage4Title => 'كل شيء جاهز.';
+
+  @override
+  String get onbPage4Body => 'شارك رابطًا مع التطبيق، أو المس + للبدء.';
+
+  @override
+  String onbPageLabel(int current, int total) {
+    return 'الصفحة $current من $total';
+  }
+
+  @override
+  String etaSeconds(int seconds) {
+    return '$seconds ث';
+  }
+
+  @override
+  String etaMinutesSeconds(int minutes, int seconds) {
+    return '$minutes د $seconds ث';
+  }
+
+  @override
+  String etaHoursMinutes(int hours, int minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String get archiveCollSearch => 'ابحث عن مجموعة';
+
+  @override
+  String get archiveCollEmpty => 'لم يتم العثور على مجموعة';
+
+  @override
+  String get archiveCollShowVideos => 'عرض الفيديوهات';
+
+  @override
+  String archiveCollDownloadAll(int count) {
+    return 'تنزيل الكل ($count)';
+  }
+
+  @override
+  String get archiveCollReset => 'إزالة الفيديوهات من هذه المجموعة';
+
+  @override
+  String get archiveCollResetTitle => 'إعادة تعيين المجموعة';
+
+  @override
+  String archiveCollResetBody(int count, String name) {
+    return 'إزالة $count فيديو من «$name»؟ تبقى الفيديوهات ومجموعاتها الأخرى.';
+  }
+
+  @override
+  String get archiveCollResetConfirm => 'إزالة';
+
+  @override
+  String archiveCollResetDone(String name) {
+    return 'تم إفراغ «$name»';
+  }
+
+  @override
+  String get archiveCollDelete => 'حذف المجموعة';
+
+  @override
+  String archiveCollDeleteBody(int count, String name) {
+    return 'حذف «$name» نهائيًا؟ تبقى فيديوهاتها ($count) على جهازك لكنها تغادر هذا المجلد.';
+  }
+
+  @override
+  String get archiveCollDeleteConfirm => 'حذف';
+
+  @override
+  String archiveCollDeleteDone(String name) {
+    return 'تم حذف «$name»';
+  }
+
+  @override
+  String get archiveCollClear => 'إعادة تعيين الأرشيف بالكامل';
+
+  @override
+  String get archiveCollClearBody =>
+      'حذف كل المجموعات والتصنيفات واستيراد TikTok المحلي؟ تبقى الفيديوهات التي تم تنزيلها.';
+
+  @override
+  String get archiveCollClearConfirm => 'حذف الكل';
+
+  @override
+  String get archiveCollClearDone => 'تمت إعادة تعيين أرشيف TikTok';
+
+  @override
+  String get libraryPhaseAnalyzing => 'جارٍ تحليل الرابط…';
+
+  @override
+  String get libraryPhaseConnecting => 'جارٍ الاتصال بالخادم…';
+
+  @override
+  String get libraryPhaseFinalizing => 'جارٍ إنهاء الملف…';
+
+  @override
+  String get libraryDoneTitle => 'اكتمل';
+
+  @override
+  String get libraryDoneAverage => 'في المتوسط';
+
+  @override
+  String libraryDoneSummary(String size, String time) {
+    return '$size خلال $time';
+  }
+
+  @override
+  String get alreadyTitle => 'موجود بالفعل في مكتبتك';
+
+  @override
+  String alreadyBody(String title) {
+    return '«$title» تم تنزيله من قبل، لذلك لم يُنقل شيء. افتحه أو استبدله بنسخة جديدة.';
+  }
+
+  @override
+  String get alreadyOpen => 'فتح';
+
+  @override
+  String get alreadyReplace => 'تنزيل مرة أخرى';
+
+  @override
+  String get alreadyDismiss => 'إغلاق';
 }

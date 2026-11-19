@@ -10,6 +10,7 @@ import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/ui/mobile/mobile_app_shell.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/features/archive/presentation/views/mobile/tiktok_collections_mobile_view.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/download_view.dart';
@@ -149,6 +150,76 @@ void main() {
       ],
     );
     result.png = await capture(tester, key, '06_tiktok');
+    await teardown(tester);
+  });
+
+  List<Override> tiktokOverrides() => [
+    showcaseModeProvider.overrideWithValue(true),
+    tikTokArchiveRepositoryProvider.overrideWith(
+      (ref) => FakeArchiveRepository(),
+    ),
+    tikTokArchiveProvider.overrideWith(
+      (ref) => DemoArchiveNotifier(FakeArchiveRepository(), ref),
+    ),
+  ];
+
+  screenTest('06b_tiktok_collections', results, (tester, result) async {
+    final key = await pumpApp(
+      tester,
+      location: '/archive',
+      pages: {
+        '/archive': () => Consumer(
+          builder: (context, ref, _) {
+            final catalog = ref.watch(
+              tikTokArchiveProvider.select((s) => s.catalog),
+            );
+            if (catalog == null) return const SizedBox.shrink();
+            return Scaffold(
+              backgroundColor: Colors.transparent,
+              body: SafeArea(
+                child: TikTokCollectionsMobileView(
+                  catalog: catalog,
+                  onShowVideos: () {},
+                ),
+              ),
+            );
+          },
+        ),
+      },
+      extra: tiktokOverrides(),
+    );
+    result.png = await capture(tester, key, '06b_tiktok_collections');
+    await teardown(tester);
+  });
+
+  screenTest('06c_tiktok_collection_detail', results, (tester, result) async {
+    final key = await pumpApp(
+      tester,
+      location: '/archive',
+      pages: {
+        '/archive': () => Consumer(
+          builder: (context, ref, _) {
+            final catalog = ref.watch(
+              tikTokArchiveProvider.select((s) => s.catalog),
+            );
+            if (catalog == null) return const SizedBox.shrink();
+            return Scaffold(
+              backgroundColor: Colors.transparent,
+              body: SafeArea(
+                child: TikTokCollectionsMobileView(
+                  catalog: catalog,
+                  onShowVideos: () {},
+                ),
+              ),
+            );
+          },
+        ),
+      },
+      extra: tiktokOverrides(),
+    );
+    await tester.tap(find.text('Cuisine'));
+    await settle(tester);
+    result.png = await capture(tester, key, '06c_tiktok_collection_detail');
     await teardown(tester);
   });
 

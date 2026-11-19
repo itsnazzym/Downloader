@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/plugins/feature_activation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -537,22 +538,16 @@ class _OledSettingsHubState extends ConsumerState<_OledSettingsHub> {
             children: [
               _HubRow(label: l10n.settingsGeneral, path: '/settings/general'),
               _HubRow(label: l10n.settingsOutput, path: '/settings/output'),
-              _HubRow(label: l10n.settingsPlugins, path: '/settings/plugins'),
               _HubRow(
                 label: l10n.settingsAppearance,
                 path: '/settings/appearance',
               ),
-              _HubRow(
-                label: l10n.settingsPerformance,
-                path: '/settings/performance',
-              ),
-              _HubRow(
-                label: l10n.smartOrganization,
-                path: '/settings/smart_organizer',
-              ),
+              _HubRow(label: l10n.settingsPlugins, path: '/settings/plugins'),
               _HubRow(label: l10n.settingsAdvanced, path: '/settings/advanced'),
-              _HubRow(label: l10n.settingsSystem, path: '/settings/system'),
-              _HubRow(label: l10n.statistics, path: '/stats'),
+              if (ref
+                  .watch(featureActivationProvider)
+                  .isEnabledById('statistics'))
+                _HubRow(label: l10n.statistics, path: '/stats'),
             ],
           ),
         ],

@@ -18,6 +18,7 @@ import 'package:modern_downloader/features/downloader/domain/enums/download_stat
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 /// BottomSheet component replacing the desktop inspector on mobile.
@@ -426,6 +427,14 @@ class _MobileDownloadDetailsSheetState
     );
   }
 
+  /// "6,2 Mo/s" when the speed can be read, the raw text otherwise.
+  String _speedText(AppLocalizations l10n, String raw) {
+    final bytes = parseSpeed(raw);
+    if (bytes == null) return raw;
+    final label = formatSpeed(l10n, bytes);
+    return '${label.value} ${label.unit}';
+  }
+
   Widget _buildProgress(BuildContext context, OledTokens t, DownloadItem item) {
     final l10n = context.l10n;
     final percent = (item.progress.clamp(0.0, 1.0) * 100).round();
@@ -435,8 +444,8 @@ class _MobileDownloadDetailsSheetState
         l10n.downloadCardSizeOf(item.downloadedSize, item.totalSize)
       else if (item.totalSize.isNotEmpty)
         item.totalSize,
-      if (live && item.speed.isNotEmpty) item.speed,
-      if (live && item.eta.isNotEmpty) item.eta,
+      if (live && item.speed.isNotEmpty) _speedText(l10n, item.speed),
+      if (live && item.eta.isNotEmpty) etaLabel(l10n, item.eta),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

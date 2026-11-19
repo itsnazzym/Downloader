@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'archive_hub_view.dart';
+import 'mobile/tiktok_hub_mobile_view.dart';
 import 'desktop/tiktok_archive_desktop_view.dart';
 import 'mobile/tiktok_archive_mobile_view.dart';
 
@@ -17,6 +19,7 @@ class TikTokArchiveView extends ConsumerWidget {
 
     // 1. Loading State
     if (state.isLoading) {
+      if (PlatformInfo.isMobile) return const TikTokLoadingMobileView();
       return Scaffold(
         backgroundColor: colors.background,
         body: Center(
@@ -32,7 +35,9 @@ class TikTokArchiveView extends ConsumerWidget {
               const SizedBox(height: 6),
               Text(
                 'Traitement en isolate d\'arrière-plan (sans bloquer l\'application)',
-                style: AppTypography.caption.copyWith(color: colors.textDisabled),
+                style: AppTypography.caption.copyWith(
+                  color: colors.textDisabled,
+                ),
               ),
             ],
           ),

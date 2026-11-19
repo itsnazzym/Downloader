@@ -53,17 +53,18 @@ class PluginsSettingsView extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: !PlatformInfo.isMobile,
 
       backgroundColor: AppColors.of(context).background,
 
       appBar: buildSettingsAppBar(context, title: l10n.plugins),
 
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.l,
-
-          vertical: AppSpacing.xl + 20,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          PlatformInfo.isMobile ? AppSpacing.m : AppSpacing.xl + 20,
+          AppSpacing.l,
+          AppSpacing.xl + 20,
         ),
 
         child: Center(
@@ -126,53 +127,59 @@ class PluginsSettingsView extends ConsumerWidget {
                             ),
                           ),
 
-                      const Gap(AppSpacing.xl),
+                      // On a phone an empty hook list is noise, and the browser
+                      // extensions below only exist on desktop.
+                      if (!PlatformInfo.isMobile ||
+                          pluginState.plugins.isNotEmpty) ...[
+                        const Gap(AppSpacing.xl),
 
-                      Text(
-                        l10n.pluginsSectionTitle,
+                        Text(
+                          l10n.pluginsSectionTitle,
 
-                        style: AppTypography.h3.copyWith(
-                          color: AppColors.of(context).textPrimary,
+                          style: AppTypography.h3.copyWith(
+                            color: AppColors.of(context).textPrimary,
+                          ),
                         ),
-                      ),
 
-                      const Gap(AppSpacing.xs),
+                        const Gap(AppSpacing.xs),
 
-                      Text(
-                        l10n.pluginsSectionHint,
+                        Text(
+                          l10n.pluginsSectionHint,
 
-                        style: AppTypography.bodySmall,
-                      ),
+                          style: AppTypography.bodySmall,
+                        ),
 
-                      const Gap(AppSpacing.m),
+                        const Gap(AppSpacing.m),
 
-                      if (pluginState.plugins.isEmpty)
-                        _buildEmptyState(context, context.l10n)
-                      else
-                        ...pluginState.plugins
-                            .map(
-                              (entry) => _PluginCard(
-                                entry: entry,
-                                descriptor: catalog.byId[entry.plugin.id],
-                                locale: locale,
+                        if (pluginState.plugins.isEmpty)
+                          _buildEmptyState(context, context.l10n)
+                        else
+                          ...pluginState.plugins
+                              .map(
+                                (entry) => _PluginCard(
+                                  entry: entry,
+                                  descriptor: catalog.byId[entry.plugin.id],
+                                  locale: locale,
 
-                                onToggle: (enabled) {
-                                  pluginManager.togglePlugin(
-                                    entry.plugin.id,
+                                  onToggle: (enabled) {
+                                    pluginManager.togglePlugin(
+                                      entry.plugin.id,
 
-                                    enabled,
-                                  );
-                                },
-                              ),
-                            )
-                            .toList()
-                            .animate(interval: 80.ms)
-                            .fadeIn(duration: 300.ms, curve: Curves.easeOut)
-                            .slideY(begin: 0.1, end: 0, duration: 300.ms),
+                                      enabled,
+                                    );
+                                  },
+                                ),
+                              )
+                              .toList()
+                              .animate(interval: 80.ms)
+                              .fadeIn(duration: 300.ms, curve: Curves.easeOut)
+                              .slideY(begin: 0.1, end: 0, duration: 300.ms),
+                      ],
 
                       const Gap(AppSpacing.xl),
 
-                      if (!ref.watch(showcaseModeProvider))
+                      if (!ref.watch(showcaseModeProvider) &&
+                          !PlatformInfo.isMobile)
                         KeyedSubtree(
                           key: OnboardingTargets.extensions,
                           child: const _BrowserExtensionsPanel(),

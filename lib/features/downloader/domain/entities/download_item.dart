@@ -18,6 +18,10 @@ class DownloadItem {
   final bool usesAria2c;
   final String? thumbnailUrl; // Added field
 
+  /// Set for the moment a finished download turned out to be a file that was
+  /// already on disk. Transient: not saved, so it is not shown again later.
+  final bool alreadyDownloaded;
+
   const DownloadItem({
     required this.id,
     required this.request,
@@ -34,6 +38,7 @@ class DownloadItem {
     this.sortOrder = 0,
     this.usesAria2c = false,
     this.thumbnailUrl,
+    this.alreadyDownloaded = false,
   });
 
   final String step; // Current step (e.g., "Merging audio/video...")
@@ -63,6 +68,7 @@ class DownloadItem {
     bool? usesAria2c,
     String? thumbnailUrl, // Added param
     bool clearThumbnailUrl = false,
+    bool? alreadyDownloaded,
   }) {
     return DownloadItem(
       id: id,
@@ -82,6 +88,7 @@ class DownloadItem {
       thumbnailUrl: clearThumbnailUrl
           ? thumbnailUrl
           : (thumbnailUrl ?? this.thumbnailUrl),
+      alreadyDownloaded: alreadyDownloaded ?? this.alreadyDownloaded,
     );
   }
 

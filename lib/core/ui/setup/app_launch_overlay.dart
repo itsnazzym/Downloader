@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -6,6 +8,8 @@ import 'package:window_manager/window_manager.dart';
 import '../../bootstrap/app_warmup_models.dart';
 import '../../bootstrap/app_warmup_provider.dart';
 import '../../config/app_config.dart';
+import '../../platform/platform_info.dart';
+import 'oled_launch_screen.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../setup/dependency_bootstrap_provider.dart';
 
@@ -26,9 +30,19 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
   late final AnimationController _shimmerController;
   bool _dismissed = false;
 
+  /// Phones keep the intro on screen long enough to be seen, even when the
+  /// warm-up finishes instantly.
+  bool _introPlayed = !PlatformInfo.isMobile;
+  Timer? _introTimer;
+
   @override
   void initState() {
     super.initState();
+    if (!_introPlayed) {
+      _introTimer = Timer(const Duration(milliseconds: 1700), () {
+        if (mounted) setState(() => _introPlayed = true);
+      });
+    }
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
@@ -37,6 +51,7 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
 
   @override
   void dispose() {
+    _introTimer?.cancel();
     _shimmerController.dispose();
     super.dispose();
   }
@@ -51,7 +66,8 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
       return const SizedBox.shrink();
     }
 
-    final isCompleted = warmup.isCompleted && widget.libraryReady;
+    final isCompleted =
+        warmup.isCompleted && widget.libraryReady && _introPlayed;
 
     return IgnorePointer(
       ignoring: isCompleted,
@@ -67,123 +83,142 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
         child: Material(
           color: const Color(0xFF000000),
           child: SizedBox.expand(
-            child: DragToMoveArea(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Subtle Radial Background Glow
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: const Alignment(0.0, -0.15),
-                          radius: 0.9,
-                          colors: [
-                            const Color(0xFF18181C).withValues(alpha: 0.45),
-                            const Color(0xFF09090B),
-                            const Color(0xFF000000),
-                          ],
-                          stops: const [0.0, 0.6, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Center Content (Shadcn Card)
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 20,
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0C0C0E),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.8),
-                                blurRadius: 40,
-                                offset: const Offset(0, 16),
+            child: PlatformInfo.isMobile
+                ? OledLaunchScreen(
+                    progress: !widget.libraryReady && warmup.isCompleted
+                        ? 0.92
+                        : warmup.progress,
+                    finishing: isCompleted || warmup.isCompleted,
+                    showContinue: warmup.canContinueAnyway,
+                    onContinue: () =>
+                        ref.read(appWarmupProvider.notifier).continueAnyway(),
+                  )
+                : DragToMoveArea(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Subtle Radial Background Glow
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                center: const Alignment(0.0, -0.15),
+                                radius: 0.9,
+                                colors: [
+                                  const Color(
+                                    0xFF18181C,
+                                  ).withValues(alpha: 0.45),
+                                  const Color(0xFF09090B),
+                                  const Color(0xFF000000),
+                                ],
+                                stops: const [0.0, 0.6, 1.0],
                               ),
-                            ],
+                            ),
                           ),
-                          padding: const EdgeInsets.all(26),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // 1. Header (Glyph + App Title + Status Badge)
-                              _buildCardHeader(warmup),
+                        ),
 
-                              const Gap(22),
-
-                              // 2. Animated Progress Bar with Interior Shimmer
-                              _buildProgressBarSection(warmup, depState),
-
-                              const Gap(24),
-
-                              // 3. System Modules Checklist (Shadcn UI style)
-                              _buildStagesChecklist(warmup),
-
-                              // Optional Error / Fallback Button
-                              if (warmup.canContinueAnyway) ...[
-                                const Gap(18),
-                                OutlinedButton(
-                                  onPressed: () => ref
-                                      .read(appWarmupProvider.notifier)
-                                      .continueAnyway(),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFFFAFAFA),
-                                    side: BorderSide(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.15,
+                        // Center Content (Shadcn Card)
+                        Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 480),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 20,
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0C0C0E),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.8,
                                       ),
+                                      blurRadius: 40,
+                                      offset: const Offset(0, 16),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Continuer vers l\'application',
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ],
+                                padding: const EdgeInsets.all(26),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    // 1. Header (Glyph + App Title + Status Badge)
+                                    _buildCardHeader(warmup),
+
+                                    const Gap(22),
+
+                                    // 2. Animated Progress Bar with Interior Shimmer
+                                    _buildProgressBarSection(warmup, depState),
+
+                                    const Gap(24),
+
+                                    // 3. System Modules Checklist (Shadcn UI style)
+                                    _buildStagesChecklist(warmup),
+
+                                    // Optional Error / Fallback Button
+                                    if (warmup.canContinueAnyway) ...[
+                                      const Gap(18),
+                                      OutlinedButton(
+                                        onPressed: () => ref
+                                            .read(appWarmupProvider.notifier)
+                                            .continueAnyway(),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: const Color(
+                                            0xFFFAFAFA,
+                                          ),
+                                          side: BorderSide(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.15,
+                                            ),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Continuer vers l\'application',
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
 
-                  // Footer subtle version tag
-                  Positioned(
-                    bottom: 20,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Text(
-                        'Modern Downloader • Architecture v${AppConfig.version}',
-                        style: AppTypography.caption.copyWith(
-                          color: const Color(0xFF52525B),
-                          fontSize: 11,
-                          letterSpacing: 0.3,
+                        // Footer subtle version tag
+                        Positioned(
+                          bottom: 20,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Text(
+                              'Modern Downloader • Architecture v${AppConfig.version}',
+                              style: AppTypography.caption.copyWith(
+                                color: const Color(0xFF52525B),
+                                fontSize: 11,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
           ),
         ),
       ),

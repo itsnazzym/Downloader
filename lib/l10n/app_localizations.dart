@@ -4641,6 +4641,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Protected (DRM) content is detected but cannot be downloaded.'**
   String get browserSniffDrmNote;
+
+  /// No description provided for @backAgainToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Press back again to exit'**
+  String get backAgainToExit;
+
+  /// No description provided for @archiveHubImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your TikTok export'**
+  String get archiveHubImport;
+
+  /// No description provided for @archiveHubImportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the JSON file exported from TikTok.'**
+  String get archiveHubImportHint;
+
+  /// No description provided for @archiveHubPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get archiveHubPick;
+
+  /// No description provided for @archiveHubOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open library'**
+  String get archiveHubOpen;
+
+  /// No description provided for @archiveHubCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} collection} other{{count} collections}}'**
+  String archiveHubCollections(int count);
+
+  /// No description provided for @archiveHubLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Indexing your library…'**
+  String get archiveHubLoading;
+
+  /// No description provided for @launchWordmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern Downloader'**
+  String get launchWordmark;
+
+  /// No description provided for @launchContinueAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue anyway'**
+  String get launchContinueAnyway;
+
+  /// No description provided for @onbSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onbSkip;
+
+  /// No description provided for @onbNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onbNext;
+
+  /// No description provided for @onbStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onbStart;
+
+  /// No description provided for @onbPage1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link.\nDone.'**
+  String get onbPage1Title;
+
+  /// No description provided for @onbPage1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Share from any app, or tap + to add a download.'**
+  String get onbPage1Body;
+
+  /// No description provided for @onbPage2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse.\nWe detect.'**
+  String get onbPage2Title;
+
+  /// No description provided for @onbPage2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a site in the Web tab. The media it plays shows up, ready to save.'**
+  String get onbPage2Body;
+
+  /// No description provided for @onbPage3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library,\noffline.'**
+  String get onbPage3Title;
+
+  /// No description provided for @onbPage3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is stored on your phone and plays without a connection.'**
+  String get onbPage3Body;
+
+  /// No description provided for @onbPage4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re set.'**
+  String get onbPage4Title;
+
+  /// No description provided for @onbPage4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a link to the app, or tap + to start.'**
+  String get onbPage4Body;
+
+  /// No description provided for @onbPageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String onbPageLabel(int current, int total);
+
+  /// No description provided for @etaSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s'**
+  String etaSeconds(int seconds);
+
+  /// No description provided for @etaMinutesSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min {seconds} s'**
+  String etaMinutesSeconds(int minutes, int seconds);
+
+  /// No description provided for @etaHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String etaHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @archiveCollSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a collection'**
+  String get archiveCollSearch;
+
+  /// No description provided for @archiveCollEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No collection found'**
+  String get archiveCollEmpty;
+
+  /// No description provided for @archiveCollShowVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'View videos'**
+  String get archiveCollShowVideos;
+
+  /// No description provided for @archiveCollDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all ({count})'**
+  String archiveCollDownloadAll(int count);
+
+  /// No description provided for @archiveCollReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the videos from this collection'**
+  String get archiveCollReset;
+
+  /// No description provided for @archiveCollResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the collection'**
+  String get archiveCollResetTitle;
+
+  /// No description provided for @archiveCollResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {count} videos from “{name}”? The videos and their other collections are kept.'**
+  String archiveCollResetBody(int count, String name);
+
+  /// No description provided for @archiveCollResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get archiveCollResetConfirm;
+
+  /// No description provided for @archiveCollResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” emptied'**
+  String archiveCollResetDone(String name);
+
+  /// No description provided for @archiveCollDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection'**
+  String get archiveCollDelete;
+
+  /// No description provided for @archiveCollDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete “{name}”? Its {count} videos stay on your device but leave this folder.'**
+  String archiveCollDeleteBody(int count, String name);
+
+  /// No description provided for @archiveCollDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get archiveCollDeleteConfirm;
+
+  /// No description provided for @archiveCollDeleteDone.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” deleted'**
+  String archiveCollDeleteDone(String name);
+
+  /// No description provided for @archiveCollClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the whole archive'**
+  String get archiveCollClear;
+
+  /// No description provided for @archiveCollClearBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all collections, rankings and the local TikTok import? Videos already downloaded are kept.'**
+  String get archiveCollClearBody;
+
+  /// No description provided for @archiveCollClearConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get archiveCollClearConfirm;
+
+  /// No description provided for @archiveCollClearDone.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok archive reset'**
+  String get archiveCollClearDone;
+
+  /// No description provided for @libraryPhaseAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing the link…'**
+  String get libraryPhaseAnalyzing;
+
+  /// No description provided for @libraryPhaseConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to the server…'**
+  String get libraryPhaseConnecting;
+
+  /// No description provided for @libraryPhaseFinalizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalizing the file…'**
+  String get libraryPhaseFinalizing;
+
+  /// No description provided for @libraryDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get libraryDoneTitle;
+
+  /// No description provided for @libraryDoneAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'on average'**
+  String get libraryDoneAverage;
+
+  /// No description provided for @libraryDoneSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} in {time}'**
+  String libraryDoneSummary(String size, String time);
+
+  /// No description provided for @alreadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your library'**
+  String get alreadyTitle;
+
+  /// No description provided for @alreadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” was already downloaded, so nothing was transferred. Open it, or replace it with a fresh copy.'**
+  String alreadyBody(String title);
+
+  /// No description provided for @alreadyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get alreadyOpen;
+
+  /// No description provided for @alreadyReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Download again'**
+  String get alreadyReplace;
+
+  /// No description provided for @alreadyDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get alreadyDismiss;
 }
 
 class _AppLocalizationsDelegate

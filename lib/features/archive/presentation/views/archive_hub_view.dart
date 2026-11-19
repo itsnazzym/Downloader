@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/features/archive/presentation/views/mobile/tiktok_hub_mobile_view.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
@@ -14,6 +16,7 @@ class ArchiveHubView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (PlatformInfo.isMobile) return const TikTokHubMobileView();
     final colors = AppColors.of(context);
     final state = ref.watch(tikTokArchiveProvider);
     final notifier = ref.read(tikTokArchiveProvider.notifier);

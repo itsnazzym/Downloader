@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 
@@ -11,6 +11,8 @@ import '../../download/download_path_resolver.dart';
 
 import 'widgets/storage_chart.dart';
 import 'widgets/library_migration_dialog.dart';
+import 'widgets/output_folder_picker.dart';
+import '../../platform/platform_info.dart';
 import '../../../features/downloader/presentation/views/dialogs/reorganize_library_dialog.dart';
 import '../../../features/onboarding/presentation/onboarding_targets.dart';
 import '../../providers/settings_provider.dart';
@@ -29,13 +31,16 @@ class OutputSettingsView extends ConsumerWidget {
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: !PlatformInfo.isMobile,
       backgroundColor: AppColors.of(context).background,
       appBar: buildSettingsAppBar(context, title: l10n.settingsOutput),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.l,
-          vertical: AppSpacing.xl + 20,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          // Phones have no section title under the bar: start closer to it.
+          PlatformInfo.isMobile ? AppSpacing.m : AppSpacing.xl + 20,
+          AppSpacing.l,
+          AppSpacing.xl + 20,
         ),
         child: Center(
           child: Container(
@@ -44,21 +49,26 @@ class OutputSettingsView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        SectionTitle(l10n.settingsOutput),
-                        StorageChart(
-                          path:
-                              DownloadPathResolver.resolve(
-                                settingsOutputFolder: settings.outputFolder,
-                                itemFolders: const [],
-                                userProfile:
-                                    Platform.environment['USERPROFILE'],
-                                fallbackFolder: Platform.isAndroid
-                                    ? '/storage/emulated/0/Download/ModernDownloader'
-                                    : null,
-                              ) ??
-                              '',
-                        ),
-                        const Gap(AppSpacing.l),
+                        // The app bar already carries the title on phones.
+                        if (!PlatformInfo.isMobile)
+                          SectionTitle(l10n.settingsOutput),
+                        // Phones already show free space on the settings hub.
+                        if (!PlatformInfo.isMobile) ...[
+                          StorageChart(
+                            path:
+                                DownloadPathResolver.resolve(
+                                  settingsOutputFolder: settings.outputFolder,
+                                  itemFolders: const [],
+                                  userProfile:
+                                      Platform.environment['USERPROFILE'],
+                                  fallbackFolder: Platform.isAndroid
+                                      ? '/storage/emulated/0/Download/ModernDownloader'
+                                      : null,
+                                ) ??
+                                '',
+                          ),
+                          const Gap(AppSpacing.l),
+                        ],
                         ActionTile(
                           key: OnboardingTargets.outputFolder,
                           title: l10n.downloadFolder,
@@ -66,48 +76,7 @@ class OutputSettingsView extends ConsumerWidget {
                               ? l10n.selectFolder
                               : settings.outputFolder,
                           icon: Icons.folder_open_rounded,
-                          onTap: () async {
-                            String? path = await FilePicker.platform
-                                .getDirectoryPath();
-                            if (path != null && context.mounted) {
-                              // Ask if user wants to migrate existing downloads
-                              final shouldMigrate = await showDialog<bool>(
-                                context: context,
-                                builder: (c) => AlertDialog(
-                                  title: Text(
-                                    l10n.settingsOutputChangeFolderTitle,
-                                  ),
-                                  content: Text(
-                                    l10n.settingsOutputChangeFolderBody,
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(c, false),
-                                      child: Text(
-                                        l10n.settingsOutputChangeFolderOnly,
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () => Navigator.pop(c, true),
-                                      child: Text(
-                                        l10n.settingsOutputMigrateFiles,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              if (shouldMigrate == true && context.mounted) {
-                                await LibraryMigrationDialog.show(
-                                  context,
-                                  ref,
-                                  targetFolder: path,
-                                );
-                              } else {
-                                settingsNotifier.setOutputFolder(path);
-                              }
-                            }
-                          },
+                          onTap: () => pickOutputFolder(context, ref),
                         ),
                         ActionTile(
                           title: l10n.settingsOutputMigrateLibraryTitle,
@@ -143,6 +112,14 @@ class OutputSettingsView extends ConsumerWidget {
                           onChanged: settingsNotifier.setOrganizeByCreator,
                           icon: Icons.person_rounded,
                         ),
+                        if (PlatformInfo.isMobile)
+                          ActionTile(
+                            title: l10n.smartOrganization,
+                            subtitle: l10n.smartOrganizationDesc,
+                            icon: Icons.auto_awesome_motion,
+                            onTap: () =>
+                                context.push('/settings/smart_organizer'),
+                          ),
                       ]
                       .animate(interval: 50.ms)
                       .fadeIn(duration: 300.ms, curve: Curves.easeOut)

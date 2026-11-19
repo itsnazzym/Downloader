@@ -42,6 +42,10 @@ final downloadRuntimeItemProvider = StateProvider.family<DownloadItem?, String>(
   (ref, id) => null,
 );
 
+/// A download that ended up being a file already on disk. The app shell shows
+/// a sheet for it (open it, or download it again), then clears this.
+final alreadyDownloadedProvider = StateProvider<DownloadItem?>((ref) => null);
+
 // Notifier to hold the list state
 class DownloadListNotifier
     extends StateNotifier<AsyncValue<List<DownloadItem>>> {
@@ -191,6 +195,12 @@ class DownloadListNotifier
         catalogChanged = true;
       } else {
         _setRuntimeItem(id, item);
+      }
+
+      if (item.alreadyDownloaded &&
+          item.status == DownloadStatus.completed &&
+          previous?.alreadyDownloaded != true) {
+        _ref.read(alreadyDownloadedProvider.notifier).state = item;
       }
 
       if (item.status == DownloadStatus.queued && !_resumeIds.contains(id)) {
