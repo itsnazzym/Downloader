@@ -3,24 +3,22 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
+import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
-/// Touch-first card component tailored specifically for mobile screens.
-/// Features high-contrast progress states, 48px+ touch targets, swipe-to-delete,
-/// and instant haptic feedback.
+/// Touch-first library row for the Android OLED interface.
+/// Hairline-outlined card with swipe-to-delete, haptic feedback, a hairline
+/// progress line while active, and a compact status on the trailing edge.
 class MobileDownloadCard extends ConsumerWidget {
   final DownloadItem item;
   final VoidCallback onTap;
@@ -35,18 +33,37 @@ class MobileDownloadCard extends ConsumerWidget {
     required this.onCancel,
   });
 
+  static const double _radius = 18;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = AppColors.of(context);
+    final t = OledTokens.of(context);
     final l10n = context.l10n;
 
-    final isActive = item.status == DownloadStatus.downloading ||
+    final isActive =
+        item.status == DownloadStatus.downloading ||
         item.status == DownloadStatus.extracting ||
         item.status == DownloadStatus.processing;
     final isFailed = item.status == DownloadStatus.failed;
     final isCompleted = item.status == DownloadStatus.completed;
+    final isQueued = item.status == DownloadStatus.queued;
+    // Rank among the waiting items, in list order. Other rows ignore changes.
+    final int? queuePosition = isQueued
+        ? ref.watch(
+            downloadListProvider.select((state) {
+              var rank = 0;
+              for (final d in state.valueOrNull ?? const <DownloadItem>[]) {
+                if (d.status != DownloadStatus.queued) continue;
+                rank++;
+                if (d.id == item.id) return rank;
+              }
+              return null;
+            }),
+          )
+        : null;
 
-    final displayTitle = item.status == DownloadStatus.extracting &&
+    final displayTitle =
+        item.status == DownloadStatus.extracting &&
             ExtractionPlaceholders.isGenericTitle(item.title)
         ? l10n.extractingTitle
         : TitleCleanerService.clean(item.title ?? l10n.unknown);
@@ -57,304 +74,188 @@ class MobileDownloadCard extends ConsumerWidget {
       outputFolder: item.request.outputFolder,
     );
 
+    final isAgeFailure =
+        isFailed &&
+        item.error != null &&
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: item.error,
+          url: item.request.url,
+        );
+
     return Dismissible(
       key: ValueKey('dismiss_${item.id}'),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: AppSpacing.l),
+        padding: const EdgeInsets.only(right: 22),
         decoration: BoxDecoration(
-          color: colors.error.withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(16),
+          color: t.warn.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(_radius),
+          border: Border.all(color: t.warn.withValues(alpha: 0.5)),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+        child: Icon(Icons.delete_outline_rounded, color: t.warn, size: 24),
       ),
       confirmDismiss: (direction) async {
         unawaited(HapticFeedback.mediumImpact());
         return await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(l10n.delete),
-            content: Text('Supprimer "$displayTitle" ?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text(l10n.cancel),
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text(l10n.delete),
+                content: Text(l10n.downloadCardDeleteConfirm(displayTitle)),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: Text(l10n.cancel),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: t.warn,
+                      foregroundColor: t.onInk,
+                    ),
+                    child: Text(l10n.delete),
+                  ),
+                ],
               ),
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                style: FilledButton.styleFrom(backgroundColor: colors.error),
-                child: Text(l10n.delete),
-              ),
-            ],
-          ),
-        ) ?? false;
+            ) ??
+            false;
       },
       onDismissed: (_) {
         onCancel();
       },
       child: Material(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 0,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onTap();
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isFailed
-                    ? colors.error.withValues(alpha: 0.35)
-                    : isActive
-                        ? colors.primary.withValues(alpha: 0.35)
-                        : colors.borderSubtle.withValues(alpha: 0.6),
-                width: isActive || isFailed ? 1.5 : 1.0,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Thumbnail
-                    _buildThumbnail(context, colors, isCompleted, isFailed, isActive, playablePath, ref),
-                    const Gap(12),
-                    // Title and metadata
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            displayTitle,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.body.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: colors.textPrimary,
-                              height: 1.25,
-                            ),
-                          ),
-                          const Gap(4),
-                          Row(
+        color: t.fill,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_radius),
+          side: BorderSide(
+            color: isFailed ? t.warn.withValues(alpha: 0.4) : t.line,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            InkWell(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onTap();
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                    child: Row(
+                      children: [
+                        _buildThumbnail(
+                          context,
+                          t,
+                          l10n,
+                          isCompleted,
+                          isFailed,
+                          playablePath,
+                          ref,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSourceBadge(colors),
-                              const Gap(6),
-                              Expanded(
-                                child: Text(
-                                  _buildSubtitleText(l10n),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTypography.caption.copyWith(
-                                    fontSize: 11.5,
-                                    color: isFailed ? colors.error : colors.textSecondary,
-                                    fontWeight: isFailed ? FontWeight.w500 : FontWeight.normal,
-                                  ),
+                              Text(
+                                displayTitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: OledText.ui(
+                                  context,
+                                  size: 14,
+                                  weight: FontWeight.w600,
+                                  height: 1.3,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _buildMetaText(l10n),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: OledText.ui(
+                                  context,
+                                  size: 12,
+                                  weight: isFailed
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
+                                  color: isFailed ? t.warn : t.ink2,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    const Gap(8),
-                    // Action button
-                    _buildTrailingAction(context, colors, l10n, isCompleted, isFailed, isActive, playablePath, ref),
-                  ],
-                ),
-                // Progress Bar if active
-                if (isActive) ...[
-                  const Gap(10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: item.progress > 0 ? item.progress : null,
-                      backgroundColor: colors.borderSubtle,
-                      valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
-                      minHeight: 5,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildTrailing(
+                          context,
+                          t,
+                          l10n,
+                          isCompleted,
+                          isFailed,
+                          isActive,
+                          isQueued,
+                          queuePosition,
+                        ),
+                      ],
                     ),
                   ),
-                  const Gap(6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${(item.progress * 100).toStringAsFixed(1)}%${item.speed.isNotEmpty ? " • ${item.speed}" : ""}',
-                        style: AppTypography.mono.copyWith(
-                          fontSize: 11,
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                      if (item.eta.isNotEmpty)
-                        Text(
-                          'ETA: ${item.eta}',
-                          style: AppTypography.mono.copyWith(
-                            fontSize: 11,
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-                // Error Hint pill if failed
-                if (isFailed && item.error != null) ...[
-                  const Gap(8),
-                  if (DownloadStatusGuard.isAgeVerificationFailure(
-                    error: item.error,
-                    url: item.request.url,
-                  ))
-                    InkWell(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        AgeVerificationHelpDialog.show(context, item);
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.amber.withValues(alpha: 0.4),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(
-                              Icons.shield_outlined,
-                              size: 15,
-                              color: Colors.amber,
-                            ),
-                            Gap(6),
-                            Expanded(
-                              child: Text(
-                                'Vérification d\'âge (+18) — Voir les solutions',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.amber,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 11,
-                              color: Colors.amber,
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.error.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            size: 14,
-                            color: colors.error,
-                          ),
-                          const Gap(6),
-                          Expanded(
-                            child: Text(
-                              item.error!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: colors.error,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            size: 14,
-                            color: colors.error,
-                          ),
-                        ],
-                      ),
+                  if (isActive)
+                    _HairlineProgress(
+                      value: item.progress,
+                      trackColor: t.line,
+                      barColor: t.ink,
                     ),
                 ],
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildThumbnail(
-    BuildContext context,
-    AppColors colors,
-    bool isCompleted,
-    bool isFailed,
-    bool isActive,
-    String? playablePath,
-    WidgetRef ref,
-  ) {
-    return SizedBox(
-      width: 76,
-      height: 52,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(color: Colors.black26),
-            if (item.thumbnailUrl != null)
-              Image(
-                image: _resolveThumbnailImage(item.thumbnailUrl!),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    _fallbackThumbIcon(colors),
-              )
-            else
-              _fallbackThumbIcon(colors),
-            // Overlay badge
-            if (isCompleted)
-              Container(
-                color: Colors.black38,
-                child: const Center(
-                  child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 28),
-                ),
-              )
-            else if (isFailed)
-              Container(
-                color: colors.error.withValues(alpha: 0.4),
-                child: const Center(
-                  child: Icon(Icons.error_outline_rounded, color: Colors.white, size: 24),
-                ),
-              )
-            else if (isActive && item.progress <= 0)
-              Container(
-                color: Colors.black38,
-                child: const Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            if (isAgeFailure)
+              InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  AgeVerificationHelpDialog.show(context, item);
+                },
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: t.warn.withValues(alpha: 0.25)),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 11,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.shield_outlined, size: 16, color: t.warn),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.downloadCardAgeVerification,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: OledText.ui(
+                              context,
+                              size: 12,
+                              weight: FontWeight.w600,
+                              color: t.warn,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 18,
+                          color: t.warn,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -364,74 +265,57 @@ class MobileDownloadCard extends ConsumerWidget {
     );
   }
 
-  Widget _fallbackThumbIcon(AppColors colors) {
-    return Container(
-      color: colors.surfaceHighlight,
-      child: Icon(Icons.movie_outlined, color: colors.textSecondary, size: 26),
-    );
-  }
+  bool _isRemoteUrl(String uri) =>
+      uri.startsWith('http://') || uri.startsWith('https://');
 
-  ImageProvider _resolveThumbnailImage(String uri) {
-    if (uri.startsWith('http://') || uri.startsWith('https://')) {
-      return NetworkImage(uri);
-    }
-    return FileImage(File(uri));
-  }
-
-  Widget _buildSourceBadge(AppColors colors) {
-    final domain = item.source.isNotEmpty ? item.source : 'Web';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        domain,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: colors.primary,
-        ),
-      ),
-    );
-  }
-
-  String _buildSubtitleText(AppLocalizations l10n) {
-    if (item.status == DownloadStatus.completed) {
-      final size = item.totalSize.isNotEmpty ? item.totalSize : item.downloadedSize;
-      return size.isNotEmpty ? '$size • ${l10n.statusCompleted}' : l10n.statusCompleted;
-    }
-    if (item.status == DownloadStatus.failed) {
-      return l10n.statusFailed;
-    }
-    if (item.status == DownloadStatus.paused) {
-      return l10n.statusPaused;
-    }
-    if (item.status == DownloadStatus.extracting) {
-      return l10n.statusExtracting;
-    }
-    final sizeInfo = item.totalSize.isNotEmpty
-        ? '${item.downloadedSize} / ${item.totalSize}'
-        : item.downloadedSize;
-    return sizeInfo.isNotEmpty ? sizeInfo : l10n.statusDownloading;
-  }
-
-  Widget _buildTrailingAction(
+  Widget _buildThumbnail(
     BuildContext context,
-    AppColors colors,
+    OledTokens t,
     AppLocalizations l10n,
     bool isCompleted,
     bool isFailed,
-    bool isActive,
     String? playablePath,
     WidgetRef ref,
   ) {
-    if (isCompleted) {
-      return IconButton(
-        tooltip: l10n.openFile,
-        icon: Icon(Icons.play_arrow_rounded, color: colors.primary, size: 28),
-        onPressed: () {
+    final thumbUrl = item.thumbnailUrl;
+
+    Widget thumb;
+    if (thumbUrl != null && thumbUrl.isNotEmpty && !_isRemoteUrl(thumbUrl)) {
+      thumb = SizedBox(
+        width: 72,
+        height: 42,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            OledThumb(warn: isFailed),
+            Padding(
+              padding: const EdgeInsets.all(1),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: Image.file(
+                  File(thumbUrl),
+                  fit: BoxFit.cover,
+                  cacheWidth: 216,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      thumb = OledThumb(url: thumbUrl, warn: isFailed);
+    }
+
+    if (!isCompleted) return thumb;
+
+    return Semantics(
+      button: true,
+      label: l10n.openFile,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
           HapticFeedback.lightImpact();
           if (playablePath != null && File(playablePath).existsSync()) {
             ref.read(mediaPlayerProvider.notifier).openFile(playablePath);
@@ -439,32 +323,213 @@ class MobileDownloadCard extends ConsumerWidget {
             onTap();
           }
         },
+        child: SizedBox(
+          width: 72,
+          height: 42,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              thumb,
+              Center(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: t.bg.withValues(alpha: 0.6),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(3),
+                    child: Icon(
+                      Icons.play_arrow_rounded,
+                      size: 18,
+                      color: t.ink,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _buildMetaText(AppLocalizations l10n) {
+    final source = item.source.isNotEmpty ? item.source : 'Web';
+    final parts = <String>[source];
+
+    if (item.status == DownloadStatus.completed) {
+      final size = item.totalSize.isNotEmpty
+          ? item.totalSize
+          : item.downloadedSize;
+      if (size.isNotEmpty) parts.add(size);
+    } else if (item.status == DownloadStatus.failed) {
+      return l10n.downloadCardFailedMeta(source);
+    } else if (item.status == DownloadStatus.paused) {
+      parts.add(l10n.statusPaused);
+    } else if (item.status == DownloadStatus.queued) {
+      parts.add(l10n.statusQueued);
+    } else if (item.status == DownloadStatus.extracting) {
+      parts.add(l10n.statusExtracting);
+    } else if (item.totalSize.isNotEmpty && item.downloadedSize.isNotEmpty) {
+      parts.add(l10n.downloadCardSizeOf(item.downloadedSize, item.totalSize));
+    } else if (item.downloadedSize.isNotEmpty) {
+      parts.add(item.downloadedSize);
+    } else {
+      parts.add(l10n.statusDownloading);
+    }
+    return parts.join(', ');
+  }
+
+  Widget _buildTrailing(
+    BuildContext context,
+    OledTokens t,
+    AppLocalizations l10n,
+    bool isCompleted,
+    bool isFailed,
+    bool isActive,
+    bool isQueued,
+    int? queuePosition,
+  ) {
+    if (isCompleted) {
+      return Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: t.ink),
+          child: Icon(Icons.check_rounded, size: 16, color: t.onInk),
+        ),
       );
     }
     if (isFailed) {
-      return IconButton(
-        tooltip: l10n.retry,
-        icon: Icon(Icons.refresh_rounded, color: colors.primary, size: 26),
-        onPressed: () {
-          HapticFeedback.mediumImpact();
-          onRetry();
-        },
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _RowAction(
+            icon: Icons.refresh_rounded,
+            tooltip: l10n.retry,
+            color: t.warn,
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              onRetry();
+            },
+          ),
+          Icon(Icons.chevron_right_rounded, size: 18, color: t.ink3),
+          const SizedBox(width: 4),
+        ],
       );
     }
     if (isActive) {
-      return IconButton(
-        tooltip: l10n.cancel,
-        icon: Icon(Icons.close_rounded, color: colors.textSecondary, size: 24),
-        onPressed: () {
-          HapticFeedback.lightImpact();
-          onCancel();
-        },
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (item.progress > 0)
+            Text(
+              '${(item.progress * 100).round()} %',
+              style: OledText.ui(context, size: 13, weight: FontWeight.w600),
+            ),
+          _RowAction(
+            icon: Icons.close_rounded,
+            tooltip: l10n.cancel,
+            color: t.ink2,
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              onCancel();
+            },
+          ),
+        ],
       );
     }
-    return IconButton(
-      tooltip: l10n.inspector,
-      icon: Icon(Icons.chevron_right_rounded, color: colors.textSecondary, size: 24),
-      onPressed: onTap,
+    if (isQueued) {
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: queuePosition == null
+            ? Icon(Icons.schedule_rounded, size: 20, color: t.ink2)
+            : Semantics(
+                label: l10n.downloadCardQueuePosition(queuePosition),
+                child: Text(
+                  '#$queuePosition',
+                  style: OledText.ui(
+                    context,
+                    size: 14,
+                    weight: FontWeight.w600,
+                    color: t.ink2,
+                  ),
+                ),
+              ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Icon(Icons.chevron_right_rounded, size: 20, color: t.ink3),
+    );
+  }
+}
+
+/// 40x44 tap target with a bare icon, used for retry / cancel on a row.
+class _RowAction extends StatelessWidget {
+  const _RowAction({
+    required this.icon,
+    required this.tooltip,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkResponse(
+        onTap: onPressed,
+        radius: 22,
+        child: SizedBox(
+          width: 40,
+          height: 44,
+          child: Icon(icon, size: 20, color: color),
+        ),
+      ),
+    );
+  }
+}
+
+/// 2px determinate progress line flush with the bottom edge of the row.
+class _HairlineProgress extends StatelessWidget {
+  const _HairlineProgress({
+    required this.value,
+    required this.trackColor,
+    required this.barColor,
+  });
+
+  final double value;
+  final Color trackColor;
+  final Color barColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = value.clamp(0.0, 1.0);
+    return LayoutBuilder(
+      builder: (context, box) {
+        return SizedBox(
+          height: 2,
+          child: Stack(
+            children: [
+              Positioned.fill(child: ColoredBox(color: trackColor)),
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: box.maxWidth * v,
+                child: ColoredBox(color: barColor),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

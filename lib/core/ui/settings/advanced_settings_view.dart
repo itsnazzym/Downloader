@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -18,7 +17,7 @@ import 'package:modern_downloader/core/services/binary/binary_locator.dart';
 import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/services/tor/tor_proxy_service.dart';
-import 'widgets/settings_app_bar_leading.dart';
+import 'widgets/settings_app_bar.dart';
 
 class AdvancedSettingsView extends ConsumerStatefulWidget {
   const AdvancedSettingsView({super.key});
@@ -131,32 +130,7 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: colors.background,
-      appBar: AppBar(
-        leading: const SettingsAppBarLeading(),
-        backgroundColor: colors.background.withValues(alpha: 0.8),
-        elevation: 0,
-        centerTitle: true,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-        title: Text(
-          l10n.settingsAdvanced,
-          style: AppTypography.h3.copyWith(
-            color: colors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: colors.border.withValues(alpha: 0.5),
-            height: 1,
-          ),
-        ),
-      ),
+      appBar: buildSettingsAppBar(context, title: l10n.settingsAdvanced),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.l,

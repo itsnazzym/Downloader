@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 import 'package:modern_downloader/core/logger/logger_service.dart';
 import 'package:modern_downloader/core/plugins/plugin_manager.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
@@ -12,6 +14,7 @@ import 'package:modern_downloader/features/downloader/data/services/library_scan
 import 'package:modern_downloader/features/downloader/data/sources/gallery_dl_source.dart';
 import 'package:modern_downloader/features/downloader/data/sources/kick_source.dart';
 import 'package:modern_downloader/features/downloader/data/sources/yt_dlp_source.dart';
+import 'package:modern_downloader/features/downloader/domain/exceptions/yt_dlp_exception.dart';
 import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
 
 final ytDlpSourceProvider = Provider<YtDlpSource>((ref) {
@@ -70,5 +73,11 @@ final downloaderRepositoryProvider = Provider<IDownloaderRepository>((ref) {
     useTorProxyGetter: () => ref.read(settingsProvider).useTorProxy,
     kickSource: ref.read(kickSourceProvider),
     waitForLibraryScan: () => libraryScanGate.future,
+    networkPreflight: () async {
+      if (!Platform.isAndroid || !ref.read(settingsProvider).wifiOnly) return;
+      if (await AndroidEngineBridge.instance.isMeteredNetwork()) {
+        throw const WifiOnlyBlockedException();
+      }
+    },
   );
 });

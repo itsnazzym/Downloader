@@ -34,6 +34,45 @@ import 'package:modern_downloader/showcase/showcase_mode.dart';
 
 enum TransferTab { send, receive }
 
+/// Stable code of a transfer problem. The view maps it to localized text.
+enum TransferDiagnosticCode {
+  unreachable,
+  timeout,
+  connectionRefused,
+  pinRequired,
+  rejected,
+  busy,
+  checksumMismatch,
+  communication,
+}
+
+@immutable
+class TransferDiagnostic {
+  const TransferDiagnostic(this.code, {this.detail});
+
+  final TransferDiagnosticCode code;
+
+  /// `unreachable`: the `ip:port` that was probed. `communication`: the raw
+  /// message reported by the peer, when there is one.
+  final String? detail;
+}
+
+/// Progress of the payload scan shown while a transfer is being prepared.
+@immutable
+class TransferScanStatus {
+  const TransferScanStatus({
+    required this.scannedFolders,
+    required this.totalFolders,
+    required this.videos,
+  });
+
+  final int scannedFolders;
+
+  /// Zero when the folder count is not known yet.
+  final int totalFolders;
+  final int videos;
+}
+
 @immutable
 class TransferUiState {
   const TransferUiState({
@@ -59,7 +98,8 @@ class TransferUiState {
     this.incoming,
     this.peerPinPrompt,
     this.lastError,
-    this.diagnosticMessage,
+    this.diagnostic,
+    this.scanStatus,
     this.lastPeerAttempt,
     this.isScanningSubnet = false,
     this.subnetScanProgress,
@@ -87,7 +127,8 @@ class TransferUiState {
   final IncomingOffer? incoming;
   final TransferPeer? peerPinPrompt;
   final String? lastError;
-  final String? diagnosticMessage;
+  final TransferDiagnostic? diagnostic;
+  final TransferScanStatus? scanStatus;
   final TransferPeer? lastPeerAttempt;
   final bool isScanningSubnet;
   final double? subnetScanProgress;
@@ -123,7 +164,8 @@ class TransferUiState {
     IncomingOffer? incoming,
     TransferPeer? peerPinPrompt,
     String? lastError,
-    String? diagnosticMessage,
+    TransferDiagnostic? diagnostic,
+    TransferScanStatus? scanStatus,
     TransferPeer? lastPeerAttempt,
     bool? isScanningSubnet,
     double? subnetScanProgress,
@@ -132,6 +174,7 @@ class TransferUiState {
     bool clearError = false,
     bool clearProgress = false,
     bool clearDiagnostic = false,
+    bool clearScanStatus = false,
   }) {
     return TransferUiState(
       started: started ?? this.started,
@@ -160,9 +203,8 @@ class TransferUiState {
           ? null
           : (peerPinPrompt ?? this.peerPinPrompt),
       lastError: clearError ? null : (lastError ?? this.lastError),
-      diagnosticMessage: clearDiagnostic
-          ? null
-          : (diagnosticMessage ?? this.diagnosticMessage),
+      diagnostic: clearDiagnostic ? null : (diagnostic ?? this.diagnostic),
+      scanStatus: clearScanStatus ? null : (scanStatus ?? this.scanStatus),
       lastPeerAttempt: lastPeerAttempt ?? this.lastPeerAttempt,
       isScanningSubnet: isScanningSubnet ?? this.isScanningSubnet,
       subnetScanProgress: subnetScanProgress ?? this.subnetScanProgress,
@@ -537,9 +579,10 @@ class TransferController extends StateNotifier<TransferUiState> {
     final peer = await discovery.probeIp(ip, port: port);
     if (peer == null) {
       state = state.copyWith(
-        lastError: 'Appareil injoignable ($ip:$port)',
-        diagnosticMessage:
-            'Vérifiez que LocalSend est ouvert sur cet appareil, sur le même réseau Wi-Fi.',
+        diagnostic: TransferDiagnostic(
+          TransferDiagnosticCode.unreachable,
+          detail: '$ip:$port',
+        ),
       );
     }
     return peer;
@@ -579,6 +622,7 @@ class TransferController extends StateNotifier<TransferUiState> {
       ),
       clearError: true,
       clearDiagnostic: true,
+      clearScanStatus: true,
       clearPeerPin: true,
       lastPeerAttempt: peer,
     );
@@ -594,9 +638,11 @@ class TransferController extends StateNotifier<TransferUiState> {
               phase: TransferPhase.preparing,
               bytesDone: bytesCount,
               bytesTotal: bytesCount,
-              currentName: total > 0
-                  ? 'Dossiers $scanned / $total ($filesCount vidéos)...'
-                  : '$filesCount vidéos trouvées...',
+            ),
+            scanStatus: TransferScanStatus(
+              scannedFolders: scanned,
+              totalFolders: total,
+              videos: filesCount,
             ),
           );
         },
@@ -739,19 +785,28 @@ class TransferController extends StateNotifier<TransferUiState> {
       }
       if (!outcome.isOk || outcome.success == null) {
         final diag = switch (outcome.code) {
-          TransferProtocolCode.timeout =>
-            'Délai de connexion dépassé. Vérifiez que l\'appareil récepteur est allumé et sur le même Wi-Fi.',
-          TransferProtocolCode.connectionRefused =>
-            'Connexion refusée. Ouvrez LocalSend sur l\'appareil récepteur et activez le mode Recevoir.',
-          TransferProtocolCode.pinRequired =>
-            'Code PIN requis par l\'appareil récepteur.',
-          TransferProtocolCode.rejected =>
-            'Transfert refusé par l\'utilisateur sur l\'appareil récepteur.',
-          TransferProtocolCode.busy =>
-            'L\'appareil récepteur est déjà occupé par un autre transfert.',
-          TransferProtocolCode.checksumMismatch =>
-            'Erreur d\'intégrité des données (somme de contrôle non concordante).',
-          _ => outcome.message ?? 'Erreur de communication avec l\'appareil.',
+          TransferProtocolCode.timeout => const TransferDiagnostic(
+            TransferDiagnosticCode.timeout,
+          ),
+          TransferProtocolCode.connectionRefused => const TransferDiagnostic(
+            TransferDiagnosticCode.connectionRefused,
+          ),
+          TransferProtocolCode.pinRequired => const TransferDiagnostic(
+            TransferDiagnosticCode.pinRequired,
+          ),
+          TransferProtocolCode.rejected => const TransferDiagnostic(
+            TransferDiagnosticCode.rejected,
+          ),
+          TransferProtocolCode.busy => const TransferDiagnostic(
+            TransferDiagnosticCode.busy,
+          ),
+          TransferProtocolCode.checksumMismatch => const TransferDiagnostic(
+            TransferDiagnosticCode.checksumMismatch,
+          ),
+          _ => TransferDiagnostic(
+            TransferDiagnosticCode.communication,
+            detail: outcome.message,
+          ),
         };
         state = state.copyWith(
           progress: TransferProgress(
@@ -761,7 +816,7 @@ class TransferController extends StateNotifier<TransferUiState> {
             error: outcome.code.name,
           ),
           lastError: outcome.message ?? outcome.code.name,
-          diagnosticMessage: diag,
+          diagnostic: diag,
           lastPeerAttempt: target,
         );
         return;
@@ -863,13 +918,12 @@ class TransferController extends StateNotifier<TransferUiState> {
     final entries = <LibraryManifestEntry>[];
     final usedNames = <String>{};
 
-    Future<String> hashOf(File file, FileStat stat) =>
-        ContentHash.resolve(
-          file: file,
-          stat: stat,
-          store: _sendMemoryStore,
-          onlyIfCached: onlyIfCached || !hash,
-        );
+    Future<String> hashOf(File file, FileStat stat) => ContentHash.resolve(
+      file: file,
+      stat: stat,
+      store: _sendMemoryStore,
+      onlyIfCached: onlyIfCached || !hash,
+    );
 
     for (final folder in folders) {
       if (!state.selectedCreatorKeys.contains(folder.key)) continue;

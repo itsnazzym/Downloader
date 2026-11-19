@@ -1,11 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
 import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
-import '../../design_system/foundation/typography.dart';
 import '../../design_system/components/app_toast.dart';
 import '../../services/binary/binary_verifier.dart';
 import '../../services/file_organization_service.dart';
@@ -15,7 +13,7 @@ import '../../android/android_engine_bridge.dart';
 import '../../setup/dependency_bootstrap_provider.dart';
 import 'widgets/settings_tiles.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'widgets/settings_app_bar_leading.dart';
+import 'widgets/settings_app_bar.dart';
 
 class SystemSettingsView extends ConsumerStatefulWidget {
   const SystemSettingsView({super.key});
@@ -39,7 +37,10 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
       if (PlatformInfo.isAndroid) {
         final res = await AndroidEngineBridge.instance.updateYtDlp();
         if (mounted) {
-          AppToast.showSuccess(context, 'yt-dlp mis à jour : $res');
+          AppToast.showSuccess(
+            context,
+            context.l10n.settingsSystemYtDlpUpdated(res),
+          );
           await _verifyBinaries();
         }
       } else {
@@ -53,7 +54,10 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
       }
     } catch (e) {
       if (mounted) {
-        AppToast.showError(context, 'Erreur de mise à jour : $e');
+        AppToast.showError(
+          context,
+          context.l10n.settingsSystemUpdateError(e.toString()),
+        );
       }
     } finally {
       if (mounted) setState(() => _isUpdatingYtDlp = false);
@@ -160,34 +164,7 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
-      appBar: AppBar(
-        leading: const SettingsAppBarLeading(),
-        backgroundColor: AppColors.of(
-          context,
-        ).background.withValues(alpha: 0.8),
-        elevation: 0,
-        centerTitle: true,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-        title: Text(
-          l10n.settingsSystem,
-          style: AppTypography.h3.copyWith(
-            color: AppColors.of(context).textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: AppColors.of(context).border.withValues(alpha: 0.5),
-            height: 1,
-          ),
-        ),
-      ),
+      appBar: buildSettingsAppBar(context, title: l10n.settingsSystem),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.l,
@@ -210,10 +187,10 @@ class _SystemSettingsViewState extends ConsumerState<SystemSettingsView> {
                           onTap: _isVerifying ? null : _verifyBinaries,
                         ),
                         ActionTile(
-                          title: 'Mettre à jour le moteur yt-dlp',
+                          title: l10n.settingsSystemUpdateEngineTitle,
                           subtitle: _isUpdatingYtDlp
-                              ? 'Téléchargement de la dernière version (nightly)...'
-                              : 'Vérifier et installer la dernière version de yt-dlp',
+                              ? l10n.settingsSystemUpdateEngineDownloading
+                              : l10n.settingsSystemUpdateEngineDesc,
                           icon: Icons.system_update_rounded,
                           onTap: _isUpdatingYtDlp ? null : _updateYtDlpEngine,
                         ),

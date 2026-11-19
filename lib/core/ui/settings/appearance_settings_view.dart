@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -7,10 +6,11 @@ import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
 import '../../theme/theme_presets.dart';
+import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'widgets/settings_tiles.dart';
 import '../widgets/glass_setting_section.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'widgets/settings_app_bar_leading.dart';
+import 'widgets/settings_app_bar.dart';
 
 class AppearanceSettingsView extends ConsumerStatefulWidget {
   const AppearanceSettingsView({super.key});
@@ -31,34 +31,7 @@ class _AppearanceSettingsViewState
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: ds.AppColors.of(context).background,
-      appBar: AppBar(
-        leading: const SettingsAppBarLeading(),
-        backgroundColor: ds.AppColors.of(
-          context,
-        ).background.withValues(alpha: 0.8),
-        elevation: 0,
-        centerTitle: true,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-        title: Text(
-          l10n.appearance,
-          style: AppTypography.h3.copyWith(
-            color: ds.AppColors.of(context).textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: ds.AppColors.of(context).border.withValues(alpha: 0.5),
-            height: 1,
-          ),
-        ),
-      ),
+      appBar: buildSettingsAppBar(context, title: l10n.appearance),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.l,
@@ -72,14 +45,17 @@ class _AppearanceSettingsViewState
               children:
                   [
                         SectionTitle(l10n.theme),
-                        DropdownTile(
-                          title: l10n.theme,
-                          value: settings.themeMode,
-                          options: const ["system", "dark", "light"],
-                          optionLabels: themeModeOptionLabels(l10n),
-                          onChanged: settingsNotifier.setThemeMode,
-                          icon: Icons.brightness_4_rounded,
-                        ),
+                        // The OLED preset is dark-only with its own accent:
+                        // the mode and accent controls would do nothing.
+                        if (settings.themePreset != 'oled')
+                          DropdownTile(
+                            title: l10n.theme,
+                            value: settings.themeMode,
+                            options: const ["system", "dark", "light"],
+                            optionLabels: themeModeOptionLabels(l10n),
+                            onChanged: settingsNotifier.setThemeMode,
+                            icon: Icons.brightness_4_rounded,
+                          ),
 
                         const SizedBox(height: AppSpacing.l),
 
@@ -106,19 +82,21 @@ class _AppearanceSettingsViewState
                                     settingsNotifier.setThemePreset(id),
                               ),
 
-                        const SizedBox(height: AppSpacing.l),
-                        SectionTitle(l10n.accentColor),
-                        const SizedBox(height: AppSpacing.s),
+                        if (settings.themePreset != 'oled') ...[
+                          const SizedBox(height: AppSpacing.l),
+                          SectionTitle(l10n.accentColor),
+                          const SizedBox(height: AppSpacing.s),
 
-                        // Color Picker
-                        _AccentColorPicker(
-                          currentColor: Color(settings.customAccentColor),
-                          onColorChanged: (color) {
-                            settingsNotifier.setCustomAccentColor(
-                              color.toARGB32(),
-                            );
-                          },
-                        ),
+                          // Color Picker
+                          _AccentColorPicker(
+                            currentColor: Color(settings.customAccentColor),
+                            onColorChanged: (color) {
+                              settingsNotifier.setCustomAccentColor(
+                                color.toARGB32(),
+                              );
+                            },
+                          ),
+                        ],
 
                         const SizedBox(height: AppSpacing.l),
                         SectionTitle(l10n.language),
@@ -150,6 +128,8 @@ class _ThemePresetGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final oled = useOledSettingsStyle(context);
+    final t = OledTokens.of(context);
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -166,11 +146,11 @@ class _ThemePresetGrid extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected
-                    ? preset.primary
-                    : ds.AppColors.of(context).border,
+                    ? (oled ? t.ink : preset.primary)
+                    : (oled ? t.line : ds.AppColors.of(context).border),
                 width: isSelected ? 2 : 1,
               ),
-              boxShadow: isSelected
+              boxShadow: isSelected && !oled
                   ? [
                       BoxShadow(
                         color: preset.primary.withValues(alpha: 0.3),
@@ -262,12 +242,16 @@ class _AccentColorPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final oled = useOledSettingsStyle(context);
+    final t = OledTokens.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ds.AppColors.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ds.AppColors.of(context).border),
+        color: oled ? t.fill : ds.AppColors.of(context).surface,
+        borderRadius: BorderRadius.circular(oled ? 22 : 12),
+        border: Border.all(
+          color: oled ? t.line : ds.AppColors.of(context).border,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,12 +265,14 @@ class _AccentColorPicker extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: currentColor,
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: currentColor.withValues(alpha: 0.4),
-                      blurRadius: 12,
-                    ),
-                  ],
+                  boxShadow: oled
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: currentColor.withValues(alpha: 0.4),
+                            blurRadius: 12,
+                          ),
+                        ],
                 ),
               ),
               const SizedBox(width: 12),
@@ -330,7 +316,7 @@ class _AccentColorPicker extends StatelessWidget {
                           : Colors.white.withValues(alpha: 0.1),
                       width: isSelected ? 2 : 1,
                     ),
-                    boxShadow: isSelected
+                    boxShadow: isSelected && !oled
                         ? [
                             BoxShadow(
                               color: color.withValues(alpha: 0.5),

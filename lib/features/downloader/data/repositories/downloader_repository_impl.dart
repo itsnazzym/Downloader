@@ -7,6 +7,7 @@ import '../../domain/entities/download_item.dart';
 import '../../domain/entities/download_request.dart';
 import '../../domain/enums/download_status.dart';
 import '../../domain/repositories/i_downloader_repository.dart';
+import '../../domain/exceptions/yt_dlp_exception.dart';
 import '../sources/yt_dlp_source.dart';
 import '../sources/gallery_dl_source.dart';
 import '../sources/kick_source.dart';
@@ -40,6 +41,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   final PluginManager _pluginManager;
   final String Function() _outputFolderGetter;
   final bool Function() _useTorProxyGetter;
+
+  /// Throws to refuse a download before it starts (e.g. Wi-Fi only on mobile
+  /// data). Checked once per download, before the disk-space check.
+  final Future<void> Function()? _networkPreflight;
   final KickSource _kickSource;
   final MediaFingerprintService _mediaFingerprintService;
 
@@ -68,7 +73,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     bool Function()? useTorProxyGetter,
     MediaFingerprintService? mediaFingerprintService,
     Future<void> Function()? waitForLibraryScan,
-  }) : _kickSource = kickSource ?? KickSource(),
+    Future<void> Function()? networkPreflight,
+  }) : _networkPreflight = networkPreflight,
+       _kickSource = kickSource ?? KickSource(),
        _useTorProxyGetter = useTorProxyGetter ?? (() => false),
        _mediaFingerprintService =
            mediaFingerprintService ??
@@ -337,6 +344,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
           try {
             // 2. Pre-flight Check: Disk Space
+            // Every attempt, not only the first: an automatic retry must not
+            // start on mobile data after the Wi-Fi was lost.
+            await _networkPreflight?.call();
             if (retryCount == 0) {
               await DiskSpaceService.checkDiskSpace(
                 currentRequest.outputFolder ?? _outputFolderGetter(),
@@ -649,6 +659,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           } catch (e) {
             if (e is MetadataProbeCancelledException) rethrow;
             if (e.toString().contains('Low Disk Space')) rethrow;
+            if (e is WifiOnlyBlockedException) rethrow;
             if (DownloadStatusGuard.isNonRetryableError(e)) {
               rethrow;
             }
@@ -671,6 +682,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         if (!DownloadStatusGuard.shouldRetryAfterError(
           _activeDownloads[id]?.status,
         )) {
+          return;
+        }
+        if (e is WifiOnlyBlockedException) {
+          // Refused on purpose: no fallback downloader, and no notification
+          // per item (a queued batch would raise one for each row).
+          _markDownloadFailed(id, e, notify: false);
           return;
         }
         if (!DownloadStatusGuard.isNonRetryableError(e) &&
@@ -735,11 +752,12 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     return '$stem [$unique].%(ext)s';
   }
 
-  void _markDownloadFailed(String id, Object error) {
+  void _markDownloadFailed(String id, Object error, {bool notify = true}) {
     final item = _activeDownloads[id];
     if (item == null) return;
     final message = DownloadStatusGuard.userFacingDownloadErrorMessage(error);
     _update(item.copyWith(status: DownloadStatus.failed, error: message));
+    if (!notify) return;
     unawaited(
       NotificationService().showDownloadFailed(
         item.title ?? 'Download Failed',

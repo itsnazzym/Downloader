@@ -1581,4 +1581,1045 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pluginExternalHint =>
       'This extension is installed in your browser. Use the existing setup steps below.';
+
+  @override
+  String get addSheetTitle => 'New download';
+
+  @override
+  String addSheetPasteCopiedLink(String url) {
+    return 'Paste copied link: $url';
+  }
+
+  @override
+  String get addSheetModeVideo => 'Video';
+
+  @override
+  String get addSheetModeAudioOnly => 'Audio only';
+
+  @override
+  String get addSheetBrowserSession => 'Browser session';
+
+  @override
+  String get addSheetQualityChosen => 'Selected quality';
+
+  @override
+  String addSheetQualityChosenWithSize(String size) {
+    return 'Selected quality, $size';
+  }
+
+  @override
+  String get addSheetStarting => 'Starting…';
+
+  @override
+  String get addSheetDownload => 'Download';
+
+  @override
+  String get addSheetPreviewUnavailable =>
+      'Preview unavailable. The download may still work.';
+
+  @override
+  String get addSheetAnalyzing => 'Analyzing link…';
+
+  @override
+  String get addSheetUrlHint => 'Paste the video or media link';
+
+  @override
+  String get addSheetValidLink => 'Valid link';
+
+  @override
+  String get addSheetClear => 'Clear';
+
+  @override
+  String get addSheetPaste => 'Paste';
+
+  @override
+  String get addSheetInvalidUrl => 'Please enter a valid URL.';
+
+  @override
+  String get addSheetUnsupportedUrl => 'Unsupported URL or restricted domain.';
+
+  @override
+  String addSheetError(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get addSheetDetailBest => 'Maximum resolution available';
+
+  @override
+  String get addSheetDetail1080 => 'High definition';
+
+  @override
+  String get addSheetDetail720 => 'Balanced';
+
+  @override
+  String get addSheetDetail480 => 'Data saver';
+
+  @override
+  String get addSheetDetailAudio => 'Extracted audio, best quality available';
+
+  @override
+  String get addSheetReadoutMax => 'Max';
+
+  @override
+  String get addSheetUntitledMedia => 'Untitled media';
+
+  @override
+  String get sizeUnitKb => 'KB';
+
+  @override
+  String get sizeUnitMb => 'MB';
+
+  @override
+  String get sizeUnitGb => 'GB';
+
+  @override
+  String get archiveMobileTitle => 'TikTok archive';
+
+  @override
+  String get archiveMobileFilters => 'Filters';
+
+  @override
+  String get archiveMobileReset => 'Reset';
+
+  @override
+  String get archiveMobileType => 'Type';
+
+  @override
+  String get archiveMobileFilterAll => 'All';
+
+  @override
+  String get archiveMobileFilterFavorites => 'Favorites';
+
+  @override
+  String get archiveMobileFilterLikes => 'Likes';
+
+  @override
+  String get archiveMobileYear => 'Year';
+
+  @override
+  String get archiveMobileAllYears => 'All';
+
+  @override
+  String get archiveMobileApplyFilters => 'Apply filters';
+
+  @override
+  String get archiveMobileBackToVideos => 'Back to videos';
+
+  @override
+  String get archiveMobileDownload => 'Download';
+
+  @override
+  String get archiveMobileBatchStarted => 'Batch download started';
+
+  @override
+  String get archiveMobileSyncTooltip => 'Import or sync';
+
+  @override
+  String get archiveMobileBackToLibrary => 'Back to library';
+
+  @override
+  String get archiveMobileBatchRunning => 'Batch download in progress';
+
+  @override
+  String archiveMobileSkippedVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos skipped',
+      one: '$count video skipped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveMobileStopBatch => 'Stop batch';
+
+  @override
+  String get archiveMobileSyncingCollections => 'Syncing collections';
+
+  @override
+  String get archiveMobileSyncWaiting =>
+      'Waiting for the browser\'s response. Keep a TikTok page open.';
+
+  @override
+  String get archiveMobileChipAll => 'All';
+
+  @override
+  String get archiveMobileSearchHint => 'Search for a video or a collection';
+
+  @override
+  String get archiveMobileClearSearch => 'Clear search';
+
+  @override
+  String archiveMobileVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '$count video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveMobileClearSelection => 'Clear selection';
+
+  @override
+  String get archiveMobileSelectAll => 'Select all';
+
+  @override
+  String get archiveMobileManageCollections => 'Manage collections';
+
+  @override
+  String get archiveMobilePlayFullscreen => 'Play videos full screen';
+
+  @override
+  String get archiveMobileNoVideos => 'No videos found';
+
+  @override
+  String get archiveMobileVideoAdded => 'Video added to the download queue.';
+
+  @override
+  String archiveMobileTileLabel(String date) {
+    return 'Video $date';
+  }
+
+  @override
+  String get archiveMobileProgress => 'Progress';
+
+  @override
+  String archiveMobileSelectedLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'selected',
+      one: 'selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsMobileBackToLibrary => 'Back to library';
+
+  @override
+  String get statsMobileTotalSinceInstall =>
+      'Total downloaded since installation';
+
+  @override
+  String get statsMobileActivity => 'Activity';
+
+  @override
+  String get statsMobileLast12Weeks => 'Last 12 weeks';
+
+  @override
+  String get statsMobileLess => 'Less';
+
+  @override
+  String get statsMobileMore => 'More';
+
+  @override
+  String get statsMobileBySource => 'Downloads by source';
+
+  @override
+  String statsMobileDownloadsSummary(int total, int today) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total downloads',
+      one: '$total download',
+    );
+    return '$_temp0, $today today';
+  }
+
+  @override
+  String get statsMobileHeatmapLabel => 'Heatmap of downloads per day';
+
+  @override
+  String get statsMobileOthers => 'Others';
+
+  @override
+  String get statsMobileUnitB => 'B';
+
+  @override
+  String get statsMobileUnitKB => 'KB';
+
+  @override
+  String get statsMobileUnitMB => 'MB';
+
+  @override
+  String get statsMobileUnitGB => 'GB';
+
+  @override
+  String get statsMobileUnitTB => 'TB';
+
+  @override
+  String get settingsHubEngine => 'yt-dlp engine';
+
+  @override
+  String get settingsHubUnavailable => 'Unavailable';
+
+  @override
+  String get settingsHubChecking => 'Checking…';
+
+  @override
+  String get settingsHubCheckUpdates => 'Check for updates';
+
+  @override
+  String get settingsHubAutoUpdate => 'Automatic update';
+
+  @override
+  String get settingsHubChannel => 'Update channel';
+
+  @override
+  String get settingsHubChannelNightly => 'Nightly';
+
+  @override
+  String get settingsHubChannelStable => 'Stable';
+
+  @override
+  String get settingsHubUpdateFailed => 'Check failed, try again later.';
+
+  @override
+  String get settingsHubUpToDate => 'yt-dlp is up to date';
+
+  @override
+  String get settingsHubUpdated => 'yt-dlp updated';
+
+  @override
+  String settingsHubUpdateError(String error) {
+    return 'Update error: $error';
+  }
+
+  @override
+  String get settingsHubParallel => 'Parallel downloads';
+
+  @override
+  String get settingsHubParallelHint => 'More speed, more heat';
+
+  @override
+  String get settingsHubStorage => 'Storage';
+
+  @override
+  String settingsHubStorageFree(String free, String total) {
+    return '$free free of $total';
+  }
+
+  @override
+  String get settingsHubWifiOnly => 'Wi-Fi only';
+
+  @override
+  String get settingsHubWifiOnlyHint => 'Never start a download on mobile data';
+
+  @override
+  String get detailsWifiOnlyHeadline =>
+      'Wi-Fi only is on: connect to Wi-Fi, then retry';
+
+  @override
+  String get detailsStatusFailed => 'Failed';
+
+  @override
+  String get detailsStatusDownloading => 'Downloading';
+
+  @override
+  String get detailsStatusExtracting => 'Analyzing link';
+
+  @override
+  String get detailsStatusDuplicate => 'Already added';
+
+  @override
+  String get detailsDiagnostic => 'Diagnostic';
+
+  @override
+  String get detailsStepResolve => 'Resolving link';
+
+  @override
+  String get detailsStepReadPage => 'Reading page';
+
+  @override
+  String get detailsStepExtractFormats => 'Extracting formats';
+
+  @override
+  String get detailsStepDownload => 'Downloading';
+
+  @override
+  String get detailsStepMerge => 'Merging audio and video';
+
+  @override
+  String get detailsStepFailMerge => 'Merging the file failed';
+
+  @override
+  String get detailsStepFailTransfer => 'The transfer was interrupted';
+
+  @override
+  String get detailsStepFailNoMedia => 'No accessible media';
+
+  @override
+  String detailsEngineUpdated(String status) {
+    return 'Engine updated: $status';
+  }
+
+  @override
+  String detailsYtDlpUpdateSuccess(String status) {
+    return 'yt-dlp update succeeded: $status';
+  }
+
+  @override
+  String detailsEngineUpdateError(String error) {
+    return 'Error during update: $error';
+  }
+
+  @override
+  String get detailsLinkCopied => 'Link copied to clipboard';
+
+  @override
+  String get detailsShare => 'Share';
+
+  @override
+  String get detailsOpenWith => 'Open with';
+
+  @override
+  String get detailsCopyLink => 'Copy link';
+
+  @override
+  String get detailsRestart => 'Start over';
+
+  @override
+  String get detailsPlayVideo => 'Play video';
+
+  @override
+  String get detailsInfoTitle => 'Information';
+
+  @override
+  String get detailsInfoSource => 'Source';
+
+  @override
+  String get detailsInfoSize => 'Size';
+
+  @override
+  String get detailsInfoFile => 'File';
+
+  @override
+  String get detailsInfoId => 'Identifier';
+
+  @override
+  String get detailsUpdatingEngine => 'Updating engine…';
+
+  @override
+  String get detailsRepairAuto => 'Repair automatically';
+
+  @override
+  String get detailsSignInBrowser => 'Sign in in the browser';
+
+  @override
+  String get detailsAgeSolutions => 'See solutions (18+)';
+
+  @override
+  String get detailsTechnicalDetails => 'Technical details';
+
+  @override
+  String get detailsNoLogs => 'No logs available.';
+
+  @override
+  String get detailsCopyLogs => 'Copy logs';
+
+  @override
+  String get detailsLogsCopied => 'Logs copied';
+
+  @override
+  String get detailsHeadlineAgeVerification => 'Age verification required';
+
+  @override
+  String detailsHeadlineHostRefused(String host) {
+    return '$host refused the request';
+  }
+
+  @override
+  String get detailsHeadlineTooManyRequests =>
+      'Too many requests, access limited';
+
+  @override
+  String get detailsHeadlinePrivateVideo => 'Private or removed video';
+
+  @override
+  String get detailsHeadlineGeoBlocked => 'Content blocked in your country';
+
+  @override
+  String get detailsHeadlineCopyright => 'Removed for copyright';
+
+  @override
+  String get detailsHeadlineSuspended => 'Account or content suspended';
+
+  @override
+  String get detailsHeadlineNoMedia => 'No media in this link';
+
+  @override
+  String get detailsHeadlineUnsupportedUrl => 'Link not supported';
+
+  @override
+  String get detailsHeadlineUnavailable => 'Content unavailable';
+
+  @override
+  String get detailsHeadlineLiveOffline => 'The live stream is offline';
+
+  @override
+  String get detailsHeadlineAntiBot => 'Anti-bot protection detected';
+
+  @override
+  String get detailsHeadlineNoFormats => 'No accessible format';
+
+  @override
+  String get detailsHeadlineLoginRequired => 'Sign-in required';
+
+  @override
+  String get detailsHeadlineNetwork => 'Network problem';
+
+  @override
+  String get detailsHeadlineFailed => 'The download failed';
+
+  @override
+  String downloadCardDeleteConfirm(String title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String get downloadCardAgeVerification =>
+      'Age verification (18+), see solutions';
+
+  @override
+  String downloadCardFailedMeta(String source) {
+    return '$source, failed. See diagnostic';
+  }
+
+  @override
+  String downloadCardQueuePosition(int position) {
+    return 'Position $position in queue';
+  }
+
+  @override
+  String downloadCardSizeOf(String done, String total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get libraryHeaderArchive => 'TikTok archive';
+
+  @override
+  String get libraryHeaderFailed => 'Failed';
+
+  @override
+  String get libraryHeaderFolders => 'Folders';
+
+  @override
+  String libraryHeaderMoreActive(int count) {
+    return '+$count in progress';
+  }
+
+  @override
+  String get libraryHeaderLiveSpeed => 'Live speed';
+
+  @override
+  String libraryHeaderRemaining(String eta) {
+    return '$eta left';
+  }
+
+  @override
+  String get libraryHeaderUnitGBps => 'GB/s';
+
+  @override
+  String get libraryHeaderUnitMBps => 'MB/s';
+
+  @override
+  String get libraryHeaderUnitKBps => 'KB/s';
+
+  @override
+  String get libraryHeaderUnitBps => 'B/s';
+
+  @override
+  String clipboardCapsuleCopied(String platform) {
+    return 'Link copied, $platform';
+  }
+
+  @override
+  String get clipboardCapsuleMediaLink => 'Media link';
+
+  @override
+  String get clipboardCapsuleDownload => 'Download';
+
+  @override
+  String get clipboardCapsuleDismiss => 'Dismiss';
+
+  @override
+  String get shellTabLibrary => 'Library';
+
+  @override
+  String get shellTabBrowse => 'Browse';
+
+  @override
+  String get shellTabSend => 'Send';
+
+  @override
+  String get shellTabSettings => 'Settings';
+
+  @override
+  String get browserMobileTitle => 'Browser';
+
+  @override
+  String get browserMobileBack => 'Back';
+
+  @override
+  String get browserMobileForward => 'Forward';
+
+  @override
+  String get browserMobileReload => 'Reload';
+
+  @override
+  String get browserMobileReadyToDownload => 'Page ready to download';
+
+  @override
+  String get browserMobileDownload => 'Download';
+
+  @override
+  String get oledKitStepperLess => 'Less';
+
+  @override
+  String get oledKitStepperMore => 'More';
+
+  @override
+  String oledKitFragmentsReceived(int done, int total) {
+    return '$done of $total fragments received';
+  }
+
+  @override
+  String get settingsTilesNotFound => 'Not found';
+
+  @override
+  String get settingsOutputChangeFolderTitle => 'Change folder';
+
+  @override
+  String get settingsOutputChangeFolderBody =>
+      'Do you want to automatically migrate all your existing videos and thumbnails to this new folder?';
+
+  @override
+  String get settingsOutputChangeFolderOnly => 'Only change the folder';
+
+  @override
+  String get settingsOutputMigrateFiles => 'Migrate files';
+
+  @override
+  String get settingsOutputMigrateLibraryTitle => 'Migrate library';
+
+  @override
+  String get settingsOutputMigrateLibraryDesc =>
+      'Move all videos and thumbnails to another drive or folder';
+
+  @override
+  String get settingsOutputReorganizeTitle => 'Reorganize existing videos';
+
+  @override
+  String get settingsOutputReorganizeDesc =>
+      'Sort already downloaded videos into subfolders by creator (with preview)';
+
+  @override
+  String get settingsSmartRecommendedRules => 'Recommended rules';
+
+  @override
+  String settingsSystemYtDlpUpdated(String result) {
+    return 'yt-dlp updated: $result';
+  }
+
+  @override
+  String settingsSystemUpdateError(String error) {
+    return 'Update error: $error';
+  }
+
+  @override
+  String get settingsSystemUpdateEngineTitle => 'Update the yt-dlp engine';
+
+  @override
+  String get settingsSystemUpdateEngineDownloading =>
+      'Downloading the latest version (nightly)...';
+
+  @override
+  String get settingsSystemUpdateEngineDesc =>
+      'Check for and install the latest version of yt-dlp';
+
+  @override
+  String transferMobileAddFolders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count folders',
+      one: 'Add $count folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileBroadcastDone =>
+      'Discovery signal broadcast on the network';
+
+  @override
+  String get transferMobileBroadcastTooltip =>
+      'Broadcast a network announcement';
+
+  @override
+  String transferMobileBytesOf(String done, String total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get transferMobileCheckAll => 'Select all';
+
+  @override
+  String get transferMobileUncheckAll => 'Deselect all';
+
+  @override
+  String get transferMobileClearList => 'Clear list';
+
+  @override
+  String transferMobileCreatorCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count creators',
+      one: '$count creator',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileDemoNoFiles =>
+      'Demo mode: no personal files accessible.';
+
+  @override
+  String get transferMobileDemoSendSimulated =>
+      'Demo mode: simulated send, no file transmitted.';
+
+  @override
+  String get transferMobileDeviceNotFound => 'No device found at this address.';
+
+  @override
+  String transferMobileDeviceUnreachable(String address) {
+    return 'Device unreachable ($address)';
+  }
+
+  @override
+  String get transferMobileDiagBusy =>
+      'The receiving device is already busy with another transfer.';
+
+  @override
+  String get transferMobileDiagChecksumMismatch =>
+      'Data integrity error (checksum mismatch).';
+
+  @override
+  String get transferMobileDiagCommunication =>
+      'Error communicating with the device.';
+
+  @override
+  String get transferMobileDiagConnectionRefused =>
+      'Connection refused. Open LocalSend on the receiving device and turn on Receive mode.';
+
+  @override
+  String get transferMobileDiagPinRequired =>
+      'PIN required by the receiving device.';
+
+  @override
+  String get transferMobileDiagRejected =>
+      'Transfer declined by the user on the receiving device.';
+
+  @override
+  String get transferMobileDiagTimeout =>
+      'Connection timed out. Check that the receiving device is on and on the same Wi-Fi.';
+
+  @override
+  String get transferMobileDiagUnreachable =>
+      'Check that LocalSend is open on that device, on the same Wi-Fi network.';
+
+  @override
+  String transferMobileFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '$count file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileFolderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folders',
+      one: '$count folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileFolderPickError(String error) {
+    return 'Folder selection error: $error';
+  }
+
+  @override
+  String get transferMobileFoldersAction => 'Folders…';
+
+  @override
+  String get transferMobileVideosAction => 'Videos…';
+
+  @override
+  String get transferMobileHeaderReceiving => 'Receiving';
+
+  @override
+  String get transferMobileHeaderSending => 'Sending';
+
+  @override
+  String get transferMobileIpAddress => 'IP address';
+
+  @override
+  String get transferMobileKindDesktop => 'Computer';
+
+  @override
+  String get transferMobileKindHeadless => 'Headless';
+
+  @override
+  String get transferMobileKindMobile => 'Mobile';
+
+  @override
+  String get transferMobileKindServer => 'Server';
+
+  @override
+  String get transferMobileKindWeb => 'Browser';
+
+  @override
+  String transferMobileLibraryNewOfTotal(
+    String library,
+    int newest,
+    int found,
+  ) {
+    return '$library ($newest new / $found)';
+  }
+
+  @override
+  String get transferMobileMarkKnown => 'Mark as known device';
+
+  @override
+  String get transferMobileUnmarkKnown => 'Remove from known devices';
+
+  @override
+  String transferMobileMediaCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count media items',
+      one: '$count media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileMediaFallback => 'Media';
+
+  @override
+  String transferMobileMediaSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count media items selected',
+      one: '$count media item selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileNameNewCount(String name, int newest) {
+    return '$name ($newest new)';
+  }
+
+  @override
+  String transferMobileNearbyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nearby devices',
+      one: '$count nearby device',
+      zero: 'No nearby devices',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileNewVideosCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new videos',
+      one: '$count new video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileNoDataSent => 'no data sent';
+
+  @override
+  String get transferMobileNoFolderMatch => 'No folder matches';
+
+  @override
+  String get transferMobilePeerPinExplain =>
+      'This receiving device protects incoming transfers with a PIN set in its LocalSend settings.\n\nEnter the PIN configured on your phone (or turn off the PIN option in the settings of your phone to send without a code).';
+
+  @override
+  String transferMobilePeerPinRequired(String alias) {
+    return 'PIN required by $alias';
+  }
+
+  @override
+  String get transferMobilePinExample => 'E.g. 1234';
+
+  @override
+  String get transferMobilePinLabel => 'Security PIN';
+
+  @override
+  String transferMobilePortAltActive(int port) {
+    return 'Port 53317 is busy. Alternate port $port is active.';
+  }
+
+  @override
+  String get transferMobilePortDefault => 'Port (default: 53317)';
+
+  @override
+  String get transferMobileQrHide => 'Hide QR code';
+
+  @override
+  String get transferMobileQrShow => 'Show QR code';
+
+  @override
+  String get transferMobileQrShowMobileToMobile =>
+      'Show QR code (phone to phone)';
+
+  @override
+  String get transferMobileReadyToReceive => 'Ready to receive';
+
+  @override
+  String get transferMobileReceiveFiles => 'Receive files';
+
+  @override
+  String get transferMobileRefresh => 'Refresh';
+
+  @override
+  String get transferMobileRefreshSearch => 'Refresh search';
+
+  @override
+  String transferMobileScanFolders(int scanned, int total, int videos) {
+    String _temp0 = intl.Intl.pluralLogic(
+      videos,
+      locale: localeName,
+      other: '$videos videos',
+      one: '$videos video',
+    );
+    return 'Folders $scanned / $total ($_temp0)…';
+  }
+
+  @override
+  String transferMobileScanVideosFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos found…',
+      one: '$count video found…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileSearchDemoMedia => 'Search a demo media item…';
+
+  @override
+  String transferMobileSelectedOfTotal(int selected, int total) {
+    return '$selected/$total selected';
+  }
+
+  @override
+  String get transferMobileShowPinQr => 'Show my PIN and QR code';
+
+  @override
+  String get transferMobileSimulation => 'simulation';
+
+  @override
+  String get transferMobileSubfoldersFilter => 'Filter subfolders…';
+
+  @override
+  String transferMobileSubfoldersFoundIn(String name) {
+    return 'Folders found in $name';
+  }
+
+  @override
+  String get transferMobileSubfoldersTitle => 'Select folders';
+
+  @override
+  String get transferMobileUpToDate => 'Up to date';
+
+  @override
+  String transferMobileUpToDateCount(int count) {
+    return 'Up to date ($count)';
+  }
+
+  @override
+  String transferMobileVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '$count video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileVideosZipped(int count) {
+    return '$count videos (bundled in a ZIP)';
+  }
+
+  @override
+  String get transferMobileVisibleOnLan => 'Visible on the local network';
+
+  @override
+  String get transferMobileVisibleOnWifi => 'Visible on the local Wi-Fi';
+
+  @override
+  String get transferMobileZipActive => 'ZIP on';
+
+  @override
+  String get transferMobileZipArchive => 'Archive as ZIP';
+
+  @override
+  String get transferMobileZipEnabled => 'ZIP archive: On';
+
+  @override
+  String get transferMobileZipHintLarge =>
+      'ZIP is on. For large folders, turning ZIP off speeds up direct sending to the gallery.';
+
+  @override
+  String get transferMobileZipHintMulti =>
+      'Several files → one ZIP archive (no compression, videos are already compressed)';
+
+  @override
+  String get transferMobileZipHintOff =>
+      'Files are sent as they are to LocalSend (straight into the gallery)';
+
+  @override
+  String get transferMobileZipTooltip =>
+      'Bundle several files into a ZIP archive (copy, no compression)';
+
+  @override
+  String get detailsStepFailMetered => 'Mobile data in use';
+
+  @override
+  String get archiveMobileCollectionLiked => 'Liked videos';
+
+  @override
+  String get archiveMobileCollectionUnsortedFavorites => 'Unsorted favorites';
 }

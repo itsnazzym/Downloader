@@ -69,7 +69,10 @@ void main() {
   });
 
   test('diskSpace returns total and free bytes, or null on error', () async {
-    respond = (_) => {'total': 64 * 1024 * 1024 * 1024, 'free': 10 * 1024 * 1024};
+    respond = (_) => {
+      'total': 64 * 1024 * 1024 * 1024,
+      'free': 10 * 1024 * 1024,
+    };
     final space = await bridge().diskSpace();
     expect(space?.total, 64 * 1024 * 1024 * 1024);
     expect(space?.free, 10 * 1024 * 1024);
@@ -78,26 +81,45 @@ void main() {
     expect(await bridge().diskSpace(), isNull);
   });
 
+  test('isMeteredNetwork reads the native answer, false on error', () async {
+    respond = (_) => true;
+    expect(await bridge().isMeteredNetwork(), isTrue);
+    expect(calls.single.method, 'isMetered');
+
+    respond = (_) => throw PlatformException(code: 'metered');
+    expect(await bridge().isMeteredNetwork(), isFalse);
+  });
+
+  test('init and updateYtDlp pass the update channel', () async {
+    final b = bridge();
+    await b.ensureInitialized(autoUpdate: false, channel: 'stable');
+    expect(calls.single.arguments, {'autoUpdate': false, 'channel': 'stable'});
+
+    calls.clear();
+    await b.updateYtDlp(channel: 'stable');
+    expect(calls.single.method, 'updateYtDlp');
+    expect(calls.single.arguments, {'channel': 'stable'});
+  });
+
   test('defaultOutputDir treats blank as missing', () async {
     respond = (_) => '  ';
     expect(await bridge().defaultOutputDir(), isNull);
   });
 
   test('every method the Dart bridge invokes exists in EnginePlugin.kt', () {
-    final dart = File('lib/core/android/android_engine_bridge.dart')
-        .readAsStringSync();
+    final dart = File(
+      'lib/core/android/android_engine_bridge.dart',
+    ).readAsStringSync();
     final kotlin = File(
       'android/app/src/main/kotlin/com/downloader/modern_downloader/EnginePlugin.kt',
     ).readAsStringSync();
 
-    final invoked = RegExp(r"invokeMethod[^(]*\(\s*'([A-Za-z]+)'")
-        .allMatches(dart)
-        .map((m) => m.group(1)!)
-        .toSet();
-    final handled = RegExp(r'"([A-Za-z]+)"\s*->')
-        .allMatches(kotlin)
-        .map((m) => m.group(1)!)
-        .toSet();
+    final invoked = RegExp(
+      r"invokeMethod[^(]*\(\s*'([A-Za-z]+)'",
+    ).allMatches(dart).map((m) => m.group(1)!).toSet();
+    final handled = RegExp(
+      r'"([A-Za-z]+)"\s*->',
+    ).allMatches(kotlin).map((m) => m.group(1)!).toSet();
 
     expect(invoked, containsAll(['init', 'run', 'start', 'kill']));
     expect(invoked.difference(handled), isEmpty);

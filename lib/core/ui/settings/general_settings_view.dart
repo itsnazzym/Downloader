@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
-import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/settings_tiles.dart';
 import '../../setup/dependency_bootstrap_provider.dart';
@@ -14,7 +12,7 @@ import 'package:modern_downloader/features/onboarding/presentation/onboarding_co
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../platform/platform_info.dart';
 
-import 'widgets/settings_app_bar_leading.dart';
+import 'widgets/settings_app_bar.dart';
 
 class GeneralSettingsView extends ConsumerWidget {
   const GeneralSettingsView({super.key});
@@ -28,34 +26,7 @@ class GeneralSettingsView extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: AppColors.of(context).background,
-      appBar: AppBar(
-        leading: const SettingsAppBarLeading(),
-        backgroundColor: AppColors.of(
-          context,
-        ).background.withValues(alpha: 0.8),
-        elevation: 0,
-        centerTitle: true,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-        title: Text(
-          l10n.settingsGeneral,
-          style: AppTypography.h3.copyWith(
-            color: AppColors.of(context).textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: AppColors.of(context).border.withValues(alpha: 0.5),
-            height: 1,
-          ),
-        ),
-      ),
+      appBar: buildSettingsAppBar(context, title: l10n.settingsGeneral),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.l,

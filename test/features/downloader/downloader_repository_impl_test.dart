@@ -156,7 +156,10 @@ void main() {
     }
   });
 
-  DownloaderRepositoryImpl buildRepo(_FakeYtDlp source) {
+  DownloaderRepositoryImpl buildRepo(
+    _FakeYtDlp source, {
+    Future<void> Function()? networkPreflight,
+  }) {
     return DownloaderRepositoryImpl(
       source,
       gallery,
@@ -164,6 +167,7 @@ void main() {
       _NoopScanner(),
       PluginManager(),
       () => tmp.path,
+      networkPreflight: networkPreflight,
       mediaFingerprintService: MediaFingerprintService(persistence),
       waitForLibraryScan: () async {
         if (!loaded.isCompleted) loaded.complete();
@@ -208,6 +212,54 @@ void main() {
     final item = await failed.future.timeout(const Duration(seconds: 8));
     expect(item.status, DownloadStatus.failed);
     expect(item.error, isNotNull);
+  });
+
+  test('wifi-only preflight fails the item before any download', () async {
+    final source = _FakeYtDlp();
+    final repo = buildRepo(
+      source,
+      networkPreflight: () async => throw const WifiOnlyBlockedException(),
+    );
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    final failed = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.failed && !failed.isCompleted) {
+        failed.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      const DownloadRequest(url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+    );
+
+    final item = await failed.future.timeout(const Duration(seconds: 8));
+    expect(item.error, contains('Wi-Fi only'));
+    expect(source.downloadCalls, 0);
+  });
+
+  test('wifi-only refusal never falls back to gallery-dl', () async {
+    final source = _FakeYtDlp();
+    final repo = buildRepo(
+      source,
+      networkPreflight: () async => throw const WifiOnlyBlockedException(),
+    );
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final failed = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.failed && !failed.isCompleted) {
+        failed.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      const DownloadRequest(url: 'https://x.com/someone/status/1234567890123'),
+    );
+
+    final item = await failed.future.timeout(const Duration(seconds: 8));
+    expect(item.error, contains('Wi-Fi only'));
+    expect(gallery.downloadCalls, 0);
+    expect(source.downloadCalls, 0);
   });
 
   test('deleteDownload removes item and cleans media files', () async {

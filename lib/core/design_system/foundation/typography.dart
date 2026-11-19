@@ -5,6 +5,8 @@ import '../../theme/theme_presets.dart';
 class AppTypography {
   const AppTypography._();
 
+  static String _family = 'Inter';
+
   static TextStyle get _base => GoogleFonts.inter();
 
   static TextStyle get h1 => _base.copyWith(
@@ -49,7 +51,20 @@ class AppTypography {
       letterSpacing: letterSpacing,
       height: height,
     );
-    return useGoogleFonts ? GoogleFonts.inter(textStyle: style) : style;
+    if (!useGoogleFonts) return style;
+    try {
+      return GoogleFonts.getFont(_family, textStyle: style);
+    } catch (_) {
+      return GoogleFonts.inter(textStyle: style);
+    }
+  }
+
+  static TextTheme _baseTheme() {
+    try {
+      return GoogleFonts.getTextTheme(_family);
+    } catch (_) {
+      return GoogleFonts.interTextTheme();
+    }
   }
 
   static TextTheme textThemeFor(
@@ -57,9 +72,8 @@ class AppTypography {
     bool useGoogleFonts = true,
   }) {
     final ios = palette.isIosChrome;
-    final baseTextTheme = useGoogleFonts
-        ? GoogleFonts.interTextTheme()
-        : const TextTheme();
+    _family = palette.id == 'oled' ? 'Instrument Sans' : 'Inter';
+    final baseTextTheme = useGoogleFonts ? _baseTheme() : const TextTheme();
     return baseTextTheme.copyWith(
       displayLarge: _ui(
         fontSize: ios ? 28 : 24,

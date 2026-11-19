@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +33,7 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
-import 'widgets/settings_app_bar_leading.dart';
+import 'widgets/settings_app_bar.dart';
 import '../../../showcase/showcase_mode.dart';
 
 class PluginsSettingsView extends ConsumerWidget {
@@ -59,45 +57,7 @@ class PluginsSettingsView extends ConsumerWidget {
 
       backgroundColor: AppColors.of(context).background,
 
-      appBar: AppBar(
-        leading: const SettingsAppBarLeading(),
-
-        backgroundColor: AppColors.of(
-          context,
-        ).background.withValues(alpha: 0.8),
-
-        elevation: 0,
-
-        centerTitle: true,
-
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-
-        title: Text(
-          l10n.plugins,
-
-          style: AppTypography.h3.copyWith(
-            color: AppColors.of(context).textPrimary,
-
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-
-          child: Container(
-            color: AppColors.of(context).border.withValues(alpha: 0.5),
-
-            height: 1,
-          ),
-        ),
-      ),
+      appBar: buildSettingsAppBar(context, title: l10n.plugins),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(

@@ -57,10 +57,15 @@ class DependencyBootstrapService {
     required void Function(DependencyBootstrapProgress progress) onProgress,
     bool checkOptionalGobird = false,
     bool autoUpdateYtDlp = true,
+    String ytDlpChannel = 'nightly',
   }) async {
     LoggerService.i('Checking required download tools');
     if (Platform.isAndroid) {
-      await _ensureAndroidEngine(onProgress, autoUpdateYtDlp: autoUpdateYtDlp);
+      await _ensureAndroidEngine(
+        onProgress,
+        autoUpdateYtDlp: autoUpdateYtDlp,
+        channel: ytDlpChannel,
+      );
       return;
     }
     if (!Platform.isWindows) {
@@ -228,8 +233,10 @@ class DependencyBootstrapService {
     );
   }
 
-  Future<void> updateYtDlpInBackground() async {
-    await _updateYtDlp();
+  Future<void> updateYtDlpInBackground({
+    String ytDlpChannel = 'nightly',
+  }) async {
+    await _updateYtDlp(ytDlpChannel: ytDlpChannel);
   }
 
   Future<void> _emitProgress(
@@ -435,6 +442,7 @@ class DependencyBootstrapService {
   Future<void> _ensureAndroidEngine(
     void Function(DependencyBootstrapProgress progress) onProgress, {
     bool autoUpdateYtDlp = true,
+    String channel = 'nightly',
   }) async {
     final ready = <String>[];
     await _emitProgress(
@@ -454,6 +462,7 @@ class DependencyBootstrapService {
       );
       await AndroidEngineBridge.instance.ensureInitialized(
         autoUpdate: autoUpdateYtDlp,
+        channel: channel,
       );
       for (final pkg in DependencyCatalog.androidRequired) {
         ready.addAll(pkg.executableNames);
@@ -485,10 +494,10 @@ class DependencyBootstrapService {
     }
   }
 
-  Future<void> _updateYtDlp() async {
+  Future<void> _updateYtDlp({String ytDlpChannel = 'nightly'}) async {
     try {
       if (Platform.isAndroid) {
-        await AndroidEngineBridge.instance.updateYtDlp();
+        await AndroidEngineBridge.instance.updateYtDlp(channel: ytDlpChannel);
         return;
       }
       final ytDlpPath = await _locator.findYtDlp();

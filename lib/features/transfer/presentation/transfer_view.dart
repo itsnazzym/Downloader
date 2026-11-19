@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
@@ -15,6 +16,7 @@ import 'package:modern_downloader/features/transfer/domain/transfer_creator_quer
 import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
+import 'package:modern_downloader/features/transfer/presentation/widgets/dot_radar.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
@@ -60,6 +62,10 @@ class _TransferViewState extends ConsumerState<TransferView> {
       unawaited(_showPeerPin(next));
     });
 
+    if (PlatformInfo.isMobile) {
+      return _OledTransferBody(state: state);
+    }
+
     final isMobile =
         PlatformInfo.isMobile || MediaQuery.sizeOf(context).width < 640;
 
@@ -75,12 +81,13 @@ class _TransferViewState extends ConsumerState<TransferView> {
         children: [
           _HeaderBar(state: state),
           const Gap(16),
-          if (state.progress != null || state.diagnosticMessage != null)
+          if (state.progress != null || state.diagnostic != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: _LiveTransferBanner(
                 progress: state.progress,
-                diagnostic: state.diagnosticMessage,
+                diagnostic: state.diagnostic,
+                scanStatus: state.scanStatus,
                 lastError: state.lastError,
                 onRetry: () => ref
                     .read(transferControllerProvider.notifier)
@@ -172,7 +179,7 @@ class _TransferViewState extends ConsumerState<TransferView> {
               const Gap(12),
               Expanded(
                 child: Text(
-                  'Code PIN requis par ${peer.alias}',
+                  l10n.transferMobilePeerPinRequired(peer.alias),
                   style: AppTypography.h3.copyWith(fontSize: 18),
                 ),
               ),
@@ -202,7 +209,7 @@ class _TransferViewState extends ConsumerState<TransferView> {
                     const Gap(8),
                     Expanded(
                       child: Text(
-                        'Cet appareil récepteur protège ses réceptions par un code PIN défini dans ses paramètres LocalSend.\n\nSaisissez le code PIN configuré sur votre téléphone (ou désactivez l\'option PIN dans les paramètres de votre téléphone pour envoyer sans code).',
+                        l10n.transferMobilePeerPinExplain,
                         style: AppTypography.caption.copyWith(
                           color: colors.textSecondary,
                           height: 1.4,
@@ -226,7 +233,7 @@ class _TransferViewState extends ConsumerState<TransferView> {
                   color: colors.textPrimary,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Ex: 1234',
+                  hintText: l10n.transferMobilePinExample,
                   hintStyle: AppTypography.mono.copyWith(
                     fontSize: 16,
                     letterSpacing: 2,
@@ -325,7 +332,7 @@ class _HeaderBar extends ConsumerWidget {
           Text(
             state.portConflict
                 ? (PlatformInfo.isMobile
-                      ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
+                      ? l10n.transferMobilePortAltActive(state.port ?? 53318)
                       : l10n.transferPortBusy)
                 : l10n.transferSubtitle,
             style: AppTypography.caption.copyWith(color: colors.textSecondary),
@@ -359,7 +366,9 @@ class _HeaderBar extends ConsumerWidget {
               Text(
                 state.portConflict
                     ? (PlatformInfo.isMobile
-                          ? 'Port 53317 occupé. Port alternatif ${state.port ?? 53318} actif.'
+                          ? l10n.transferMobilePortAltActive(
+                              state.port ?? 53318,
+                            )
                           : l10n.transferPortBusy)
                     : l10n.transferSubtitle,
                 style: AppTypography.caption.copyWith(
@@ -385,7 +394,7 @@ class _PinBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     return Tooltip(
-      message: 'Code PIN de sécurité',
+      message: context.l10n.transferMobilePinLabel,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
@@ -556,13 +565,15 @@ class _LiveTransferBanner extends StatelessWidget {
   const _LiveTransferBanner({
     required this.progress,
     required this.diagnostic,
+    required this.scanStatus,
     required this.lastError,
     required this.onRetry,
     required this.onCancel,
   });
 
   final TransferProgress? progress;
-  final String? diagnostic;
+  final TransferDiagnostic? diagnostic;
+  final TransferScanStatus? scanStatus;
   final String? lastError;
   final VoidCallback onRetry;
   final VoidCallback onCancel;
@@ -618,17 +629,17 @@ class _LiveTransferBanner extends StatelessWidget {
                     Text(
                       progress != null
                           ? _progressLabel(l10n, progress!)
-                          : (lastError ?? l10n.transferTitle),
+                          : _noticeTitle(l10n, diagnostic, lastError),
                       style: AppTypography.body.copyWith(
                         color: isFailed ? colors.error : colors.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (diagnostic != null && diagnostic!.isNotEmpty)
+                    if (diagnostic != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(
-                          diagnostic!,
+                          _diagnosticText(l10n, diagnostic!),
                           style: AppTypography.caption.copyWith(
                             color: colors.textSecondary,
                           ),
@@ -672,8 +683,8 @@ class _LiveTransferBanner extends StatelessWidget {
               children: [
                 Text(
                   (progress!.phase == TransferPhase.preparing &&
-                          progress!.currentName.isNotEmpty)
-                      ? progress!.currentName
+                          scanStatus != null)
+                      ? _scanText(l10n, scanStatus!)
                       : '${FormatUtils.formatBytes(progress!.bytesDone)} / ${FormatUtils.formatBytes(progress!.bytesTotal)}',
                   style: AppTypography.mono.copyWith(
                     color: colors.textSecondary,
@@ -783,10 +794,8 @@ class _SendTabContent extends StatelessWidget {
             final container = ProviderScope.containerOf(context);
             if (container.read(showcaseModeProvider)) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Mode démo : envoi simulé, aucun fichier transmis.',
-                  ),
+                SnackBar(
+                  content: Text(context.l10n.transferMobileDemoSendSimulated),
                 ),
               );
               return;
@@ -845,6 +854,10 @@ class _DoppelrandCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (PlatformInfo.isMobile) {
+      final oled = OledCard(padding: const EdgeInsets.all(16), child: child);
+      return fill ? SizedBox.expand(child: oled) : oled;
+    }
     final colors = AppColors.of(context);
     final card = Container(
       decoration: BoxDecoration(
@@ -984,7 +997,7 @@ class _MePanelState extends ConsumerState<_MePanel> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Prêt à recevoir',
+                          l10n.transferMobileReadyToReceive,
                           style: AppTypography.body.copyWith(
                             color: colors.textPrimary,
                             fontWeight: FontWeight.w600,
@@ -992,7 +1005,7 @@ class _MePanelState extends ConsumerState<_MePanel> {
                           ),
                         ),
                         Text(
-                          'Visible sur le Wi-Fi local',
+                          l10n.transferMobileVisibleOnWifi,
                           style: AppTypography.caption.copyWith(
                             color: colors.textSecondary,
                             fontSize: 11,
@@ -1002,18 +1015,16 @@ class _MePanelState extends ConsumerState<_MePanel> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Diffuser une annonce réseau',
+                    tooltip: l10n.transferMobileBroadcastTooltip,
                     icon: const Icon(Icons.wifi_tethering_rounded, size: 20),
                     onPressed: () {
                       ref
                           .read(transferControllerProvider.notifier)
                           .triggerDiscoveryPulse();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Signal de découverte diffusé sur le réseau',
-                          ),
-                          duration: Duration(seconds: 2),
+                        SnackBar(
+                          content: Text(l10n.transferMobileBroadcastDone),
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     },
@@ -1024,7 +1035,7 @@ class _MePanelState extends ConsumerState<_MePanel> {
             const Gap(18),
             // Security PIN Block
             Text(
-              'CODE PIN DE SÉCURITÉ',
+              l10n.transferMobilePinLabel.toUpperCase(),
               style: AppTypography.caption.copyWith(
                 color: colors.textSecondary,
                 letterSpacing: 2,
@@ -1128,8 +1139,8 @@ class _MePanelState extends ConsumerState<_MePanel> {
                 ),
                 label: Text(
                   _showQr
-                      ? 'Masquer le QR code'
-                      : 'Afficher le QR code (mobile à mobile)',
+                      ? l10n.transferMobileQrHide
+                      : l10n.transferMobileQrShowMobileToMobile,
                   style: AppTypography.caption.copyWith(
                     color: colors.primary,
                     fontWeight: FontWeight.w600,
@@ -1275,7 +1286,7 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
                     );
                   },
                   icon: const Icon(Icons.sync_rounded, size: 16),
-                  label: const Text('Actualiser'),
+                  label: Text(l10n.transferMobileRefresh),
                 ),
                 FilledButton.tonalIcon(
                   onPressed: () => _showDirectIpDialog(context, ref),
@@ -1324,7 +1335,7 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
               const Spacer(),
               // 1. Refresh button (with rotation animation)
               IconButton(
-                tooltip: 'Actualiser la recherche',
+                tooltip: l10n.transferMobileRefreshSearch,
                 icon: RotationTransition(
                   turns: _rotationController,
                   child: const Icon(Icons.sync_rounded, size: 20),
@@ -1366,7 +1377,7 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
               // 4. Clear peer list button
               if (peers.isNotEmpty)
                 IconButton(
-                  tooltip: 'Effacer la liste',
+                  tooltip: l10n.transferMobileClearList,
                   icon: const Icon(Icons.delete_sweep_outlined, size: 20),
                   onPressed: () {
                     ref.read(transferControllerProvider.notifier).clearPeers();
@@ -1522,8 +1533,8 @@ class _PeerTile extends ConsumerWidget {
               ),
               IconButton(
                 tooltip: peer.known
-                    ? 'Retirer des appareils connus'
-                    : 'Marquer comme appareil connu',
+                    ? l10n.transferMobileUnmarkKnown
+                    : l10n.transferMobileMarkKnown,
                 icon: Icon(
                   peer.known ? Icons.star_rounded : Icons.star_outline_rounded,
                   color: peer.known
@@ -1556,7 +1567,9 @@ class _PeerTile extends ConsumerWidget {
                       (onlyNew && preview.found > 0)
                           ? (preview.newest > 0
                                 ? l10n.transferSendNewOnly(preview.newest)
-                                : 'À jour (${preview.already})')
+                                : l10n.transferMobileUpToDateCount(
+                                    preview.already,
+                                  ))
                           : l10n.transferSend,
                       style: AppTypography.label.copyWith(
                         color:
@@ -1640,7 +1653,7 @@ class _DirectIpDialogState extends ConsumerState<_DirectIpDialog> {
     } else {
       setState(() {
         _connecting = false;
-        _error = 'Appareil introuvable à cette adresse.';
+        _error = context.l10n.transferMobileDeviceNotFound;
       });
     }
   }
@@ -1661,7 +1674,7 @@ class _DirectIpDialogState extends ConsumerState<_DirectIpDialog> {
             autofocus: true,
             decoration: InputDecoration(
               hintText: l10n.transferDirectIpHint,
-              labelText: 'Adresse IP',
+              labelText: l10n.transferMobileIpAddress,
               prefixIcon: const Icon(Icons.lan_rounded, size: 20),
             ),
           ),
@@ -1669,9 +1682,9 @@ class _DirectIpDialogState extends ConsumerState<_DirectIpDialog> {
           TextField(
             controller: _portController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Port (défaut : 53317)',
-              prefixIcon: Icon(Icons.tag_rounded, size: 20),
+            decoration: InputDecoration(
+              labelText: l10n.transferMobilePortDefault,
+              prefixIcon: const Icon(Icons.tag_rounded, size: 20),
             ),
           ),
           if (_error != null) ...[
@@ -1741,9 +1754,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
 
   void _showDemoFileNotice() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Mode démo : aucun fichier personnel accessible.'),
-      ),
+      SnackBar(content: Text(context.l10n.transferMobileDemoNoFiles)),
     );
   }
 
@@ -1765,14 +1776,14 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
     required int extraFolders,
     required int extraFiles,
   }) {
+    final l10n = context.l10n;
     final parts = <String>[
       if (selectedCreators > 0)
-        '$selectedCreators créateur${selectedCreators > 1 ? 's' : ''}',
-      if (extraFolders > 0)
-        '$extraFolders dossier${extraFolders > 1 ? 's' : ''}',
-      if (extraFiles > 0) '$extraFiles fichier${extraFiles > 1 ? 's' : ''}',
+        l10n.transferMobileCreatorCount(selectedCreators),
+      if (extraFolders > 0) l10n.transferMobileFolderCount(extraFolders),
+      if (extraFiles > 0) l10n.transferMobileFileCount(extraFiles),
     ];
-    return parts.join(' • ');
+    return parts.join(_metaSep);
   }
 
   Future<void> _pickFoldersFlow() async {
@@ -1802,7 +1813,11 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur sélection dossier : $e')),
+          SnackBar(
+            content: Text(
+              context.l10n.transferMobileFolderPickError(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -1864,9 +1879,10 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                       const Gap(6),
                       Text(
                         isShowcase
-                            ? '${_demoSelectedIds.length} médias · simulation'
-                            : '${state.selectedFilesCount} vidéo${state.selectedFilesCount > 1 ? 's' : ''} • ${FormatUtils.formatBytes(state.selectedTotalBytes)}',
-                        style: AppTypography.mono.copyWith(
+                            ? '${l10n.transferMobileMediaCount(_demoSelectedIds.length)}${PlatformInfo.isMobile ? ', ' : ' · '}${l10n.transferMobileSimulation}'
+                            : '${l10n.transferMobileVideoCount(state.selectedFilesCount)}$_metaSep${FormatUtils.formatBytes(state.selectedTotalBytes)}',
+                        style: _numStyle(
+                          context,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: colors.primary,
@@ -1912,12 +1928,12 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
               ),
               _QuickAction(
                 icon: Icons.create_new_folder_outlined,
-                label: 'Dossiers...',
+                label: l10n.transferMobileFoldersAction,
                 onTap: isShowcase ? _showDemoFileNotice : _pickFoldersFlow,
               ),
               _QuickAction(
                 icon: Icons.video_library_outlined,
-                label: 'Vidéos...',
+                label: l10n.transferMobileVideosAction,
                 onTap: () {
                   if (isShowcase) {
                     _showDemoFileNotice();
@@ -1993,7 +2009,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
             style: AppTypography.body.copyWith(color: colors.textPrimary),
             decoration: InputDecoration(
               hintText: isShowcase
-                  ? 'Rechercher un média de démonstration...'
+                  ? l10n.transferMobileSearchDemoMedia
                   : l10n.transferSearchCreator,
               prefixIcon: const Icon(Icons.search_rounded, size: 20),
               suffixIcon: _query.text.isEmpty
@@ -2037,7 +2053,7 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                   Expanded(
                     child: Text(
                       isShowcase
-                          ? '${_demoSelectedIds.length} médias sélectionnés · aucune donnée envoyée'
+                          ? '${l10n.transferMobileMediaSelected(_demoSelectedIds.length)}${PlatformInfo.isMobile ? ', ' : ' · '}${l10n.transferMobileNoDataSent}'
                           : _selectionSummary(
                               selectedCreators: selected.length,
                               extraFolders: state.extraFolders.length,
@@ -2045,7 +2061,8 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                             ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.mono.copyWith(
+                      style: _numStyle(
+                        context,
                         color: colors.textSecondary,
                         fontSize: 11,
                       ),
@@ -2142,7 +2159,8 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.title ?? 'Média',
+                              item.title ??
+                                  context.l10n.transferMobileMediaFallback,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.bodySmall.copyWith(
@@ -2188,7 +2206,11 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
           child: InputChip(
             label: Text(
               preview.already > 0
-                  ? '${l10n.transferEntireLibrary} (${preview.newest} nlle${preview.newest > 1 ? 's' : ''} / ${preview.found})'
+                  ? l10n.transferMobileLibraryNewOfTotal(
+                      l10n.transferEntireLibrary,
+                      preview.newest,
+                      preview.found,
+                    )
                   : l10n.transferEntireLibrary,
             ),
             onDeleted: () {
@@ -2228,7 +2250,10 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                           ),
                     );
                     final label = (counts != null && counts.already > 0)
-                        ? '$baseName (${counts.newest} nlle${counts.newest > 1 ? 's' : ''})'
+                        ? l10n.transferMobileNameNewCount(
+                            baseName,
+                            counts.newest,
+                          )
                         : baseName;
                     return InputChip(
                       label: Text(label),
@@ -2356,8 +2381,9 @@ class _SendMemoryStatusBanner extends StatelessWidget {
               const Gap(10),
               Expanded(
                 child: Text(
-                  '${l10n.transferVideosFound(preview.found)} • ${l10n.transferAlreadyTransferred(preview.already)} • ${l10n.transferNewVideos(preview.newest)}',
-                  style: AppTypography.mono.copyWith(
+                  '${l10n.transferVideosFound(preview.found)}$_metaSep${l10n.transferAlreadyTransferred(preview.already)}$_metaSep${l10n.transferNewVideos(preview.newest)}',
+                  style: _numStyle(
+                    context,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: colors.textPrimary,
@@ -2424,7 +2450,8 @@ class _SendMemoryStatusBanner extends StatelessWidget {
                   if (onlyNewVideos && preview.newest > 0)
                     Text(
                       '${preview.newest} (${FormatUtils.formatBytes(preview.newBytes)})',
-                      style: AppTypography.mono.copyWith(
+                      style: _numStyle(
+                        context,
                         fontSize: 11,
                         color: colors.primary,
                         fontWeight: FontWeight.w700,
@@ -2456,6 +2483,10 @@ class _PayloadCompressionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    // Text drawn on the primary fill. White everywhere except on mobile, where
+    // the OLED primary is near white.
+    final onPrimary = PlatformInfo.isMobile ? colors.onPrimary : Colors.white;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -2496,8 +2527,8 @@ class _PayloadCompressionBanner extends StatelessWidget {
                     Flexible(
                       child: Text(
                         compressZip && count > 1
-                            ? '$count vidéos (regroupées en ZIP) • ${FormatUtils.formatBytes(totalBytes)}'
-                            : '$count vidéo${count > 1 ? 's' : ''} • ${FormatUtils.formatBytes(totalBytes)}',
+                            ? '${l10n.transferMobileVideosZipped(count)}$_metaSep${FormatUtils.formatBytes(totalBytes)}'
+                            : '${l10n.transferMobileVideoCount(count)}$_metaSep${FormatUtils.formatBytes(totalBytes)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.body.copyWith(
@@ -2519,9 +2550,12 @@ class _PayloadCompressionBanner extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'ZIP ACTIF',
-                          style: AppTypography.mono.copyWith(
-                            fontSize: 9,
+                          PlatformInfo.isMobile
+                              ? l10n.transferMobileZipActive
+                              : l10n.transferMobileZipActive.toUpperCase(),
+                          style: _numStyle(
+                            context,
+                            fontSize: PlatformInfo.isMobile ? 11 : 9,
                             fontWeight: FontWeight.w700,
                             color: colors.primary,
                           ),
@@ -2534,9 +2568,9 @@ class _PayloadCompressionBanner extends StatelessWidget {
                 Text(
                   compressZip
                       ? (count > 50
-                          ? 'ZIP actif. Pour de gros dossiers, désactiver le ZIP accélère l\'envoi direct vers la galerie.'
-                          : 'Plusieurs fichiers → une archive ZIP (sans compression, vidéos déjà compressées)')
-                      : 'Les fichiers partent tels quels vers LocalSend (directement dans la galerie)',
+                            ? l10n.transferMobileZipHintLarge
+                            : l10n.transferMobileZipHintMulti)
+                      : l10n.transferMobileZipHintOff,
                   style: AppTypography.caption.copyWith(
                     color: compressZip ? colors.primary : colors.textSecondary,
                     fontSize: 11,
@@ -2547,8 +2581,7 @@ class _PayloadCompressionBanner extends StatelessWidget {
           ),
           const Gap(10),
           Tooltip(
-            message:
-                'Regrouper plusieurs fichiers en une archive ZIP (copie, pas de compression)',
+            message: l10n.transferMobileZipTooltip,
             child: InkWell(
               onTap: onToggleZip,
               borderRadius: BorderRadius.circular(99),
@@ -2576,13 +2609,15 @@ class _PayloadCompressionBanner extends StatelessWidget {
                           ? Icons.check_rounded
                           : Icons.archive_outlined,
                       size: 15,
-                      color: compressZip ? Colors.white : colors.textSecondary,
+                      color: compressZip ? onPrimary : colors.textSecondary,
                     ),
                     const Gap(6),
                     Text(
-                      compressZip ? 'Archive ZIP : Activé' : 'Archiver en ZIP',
+                      compressZip
+                          ? l10n.transferMobileZipEnabled
+                          : l10n.transferMobileZipArchive,
                       style: AppTypography.caption.copyWith(
-                        color: compressZip ? Colors.white : colors.textPrimary,
+                        color: compressZip ? onPrimary : colors.textPrimary,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -2660,11 +2695,11 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sélectionner des dossiers',
+                      l10n.transferMobileSubfoldersTitle,
                       style: AppTypography.h3.copyWith(fontSize: 18),
                     ),
                     Text(
-                      'Dossiers trouvés dans $parentName',
+                      l10n.transferMobileSubfoldersFoundIn(parentName),
                       style: AppTypography.caption.copyWith(
                         color: colors.textSecondary,
                       ),
@@ -2680,7 +2715,7 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
             onChanged: (val) => setState(() => _filter = val),
             style: AppTypography.body.copyWith(color: colors.textPrimary),
             decoration: InputDecoration(
-              hintText: 'Filtrer les sous-dossiers...',
+              hintText: l10n.transferMobileSubfoldersFilter,
               prefixIcon: const Icon(Icons.search_rounded, size: 18),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.05),
@@ -2706,7 +2741,7 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                   });
                 },
                 icon: const Icon(Icons.select_all_rounded, size: 16),
-                label: const Text('Tout cocher'),
+                label: Text(l10n.transferMobileCheckAll),
               ),
               const Gap(8),
               TextButton.icon(
@@ -2716,11 +2751,14 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                   });
                 },
                 icon: const Icon(Icons.deselect_rounded, size: 16),
-                label: const Text('Tout décocher'),
+                label: Text(l10n.transferMobileUncheckAll),
               ),
               const Spacer(),
               Text(
-                '${_selected.length}/${widget.subfolders.length} sélectionnés',
+                l10n.transferMobileSelectedOfTotal(
+                  _selected.length,
+                  widget.subfolders.length,
+                ),
                 style: AppTypography.mono.copyWith(
                   fontSize: 12,
                   color: colors.textSecondary,
@@ -2744,7 +2782,7 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
             child: filtered.isEmpty
                 ? Center(
                     child: Text(
-                      'Aucun dossier ne correspond',
+                      l10n.transferMobileNoFolderMatch,
                       style: AppTypography.caption.copyWith(
                         color: colors.textSecondary,
                       ),
@@ -2810,7 +2848,7 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
               ? null
               : () => Navigator.pop(context, _selected.toList()),
           icon: const Icon(Icons.add_rounded, size: 16),
-          label: Text('Ajouter (${_selected.length}) dossiers'),
+          label: Text(l10n.transferMobileAddFolders(_selected.length)),
         ),
       ],
     );
@@ -2896,6 +2934,9 @@ class _QuickAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (PlatformInfo.isMobile) {
+      return OledChip(label: label, selected: selected, onTap: onTap);
+    }
     final colors = AppColors.of(context);
     return Material(
       color: selected
@@ -2928,6 +2969,844 @@ class _QuickAction extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Separator for compact meta strings: a comma on the OLED mobile layout.
+String get _metaSep => PlatformInfo.isMobile ? ', ' : ' • ';
+
+/// Style for small figures: mono on desktop, tabular UI font on mobile.
+TextStyle _numStyle(
+  BuildContext context, {
+  required double fontSize,
+  required Color color,
+  FontWeight? fontWeight,
+}) {
+  if (PlatformInfo.isMobile) {
+    return OledText.ui(
+      context,
+      size: fontSize,
+      weight: fontWeight ?? FontWeight.w500,
+      color: color,
+    );
+  }
+  return AppTypography.mono.copyWith(
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    color: color,
+  );
+}
+
+String _peerKind(AppLocalizations l10n, TransferPeer peer) {
+  final model = peer.deviceModel;
+  if (model != null && model.trim().isNotEmpty) return model.trim();
+  return switch (peer.deviceType) {
+    TransferDeviceType.mobile => l10n.transferMobileKindMobile,
+    TransferDeviceType.desktop => l10n.transferMobileKindDesktop,
+    TransferDeviceType.web => l10n.transferMobileKindWeb,
+    TransferDeviceType.headless => l10n.transferMobileKindHeadless,
+    TransferDeviceType.server => l10n.transferMobileKindServer,
+  };
+}
+
+/// Freshness of a peer, from 1 to 4 bars. There is no radio signal strength
+/// on a LAN, so this reflects how recently the device announced itself.
+int _peerSignal(TransferPeer peer) {
+  final seen = peer.lastSeen;
+  if (seen == null) return 4;
+  final minutes = DateTime.now().difference(seen).inMinutes;
+  if (minutes < 2) return 4;
+  if (minutes < 10) return 3;
+  if (minutes < 30) return 2;
+  return 1;
+}
+
+/// Android OLED layout of the transfer screen. Same controller and same
+/// actions as the desktop layout, restyled with the OLED kit.
+class _OledTransferBody extends ConsumerWidget {
+  const _OledTransferBody({required this.state});
+
+  final TransferUiState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = OledTokens.of(context);
+    final l10n = context.l10n;
+    final notifier = ref.read(transferControllerProvider.notifier);
+    final receiving = state.activeTab == TransferTab.receive;
+    final peers = state.peers;
+
+    void sendTo(TransferPeer peer) {
+      if (ref.read(showcaseModeProvider)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.transferMobileDemoSendSimulated)),
+        );
+        return;
+      }
+      unawaited(notifier.sendTo(peer));
+    }
+
+    final transferCard = (state.progress != null || state.diagnostic != null)
+        ? Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _OledTransferCard(
+              progress: state.progress,
+              diagnostic: state.diagnostic,
+              scanStatus: state.scanStatus,
+              lastError: state.lastError,
+              onRetry: notifier.retryLastTransfer,
+              onCancel: notifier.cancelTransfer,
+            ),
+          )
+        : null;
+
+    final nearby = l10n.transferMobileNearbyCount(peers.length);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                receiving
+                    ? l10n.transferMobileHeaderReceiving
+                    : l10n.transferMobileHeaderSending,
+                style: OledText.title(context),
+              ),
+            ),
+            if (state.lanIp != null) _OledNetworkChip(ip: state.lanIp!),
+          ],
+        ),
+        if (state.portConflict)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              l10n.transferMobilePortAltActive(state.port ?? 53318),
+              style: OledText.ui(context, size: 12, color: t.warn),
+            ),
+          ),
+        const SizedBox(height: 16),
+        OledCard(
+          radius: 20,
+          padding: const EdgeInsets.fromLTRB(16, 8, 10, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.transferMobileReceiveFiles,
+                      style: OledText.ui(
+                        context,
+                        size: 15,
+                        weight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      receiving
+                          ? l10n.transferMobileVisibleOnLan
+                          : l10n.transferMobileShowPinQr,
+                      style: OledText.ui(context, size: 12, color: t.ink2),
+                    ),
+                  ],
+                ),
+              ),
+              OledToggle(
+                value: receiving,
+                onChanged: (on) => notifier.setTab(
+                  on ? TransferTab.receive : TransferTab.send,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (receiving) ...[
+          const SizedBox(height: 16),
+          _OledReceivePanel(state: state),
+          if (transferCard != null) transferCard,
+        ] else ...[
+          const SizedBox(height: 8),
+          Center(
+            child: DotRadar(
+              size: 240,
+              blips: [
+                for (final peer in peers.take(4))
+                  peer.deviceType == TransferDeviceType.mobile
+                      ? Icons.smartphone_rounded
+                      : Icons.desktop_windows_rounded,
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  nearby,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: OledText.ui(
+                    context,
+                    size: 15,
+                    weight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              OledIconButton(
+                icon: Icons.sync_rounded,
+                tooltip: l10n.transferMobileRefreshSearch,
+                outlined: false,
+                onPressed: () => unawaited(notifier.triggerDiscoveryPulse()),
+              ),
+            ],
+          ),
+          if (state.isScanningSubnet)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: state.subnetScanProgress,
+                  minHeight: 2,
+                  backgroundColor: t.line,
+                  valueColor: AlwaysStoppedAnimation<Color>(t.ink),
+                ),
+              ),
+            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OledChip(
+                label: l10n.transferScanSubnet,
+                selected: false,
+                onTap: () => unawaited(notifier.scanSubnet()),
+              ),
+              OledChip(
+                label: l10n.transferDirectIpTitle,
+                selected: false,
+                onTap: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => const _DirectIpDialog(),
+                  );
+                },
+              ),
+              if (peers.isNotEmpty)
+                OledChip(
+                  label: l10n.transferMobileClearList,
+                  selected: false,
+                  onTap: notifier.clearPeers,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (peers.isEmpty)
+            OledCard(
+              radius: 20,
+              child: Text(
+                l10n.transferNoDevices,
+                style: OledText.ui(context, size: 14, color: t.ink2),
+              ),
+            )
+          else
+            DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: t.line),
+              ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < peers.length; i++)
+                    _OledPeerRow(
+                      peer: peers[i],
+                      preview: state.sendPreview,
+                      onlyNew: state.onlyNewVideos,
+                      emphasis: i == 0,
+                      showDivider: i < peers.length - 1,
+                      onSend: () => sendTo(peers[i]),
+                    ),
+                ],
+              ),
+            ),
+          if (transferCard != null) transferCard,
+          const SizedBox(height: 20),
+          _PayloadPanel(
+            key: OnboardingTargets.transfer,
+            state: state,
+            fill: false,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _OledNetworkChip extends StatelessWidget {
+  const _OledNetworkChip({required this.ip});
+
+  final String ip;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = OledTokens.of(context);
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: t.lineStrong),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            ip,
+            style: OledText.ui(context, size: 13, weight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OledPeerRow extends ConsumerWidget {
+  const _OledPeerRow({
+    required this.peer,
+    required this.preview,
+    required this.onlyNew,
+    required this.emphasis,
+    required this.showDivider,
+    required this.onSend,
+  });
+
+  final TransferPeer peer;
+  final SendPreview preview;
+  final bool onlyNew;
+  final bool emphasis;
+  final bool showDivider;
+  final VoidCallback onSend;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = OledTokens.of(context);
+    final l10n = context.l10n;
+    final hasPreview = onlyNew && preview.found > 0;
+    final upToDate = hasPreview && preview.newest == 0;
+    final fresh = preview.newest;
+    final meta = [
+      _peerKind(l10n, peer),
+      peer.ip,
+      if (hasPreview && fresh > 0) l10n.transferMobileNewVideosCount(fresh),
+    ].join(', ');
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: showDivider
+            ? Border(bottom: BorderSide(color: t.line.withValues(alpha: 0.07)))
+            : null,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 66),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 6, 8),
+          child: Row(
+            children: [
+              _SignalBars(level: _peerSignal(peer)),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      peer.alias,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: OledText.ui(
+                        context,
+                        size: 15,
+                        weight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      meta,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: OledText.ui(context, size: 12, color: t.ink2),
+                    ),
+                  ],
+                ),
+              ),
+              OledIconButton(
+                icon: peer.known
+                    ? Icons.star_rounded
+                    : Icons.star_outline_rounded,
+                tooltip: peer.known
+                    ? l10n.transferMobileUnmarkKnown
+                    : l10n.transferMobileMarkKnown,
+                outlined: false,
+                color: peer.known ? t.ink : t.ink3,
+                onPressed: () => unawaited(
+                  ref
+                      .read(transferControllerProvider.notifier)
+                      .toggleTrusted(peer),
+                ),
+              ),
+              const SizedBox(width: 4),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 120),
+                child: OledButton(
+                  label: upToDate
+                      ? l10n.transferMobileUpToDate
+                      : l10n.transferSend,
+                  onPressed: onSend,
+                  filled: emphasis && !upToDate,
+                  height: 44,
+                  expand: false,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SignalBars extends StatelessWidget {
+  const _SignalBars({required this.level});
+
+  final int level;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = OledTokens.of(context).ink;
+    return SizedBox(
+      width: 20,
+      height: 16,
+      child: CustomPaint(
+        painter: _SignalBarsPainter(level: level, ink: ink),
+      ),
+    );
+  }
+}
+
+class _SignalBarsPainter extends CustomPainter {
+  _SignalBarsPainter({required this.level, required this.ink});
+
+  final int level;
+  final Color ink;
+
+  static const List<double> _tops = [10.0, 6.5, 3.0, 0.0];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var i = 0; i < _tops.length; i++) {
+      final left = i * 5.0;
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTRB(left, _tops[i], left + 4, 16),
+        const Radius.circular(1),
+      );
+      canvas.drawRRect(
+        rect,
+        Paint()..color = ink.withValues(alpha: i < level ? 1.0 : 0.3),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SignalBarsPainter old) =>
+      old.level != level || old.ink != ink;
+}
+
+class _OledTransferCard extends StatelessWidget {
+  const _OledTransferCard({
+    required this.progress,
+    required this.diagnostic,
+    required this.scanStatus,
+    required this.lastError,
+    required this.onRetry,
+    required this.onCancel,
+  });
+
+  final TransferProgress? progress;
+  final TransferDiagnostic? diagnostic;
+  final TransferScanStatus? scanStatus;
+  final String? lastError;
+  final VoidCallback onRetry;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = OledTokens.of(context);
+    final l10n = context.l10n;
+    final current = progress;
+    final failed = current?.phase == TransferPhase.failed || diagnostic != null;
+    final done = current?.phase == TransferPhase.done;
+    // Non-null only while a transfer is actually running.
+    final TransferProgress? live = (current != null && !failed && !done)
+        ? current
+        : null;
+    final showPercent =
+        live != null && live.phase == TransferPhase.transferring;
+    final title = current != null
+        ? _progressLabel(l10n, current)
+        : _noticeTitle(l10n, diagnostic, lastError);
+    final percent = current == null ? 0 : (current.fraction * 100).round();
+
+    String? meta;
+    if (live != null) {
+      if (live.phase == TransferPhase.preparing && scanStatus != null) {
+        meta = _scanText(l10n, scanStatus!);
+      } else {
+        meta = l10n.transferMobileBytesOf(
+          FormatUtils.formatBytes(live.bytesDone),
+          FormatUtils.formatBytes(live.bytesTotal),
+        );
+        if (live.bytesPerSecond > 0) {
+          meta =
+              '$meta, ${FormatUtils.formatBytes(live.bytesPerSecond.round())}/s';
+        }
+      }
+    }
+
+    return OledCard(
+      radius: 20,
+      padding: const EdgeInsets.fromLTRB(16, 8, 6, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              if (failed || done) ...[
+                Icon(
+                  failed
+                      ? Icons.warning_amber_rounded
+                      : Icons.check_circle_outline_rounded,
+                  size: 20,
+                  color: failed ? t.warn : t.ink,
+                ),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: OledText.ui(
+                    context,
+                    size: 14,
+                    weight: FontWeight.w600,
+                    color: failed ? t.warn : t.ink,
+                  ),
+                ),
+              ),
+              if (showPercent) ...[
+                const SizedBox(width: 12),
+                Text('$percent', style: OledText.dot(context, size: 26)),
+                const SizedBox(width: 4),
+                Text(
+                  '%',
+                  style: OledText.ui(
+                    context,
+                    size: 13,
+                    weight: FontWeight.w600,
+                    color: t.ink2,
+                  ),
+                ),
+              ],
+              OledIconButton(
+                icon: Icons.close_rounded,
+                tooltip: l10n.transferCancel,
+                outlined: false,
+                onPressed: onCancel,
+              ),
+            ],
+          ),
+          if (live != null) ...[
+            const SizedBox(height: 2),
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: live.fraction > 0 ? live.fraction : null,
+                  minHeight: 4,
+                  backgroundColor: t.ink.withValues(alpha: 0.14),
+                  valueColor: AlwaysStoppedAnimation<Color>(t.ink),
+                ),
+              ),
+            ),
+            if (meta != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                meta,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: OledText.ui(context, size: 12, color: t.ink2),
+              ),
+            ],
+          ],
+          if (diagnostic != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, right: 10),
+              child: Text(
+                _diagnosticText(l10n, diagnostic!),
+                style: OledText.ui(context, size: 12, color: t.ink2),
+              ),
+            ),
+          if (failed)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: OledButton(
+                  label: l10n.transferRetry,
+                  icon: Icons.refresh_rounded,
+                  filled: false,
+                  height: 44,
+                  expand: false,
+                  onPressed: onRetry,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OledReceivePanel extends ConsumerStatefulWidget {
+  const _OledReceivePanel({required this.state});
+
+  final TransferUiState state;
+
+  @override
+  ConsumerState<_OledReceivePanel> createState() => _OledReceivePanelState();
+}
+
+class _OledReceivePanelState extends ConsumerState<_OledReceivePanel> {
+  bool _showQr = false;
+
+  void _copy(String text, String message) {
+    unawaited(Clipboard.setData(ClipboardData(text: text)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = OledTokens.of(context);
+    final l10n = context.l10n;
+    final state = widget.state;
+    final qr = state.qrUrl;
+    final directUrl = 'http://${state.lanIp}:${state.port}';
+
+    return OledCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.smartphone_rounded, size: 20, color: t.ink),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  state.alias,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: OledText.ui(
+                    context,
+                    size: 18,
+                    weight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            l10n.transferListeningOn,
+            style: OledText.ui(context, size: 12, color: t.ink2),
+          ),
+          const SizedBox(height: 16),
+          if (qr == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                state.lastError ?? l10n.transferWaitingNetwork,
+                textAlign: TextAlign.center,
+                style: OledText.ui(context, size: 14, color: t.ink2),
+              ),
+            )
+          else ...[
+            Row(
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: t.ink,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.transferMobileReadyToReceive,
+                        style: OledText.ui(
+                          context,
+                          size: 14,
+                          weight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        l10n.transferMobileVisibleOnWifi,
+                        style: OledText.ui(context, size: 12, color: t.ink2),
+                      ),
+                    ],
+                  ),
+                ),
+                OledIconButton(
+                  icon: Icons.wifi_tethering_rounded,
+                  tooltip: l10n.transferMobileBroadcastTooltip,
+                  onPressed: () {
+                    unawaited(
+                      ref
+                          .read(transferControllerProvider.notifier)
+                          .triggerDiscoveryPulse(),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.transferMobileBroadcastDone),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              l10n.transferMobilePinLabel,
+              textAlign: TextAlign.center,
+              style: OledText.ui(context, size: 12, color: t.ink2),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(state.pin, style: OledText.dot(context, size: 44)),
+                const SizedBox(width: 8),
+                OledIconButton(
+                  icon: Icons.copy_rounded,
+                  tooltip: l10n.transferCopyLink,
+                  outlined: false,
+                  onPressed: () => _copy(
+                    state.pin,
+                    'PIN ${state.pin} ${l10n.transferCopied}',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            OledButton(
+              label: directUrl,
+              icon: Icons.link_rounded,
+              filled: false,
+              height: 48,
+              onPressed: () =>
+                  _copy(directUrl, '$directUrl ${l10n.transferCopied}'),
+            ),
+            const SizedBox(height: 10),
+            OledButton(
+              label: _showQr
+                  ? l10n.transferMobileQrHide
+                  : l10n.transferMobileQrShow,
+              icon: _showQr
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.qr_code_2_rounded,
+              filled: false,
+              height: 48,
+              onPressed: () => setState(() => _showQr = !_showQr),
+            ),
+            if (_showQr) ...[
+              const SizedBox(height: 16),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: QrImageView(
+                    data: qr,
+                    size: 180,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+String _noticeTitle(
+  AppLocalizations l10n,
+  TransferDiagnostic? diagnostic,
+  String? lastError,
+) {
+  if (diagnostic?.code == TransferDiagnosticCode.unreachable) {
+    return l10n.transferMobileDeviceUnreachable(diagnostic?.detail ?? '');
+  }
+  return lastError ?? l10n.transferTitle;
+}
+
+String _diagnosticText(AppLocalizations l10n, TransferDiagnostic diagnostic) {
+  return switch (diagnostic.code) {
+    TransferDiagnosticCode.unreachable => l10n.transferMobileDiagUnreachable,
+    TransferDiagnosticCode.timeout => l10n.transferMobileDiagTimeout,
+    TransferDiagnosticCode.connectionRefused =>
+      l10n.transferMobileDiagConnectionRefused,
+    TransferDiagnosticCode.pinRequired => l10n.transferMobileDiagPinRequired,
+    TransferDiagnosticCode.rejected => l10n.transferMobileDiagRejected,
+    TransferDiagnosticCode.busy => l10n.transferMobileDiagBusy,
+    TransferDiagnosticCode.checksumMismatch =>
+      l10n.transferMobileDiagChecksumMismatch,
+    TransferDiagnosticCode.communication =>
+      (diagnostic.detail != null && diagnostic.detail!.isNotEmpty)
+          ? diagnostic.detail!
+          : l10n.transferMobileDiagCommunication,
+  };
+}
+
+String _scanText(AppLocalizations l10n, TransferScanStatus scan) {
+  return scan.totalFolders > 0
+      ? l10n.transferMobileScanFolders(
+          scan.scannedFolders,
+          scan.totalFolders,
+          scan.videos,
+        )
+      : l10n.transferMobileScanVideosFound(scan.videos);
 }
 
 String _progressLabel(AppLocalizations l10n, TransferProgress progress) {

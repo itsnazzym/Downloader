@@ -1572,4 +1572,1062 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get pluginExternalHint =>
       'تُثبّت هذه الإضافة في المتصفح. اتبع خطوات الإعداد الموجودة أدناه.';
+
+  @override
+  String get addSheetTitle => 'تنزيل جديد';
+
+  @override
+  String addSheetPasteCopiedLink(String url) {
+    return 'لصق الرابط المنسوخ: $url';
+  }
+
+  @override
+  String get addSheetModeVideo => 'فيديو';
+
+  @override
+  String get addSheetModeAudioOnly => 'صوت فقط';
+
+  @override
+  String get addSheetBrowserSession => 'جلسة المتصفح';
+
+  @override
+  String get addSheetQualityChosen => 'الجودة المختارة';
+
+  @override
+  String addSheetQualityChosenWithSize(String size) {
+    return 'الجودة المختارة، $size';
+  }
+
+  @override
+  String get addSheetStarting => 'جارٍ البدء…';
+
+  @override
+  String get addSheetDownload => 'تنزيل';
+
+  @override
+  String get addSheetPreviewUnavailable =>
+      'المعاينة غير متاحة. قد ينجح التنزيل مع ذلك.';
+
+  @override
+  String get addSheetAnalyzing => 'جارٍ تحليل الرابط…';
+
+  @override
+  String get addSheetUrlHint => 'الصق رابط الفيديو أو الوسائط';
+
+  @override
+  String get addSheetValidLink => 'رابط صالح';
+
+  @override
+  String get addSheetClear => 'مسح';
+
+  @override
+  String get addSheetPaste => 'لصق';
+
+  @override
+  String get addSheetInvalidUrl => 'يرجى إدخال رابط صالح.';
+
+  @override
+  String get addSheetUnsupportedUrl => 'الرابط غير مدعوم أو النطاق مقيّد.';
+
+  @override
+  String addSheetError(String error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get addSheetDetailBest => 'أعلى دقة متاحة';
+
+  @override
+  String get addSheetDetail1080 => 'دقة عالية';
+
+  @override
+  String get addSheetDetail720 => 'متوازن';
+
+  @override
+  String get addSheetDetail480 => 'موفّر للبيانات';
+
+  @override
+  String get addSheetDetailAudio => 'صوت مستخرج بأفضل جودة متاحة';
+
+  @override
+  String get addSheetReadoutMax => 'الأقصى';
+
+  @override
+  String get addSheetUntitledMedia => 'وسائط بلا عنوان';
+
+  @override
+  String get sizeUnitKb => 'ك.ب';
+
+  @override
+  String get sizeUnitMb => 'م.ب';
+
+  @override
+  String get sizeUnitGb => 'ج.ب';
+
+  @override
+  String get archiveMobileTitle => 'أرشيف تيك توك';
+
+  @override
+  String get archiveMobileFilters => 'عوامل التصفية';
+
+  @override
+  String get archiveMobileReset => 'إعادة تعيين';
+
+  @override
+  String get archiveMobileType => 'النوع';
+
+  @override
+  String get archiveMobileFilterAll => 'الكل';
+
+  @override
+  String get archiveMobileFilterFavorites => 'المفضلة';
+
+  @override
+  String get archiveMobileFilterLikes => 'الإعجابات';
+
+  @override
+  String get archiveMobileYear => 'السنة';
+
+  @override
+  String get archiveMobileAllYears => 'الكل';
+
+  @override
+  String get archiveMobileApplyFilters => 'تطبيق عوامل التصفية';
+
+  @override
+  String get archiveMobileBackToVideos => 'العودة إلى الفيديوهات';
+
+  @override
+  String get archiveMobileDownload => 'تنزيل';
+
+  @override
+  String get archiveMobileBatchStarted => 'بدأ تنزيل الدفعة';
+
+  @override
+  String get archiveMobileSyncTooltip => 'استيراد أو مزامنة';
+
+  @override
+  String get archiveMobileBackToLibrary => 'العودة إلى المكتبة';
+
+  @override
+  String get archiveMobileBatchRunning => 'تنزيل الدفعة قيد التنفيذ';
+
+  @override
+  String archiveMobileSkippedVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو متجاوز',
+      many: '$count فيديو متجاوز',
+      few: '$count فيديوهات متجاوزة',
+      two: 'فيديوان متجاوزان',
+      one: 'فيديو واحد متجاوز',
+      zero: '$count فيديو متجاوز',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveMobileStopBatch => 'إيقاف الدفعة';
+
+  @override
+  String get archiveMobileSyncingCollections => 'مزامنة المجموعات';
+
+  @override
+  String get archiveMobileSyncWaiting =>
+      'في انتظار استجابة المتصفح. أبقِ صفحة تيك توك مفتوحة.';
+
+  @override
+  String get archiveMobileChipAll => 'الكل';
+
+  @override
+  String get archiveMobileSearchHint => 'ابحث عن فيديو أو مجموعة';
+
+  @override
+  String get archiveMobileClearSearch => 'مسح البحث';
+
+  @override
+  String archiveMobileVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو',
+      many: '$count فيديو',
+      few: '$count فيديوهات',
+      two: 'فيديوان',
+      one: 'فيديو واحد',
+      zero: '$count فيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveMobileClearSelection => 'مسح التحديد';
+
+  @override
+  String get archiveMobileSelectAll => 'تحديد الكل';
+
+  @override
+  String get archiveMobileManageCollections => 'إدارة المجموعات';
+
+  @override
+  String get archiveMobilePlayFullscreen => 'تشغيل الفيديوهات بملء الشاشة';
+
+  @override
+  String get archiveMobileNoVideos => 'لم يتم العثور على أي فيديو';
+
+  @override
+  String get archiveMobileVideoAdded => 'تمت إضافة الفيديو إلى قائمة التنزيل.';
+
+  @override
+  String archiveMobileTileLabel(String date) {
+    return 'فيديو $date';
+  }
+
+  @override
+  String get archiveMobileProgress => 'التقدم';
+
+  @override
+  String archiveMobileSelectedLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'محدد',
+      one: 'محدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsMobileBackToLibrary => 'العودة إلى المكتبة';
+
+  @override
+  String get statsMobileTotalSinceInstall => 'إجمالي ما تم تنزيله منذ التثبيت';
+
+  @override
+  String get statsMobileActivity => 'النشاط';
+
+  @override
+  String get statsMobileLast12Weeks => 'آخر 12 أسبوعًا';
+
+  @override
+  String get statsMobileLess => 'أقل';
+
+  @override
+  String get statsMobileMore => 'أكثر';
+
+  @override
+  String get statsMobileBySource => 'التنزيلات حسب المصدر';
+
+  @override
+  String statsMobileDownloadsSummary(int total, int today) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total تنزيل',
+      many: '$total تنزيلًا',
+      few: '$total تنزيلات',
+      two: 'تنزيلان',
+      one: 'تنزيل واحد',
+      zero: '$total تنزيل',
+    );
+    return '$_temp0، $today اليوم';
+  }
+
+  @override
+  String get statsMobileHeatmapLabel => 'خريطة حرارية للتنزيلات اليومية';
+
+  @override
+  String get statsMobileOthers => 'أخرى';
+
+  @override
+  String get statsMobileUnitB => 'بايت';
+
+  @override
+  String get statsMobileUnitKB => 'ك.ب';
+
+  @override
+  String get statsMobileUnitMB => 'م.ب';
+
+  @override
+  String get statsMobileUnitGB => 'ج.ب';
+
+  @override
+  String get statsMobileUnitTB => 'ت.ب';
+
+  @override
+  String get settingsHubEngine => 'محرك yt-dlp';
+
+  @override
+  String get settingsHubUnavailable => 'غير متاح';
+
+  @override
+  String get settingsHubChecking => 'جارٍ التحقق…';
+
+  @override
+  String get settingsHubCheckUpdates => 'التحقق من التحديثات';
+
+  @override
+  String get settingsHubAutoUpdate => 'التحديث التلقائي';
+
+  @override
+  String get settingsHubChannel => 'قناة التحديث';
+
+  @override
+  String get settingsHubChannelNightly => 'ليلي';
+
+  @override
+  String get settingsHubChannelStable => 'مستقر';
+
+  @override
+  String get settingsHubUpdateFailed => 'تعذّر التحقق، حاول لاحقًا.';
+
+  @override
+  String get settingsHubUpToDate => 'yt-dlp محدّث بالفعل';
+
+  @override
+  String get settingsHubUpdated => 'تم تحديث yt-dlp';
+
+  @override
+  String settingsHubUpdateError(String error) {
+    return 'خطأ في التحديث: $error';
+  }
+
+  @override
+  String get settingsHubParallel => 'التنزيلات المتوازية';
+
+  @override
+  String get settingsHubParallelHint => 'سرعة أكبر وحرارة أعلى';
+
+  @override
+  String get settingsHubStorage => 'التخزين';
+
+  @override
+  String settingsHubStorageFree(String free, String total) {
+    return '$free متاح من $total';
+  }
+
+  @override
+  String get settingsHubWifiOnly => 'الواي فاي فقط';
+
+  @override
+  String get settingsHubWifiOnlyHint => 'عدم بدء أي تنزيل عبر بيانات الجوال';
+
+  @override
+  String get detailsWifiOnlyHeadline =>
+      'خيار الواي فاي فقط مفعّل: اتصل بالواي فاي ثم أعد المحاولة';
+
+  @override
+  String get detailsStatusFailed => 'فشل';
+
+  @override
+  String get detailsStatusDownloading => 'جارٍ التنزيل';
+
+  @override
+  String get detailsStatusExtracting => 'جارٍ تحليل الرابط';
+
+  @override
+  String get detailsStatusDuplicate => 'مضاف مسبقًا';
+
+  @override
+  String get detailsDiagnostic => 'التشخيص';
+
+  @override
+  String get detailsStepResolve => 'تحليل الرابط';
+
+  @override
+  String get detailsStepReadPage => 'قراءة الصفحة';
+
+  @override
+  String get detailsStepExtractFormats => 'استخراج الصيغ';
+
+  @override
+  String get detailsStepDownload => 'التنزيل';
+
+  @override
+  String get detailsStepMerge => 'دمج الصوت والفيديو';
+
+  @override
+  String get detailsStepFailMerge => 'فشل تجميع الملف';
+
+  @override
+  String get detailsStepFailTransfer => 'تم قطع النقل';
+
+  @override
+  String get detailsStepFailNoMedia => 'لا توجد وسائط متاحة';
+
+  @override
+  String detailsEngineUpdated(String status) {
+    return 'تم تحديث المحرك: $status';
+  }
+
+  @override
+  String detailsYtDlpUpdateSuccess(String status) {
+    return 'نجح تحديث yt-dlp: $status';
+  }
+
+  @override
+  String detailsEngineUpdateError(String error) {
+    return 'حدث خطأ أثناء التحديث: $error';
+  }
+
+  @override
+  String get detailsLinkCopied => 'تم نسخ الرابط إلى الحافظة';
+
+  @override
+  String get detailsShare => 'مشاركة';
+
+  @override
+  String get detailsOpenWith => 'فتح باستخدام';
+
+  @override
+  String get detailsCopyLink => 'نسخ الرابط';
+
+  @override
+  String get detailsRestart => 'إعادة البدء';
+
+  @override
+  String get detailsPlayVideo => 'تشغيل الفيديو';
+
+  @override
+  String get detailsInfoTitle => 'المعلومات';
+
+  @override
+  String get detailsInfoSource => 'المصدر';
+
+  @override
+  String get detailsInfoSize => 'الحجم';
+
+  @override
+  String get detailsInfoFile => 'الملف';
+
+  @override
+  String get detailsInfoId => 'المعرّف';
+
+  @override
+  String get detailsUpdatingEngine => 'جارٍ تحديث المحرك…';
+
+  @override
+  String get detailsRepairAuto => 'إصلاح تلقائي';
+
+  @override
+  String get detailsSignInBrowser => 'تسجيل الدخول في المتصفح';
+
+  @override
+  String get detailsAgeSolutions => 'عرض الحلول (+18)';
+
+  @override
+  String get detailsTechnicalDetails => 'التفاصيل التقنية';
+
+  @override
+  String get detailsNoLogs => 'لا يوجد سجل متاح.';
+
+  @override
+  String get detailsCopyLogs => 'نسخ السجلات';
+
+  @override
+  String get detailsLogsCopied => 'تم نسخ السجلات';
+
+  @override
+  String get detailsHeadlineAgeVerification => 'التحقق من العمر مطلوب';
+
+  @override
+  String detailsHeadlineHostRefused(String host) {
+    return 'رفض $host الطلب';
+  }
+
+  @override
+  String get detailsHeadlineTooManyRequests => 'طلبات كثيرة جدًا، الوصول مقيّد';
+
+  @override
+  String get detailsHeadlinePrivateVideo => 'فيديو خاص أو محذوف';
+
+  @override
+  String get detailsHeadlineGeoBlocked => 'المحتوى محظور في بلدك';
+
+  @override
+  String get detailsHeadlineCopyright => 'تمت إزالته بسبب حقوق النشر';
+
+  @override
+  String get detailsHeadlineSuspended => 'الحساب أو المحتوى معلّق';
+
+  @override
+  String get detailsHeadlineNoMedia => 'لا توجد وسائط في هذا الرابط';
+
+  @override
+  String get detailsHeadlineUnsupportedUrl => 'الرابط غير مدعوم';
+
+  @override
+  String get detailsHeadlineUnavailable => 'المحتوى غير متاح';
+
+  @override
+  String get detailsHeadlineLiveOffline => 'البث المباشر غير متصل';
+
+  @override
+  String get detailsHeadlineAntiBot => 'تم اكتشاف حماية ضد الروبوتات';
+
+  @override
+  String get detailsHeadlineNoFormats => 'لا توجد صيغة متاحة';
+
+  @override
+  String get detailsHeadlineLoginRequired => 'تسجيل الدخول مطلوب';
+
+  @override
+  String get detailsHeadlineNetwork => 'مشكلة في الشبكة';
+
+  @override
+  String get detailsHeadlineFailed => 'فشل التنزيل';
+
+  @override
+  String downloadCardDeleteConfirm(String title) {
+    return 'هل تريد حذف \"$title\"؟';
+  }
+
+  @override
+  String get downloadCardAgeVerification => 'التحقق من العمر (+18)، عرض الحلول';
+
+  @override
+  String downloadCardFailedMeta(String source) {
+    return '$source، فشل. عرض التشخيص';
+  }
+
+  @override
+  String downloadCardQueuePosition(int position) {
+    return 'الموضع $position في قائمة الانتظار';
+  }
+
+  @override
+  String downloadCardSizeOf(String done, String total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get libraryHeaderArchive => 'أرشيف TikTok';
+
+  @override
+  String get libraryHeaderFailed => 'الفاشلة';
+
+  @override
+  String get libraryHeaderFolders => 'المجلدات';
+
+  @override
+  String libraryHeaderMoreActive(int count) {
+    return '+$count قيد التنفيذ';
+  }
+
+  @override
+  String get libraryHeaderLiveSpeed => 'السرعة المباشرة';
+
+  @override
+  String libraryHeaderRemaining(String eta) {
+    return 'المتبقي $eta';
+  }
+
+  @override
+  String get libraryHeaderUnitGBps => 'جيجابايت/ث';
+
+  @override
+  String get libraryHeaderUnitMBps => 'ميجابايت/ث';
+
+  @override
+  String get libraryHeaderUnitKBps => 'كيلوبايت/ث';
+
+  @override
+  String get libraryHeaderUnitBps => 'بايت/ث';
+
+  @override
+  String clipboardCapsuleCopied(String platform) {
+    return 'تم نسخ الرابط، $platform';
+  }
+
+  @override
+  String get clipboardCapsuleMediaLink => 'رابط وسائط';
+
+  @override
+  String get clipboardCapsuleDownload => 'تنزيل';
+
+  @override
+  String get clipboardCapsuleDismiss => 'تجاهل';
+
+  @override
+  String get shellTabLibrary => 'المكتبة';
+
+  @override
+  String get shellTabBrowse => 'تصفح';
+
+  @override
+  String get shellTabSend => 'إرسال';
+
+  @override
+  String get shellTabSettings => 'الإعدادات';
+
+  @override
+  String get browserMobileTitle => 'المتصفح';
+
+  @override
+  String get browserMobileBack => 'السابق';
+
+  @override
+  String get browserMobileForward => 'التالي';
+
+  @override
+  String get browserMobileReload => 'إعادة التحميل';
+
+  @override
+  String get browserMobileReadyToDownload => 'الصفحة جاهزة للتنزيل';
+
+  @override
+  String get browserMobileDownload => 'تنزيل';
+
+  @override
+  String get oledKitStepperLess => 'أقل';
+
+  @override
+  String get oledKitStepperMore => 'أكثر';
+
+  @override
+  String oledKitFragmentsReceived(int done, int total) {
+    return 'تم استلام $done من $total جزءًا';
+  }
+
+  @override
+  String get settingsTilesNotFound => 'غير موجود';
+
+  @override
+  String get settingsOutputChangeFolderTitle => 'تغيير المجلد';
+
+  @override
+  String get settingsOutputChangeFolderBody =>
+      'هل تريد نقل جميع مقاطع الفيديو والصور المصغرة الحالية تلقائيًا إلى هذا المجلد الجديد؟';
+
+  @override
+  String get settingsOutputChangeFolderOnly => 'تغيير المجلد فقط';
+
+  @override
+  String get settingsOutputMigrateFiles => 'نقل الملفات';
+
+  @override
+  String get settingsOutputMigrateLibraryTitle => 'نقل المكتبة';
+
+  @override
+  String get settingsOutputMigrateLibraryDesc =>
+      'نقل جميع مقاطع الفيديو والصور المصغرة إلى قرص أو مجلد آخر';
+
+  @override
+  String get settingsOutputReorganizeTitle =>
+      'إعادة تنظيم مقاطع الفيديو الحالية';
+
+  @override
+  String get settingsOutputReorganizeDesc =>
+      'ترتيب مقاطع الفيديو التي تم تنزيلها في مجلدات فرعية حسب صانع المحتوى (مع محاكاة)';
+
+  @override
+  String get settingsSmartRecommendedRules => 'القواعد الموصى بها';
+
+  @override
+  String settingsSystemYtDlpUpdated(String result) {
+    return 'تم تحديث yt-dlp: $result';
+  }
+
+  @override
+  String settingsSystemUpdateError(String error) {
+    return 'خطأ في التحديث: $error';
+  }
+
+  @override
+  String get settingsSystemUpdateEngineTitle => 'تحديث محرك yt-dlp';
+
+  @override
+  String get settingsSystemUpdateEngineDownloading =>
+      'جارٍ تنزيل أحدث إصدار (nightly)...';
+
+  @override
+  String get settingsSystemUpdateEngineDesc =>
+      'التحقق من أحدث إصدار من yt-dlp وتثبيته';
+
+  @override
+  String transferMobileAddFolders(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count مجلدات',
+      two: 'إضافة مجلدين',
+      one: 'إضافة مجلد واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileBroadcastDone => 'تم بث إشارة الاكتشاف على الشبكة';
+
+  @override
+  String get transferMobileBroadcastTooltip => 'بث إعلان على الشبكة';
+
+  @override
+  String transferMobileBytesOf(String done, String total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get transferMobileCheckAll => 'تحديد الكل';
+
+  @override
+  String get transferMobileUncheckAll => 'إلغاء تحديد الكل';
+
+  @override
+  String get transferMobileClearList => 'مسح القائمة';
+
+  @override
+  String transferMobileCreatorCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صنّاع محتوى',
+      two: 'صانعا محتوى',
+      one: 'صانع محتوى واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileDemoNoFiles =>
+      'وضع العرض التجريبي: لا يمكن الوصول إلى أي ملف شخصي.';
+
+  @override
+  String get transferMobileDemoSendSimulated =>
+      'وضع العرض التجريبي: إرسال محاكى، لم يُنقل أي ملف.';
+
+  @override
+  String get transferMobileDeviceNotFound =>
+      'لم يتم العثور على جهاز في هذا العنوان.';
+
+  @override
+  String transferMobileDeviceUnreachable(String address) {
+    return 'تعذّر الوصول إلى الجهاز ($address)';
+  }
+
+  @override
+  String get transferMobileDiagBusy => 'الجهاز المستقبِل مشغول بنقل آخر.';
+
+  @override
+  String get transferMobileDiagChecksumMismatch =>
+      'خطأ في سلامة البيانات (عدم تطابق المجموع الاختباري).';
+
+  @override
+  String get transferMobileDiagCommunication => 'خطأ في الاتصال بالجهاز.';
+
+  @override
+  String get transferMobileDiagConnectionRefused =>
+      'تم رفض الاتصال. افتح LocalSend على الجهاز المستقبِل وفعّل وضع الاستقبال.';
+
+  @override
+  String get transferMobileDiagPinRequired => 'الجهاز المستقبِل يتطلب رمز PIN.';
+
+  @override
+  String get transferMobileDiagRejected =>
+      'رفض المستخدم النقل على الجهاز المستقبِل.';
+
+  @override
+  String get transferMobileDiagTimeout =>
+      'انتهت مهلة الاتصال. تأكد من أن الجهاز المستقبِل يعمل وأنه على شبكة Wi-Fi نفسها.';
+
+  @override
+  String get transferMobileDiagUnreachable =>
+      'تأكد من أن LocalSend مفتوح على هذا الجهاز وأنه على شبكة Wi-Fi نفسها.';
+
+  @override
+  String transferMobileFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات',
+      two: 'ملفان',
+      one: 'ملف واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileFolderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجلدات',
+      two: 'مجلدان',
+      one: 'مجلد واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileFolderPickError(String error) {
+    return 'خطأ في اختيار المجلد: $error';
+  }
+
+  @override
+  String get transferMobileFoldersAction => 'المجلدات...';
+
+  @override
+  String get transferMobileVideosAction => 'مقاطع الفيديو...';
+
+  @override
+  String get transferMobileHeaderReceiving => 'الاستقبال';
+
+  @override
+  String get transferMobileHeaderSending => 'الإرسال';
+
+  @override
+  String get transferMobileIpAddress => 'عنوان IP';
+
+  @override
+  String get transferMobileKindDesktop => 'حاسوب';
+
+  @override
+  String get transferMobileKindHeadless => 'بدون شاشة';
+
+  @override
+  String get transferMobileKindMobile => 'هاتف';
+
+  @override
+  String get transferMobileKindServer => 'خادم';
+
+  @override
+  String get transferMobileKindWeb => 'متصفح';
+
+  @override
+  String transferMobileLibraryNewOfTotal(
+    String library,
+    int newest,
+    int found,
+  ) {
+    return '$library ($newest جديد / $found)';
+  }
+
+  @override
+  String get transferMobileMarkKnown => 'وضع علامة كجهاز معروف';
+
+  @override
+  String get transferMobileUnmarkKnown => 'إزالة من الأجهزة المعروفة';
+
+  @override
+  String transferMobileMediaCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات وسائط',
+      two: 'ملفا وسائط',
+      one: 'ملف وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileMediaFallback => 'وسائط';
+
+  @override
+  String transferMobileMediaSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count ملفات وسائط',
+      two: 'تم تحديد ملفي وسائط',
+      one: 'تم تحديد ملف وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileNameNewCount(String name, int newest) {
+    return '$name ($newest جديد)';
+  }
+
+  @override
+  String transferMobileNearbyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أجهزة قريبة',
+      two: 'جهازان قريبان',
+      one: 'جهاز واحد قريب',
+      zero: 'لا توجد أجهزة قريبة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileNewVideosCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديوهات جديدة',
+      two: 'فيديوان جديدان',
+      one: 'فيديو جديد واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileNoDataSent => 'لم تُرسل أي بيانات';
+
+  @override
+  String get transferMobileNoFolderMatch => 'لا يوجد مجلد مطابق';
+
+  @override
+  String get transferMobilePeerPinExplain =>
+      'يحمي هذا الجهاز المستقبِل عمليات الاستقبال برمز PIN محدد في إعدادات LocalSend الخاصة به.\n\nأدخل رمز PIN المضبوط على هاتفك (أو عطّل خيار PIN في إعدادات هاتفك للإرسال بدون رمز).';
+
+  @override
+  String transferMobilePeerPinRequired(String alias) {
+    return 'رمز PIN مطلوب من $alias';
+  }
+
+  @override
+  String get transferMobilePinExample => 'مثال: 1234';
+
+  @override
+  String get transferMobilePinLabel => 'رمز PIN الأمني';
+
+  @override
+  String transferMobilePortAltActive(int port) {
+    return 'المنفذ 53317 مشغول. المنفذ البديل $port نشط.';
+  }
+
+  @override
+  String get transferMobilePortDefault => 'المنفذ (الافتراضي: 53317)';
+
+  @override
+  String get transferMobileQrHide => 'إخفاء رمز QR';
+
+  @override
+  String get transferMobileQrShow => 'إظهار رمز QR';
+
+  @override
+  String get transferMobileQrShowMobileToMobile =>
+      'إظهار رمز QR (من هاتف إلى هاتف)';
+
+  @override
+  String get transferMobileReadyToReceive => 'جاهز للاستقبال';
+
+  @override
+  String get transferMobileReceiveFiles => 'استقبال الملفات';
+
+  @override
+  String get transferMobileRefresh => 'تحديث';
+
+  @override
+  String get transferMobileRefreshSearch => 'تحديث البحث';
+
+  @override
+  String transferMobileScanFolders(int scanned, int total, int videos) {
+    String _temp0 = intl.Intl.pluralLogic(
+      videos,
+      locale: localeName,
+      other: '$videos فيديوهات',
+      two: 'فيديوان',
+      one: 'فيديو واحد',
+    );
+    return 'المجلدات $scanned / $total ($_temp0)...';
+  }
+
+  @override
+  String transferMobileScanVideosFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم العثور على $count فيديوهات...',
+      two: 'تم العثور على فيديوين...',
+      one: 'تم العثور على فيديو واحد...',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferMobileSearchDemoMedia => 'ابحث عن ملف وسائط تجريبي...';
+
+  @override
+  String transferMobileSelectedOfTotal(int selected, int total) {
+    return '$selected/$total محددة';
+  }
+
+  @override
+  String get transferMobileShowPinQr => 'إظهار رمز PIN ورمز QR الخاصين بي';
+
+  @override
+  String get transferMobileSimulation => 'محاكاة';
+
+  @override
+  String get transferMobileSubfoldersFilter => 'تصفية المجلدات الفرعية...';
+
+  @override
+  String transferMobileSubfoldersFoundIn(String name) {
+    return 'المجلدات الموجودة في $name';
+  }
+
+  @override
+  String get transferMobileSubfoldersTitle => 'اختيار المجلدات';
+
+  @override
+  String get transferMobileUpToDate => 'محدّث';
+
+  @override
+  String transferMobileUpToDateCount(int count) {
+    return 'محدّث ($count)';
+  }
+
+  @override
+  String transferMobileVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديوهات',
+      two: 'فيديوان',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferMobileVideosZipped(int count) {
+    return '$count فيديوهات (مجمّعة في ZIP)';
+  }
+
+  @override
+  String get transferMobileVisibleOnLan => 'مرئي على الشبكة المحلية';
+
+  @override
+  String get transferMobileVisibleOnWifi => 'مرئي على شبكة Wi-Fi المحلية';
+
+  @override
+  String get transferMobileZipActive => 'ZIP مفعّل';
+
+  @override
+  String get transferMobileZipArchive => 'أرشفة بصيغة ZIP';
+
+  @override
+  String get transferMobileZipEnabled => 'أرشيف ZIP: مفعّل';
+
+  @override
+  String get transferMobileZipHintLarge =>
+      'ZIP مفعّل. مع المجلدات الكبيرة، يؤدي تعطيل ZIP إلى تسريع الإرسال المباشر إلى المعرض.';
+
+  @override
+  String get transferMobileZipHintMulti =>
+      'عدة ملفات إلى أرشيف ZIP واحد (بدون ضغط، مقاطع الفيديو مضغوطة أصلًا)';
+
+  @override
+  String get transferMobileZipHintOff =>
+      'تُرسل الملفات كما هي إلى LocalSend (مباشرة إلى المعرض)';
+
+  @override
+  String get transferMobileZipTooltip =>
+      'تجميع عدة ملفات في أرشيف ZIP واحد (نسخ، بدون ضغط)';
+
+  @override
+  String get detailsStepFailMetered => 'يتم استخدام بيانات الجوال';
+
+  @override
+  String get archiveMobileCollectionLiked => 'الفيديوهات المعجب بها';
+
+  @override
+  String get archiveMobileCollectionUnsortedFavorites => 'المفضلة غير المصنفة';
 }

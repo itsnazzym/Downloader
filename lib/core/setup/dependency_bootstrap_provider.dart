@@ -45,6 +45,7 @@ class DependencyBootstrapNotifier
   DependencyBootstrapNotifier(
     this._service, {
     this.updateYtDlp = true,
+    this.ytDlpChannel = 'nightly',
     this.checkOptionalGobird = false,
     bool autoStart = true,
   }) : super(DependencyBootstrapState.initial()) {
@@ -69,6 +70,7 @@ class DependencyBootstrapNotifier
 
   final DependencyBootstrapService _service;
   final bool updateYtDlp;
+  final String ytDlpChannel;
   final bool checkOptionalGobird;
   bool _running = false;
 
@@ -81,6 +83,7 @@ class DependencyBootstrapNotifier
       await _service.ensureReady(
         checkOptionalGobird: checkOptionalGobird,
         autoUpdateYtDlp: updateYtDlp ?? this.updateYtDlp,
+        ytDlpChannel: ytDlpChannel,
         onProgress: (progress) {
           state = DependencyBootstrapState(
             step: progress.step,
@@ -125,7 +128,7 @@ class DependencyBootstrapNotifier
 
   Future<void> _runBackgroundYtDlpUpdate() async {
     try {
-      await _service.updateYtDlpInBackground();
+      await _service.updateYtDlpInBackground(ytDlpChannel: ytDlpChannel);
     } catch (e) {
       LoggerService.w('yt-dlp background update failed: $e');
     }
@@ -153,6 +156,7 @@ final dependencyBootstrapProvider =
       return DependencyBootstrapNotifier(
         DependencyBootstrapService(),
         updateYtDlp: settings.autoUpdateYtDlp,
+        ytDlpChannel: settings.ytDlpChannel,
         checkOptionalGobird: settings.experimentalXFeedGobirdEnabled,
       );
     });
