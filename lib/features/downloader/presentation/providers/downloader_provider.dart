@@ -353,6 +353,9 @@ class DownloadListNotifier
     String? cookieBrowser,
     bool? audioOnly,
     String? preferredQuality,
+    String? forceStreamUrl,
+    String? customFilename,
+    String? forceThumbnailUrl,
   }) async {
     final resolved = XDownloadUrl.resolveForDownload(url);
     final resolvedUrl = resolved == null
@@ -392,7 +395,7 @@ class DownloadListNotifier
       globalPath: explicitOrGlobal,
     );
 
-    final request = DownloadRequestFactory.fromSettings(
+    var request = DownloadRequestFactory.fromSettings(
       settings: settings,
       url: resolvedUrl,
       cookiesFilePath: resolvedCookiesPath,
@@ -405,6 +408,15 @@ class DownloadListNotifier
       audioOnly: audioOnly,
       preferredQuality: preferredQuality,
     );
+    // A stream picked in the in-app browser: [url] stays the page (referer,
+    // site folder) and the stream is fetched directly.
+    if (forceStreamUrl != null && forceStreamUrl.isNotEmpty) {
+      request = request.copyWith(
+        forceStreamUrl: forceStreamUrl,
+        forceThumbnailUrl: forceThumbnailUrl,
+        customFilename: customFilename,
+      );
+    }
 
     await _queueOps.run(() async {
       if (_isDuplicateRequest(request)) {

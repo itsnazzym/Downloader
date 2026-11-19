@@ -2630,4 +2630,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get archiveMobileCollectionUnsortedFavorites => 'المفضلة غير المصنفة';
+
+  @override
+  String get browserSniffTitle => 'الوسائط المكتشفة';
+
+  @override
+  String get browserSniffHint =>
+      'ما حمّلته هذه الصفحة. اختيار أحدها يحمّله بجلسة متصفحك.';
+
+  @override
+  String browserSniffCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم اكتشاف $count وسائط',
+      two: 'تم اكتشاف وسيطين',
+      one: 'تم اكتشاف وسيط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get browserSniffOpen => 'التدفقات';
+
+  @override
+  String get browserSniffKindHls => 'تدفق HLS';
+
+  @override
+  String get browserSniffKindDash => 'تدفق DASH';
+
+  @override
+  String get browserSniffKindVideo => 'ملف فيديو';
+
+  @override
+  String get browserSniffKindAudio => 'ملف صوتي';
+
+  @override
+  String get browserSniffDrmNote =>
+      'يتم اكتشاف المحتوى المحمي (DRM) لكن لا يمكن تنزيله.';
 }

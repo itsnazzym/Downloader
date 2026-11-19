@@ -4587,6 +4587,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unsorted favorites'**
   String get archiveMobileCollectionUnsortedFavorites;
+
+  /// No description provided for @browserSniffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected media'**
+  String get browserSniffTitle;
+
+  /// No description provided for @browserSniffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What this page loaded. Picking one downloads it with your browser session.'**
+  String get browserSniffHint;
+
+  /// No description provided for @browserSniffCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 media detected} other{{count} media detected}}'**
+  String browserSniffCount(int count);
+
+  /// No description provided for @browserSniffOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Streams'**
+  String get browserSniffOpen;
+
+  /// No description provided for @browserSniffKindHls.
+  ///
+  /// In en, this message translates to:
+  /// **'HLS stream'**
+  String get browserSniffKindHls;
+
+  /// No description provided for @browserSniffKindDash.
+  ///
+  /// In en, this message translates to:
+  /// **'DASH stream'**
+  String get browserSniffKindDash;
+
+  /// No description provided for @browserSniffKindVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video file'**
+  String get browserSniffKindVideo;
+
+  /// No description provided for @browserSniffKindAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio file'**
+  String get browserSniffKindAudio;
+
+  /// No description provided for @browserSniffDrmNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Protected (DRM) content is detected but cannot be downloaded.'**
+  String get browserSniffDrmNote;
 }
 
 class _AppLocalizationsDelegate

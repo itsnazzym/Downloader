@@ -20,6 +20,7 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         EnginePlugin.register(this, flutterEngine)
         SharePlugin.register(flutterEngine)
+        SnifferPlugin.register(flutterEngine)
         SharePlugin.handleIntent(intent)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, permissionsChannel)
             .setMethodCallHandler(::handlePermissionsCall)

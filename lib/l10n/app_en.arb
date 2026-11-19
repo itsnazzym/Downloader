@@ -1264,5 +1264,15 @@
   "transferMobileZipTooltip": "Bundle several files into a ZIP archive (copy, no compression)",
   "detailsStepFailMetered": "Mobile data in use",
   "archiveMobileCollectionLiked": "Liked videos",
-  "archiveMobileCollectionUnsortedFavorites": "Unsorted favorites"
+  "archiveMobileCollectionUnsortedFavorites": "Unsorted favorites",
+  "browserSniffTitle": "Detected media",
+  "browserSniffHint": "What this page loaded. Picking one downloads it with your browser session.",
+  "browserSniffCount": "{count, plural, one{1 media detected} other{{count} media detected}}",
+  "@browserSniffCount": {"placeholders":{"count":{"type":"int"}}},
+  "browserSniffOpen": "Streams",
+  "browserSniffKindHls": "HLS stream",
+  "browserSniffKindDash": "DASH stream",
+  "browserSniffKindVideo": "Video file",
+  "browserSniffKindAudio": "Audio file",
+  "browserSniffDrmNote": "Protected (DRM) content is detected but cannot be downloaded."
 }

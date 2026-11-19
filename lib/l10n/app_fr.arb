@@ -1062,5 +1062,14 @@
   "transferMobileZipTooltip": "Regrouper plusieurs fichiers en une archive ZIP (copie, pas de compression)",
   "detailsStepFailMetered": "Données mobiles utilisées",
   "archiveMobileCollectionLiked": "Vidéos Likées",
-  "archiveMobileCollectionUnsortedFavorites": "Favoris non classés"
+  "archiveMobileCollectionUnsortedFavorites": "Favoris non classés",
+  "browserSniffTitle": "Médias détectés",
+  "browserSniffHint": "Ce que cette page a chargé. Le choix d'un flux le télécharge avec la session de votre navigateur.",
+  "browserSniffCount": "{count, plural, one{1 média détecté} other{{count} médias détectés}}",
+  "browserSniffOpen": "Flux",
+  "browserSniffKindHls": "Flux HLS",
+  "browserSniffKindDash": "Flux DASH",
+  "browserSniffKindVideo": "Fichier vidéo",
+  "browserSniffKindAudio": "Fichier audio",
+  "browserSniffDrmNote": "Les contenus protégés (DRM) sont détectés mais ne peuvent pas être téléchargés."
 }

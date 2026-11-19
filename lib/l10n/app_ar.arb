@@ -1062,5 +1062,14 @@
   "transferMobileZipTooltip": "تجميع عدة ملفات في أرشيف ZIP واحد (نسخ، بدون ضغط)",
   "detailsStepFailMetered": "يتم استخدام بيانات الجوال",
   "archiveMobileCollectionLiked": "الفيديوهات المعجب بها",
-  "archiveMobileCollectionUnsortedFavorites": "المفضلة غير المصنفة"
+  "archiveMobileCollectionUnsortedFavorites": "المفضلة غير المصنفة",
+  "browserSniffTitle": "الوسائط المكتشفة",
+  "browserSniffHint": "ما حمّلته هذه الصفحة. اختيار أحدها يحمّله بجلسة متصفحك.",
+  "browserSniffCount": "{count, plural, one{تم اكتشاف وسيط واحد} two{تم اكتشاف وسيطين} other{تم اكتشاف {count} وسائط}}",
+  "browserSniffOpen": "التدفقات",
+  "browserSniffKindHls": "تدفق HLS",
+  "browserSniffKindDash": "تدفق DASH",
+  "browserSniffKindVideo": "ملف فيديو",
+  "browserSniffKindAudio": "ملف صوتي",
+  "browserSniffDrmNote": "يتم اكتشاف المحتوى المحمي (DRM) لكن لا يمكن تنزيله."
 }
