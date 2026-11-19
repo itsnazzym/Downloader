@@ -153,8 +153,10 @@ class YtDlpSource {
         ),
       );
 
-      // Browser headers for anti-bot & video platform compatibility
-      if (Platform.isAndroid) {
+      // Browser headers for anti-bot & video platform compatibility. TikTok
+      // answers "Video not available" to the Android user-agent, so it keeps
+      // yt-dlp's own.
+      if (Platform.isAndroid && !_isTikTokUrl(url)) {
         args.addAll([
           '--user-agent',
           kMobileChromeUserAgent,
@@ -651,7 +653,8 @@ class YtDlpSource {
     if (request.userAgent != null) {
       args.addAll(['--user-agent', request.userAgent!]);
       LoggerService.debug('Using custom User-Agent: ${request.userAgent}');
-    } else if (Platform.isAndroid) {
+    } else if (Platform.isAndroid && !_isTikTokUrl(request.url)) {
+      // (TikTok refuses the Android user-agent: see fetchMetadata.)
       args.addAll([
         '--user-agent',
         kMobileChromeUserAgent,
