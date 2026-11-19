@@ -11,6 +11,9 @@ import 'package:modern_downloader/core/ui/media_player/media_player_provider.dar
 import 'package:modern_downloader/core/ui/media_player/media_player_view.dart';
 import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:modern_downloader/features/downloader/presentation/views/mobile/already_downloaded_sheet.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/mobile/mobile_add_download_sheet.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
@@ -52,6 +55,12 @@ class _MobileAppShellState extends ConsumerState<MobileAppShell> {
   @override
   Widget build(BuildContext context) {
     final child = widget.child;
+    // A download that was already on disk: say so instead of a silent "done".
+    ref.listen<DownloadItem?>(alreadyDownloadedProvider, (previous, next) {
+      if (next == null) return;
+      ref.read(alreadyDownloadedProvider.notifier).state = null;
+      unawaited(AlreadyDownloadedSheet.show(context, ref, next));
+    });
     final counts = ref.watch(downloadLibraryCountsProvider);
     final location = GoRouterState.of(context).uri.path;
     final features = ref.watch(featureActivationProvider);

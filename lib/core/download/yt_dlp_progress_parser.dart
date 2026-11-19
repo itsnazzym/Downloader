@@ -39,27 +39,20 @@ class YtDlpProgressParser {
   static final RegExp hlsProgressRegex = RegExp(
     r'\[download\]\s+(\d+\.?\d*)%\s+of\s+~?\s*([~\d\.]+\w+)\s+in\s+[\d:]+\s+at\s+([~\d\.]+\w+/s)',
   );
+  static final RegExp bareFinishRegex = RegExp(
+    r'^\[download\]\s+100(?:\.0)?%\s+of\s+~?\s*[\d.,]+\s*\w+\s*$',
+  );
   static final RegExp destinationRegex = RegExp(
     r'\[download\] Destination: .*[/\\](.*?)(?:\.\w+)?$',
   );
   static final RegExp mergerRegex = RegExp(
     r'\[Merger\] Merging formats into "(.*?)(?:\.\w+)?"',
   );
-  static final RegExp _mergerIntoRegex = RegExp(
-    r'Merging formats into "(.*)"',
-  );
-  static final RegExp _destinationPathRegex = RegExp(
-    r'Destination: (.*)$',
-  );
-  static final RegExp _fixupRegex = RegExp(
-    r'of "(.*?)"|to "(.*?)"',
-  );
-  static final RegExp _alreadyDownloadedRegex = RegExp(
-    r': (.*)$',
-  );
-  static final RegExp _quotedWinPathRegex = RegExp(
-    r'"([a-zA-Z]:[\\/][^"]+)"',
-  );
+  static final RegExp _mergerIntoRegex = RegExp(r'Merging formats into "(.*)"');
+  static final RegExp _destinationPathRegex = RegExp(r'Destination: (.*)$');
+  static final RegExp _fixupRegex = RegExp(r'of "(.*?)"|to "(.*?)"');
+  static final RegExp _alreadyDownloadedRegex = RegExp(r': (.*)$');
+  static final RegExp _quotedWinPathRegex = RegExp(r'"([a-zA-Z]:[\\/][^"]+)"');
 
   final String baseFolder;
   final String preferredExt;
@@ -67,6 +60,13 @@ class YtDlpProgressParser {
   final int Function(String path)? fileLengthSync;
 
   bool hasProgress = false;
+
+  /// A `[download] NN% ... at <speed>` line was seen: bytes really moved.
+  bool sawTransfer = false;
+
+  /// yt-dlp printed the bare `[download] 100% of 59.01MiB` that it prints
+  /// when the file was already complete on disk (no `in <time> at <speed>`).
+  bool sawBareFinish = false;
   String? afterMovePath;
   String? currentFilePath;
   String? extractedTitle;
@@ -129,6 +129,10 @@ class YtDlpProgressParser {
       );
     }
 
+    if (bareFinishRegex.hasMatch(trimmedLine)) {
+      sawBareFinish = true;
+    }
+
     final progressUpdate = _parseProgress(line);
     if (progressUpdate != null) {
       updates.add(progressUpdate);
@@ -136,6 +140,11 @@ class YtDlpProgressParser {
 
     return updates;
   }
+
+  /// The file was already complete on disk: yt-dlp finished without moving a
+  /// single byte. (With `--print` it no longer says so in words, but its
+  /// closing line then has no duration or speed.)
+  bool get wasAlreadyDownloaded => sawBareFinish && !sawTransfer;
 
   /// Whether exit 0 should count as success without `[download]` percent lines.
   ///
@@ -290,6 +299,7 @@ class YtDlpProgressParser {
     var match = progressRegex.firstMatch(line);
     if (match != null) {
       hasProgress = true;
+      sawTransfer = true;
       final speedStr = match.group(3) ?? '';
       final progress = double.parse(match.group(1)!) / 100;
       final totalSize = match.group(2) ?? '';
@@ -308,6 +318,7 @@ class YtDlpProgressParser {
     match = hlsProgressRegex.firstMatch(line);
     if (match != null) {
       hasProgress = true;
+      sawTransfer = true;
       final speedStr = match.group(3) ?? '';
       return YtDlpProgressUpdate(
         progress: double.parse(match.group(1)!) / 100,

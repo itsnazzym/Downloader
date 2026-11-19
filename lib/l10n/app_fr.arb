@@ -1112,5 +1112,16 @@
   "archiveCollClear": "Réinitialiser toute l'archive",
   "archiveCollClearBody": "Supprimer toutes les collections, les classements et l'import TikTok local ? Les vidéos déjà téléchargées sont conservées.",
   "archiveCollClearConfirm": "Tout supprimer",
-  "archiveCollClearDone": "Archive TikTok réinitialisée"
+  "archiveCollClearDone": "Archive TikTok réinitialisée",
+  "libraryPhaseAnalyzing": "Analyse du lien…",
+  "libraryPhaseConnecting": "Connexion au serveur…",
+  "libraryPhaseFinalizing": "Finalisation du fichier…",
+  "libraryDoneTitle": "Terminé",
+  "libraryDoneAverage": "en moyenne",
+  "libraryDoneSummary": "{size} en {time}",
+  "alreadyTitle": "Déjà dans votre bibliothèque",
+  "alreadyBody": "« {title} » était déjà téléchargé : rien n'a été transféré. Ouvrez-le, ou remplacez-le par une nouvelle copie.",
+  "alreadyOpen": "Ouvrir",
+  "alreadyReplace": "Télécharger à nouveau",
+  "alreadyDismiss": "Fermer"
 }

@@ -2820,4 +2820,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get archiveCollClearDone => 'تمت إعادة تعيين أرشيف TikTok';
+
+  @override
+  String get libraryPhaseAnalyzing => 'جارٍ تحليل الرابط…';
+
+  @override
+  String get libraryPhaseConnecting => 'جارٍ الاتصال بالخادم…';
+
+  @override
+  String get libraryPhaseFinalizing => 'جارٍ إنهاء الملف…';
+
+  @override
+  String get libraryDoneTitle => 'اكتمل';
+
+  @override
+  String get libraryDoneAverage => 'في المتوسط';
+
+  @override
+  String libraryDoneSummary(String size, String time) {
+    return '$size خلال $time';
+  }
+
+  @override
+  String get alreadyTitle => 'موجود بالفعل في مكتبتك';
+
+  @override
+  String alreadyBody(String title) {
+    return '«$title» تم تنزيله من قبل، لذلك لم يُنقل شيء. افتحه أو استبدله بنسخة جديدة.';
+  }
+
+  @override
+  String get alreadyOpen => 'فتح';
+
+  @override
+  String get alreadyReplace => 'تنزيل مرة أخرى';
+
+  @override
+  String get alreadyDismiss => 'إغلاق';
 }

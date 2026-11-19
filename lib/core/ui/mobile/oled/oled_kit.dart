@@ -733,7 +733,12 @@ class OledFragmentMap extends StatefulWidget {
     this.cells = 72,
     this.columns = 24,
     this.active = 4,
+    this.waiting = false,
   });
+
+  /// While nothing has been received yet the active cells sweep across the
+  /// grid instead of sitting at the start, so the wait does not look frozen.
+  final bool waiting;
 
   /// 0.0 to 1.0
   final double progress;
@@ -793,6 +798,7 @@ class _OledFragmentMapState extends State<OledFragmentMap>
                     columns: widget.columns,
                     done: done,
                     active: widget.active,
+                    waiting: widget.waiting,
                     phase: _c.value,
                     still: oledReduceMotion(context),
                     ink: t.ink,
@@ -815,6 +821,7 @@ class _FragmentPainter extends CustomPainter {
     required this.columns,
     required this.done,
     required this.active,
+    required this.waiting,
     required this.phase,
     required this.still,
     required this.ink,
@@ -826,6 +833,7 @@ class _FragmentPainter extends CustomPainter {
   final int columns;
   final int done;
   final int active;
+  final bool waiting;
   final double phase;
   final bool still;
   final Color ink;
@@ -842,7 +850,14 @@ class _FragmentPainter extends CustomPainter {
         const Radius.circular(2),
       );
       Color color;
-      if (i < done) {
+      if (waiting && !still) {
+        // A small group of cells travelling over the grid, wrapping around.
+        final start = (phase * cells).floor();
+        final offset = (i - start + cells) % cells;
+        color = offset < active
+            ? OledTokens.live.withValues(alpha: 1 - offset / active * 0.7)
+            : ink.withValues(alpha: 0.11);
+      } else if (i < done) {
         color = ink.withValues(alpha: 0.95);
       } else if (i < done + active) {
         final k = i - done;
@@ -866,6 +881,7 @@ class _FragmentPainter extends CustomPainter {
       old.cell != cell ||
       old.ink != ink ||
       old.active != active ||
+      old.waiting != waiting ||
       old.still != still ||
       old.columns != columns;
 }

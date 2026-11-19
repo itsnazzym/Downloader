@@ -616,6 +616,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               ),
             );
 
+            var alreadyDownloaded = false;
             await for (final progress in _source.download(id, currentRequest)) {
               if (!DownloadStatusGuard.shouldRetryAfterError(
                 _activeDownloads[id]?.status,
@@ -636,6 +637,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 return;
               }
 
+              if (progress.alreadyDownloaded) alreadyDownloaded = true;
               final step = progress.step;
               final isProcessing =
                   step.toLowerCase().contains('merg') ||
@@ -675,6 +677,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   progress: 1.0,
                   speed: 'Terminé',
                   clearError: true,
+                  alreadyDownloaded: alreadyDownloaded,
                 ),
               ),
             );

@@ -1112,5 +1112,16 @@
   "archiveCollClear": "إعادة تعيين الأرشيف بالكامل",
   "archiveCollClearBody": "حذف كل المجموعات والتصنيفات واستيراد TikTok المحلي؟ تبقى الفيديوهات التي تم تنزيلها.",
   "archiveCollClearConfirm": "حذف الكل",
-  "archiveCollClearDone": "تمت إعادة تعيين أرشيف TikTok"
+  "archiveCollClearDone": "تمت إعادة تعيين أرشيف TikTok",
+  "libraryPhaseAnalyzing": "جارٍ تحليل الرابط…",
+  "libraryPhaseConnecting": "جارٍ الاتصال بالخادم…",
+  "libraryPhaseFinalizing": "جارٍ إنهاء الملف…",
+  "libraryDoneTitle": "اكتمل",
+  "libraryDoneAverage": "في المتوسط",
+  "libraryDoneSummary": "{size} خلال {time}",
+  "alreadyTitle": "موجود بالفعل في مكتبتك",
+  "alreadyBody": "«{title}» تم تنزيله من قبل، لذلك لم يُنقل شيء. افتحه أو استبدله بنسخة جديدة.",
+  "alreadyOpen": "فتح",
+  "alreadyReplace": "تنزيل مرة أخرى",
+  "alreadyDismiss": "إغلاق"
 }

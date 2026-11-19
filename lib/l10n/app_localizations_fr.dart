@@ -2853,4 +2853,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get archiveCollClearDone => 'Archive TikTok réinitialisée';
+
+  @override
+  String get libraryPhaseAnalyzing => 'Analyse du lien…';
+
+  @override
+  String get libraryPhaseConnecting => 'Connexion au serveur…';
+
+  @override
+  String get libraryPhaseFinalizing => 'Finalisation du fichier…';
+
+  @override
+  String get libraryDoneTitle => 'Terminé';
+
+  @override
+  String get libraryDoneAverage => 'en moyenne';
+
+  @override
+  String libraryDoneSummary(String size, String time) {
+    return '$size en $time';
+  }
+
+  @override
+  String get alreadyTitle => 'Déjà dans votre bibliothèque';
+
+  @override
+  String alreadyBody(String title) {
+    return '« $title » était déjà téléchargé : rien n\'a été transféré. Ouvrez-le, ou remplacez-le par une nouvelle copie.';
+  }
+
+  @override
+  String get alreadyOpen => 'Ouvrir';
+
+  @override
+  String get alreadyReplace => 'Télécharger à nouveau';
+
+  @override
+  String get alreadyDismiss => 'Fermer';
 }

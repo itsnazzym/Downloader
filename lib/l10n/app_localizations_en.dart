@@ -2811,4 +2811,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get archiveCollClearDone => 'TikTok archive reset';
+
+  @override
+  String get libraryPhaseAnalyzing => 'Analyzing the link…';
+
+  @override
+  String get libraryPhaseConnecting => 'Connecting to the server…';
+
+  @override
+  String get libraryPhaseFinalizing => 'Finalizing the file…';
+
+  @override
+  String get libraryDoneTitle => 'Done';
+
+  @override
+  String get libraryDoneAverage => 'on average';
+
+  @override
+  String libraryDoneSummary(String size, String time) {
+    return '$size in $time';
+  }
+
+  @override
+  String get alreadyTitle => 'Already in your library';
+
+  @override
+  String alreadyBody(String title) {
+    return '“$title” was already downloaded, so nothing was transferred. Open it, or replace it with a fresh copy.';
+  }
+
+  @override
+  String get alreadyOpen => 'Open';
+
+  @override
+  String get alreadyReplace => 'Download again';
+
+  @override
+  String get alreadyDismiss => 'Close';
 }

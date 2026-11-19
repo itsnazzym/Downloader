@@ -904,6 +904,7 @@ class YtDlpSource {
         title: parser.extractedTitle,
         step: 'Fini',
         filePath: currentFilePath,
+        alreadyDownloaded: parser.wasAlreadyDownloaded,
       );
 
       if (currentFilePath != null) {
@@ -1025,6 +1026,9 @@ class DownloadProgressEvent {
   final String? filePath;
   final bool isDuplicate;
 
+  /// The file was already on disk and nothing was downloaded.
+  final bool alreadyDownloaded;
+
   DownloadProgressEvent({
     required this.progress,
     required this.totalSize,
@@ -1035,6 +1039,7 @@ class DownloadProgressEvent {
     this.step = '',
     this.filePath,
     this.isDuplicate = false,
+    this.alreadyDownloaded = false,
   });
 }
 

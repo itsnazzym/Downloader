@@ -1325,5 +1325,18 @@
   "archiveCollClear": "Reset the whole archive",
   "archiveCollClearBody": "Delete all collections, rankings and the local TikTok import? Videos already downloaded are kept.",
   "archiveCollClearConfirm": "Delete everything",
-  "archiveCollClearDone": "TikTok archive reset"
+  "archiveCollClearDone": "TikTok archive reset",
+  "libraryPhaseAnalyzing": "Analyzing the link…",
+  "libraryPhaseConnecting": "Connecting to the server…",
+  "libraryPhaseFinalizing": "Finalizing the file…",
+  "libraryDoneTitle": "Done",
+  "libraryDoneAverage": "on average",
+  "libraryDoneSummary": "{size} in {time}",
+  "@libraryDoneSummary": {"placeholders":{"size":{"type":"String"},"time":{"type":"String"}}},
+  "alreadyTitle": "Already in your library",
+  "alreadyBody": "“{title}” was already downloaded, so nothing was transferred. Open it, or replace it with a fresh copy.",
+  "@alreadyBody": {"placeholders":{"title":{"type":"String"}}},
+  "alreadyOpen": "Open",
+  "alreadyReplace": "Download again",
+  "alreadyDismiss": "Close"
 }

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
@@ -134,4 +135,92 @@ SpeedLabel formatSpeed(AppLocalizations l10n, double? bytesPerSecond) {
     bytesPerSecond.round().toString(),
     l10n.libraryHeaderUnitBps,
   );
+}
+
+/// What a download is doing before (or after) the bytes flow.
+enum LivePhase { analyzing, connecting, finalizing }
+
+/// The phase to show instead of a dash. Null once bytes are flowing.
+LivePhase? livePhase(DownloadItem item, double? bytesPerSecond) {
+  switch (item.status) {
+    case DownloadStatus.extracting:
+      return LivePhase.analyzing;
+    case DownloadStatus.processing:
+      return LivePhase.finalizing;
+    case DownloadStatus.downloading:
+      final started = item.progress > 0 || bytesPerSecond != null;
+      return started ? null : LivePhase.connecting;
+    case DownloadStatus.queued:
+    case DownloadStatus.paused:
+    case DownloadStatus.completed:
+    case DownloadStatus.failed:
+    case DownloadStatus.canceled:
+    case DownloadStatus.duplicate:
+      return null;
+  }
+}
+
+String livePhaseLabel(AppLocalizations l10n, LivePhase phase) {
+  switch (phase) {
+    case LivePhase.analyzing:
+      return l10n.libraryPhaseAnalyzing;
+    case LivePhase.connecting:
+      return l10n.libraryPhaseConnecting;
+    case LivePhase.finalizing:
+      return l10n.libraryPhaseFinalizing;
+  }
+}
+
+/// What the panel shows for a few seconds once a download is done.
+class CompletionSummary {
+  const CompletionSummary({
+    required this.id,
+    required this.title,
+    required this.sizeText,
+    required this.duration,
+    required this.bytesPerSecond,
+  });
+
+  final String id;
+  final String title;
+  final String sizeText;
+  final Duration duration;
+
+  /// Average speed over the transfer, or null when it was too short to mean
+  /// anything.
+  final double? bytesPerSecond;
+}
+
+/// Builds the summary of [done], which just completed. [firstBytesAt] is when
+/// its first progress was seen, [now] when it finished.
+CompletionSummary summarizeCompletion(
+  DownloadItem done, {
+  required DateTime firstBytesAt,
+  required DateTime now,
+  required String title,
+}) {
+  final elapsed = now.difference(firstBytesAt);
+  final duration = elapsed.isNegative ? Duration.zero : elapsed;
+  final size = done.totalSize.isNotEmpty ? done.totalSize : done.downloadedSize;
+  final bytes = FormatUtils.parseBytes(size);
+  final seconds = duration.inMilliseconds / 1000;
+  // Under a second the average is noise (and a divide-by-almost-zero).
+  final average = bytes > 0 && seconds >= 1 ? bytes / seconds : null;
+  return CompletionSummary(
+    id: done.id,
+    title: title,
+    sizeText: size,
+    duration: duration,
+    bytesPerSecond: average,
+  );
+}
+
+/// "5 s", "1 min 12 s": how long a finished download took.
+String durationLabel(AppLocalizations l10n, Duration duration) {
+  final total = duration.inSeconds < 1 ? 1 : duration.inSeconds;
+  if (total >= 3600) {
+    return l10n.etaHoursMinutes(total ~/ 3600, (total % 3600) ~/ 60);
+  }
+  if (total >= 60) return l10n.etaMinutesSeconds(total ~/ 60, total % 60);
+  return l10n.etaSeconds(total);
 }

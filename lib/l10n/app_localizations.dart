@@ -4887,6 +4887,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TikTok archive reset'**
   String get archiveCollClearDone;
+
+  /// No description provided for @libraryPhaseAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing the link…'**
+  String get libraryPhaseAnalyzing;
+
+  /// No description provided for @libraryPhaseConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to the server…'**
+  String get libraryPhaseConnecting;
+
+  /// No description provided for @libraryPhaseFinalizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalizing the file…'**
+  String get libraryPhaseFinalizing;
+
+  /// No description provided for @libraryDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get libraryDoneTitle;
+
+  /// No description provided for @libraryDoneAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'on average'**
+  String get libraryDoneAverage;
+
+  /// No description provided for @libraryDoneSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} in {time}'**
+  String libraryDoneSummary(String size, String time);
+
+  /// No description provided for @alreadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your library'**
+  String get alreadyTitle;
+
+  /// No description provided for @alreadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” was already downloaded, so nothing was transferred. Open it, or replace it with a fresh copy.'**
+  String alreadyBody(String title);
+
+  /// No description provided for @alreadyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get alreadyOpen;
+
+  /// No description provided for @alreadyReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Download again'**
+  String get alreadyReplace;
+
+  /// No description provided for @alreadyDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get alreadyDismiss;
 }
 
 class _AppLocalizationsDelegate
