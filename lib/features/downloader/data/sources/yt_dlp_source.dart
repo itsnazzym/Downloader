@@ -1022,6 +1022,7 @@ class DownloadProgressEvent {
     this.isDuplicate = false,
   });
 }
+
 /// yt-dlp could not read the browser cookie store; [download] retries once
 /// without browser cookies.
 class _BrowserCookiesUnreadable extends YtDlpException {
