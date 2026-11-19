@@ -56,10 +56,11 @@ class DependencyBootstrapService {
   Future<void> ensureReady({
     required void Function(DependencyBootstrapProgress progress) onProgress,
     bool checkOptionalGobird = false,
+    bool autoUpdateYtDlp = true,
   }) async {
     LoggerService.i('Checking required download tools');
     if (Platform.isAndroid) {
-      await _ensureAndroidEngine(onProgress);
+      await _ensureAndroidEngine(onProgress, autoUpdateYtDlp: autoUpdateYtDlp);
       return;
     }
     if (!Platform.isWindows) {
@@ -432,8 +433,9 @@ class DependencyBootstrapService {
   }
 
   Future<void> _ensureAndroidEngine(
-    void Function(DependencyBootstrapProgress progress) onProgress,
-  ) async {
+    void Function(DependencyBootstrapProgress progress) onProgress, {
+    bool autoUpdateYtDlp = true,
+  }) async {
     final ready = <String>[];
     await _emitProgress(
       onProgress,
@@ -450,7 +452,9 @@ class DependencyBootstrapService {
           toolName: 'yt-dlp',
         ),
       );
-      await AndroidEngineBridge.instance.ensureInitialized();
+      await AndroidEngineBridge.instance.ensureInitialized(
+        autoUpdate: autoUpdateYtDlp,
+      );
       for (final pkg in DependencyCatalog.androidRequired) {
         ready.addAll(pkg.executableNames);
         await _emitProgress(

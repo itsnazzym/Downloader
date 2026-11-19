@@ -43,11 +43,13 @@ class AndroidEngineBridge {
         name.startsWith('aria2');
   }
 
-  Future<void> ensureInitialized() async {
+  /// [autoUpdate] false skips the yt-dlp update the native engine otherwise
+  /// runs on first start (the "Mise à jour automatique" setting).
+  Future<void> ensureInitialized({bool autoUpdate = true}) async {
     if (_initialized) return;
     _ensureEventListener();
     try {
-      await _methods.invokeMethod<void>('init');
+      await _methods.invokeMethod<void>('init', {'autoUpdate': autoUpdate});
       _initialized = true;
     } on PlatformException catch (e) {
       LoggerService.e('Android engine init failed', e);

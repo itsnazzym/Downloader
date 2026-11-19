@@ -33,6 +33,10 @@ class YtDlpSource {
   YtDlpSource(this._binaryLocator, this._processRunner);
 
   final _downloadProcesses = <String, Process>{};
+
+  /// Ids cancelled while a download of that id may be starting or retrying;
+  /// cleared when [download] begins and ends.
+  final _cancelRequested = <String>{};
   int _activeDownloadCount = 0;
 
   static final metadataProbeLimiter = MetadataProbeLimiter(maxParallel: 2);
@@ -307,6 +311,7 @@ class YtDlpSource {
     DownloadRequest request,
   ) async* {
     _activeDownloadCount++;
+    _cancelRequested.remove(id);
     try {
       var started = false;
       try {
@@ -317,11 +322,13 @@ class YtDlpSource {
       } on _BrowserCookiesUnreadable {
         // An unreadable browser cookie store must not block public media:
         // retry once without browser cookies, before any progress.
-        if (started) rethrow;
+        // A cancel that landed between the two processes must not restart it.
+        if (started || _cancelRequested.contains(id)) rethrow;
         LoggerService.w('Browser cookies unreadable, retrying without them');
         yield* _downloadUnlocked(id, request, allowBrowserCookies: false);
       }
     } finally {
+      _cancelRequested.remove(id);
       if (_activeDownloadCount > 0) {
         _activeDownloadCount--;
       }
@@ -930,6 +937,7 @@ class YtDlpSource {
   }
 
   Future<void> cancel(String id) async {
+    _cancelRequested.add(id);
     final process = _downloadProcesses[id];
     if (process != null) {
       await _processRunner.kill(process); // Use robust kill

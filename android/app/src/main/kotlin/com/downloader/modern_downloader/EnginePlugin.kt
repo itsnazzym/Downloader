@@ -42,24 +42,27 @@ class EnginePlugin(
     ) {
         when (call.method) {
             "init" -> {
+                val autoUpdate = call.argument<Boolean>("autoUpdate") ?: true
                 executor.execute {
                     try {
                         YoutubeDL.getInstance().init(context)
                         FFmpeg.getInstance().init(context)
                         Aria2c.getInstance().init(context)
-                        try {
-                            YoutubeDL.getInstance().updateYoutubeDL(
-                                context,
-                                YoutubeDL.UpdateChannel.NIGHTLY,
-                            )
-                        } catch (e: Exception) {
+                        if (autoUpdate) {
                             try {
                                 YoutubeDL.getInstance().updateYoutubeDL(
                                     context,
-                                    YoutubeDL.UpdateChannel.STABLE,
+                                    YoutubeDL.UpdateChannel.NIGHTLY,
                                 )
-                            } catch (_: Exception) {}
-                            Log.w("EnginePlugin", "Auto-update yt-dlp on init fallback: ${e.message}")
+                            } catch (e: Exception) {
+                                try {
+                                    YoutubeDL.getInstance().updateYoutubeDL(
+                                        context,
+                                        YoutubeDL.UpdateChannel.STABLE,
+                                    )
+                                } catch (_: Exception) {}
+                                Log.w("EnginePlugin", "Auto-update yt-dlp on init fallback: ${e.message}")
+                            }
                         }
                         mainResult(result) { it.success(null) }
                     } catch (e: Exception) {

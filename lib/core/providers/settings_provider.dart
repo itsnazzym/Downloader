@@ -1,6 +1,9 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../platform/platform_info.dart';
 import '../theme/theme_presets.dart';
 
 /// App Settings State
@@ -187,6 +190,15 @@ const _kOrganizeBySite = 'organize_by_site';
 const _kOrganizeByCreator = 'organize_by_creator';
 const _kAutoUpdateYtDlp = 'auto_update_ytdlp';
 const _kLocale = 'locale';
+
+/// First-run language. Android follows the device (the mobile screens are
+/// written in French, so a French phone must not start in English); other
+/// platforms keep English.
+String _defaultLocale() {
+  if (!PlatformInfo.isAndroid) return 'en';
+  final code = PlatformDispatcher.instance.locale.languageCode;
+  return const {'en', 'fr', 'ar'}.contains(code) ? code : 'en';
+}
 const _kThemePreset = 'theme_preset';
 const _kCustomAccentColor = 'custom_accent_color';
 const _kExperimentalXFeedGobirdEnabled = 'experimental_x_feed_gobird_enabled';
@@ -243,8 +255,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       organizeBySite: prefs.getBool(_kOrganizeBySite) ?? false,
       organizeByCreator: prefs.getBool(_kOrganizeByCreator) ?? false,
       autoUpdateYtDlp: prefs.getBool(_kAutoUpdateYtDlp) ?? true,
-      locale: prefs.getString(_kLocale) ?? 'en',
-      themePreset: prefs.getString(_kThemePreset) ?? 'midnight',
+      locale: prefs.getString(_kLocale) ?? _defaultLocale(),
+      themePreset:
+          prefs.getString(_kThemePreset) ??
+          (PlatformInfo.isAndroid ? 'oled' : 'midnight'),
       customAccentColor: prefs.getInt(_kCustomAccentColor) ?? 0xFF0D9488,
       experimentalXFeedGobirdEnabled:
           prefs.getBool(_kExperimentalXFeedGobirdEnabled) ?? false,

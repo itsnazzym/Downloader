@@ -87,8 +87,11 @@ class _FakeProcess implements Process {
     required this.stdoutLines,
     required this.stderrLines,
     required int exit,
+    this.onExit,
   }) : _exit = exit;
 
+  /// Runs when the exit code is awaited (e.g. to cancel mid-download).
+  final void Function()? onExit;
   final List<String> stdoutLines;
   final List<String> stderrLines;
   final int _exit;
@@ -96,7 +99,11 @@ class _FakeProcess implements Process {
   @override
   int get pid => 4242;
   @override
-  Future<int> get exitCode async => _exit;
+  Future<int> get exitCode async {
+    onExit?.call();
+    return _exit;
+  }
+
   @override
   Stream<List<int>> get stdout =>
       Stream.fromIterable(stdoutLines.map((l) => utf8.encode('$l\n')));
@@ -132,33 +139,69 @@ void downloadRetryTests() {
     setUp(() => out = Directory.systemTemp.createTempSync('md_cookie_'));
     tearDown(() => out.deleteSync(recursive: true));
 
-    test('retries once without browser cookies on a cookie ERROR', () async {
-      final runner = _StartRecordingRunner([
-        _FakeProcess(
-          stdoutLines: const [],
-          stderrLines: const ['ERROR: Failed to decrypt with DPAPI. See x'],
-          exit: 1,
-        ),
-        _FakeProcess(stdoutLines: const [], stderrLines: const [], exit: 0),
-      ]);
-      final source = YtDlpSource(_Locator(), runner);
+    test(
+      'retries once without browser cookies on a cookie ERROR',
+      () async {
+        final runner = _StartRecordingRunner([
+          _FakeProcess(
+            stdoutLines: const [],
+            stderrLines: const ['ERROR: Failed to decrypt with DPAPI. See x'],
+            exit: 1,
+          ),
+          _FakeProcess(stdoutLines: const [], stderrLines: const [], exit: 0),
+        ]);
+        final source = YtDlpSource(_Locator(), runner);
 
-      await source
-          .download(
-            'id1',
-            DownloadRequest(
-              url: 'https://www.youtube.com/watch?v=abc',
-              outputFolder: out.path,
-              cookieBrowser: 'chrome',
-            ),
-          )
-          .drain<void>()
-          .catchError((_) {});
+        await source
+            .download(
+              'id1',
+              DownloadRequest(
+                url: 'https://www.youtube.com/watch?v=abc',
+                outputFolder: out.path,
+                cookieBrowser: 'chrome',
+              ),
+            )
+            .drain<void>()
+            .catchError((_) {});
 
-      expect(runner.starts, hasLength(2));
-      expect(runner.starts.first, contains('--cookies-from-browser'));
-      expect(runner.starts.last, isNot(contains('--cookies-from-browser')));
-    }, skip: Platform.isAndroid ? 'no browser cookies on Android' : false);
+        expect(runner.starts, hasLength(2));
+        expect(runner.starts.first, contains('--cookies-from-browser'));
+        expect(runner.starts.last, isNot(contains('--cookies-from-browser')));
+      },
+      skip: Platform.isAndroid ? 'no browser cookies on Android' : false,
+    );
+
+    test(
+      'does not retry when the download was cancelled meanwhile',
+      () async {
+        late final YtDlpSource source;
+        final runner = _StartRecordingRunner([
+          _FakeProcess(
+            stdoutLines: const [],
+            stderrLines: const ['ERROR: Failed to decrypt with DPAPI. See x'],
+            exit: 1,
+            onExit: () => source.cancel('id3'),
+          ),
+          _FakeProcess(stdoutLines: const [], stderrLines: const [], exit: 0),
+        ]);
+        source = YtDlpSource(_Locator(), runner);
+
+        await source
+            .download(
+              'id3',
+              DownloadRequest(
+                url: 'https://www.youtube.com/watch?v=abc',
+                outputFolder: out.path,
+                cookieBrowser: 'chrome',
+              ),
+            )
+            .drain<void>()
+            .catchError((_) {});
+
+        expect(runner.starts, hasLength(1));
+      },
+      skip: Platform.isAndroid ? 'no browser cookies on Android' : false,
+    );
 
     test(
       'does not retry on a WARNING about cookies or a non-cookie error',

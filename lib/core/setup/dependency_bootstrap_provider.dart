@@ -80,6 +80,7 @@ class DependencyBootstrapNotifier
     try {
       await _service.ensureReady(
         checkOptionalGobird: checkOptionalGobird,
+        autoUpdateYtDlp: updateYtDlp ?? this.updateYtDlp,
         onProgress: (progress) {
           state = DependencyBootstrapState(
             step: progress.step,
