@@ -68,6 +68,16 @@ void main() {
     expect(calls.single.arguments, {'url': 'https://x.com/a'});
   });
 
+  test('diskSpace returns total and free bytes, or null on error', () async {
+    respond = (_) => {'total': 64 * 1024 * 1024 * 1024, 'free': 10 * 1024 * 1024};
+    final space = await bridge().diskSpace();
+    expect(space?.total, 64 * 1024 * 1024 * 1024);
+    expect(space?.free, 10 * 1024 * 1024);
+
+    respond = (_) => throw PlatformException(code: 'disk_space');
+    expect(await bridge().diskSpace(), isNull);
+  });
+
   test('defaultOutputDir treats blank as missing', () async {
     respond = (_) => '  ';
     expect(await bridge().defaultOutputDir(), isNull);

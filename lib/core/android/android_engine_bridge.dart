@@ -66,6 +66,20 @@ class AndroidEngineBridge {
     }
   }
 
+  /// Total and free bytes of the volume holding the default output folder.
+  Future<({int total, int free})?> diskSpace() async {
+    try {
+      final m = await _methods.invokeMethod<Map<Object?, Object?>>('diskSpace');
+      final total = (m?['total'] as num?)?.toInt();
+      final free = (m?['free'] as num?)?.toInt();
+      if (total == null || free == null || total <= 0) return null;
+      return (total: total, free: free);
+    } on PlatformException catch (e) {
+      LoggerService.w('diskSpace failed: $e');
+      return null;
+    }
+  }
+
   Future<String?> webViewCookies(String url) async {
     try {
       return await _methods.invokeMethod<String>('webViewCookies', {

@@ -8,6 +8,7 @@ import android.net.wifi.WifiManager
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.os.StatFs
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
@@ -83,6 +84,19 @@ class EnginePlugin(
                     result.success(resolveOutputDir().absolutePath)
                 } catch (e: Exception) {
                     result.error("output_dir", e.message, null)
+                }
+            }
+            "diskSpace" -> {
+                try {
+                    val stat = StatFs(resolveOutputDir().absolutePath)
+                    result.success(
+                        mapOf(
+                            "total" to stat.totalBytes,
+                            "free" to stat.availableBytes,
+                        ),
+                    )
+                } catch (e: Exception) {
+                    result.error("disk_space", e.message, null)
                 }
             }
             "webViewCookies" -> {

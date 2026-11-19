@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:universal_disk_space/universal_disk_space.dart';
+import '../android/android_engine_bridge.dart';
 import '../logger/logger_service.dart';
 import '../utils/format_utils.dart';
 
@@ -83,6 +84,9 @@ class DiskSpaceService {
   }
 
   static Future<int?> _probeFreeDiskSpace(String path) async {
+    if (Platform.isAndroid) {
+      return (await AndroidEngineBridge.instance.diskSpace())?.free;
+    }
     try {
       final diskSpace = DiskSpace();
       await diskSpace.scan();
