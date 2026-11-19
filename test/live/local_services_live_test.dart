@@ -86,6 +86,9 @@ void main() {
         .toList();
     expect(received, hasLength(1));
     expect(sent, src.lengthSync());
-    expect(sha256.convert(received.single.readAsBytesSync()).toString(), expected);
+    expect(
+      sha256.convert(received.single.readAsBytesSync()).toString(),
+      expected,
+    );
   });
 }

@@ -14,7 +14,8 @@ import 'package:modern_downloader/features/downloader/domain/entities/download_r
 const _metaUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 const _url = 'https://www.w3schools.com/html/mov_bbb.mp4';
 
-String _bin(String name) => '${Directory.current.path}${Platform.pathSeparator}'
+String _bin(String name) =>
+    '${Directory.current.path}${Platform.pathSeparator}'
     'bin${Platform.pathSeparator}$name.exe';
 
 class _RepoBinLocator extends BinaryLocator {
@@ -82,7 +83,7 @@ void main() {
       markTestSkipped('pas de réseau');
       return;
     }
-    final m = await source.fetchMetadata(_metaUrl);
+    final m = await source.fetchMetadata(_metaUrl, cookieBrowser: 'none');
     expect(m['id'], 'dQw4w9WgXcQ');
     expect((m['formats'] as List).isNotEmpty, isTrue);
     expect(m['duration'], isA<num>());
@@ -95,7 +96,7 @@ void main() {
     }
     final last = await _downloadLast(
       source,
-      DownloadRequest(url: _url, outputFolder: out.path),
+      DownloadRequest(url: _url, outputFolder: out.path, cookieBrowser: 'none'),
     );
     expect(last.progress, 1.0);
     final file = File(last.filePath!);
@@ -112,7 +113,12 @@ void main() {
     }
     final last = await _downloadLast(
       source,
-      DownloadRequest(url: _url, outputFolder: out.path, audioOnly: true),
+      DownloadRequest(
+        url: _url,
+        outputFolder: out.path,
+        audioOnly: true,
+        cookieBrowser: 'none',
+      ),
     );
     expect(last.filePath, endsWith('.mp3'));
     expect(File(last.filePath!).existsSync(), isTrue);

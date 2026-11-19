@@ -197,7 +197,7 @@ class YtDlpSource {
 
       if (result.exitCode != 0 &&
           args.contains('--cookies-from-browser') &&
-          YtDlpCookieArgs.isBrowserCookieError(result.stderr.toString())) {
+          YtDlpCookieArgs.hasBrowserCookieError(result.stderr.toString())) {
         LoggerService.w(
           'Browser cookies unreadable, retrying metadata without them',
         );
@@ -314,15 +314,10 @@ class YtDlpSource {
           started = true;
           yield event;
         }
-      } on YtDlpException catch (e) {
+      } on _BrowserCookiesUnreadable {
         // An unreadable browser cookie store must not block public media:
         // retry once without browser cookies, before any progress.
-        if (started ||
-            !YtDlpCookieArgs.isBrowserCookieError(
-              '${e.message}\n${e.originalLog ?? ''}',
-            )) {
-          rethrow;
-        }
+        if (started) rethrow;
         LoggerService.w('Browser cookies unreadable, retrying without them');
         yield* _downloadUnlocked(id, request, allowBrowserCookies: false);
       }
@@ -834,6 +829,11 @@ class YtDlpSource {
         LoggerService.e('Full Stderr: $errorBuffer');
         if (detectedException != null) throw detectedException!;
         final errText = errorBuffer.toString();
+        if (allowBrowserCookies &&
+            cookieArgs.contains('--cookies-from-browser') &&
+            YtDlpCookieArgs.hasBrowserCookieError(errText)) {
+          throw _BrowserCookiesUnreadable(errText);
+        }
         if (DownloadStatusGuard.isNonRetryableProxyError(errText)) {
           throw YtDlpException(
             DownloadStatusGuard.userFacingProxyErrorMessage(errText),
@@ -1013,4 +1013,13 @@ class DownloadProgressEvent {
     this.filePath,
     this.isDuplicate = false,
   });
+}
+/// yt-dlp could not read the browser cookie store; [download] retries once
+/// without browser cookies.
+class _BrowserCookiesUnreadable extends YtDlpException {
+  _BrowserCookiesUnreadable(String log)
+    : super(
+        'yt-dlp could not read the browser cookies. Error: $log',
+        originalLog: log,
+      );
 }

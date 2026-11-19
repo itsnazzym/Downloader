@@ -71,6 +71,17 @@ class YtDlpCookieArgs {
         lower.contains('cookie database');
   }
 
+  /// Like [isBrowserCookieError] but only for `ERROR` lines, so a partial
+  /// decryption WARNING does not trigger a retry.
+  static bool hasBrowserCookieError(String log) {
+    for (final line in log.split(RegExp(r'\r?\n'))) {
+      if (line.trimLeft().startsWith('ERROR') && isBrowserCookieError(line)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// [args] without `--cookies-from-browser <browser>`.
   static List<String> withoutBrowserCookies(List<String> args) {
     final out = <String>[];
