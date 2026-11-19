@@ -2668,4 +2668,79 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get browserSniffDrmNote =>
       'يتم اكتشاف المحتوى المحمي (DRM) لكن لا يمكن تنزيله.';
+
+  @override
+  String get backAgainToExit => 'اضغط رجوع مرة أخرى للخروج';
+
+  @override
+  String get archiveHubImport => 'استيراد ملف TikTok';
+
+  @override
+  String get archiveHubImportHint => 'اختر ملف JSON المُصدَّر من TikTok.';
+
+  @override
+  String get archiveHubPick => 'اختيار ملف';
+
+  @override
+  String get archiveHubOpen => 'فتح المكتبة';
+
+  @override
+  String archiveHubCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجموعات',
+      two: 'مجموعتان',
+      one: 'مجموعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveHubLoading => 'جارٍ فهرسة مكتبتك…';
+
+  @override
+  String get launchWordmark => 'Modern Downloader';
+
+  @override
+  String get launchContinueAnyway => 'المتابعة على أي حال';
+
+  @override
+  String get onbSkip => 'تخطي';
+
+  @override
+  String get onbNext => 'التالي';
+
+  @override
+  String get onbStart => 'ابدأ';
+
+  @override
+  String get onbPage1Title => 'الصق رابطًا.\nوانتهى الأمر.';
+
+  @override
+  String get onbPage1Body => 'شارك من أي تطبيق، أو المس + لإضافة تنزيل.';
+
+  @override
+  String get onbPage2Title => 'تصفّح.\nونحن نكتشف.';
+
+  @override
+  String get onbPage2Body =>
+      'افتح موقعًا في تبويب الويب. تظهر الوسائط التي يشغّلها جاهزة للحفظ.';
+
+  @override
+  String get onbPage3Title => 'مكتبتك،\nبدون إنترنت.';
+
+  @override
+  String get onbPage3Body => 'كل شيء مخزّن على هاتفك ويعمل بدون اتصال.';
+
+  @override
+  String get onbPage4Title => 'كل شيء جاهز.';
+
+  @override
+  String get onbPage4Body => 'شارك رابطًا مع التطبيق، أو المس + للبدء.';
+
+  @override
+  String onbPageLabel(int current, int total) {
+    return 'الصفحة $current من $total';
+  }
 }

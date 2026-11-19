@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -128,13 +129,16 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
               : l10n.gobirdBinaryMissing);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: !PlatformInfo.isMobile,
       backgroundColor: colors.background,
       appBar: buildSettingsAppBar(context, title: l10n.settingsAdvanced),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.l,
-          vertical: AppSpacing.xl + 20,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          // Phones have no section title under the bar: start closer to it.
+          PlatformInfo.isMobile ? AppSpacing.m : AppSpacing.xl + 20,
+          AppSpacing.l,
+          AppSpacing.xl + 20,
         ),
         child: Center(
           child: Container(
@@ -143,15 +147,18 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        SectionTitle(l10n.settingsAdvanced),
-                        SwitchTile(
-                          title: l10n.clipboardMonitor,
-                          subtitle: l10n.clipboardMonitorDesc,
-                          value: settings.clipboardMonitorEnabled,
-                          onChanged:
-                              settingsNotifier.setClipboardMonitorEnabled,
-                          icon: Icons.paste_rounded,
-                        ),
+                        if (!PlatformInfo.isMobile) ...[
+                          SectionTitle(l10n.settingsAdvanced),
+                          // Desktop only: the phone has no clipboard watcher.
+                          SwitchTile(
+                            title: l10n.clipboardMonitor,
+                            subtitle: l10n.clipboardMonitorDesc,
+                            value: settings.clipboardMonitorEnabled,
+                            onChanged:
+                                settingsNotifier.setClipboardMonitorEnabled,
+                            icon: Icons.paste_rounded,
+                          ),
+                        ],
                         SwitchTile(
                           title: l10n.doNotDisturb,
                           subtitle: l10n.doNotDisturbDesc,
@@ -320,18 +327,37 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                           subtitle: l10n.exportHistoryDesc,
                           icon: Icons.upload_file_rounded,
                           onTap: () async {
-                            String? outputFile = await FilePicker.platform
-                                .saveFile(
-                                  dialogTitle: l10n.saveHistoryBackup,
-                                  fileName: 'history_backup.json',
-                                  type: FileType.custom,
-                                  allowedExtensions: ['json'],
-                                );
+                            final exporter = ref.read(
+                              downloadListProvider.notifier,
+                            );
+                            String? outputFile;
+                            if (PlatformInfo.isMobile) {
+                              // On phones the picker writes the bytes itself.
+                              final temp = File(
+                                '${Directory.systemTemp.path}/history_backup.json',
+                              );
+                              await exporter.exportHistory(temp.path);
+                              outputFile = await FilePicker.platform.saveFile(
+                                dialogTitle: l10n.saveHistoryBackup,
+                                fileName: 'history_backup.json',
+                                type: FileType.custom,
+                                allowedExtensions: ['json'],
+                                bytes: await temp.readAsBytes(),
+                              );
+                              await temp.delete();
+                            } else {
+                              outputFile = await FilePicker.platform.saveFile(
+                                dialogTitle: l10n.saveHistoryBackup,
+                                fileName: 'history_backup.json',
+                                type: FileType.custom,
+                                allowedExtensions: ['json'],
+                              );
+                              if (outputFile != null) {
+                                await exporter.exportHistory(outputFile);
+                              }
+                            }
 
                             if (outputFile != null) {
-                              await ref
-                                  .read(downloadListProvider.notifier)
-                                  .exportHistory(outputFile);
                               if (context.mounted) {
                                 AppToast.showSuccess(
                                   context,
@@ -366,14 +392,18 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                           },
                         ),
 
-                        const Gap(AppSpacing.l),
-                        SwitchTile(
-                          title: l10n.useProxy,
-                          subtitle: '${l10n.torBypassDesc}\n$torStatusMessage',
-                          value: settings.useTorProxy,
-                          onChanged: settingsNotifier.setUseTorProxy,
-                          icon: Icons.security,
-                        ),
+                        if (!PlatformInfo.isMobile) ...[
+                          const Gap(AppSpacing.l),
+                          // The Tor bundle only exists on Windows.
+                          SwitchTile(
+                            title: l10n.useProxy,
+                            subtitle:
+                                '${l10n.torBypassDesc}\n$torStatusMessage',
+                            value: settings.useTorProxy,
+                            onChanged: settingsNotifier.setUseTorProxy,
+                            icon: Icons.security,
+                          ),
+                        ],
                         ActionTile(
                           title: l10n.cookiesFile,
                           subtitle: settings.cookiesFilePath.isEmpty

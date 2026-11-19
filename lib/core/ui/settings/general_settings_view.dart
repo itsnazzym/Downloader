@@ -8,6 +8,7 @@ import '../../design_system/foundation/spacing.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/settings_tiles.dart';
 import '../../setup/dependency_bootstrap_provider.dart';
+import 'package:modern_downloader/features/onboarding/presentation/mobile/mobile_onboarding.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../platform/platform_info.dart';
@@ -24,13 +25,16 @@ class GeneralSettingsView extends ConsumerWidget {
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: !PlatformInfo.isMobile,
       backgroundColor: AppColors.of(context).background,
       appBar: buildSettingsAppBar(context, title: l10n.settingsGeneral),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.l,
-          vertical: AppSpacing.xl + 20,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.l,
+          // Phones have no section title under the bar: start closer to it.
+          PlatformInfo.isMobile ? AppSpacing.m : AppSpacing.xl + 20,
+          AppSpacing.l,
+          AppSpacing.xl + 20,
         ),
         child: Center(
           child: Container(
@@ -39,7 +43,9 @@ class GeneralSettingsView extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children:
                   [
-                        SectionTitle(l10n.settingsGeneral),
+                        // The app bar already carries the title on phones.
+                        if (!PlatformInfo.isMobile)
+                          SectionTitle(l10n.settingsGeneral),
                         if (!PlatformInfo.isMobile) ...[
                           ActionTile(
                             title: l10n.previewSetup,
@@ -70,6 +76,18 @@ class GeneralSettingsView extends ConsumerWidget {
                                 context.push('/settings/smart_organizer'),
                           ),
                         ],
+                        if (PlatformInfo.isMobile)
+                          ActionTile(
+                            title: l10n.onboardingReplay,
+                            subtitle: l10n.onboardingReplayDesc,
+                            icon: Icons.replay_outlined,
+                            onTap: () {
+                              context.go('/');
+                              ref
+                                  .read(mobileOnboardingProvider.notifier)
+                                  .replay();
+                            },
+                          ),
                         SwitchTile(
                           title: l10n.audioOnly,
                           subtitle: l10n.audioOnlyDesc,
@@ -92,6 +110,29 @@ class GeneralSettingsView extends ConsumerWidget {
                           onChanged: settingsNotifier.setPreferredQuality,
                           icon: Icons.high_quality,
                         ),
+                        // The phone has no Performance page: speed lives here.
+                        if (PlatformInfo.isMobile) ...[
+                          SliderTile(
+                            title: l10n.threadsPerDownload,
+                            subtitle: l10n.threadsPerDownloadDesc,
+                            value: settings.concurrentFragments
+                                .toDouble()
+                                .clamp(1.0, 64.0),
+                            min: 1,
+                            max: 64,
+                            divisions: 63,
+                            onChanged: (v) => settingsNotifier
+                                .setConcurrentFragments(v.toInt()),
+                            icon: Icons.bolt_rounded,
+                          ),
+                          SwitchTile(
+                            title: l10n.maxSpeedMode,
+                            subtitle: l10n.maxSpeedModeDesc,
+                            value: settings.maxSpeedMode,
+                            onChanged: settingsNotifier.setMaxSpeedMode,
+                            icon: Icons.rocket_launch_rounded,
+                          ),
+                        ],
                       ]
                       .animate(interval: 50.ms)
                       .fadeIn(duration: 300.ms, curve: Curves.easeOut)

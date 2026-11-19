@@ -358,7 +358,8 @@ class DropdownTile extends StatelessWidget {
           children: [
             _OledLabel(title, ''),
             const Gap(12),
-            if (options.length <= 3)
+            if (options.length <= 3 &&
+                labels.values.every((label) => label.length <= 10))
               OledSegmented<String>(
                 options: labels,
                 value: value,

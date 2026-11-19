@@ -2659,4 +2659,79 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get browserSniffDrmNote =>
       'Protected (DRM) content is detected but cannot be downloaded.';
+
+  @override
+  String get backAgainToExit => 'Press back again to exit';
+
+  @override
+  String get archiveHubImport => 'Import your TikTok export';
+
+  @override
+  String get archiveHubImportHint => 'Pick the JSON file exported from TikTok.';
+
+  @override
+  String get archiveHubPick => 'Choose a file';
+
+  @override
+  String get archiveHubOpen => 'Open library';
+
+  @override
+  String archiveHubCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count collections',
+      one: '$count collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get archiveHubLoading => 'Indexing your library…';
+
+  @override
+  String get launchWordmark => 'Modern Downloader';
+
+  @override
+  String get launchContinueAnyway => 'Continue anyway';
+
+  @override
+  String get onbSkip => 'Skip';
+
+  @override
+  String get onbNext => 'Next';
+
+  @override
+  String get onbStart => 'Get started';
+
+  @override
+  String get onbPage1Title => 'Paste a link.\nDone.';
+
+  @override
+  String get onbPage1Body => 'Share from any app, or tap + to add a download.';
+
+  @override
+  String get onbPage2Title => 'Browse.\nWe detect.';
+
+  @override
+  String get onbPage2Body =>
+      'Open a site in the Web tab. The media it plays shows up, ready to save.';
+
+  @override
+  String get onbPage3Title => 'Your library,\noffline.';
+
+  @override
+  String get onbPage3Body =>
+      'Everything is stored on your phone and plays without a connection.';
+
+  @override
+  String get onbPage4Title => 'You\'re set.';
+
+  @override
+  String get onbPage4Body => 'Share a link to the app, or tap + to start.';
+
+  @override
+  String onbPageLabel(int current, int total) {
+    return 'Page $current of $total';
+  }
 }

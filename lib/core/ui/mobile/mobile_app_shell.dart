@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:modern_downloader/core/design_system/components/app_toast.dart';
 import 'package:modern_downloader/core/plugins/feature_activation.dart';
+import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_view.dart';
 import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
@@ -13,13 +17,41 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 /// Android shell: pure black ground with a dot grid, and a docked bottom bar
 /// with a central "add" action. Statistics and the TikTok archive are reached
 /// from the library header, so they highlight the library tab.
-class MobileAppShell extends ConsumerWidget {
+class MobileAppShell extends ConsumerStatefulWidget {
   final Widget child;
 
   const MobileAppShell({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MobileAppShell> createState() => _MobileAppShellState();
+}
+
+class _MobileAppShellState extends ConsumerState<MobileAppShell> {
+  final _exit = DoubleBackExit();
+
+  Future<void> _onBack(BuildContext context, String location) async {
+    if (ref.read(mediaPlayerProvider).isOpen) {
+      unawaited(ref.read(mediaPlayerProvider.notifier).close());
+      return;
+    }
+    // A screen with its own history (web view, inner page) goes first.
+    if (await ref.read(backInterceptorsProvider).handle()) return;
+    if (!context.mounted) return;
+    final target = mobileBackTarget(location);
+    if (target != null) {
+      context.go(target);
+      return;
+    }
+    if (_exit.press()) {
+      await SystemNavigator.pop();
+      return;
+    }
+    AppToast.showInfo(context, context.l10n.backAgainToExit);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final child = widget.child;
     final counts = ref.watch(downloadLibraryCountsProvider);
     final location = GoRouterState.of(context).uri.path;
     final features = ref.watch(featureActivationProvider);
@@ -57,25 +89,12 @@ class MobileAppShell extends ConsumerWidget {
 
     var selected = tabs.indexWhere((tab) => tab.matches(location));
     if (selected < 0) selected = tabs.length - 1;
-    final isLibraryRoot = location == '/';
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (ref.read(mediaPlayerProvider).isOpen) {
-          ref.read(mediaPlayerProvider.notifier).close();
-          return;
-        }
-        if (!isLibraryRoot) {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          } else {
-            context.go('/');
-          }
-          return;
-        }
-        SystemNavigator.pop();
+        unawaited(_onBack(context, location));
       },
       child: Stack(
         children: [

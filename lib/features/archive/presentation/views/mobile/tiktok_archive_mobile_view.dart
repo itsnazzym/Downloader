@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
 import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
@@ -31,10 +32,17 @@ class _TikTokArchiveMobileViewState
   /// When true, the collection management screen (rename, reset, delete,
   /// suggestions) is shown instead of the video grid.
   bool _manageCollections = false;
+  VoidCallback? _unregisterBack;
 
   @override
   void initState() {
     super.initState();
+    // Back leaves the collection manager before leaving the archive.
+    _unregisterBack = ref.read(backInterceptorsProvider).register(() {
+      if (!_manageCollections) return false;
+      setState(() => _manageCollections = false);
+      return true;
+    });
     _videoSearchController = TextEditingController(
       text: ref.read(tikTokArchiveProvider).filter.searchQuery,
     );
@@ -42,6 +50,7 @@ class _TikTokArchiveMobileViewState
 
   @override
   void dispose() {
+    _unregisterBack?.call();
     _videoSearchController.dispose();
     super.dispose();
   }

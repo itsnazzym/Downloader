@@ -4641,6 +4641,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Protected (DRM) content is detected but cannot be downloaded.'**
   String get browserSniffDrmNote;
+
+  /// No description provided for @backAgainToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Press back again to exit'**
+  String get backAgainToExit;
+
+  /// No description provided for @archiveHubImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your TikTok export'**
+  String get archiveHubImport;
+
+  /// No description provided for @archiveHubImportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the JSON file exported from TikTok.'**
+  String get archiveHubImportHint;
+
+  /// No description provided for @archiveHubPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get archiveHubPick;
+
+  /// No description provided for @archiveHubOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open library'**
+  String get archiveHubOpen;
+
+  /// No description provided for @archiveHubCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} collection} other{{count} collections}}'**
+  String archiveHubCollections(int count);
+
+  /// No description provided for @archiveHubLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Indexing your library…'**
+  String get archiveHubLoading;
+
+  /// No description provided for @launchWordmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern Downloader'**
+  String get launchWordmark;
+
+  /// No description provided for @launchContinueAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue anyway'**
+  String get launchContinueAnyway;
+
+  /// No description provided for @onbSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onbSkip;
+
+  /// No description provided for @onbNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onbNext;
+
+  /// No description provided for @onbStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onbStart;
+
+  /// No description provided for @onbPage1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link.\nDone.'**
+  String get onbPage1Title;
+
+  /// No description provided for @onbPage1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Share from any app, or tap + to add a download.'**
+  String get onbPage1Body;
+
+  /// No description provided for @onbPage2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse.\nWe detect.'**
+  String get onbPage2Title;
+
+  /// No description provided for @onbPage2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a site in the Web tab. The media it plays shows up, ready to save.'**
+  String get onbPage2Body;
+
+  /// No description provided for @onbPage3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library,\noffline.'**
+  String get onbPage3Title;
+
+  /// No description provided for @onbPage3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is stored on your phone and plays without a connection.'**
+  String get onbPage3Body;
+
+  /// No description provided for @onbPage4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re set.'**
+  String get onbPage4Title;
+
+  /// No description provided for @onbPage4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a link to the app, or tap + to start.'**
+  String get onbPage4Body;
+
+  /// No description provided for @onbPageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String onbPageLabel(int current, int total);
 }
 
 class _AppLocalizationsDelegate

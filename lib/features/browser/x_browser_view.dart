@@ -15,6 +15,7 @@ import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/components/app_toast.dart';
+import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
 import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
 import 'package:modern_downloader/features/browser/sniff/sniffed_media_sheet.dart';
@@ -49,10 +50,23 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
   final _sniffer = MediaSnifferBridge();
   List<SniffedMedia> _sniffed = const [];
   Timer? _sniffTimer;
+  VoidCallback? _unregisterBack;
+
+  /// Back steps through the page history before leaving the tab.
+  Future<bool> _goBackInPage() async {
+    final controller = _controller;
+    if (controller == null) return false;
+    if (!await controller.canGoBack()) return false;
+    await controller.goBack();
+    return true;
+  }
 
   @override
   void initState() {
     super.initState();
+    _unregisterBack = ref
+        .read(backInterceptorsProvider)
+        .register(_goBackInPage);
     final startUrl = widget.initialUrl?.trim().isNotEmpty == true
         ? widget.initialUrl!.trim()
         : 'https://x.com';
@@ -280,6 +294,7 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
   @override
   void dispose() {
     _sniffTimer?.cancel();
+    _unregisterBack?.call();
     _urlController.dispose();
     super.dispose();
   }
@@ -494,172 +509,159 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
 
     final controller = _controller!;
     final t = OledTokens.of(context);
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        if (await controller.canGoBack()) {
-          await controller.goBack();
-        } else {
-          if (context.mounted) {
-            context.go('/');
-          }
-        }
-      },
-      child: Material(
-        color: Colors.transparent,
-        child: Column(
-          children: [
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 22, 12, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.browserMobileTitle,
-                            style: OledText.title(context),
-                          ),
-                        ),
-                        OledIconButton(
-                          tooltip: l10n.browserMobileBack,
-                          outlined: false,
-                          onPressed: () => controller.goBack(),
-                          icon: Icons.arrow_back_rounded,
-                        ),
-                        OledIconButton(
-                          tooltip: l10n.browserMobileForward,
-                          outlined: false,
-                          onPressed: () => controller.goForward(),
-                          icon: Icons.arrow_forward_rounded,
-                        ),
-                        OledIconButton(
-                          tooltip: 'X.com',
-                          outlined: false,
-                          onPressed: () {
-                            controller.loadRequest(Uri.parse('https://x.com'));
-                          },
-                          icon: Icons.home_outlined,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Container(
-                        height: 52,
-                        padding: const EdgeInsets.only(left: 16, right: 6),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: t.lineStrong),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.lock_outline_rounded,
-                              size: 16,
-                              color: t.ink2,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                controller: _urlController,
-                                style: OledText.ui(context, size: 15),
-                                cursorColor: t.ink,
-                                maxLines: 1,
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  filled: false,
-                                  hintText: 'x.com, instagram, tiktok...',
-                                  hintStyle: OledText.ui(
-                                    context,
-                                    size: 15,
-                                    color: t.ink3,
-                                  ),
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                                onSubmitted: (_) => _submitUrl(),
-                              ),
-                            ),
-                            OledIconButton(
-                              tooltip: l10n.browserMobileReload,
-                              outlined: false,
-                              onPressed: () => controller.reload(),
-                              icon: Icons.refresh_rounded,
-                            ),
-                          ],
+    return Material(
+      color: Colors.transparent,
+      child: Column(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 22, 12, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.browserMobileTitle,
+                          style: OledText.title(context),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 2,
-                      child: _loading
-                          ? LinearProgressIndicator(
-                              minHeight: 2,
-                              backgroundColor: t.line,
-                              valueColor: AlwaysStoppedAnimation<Color>(t.ink),
-                            )
-                          : null,
-                    ),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
+                      OledIconButton(
+                        tooltip: l10n.browserMobileBack,
+                        outlined: false,
+                        onPressed: () => controller.goBack(),
+                        icon: Icons.arrow_back_rounded,
+                      ),
+                      OledIconButton(
+                        tooltip: l10n.browserMobileForward,
+                        outlined: false,
+                        onPressed: () => controller.goForward(),
+                        icon: Icons.arrow_forward_rounded,
+                      ),
+                      OledIconButton(
+                        tooltip: 'X.com',
+                        outlined: false,
+                        onPressed: () {
+                          controller.loadRequest(Uri.parse('https://x.com'));
+                        },
+                        icon: Icons.home_outlined,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Container(
+                      height: 52,
+                      padding: const EdgeInsets.only(left: 16, right: 6),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: t.lineStrong),
+                      ),
                       child: Row(
                         children: [
-                          _buildMobileQuickChip('X.com', 'https://x.com'),
-                          const SizedBox(width: 8),
-                          _buildMobileQuickChip(
-                            'Instagram',
-                            'https://www.instagram.com/reels/',
+                          Icon(
+                            Icons.lock_outline_rounded,
+                            size: 16,
+                            color: t.ink2,
                           ),
-                          const SizedBox(width: 8),
-                          _buildMobileQuickChip(
-                            'TikTok',
-                            'https://www.tiktok.com',
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _urlController,
+                              style: OledText.ui(context, size: 15),
+                              cursorColor: t.ink,
+                              maxLines: 1,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                filled: false,
+                                hintText: 'x.com, instagram, tiktok...',
+                                hintStyle: OledText.ui(
+                                  context,
+                                  size: 15,
+                                  color: t.ink3,
+                                ),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              onSubmitted: (_) => _submitUrl(),
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          _buildMobileQuickChip(
-                            'Shorts',
-                            'https://www.youtube.com/shorts',
+                          OledIconButton(
+                            tooltip: l10n.browserMobileReload,
+                            outlined: false,
+                            onPressed: () => controller.reload(),
+                            icon: Icons.refresh_rounded,
                           ),
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 10, 8, 10),
-                      child: Text(
-                        l10n.browseXHint,
-                        style: OledText.ui(context, size: 12, color: t.ink2),
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 2,
+                    child: _loading
+                        ? LinearProgressIndicator(
+                            minHeight: 2,
+                            backgroundColor: t.line,
+                            valueColor: AlwaysStoppedAnimation<Color>(t.ink),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildMobileQuickChip('X.com', 'https://x.com'),
+                        const SizedBox(width: 8),
+                        _buildMobileQuickChip(
+                          'Instagram',
+                          'https://www.instagram.com/reels/',
+                        ),
+                        const SizedBox(width: 8),
+                        _buildMobileQuickChip(
+                          'TikTok',
+                          'https://www.tiktok.com',
+                        ),
+                        const SizedBox(width: 8),
+                        _buildMobileQuickChip(
+                          'Shorts',
+                          'https://www.youtube.com/shorts',
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 10, 8, 10),
+                    child: Text(
+                      l10n.browseXHint,
+                      style: OledText.ui(context, size: 12, color: t.ink2),
+                    ),
+                  ),
+                ],
               ),
             ),
-            Expanded(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: t.line)),
-                ),
-                child: WebViewWidget(controller: controller),
+          ),
+          Expanded(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: t.line)),
               ),
+              child: WebViewWidget(controller: controller),
             ),
-            if (_sniffed.isNotEmpty ||
-                _isCapturable(
-                  _pageUrl,
-                  includeAdult: ref.watch(settingsProvider).adultSitesEnabled,
-                ))
-              _buildCaptureBar(context, t),
-          ],
-        ),
+          ),
+          if (_sniffed.isNotEmpty ||
+              _isCapturable(
+                _pageUrl,
+                includeAdult: ref.watch(settingsProvider).adultSitesEnabled,
+              ))
+            _buildCaptureBar(context, t),
+        ],
       ),
     );
   }
