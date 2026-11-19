@@ -4767,6 +4767,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Page {current} of {total}'**
   String onbPageLabel(int current, int total);
+
+  /// No description provided for @etaSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s'**
+  String etaSeconds(int seconds);
+
+  /// No description provided for @etaMinutesSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min {seconds} s'**
+  String etaMinutesSeconds(int minutes, int seconds);
+
+  /// No description provided for @etaHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String etaHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @archiveCollSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a collection'**
+  String get archiveCollSearch;
+
+  /// No description provided for @archiveCollEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No collection found'**
+  String get archiveCollEmpty;
+
+  /// No description provided for @archiveCollShowVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'View videos'**
+  String get archiveCollShowVideos;
+
+  /// No description provided for @archiveCollDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all ({count})'**
+  String archiveCollDownloadAll(int count);
+
+  /// No description provided for @archiveCollReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the videos from this collection'**
+  String get archiveCollReset;
+
+  /// No description provided for @archiveCollResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the collection'**
+  String get archiveCollResetTitle;
+
+  /// No description provided for @archiveCollResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {count} videos from “{name}”? The videos and their other collections are kept.'**
+  String archiveCollResetBody(int count, String name);
+
+  /// No description provided for @archiveCollResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get archiveCollResetConfirm;
+
+  /// No description provided for @archiveCollResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” emptied'**
+  String archiveCollResetDone(String name);
+
+  /// No description provided for @archiveCollDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection'**
+  String get archiveCollDelete;
+
+  /// No description provided for @archiveCollDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete “{name}”? Its {count} videos stay on your device but leave this folder.'**
+  String archiveCollDeleteBody(int count, String name);
+
+  /// No description provided for @archiveCollDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get archiveCollDeleteConfirm;
+
+  /// No description provided for @archiveCollDeleteDone.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” deleted'**
+  String archiveCollDeleteDone(String name);
+
+  /// No description provided for @archiveCollClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the whole archive'**
+  String get archiveCollClear;
+
+  /// No description provided for @archiveCollClearBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all collections, rankings and the local TikTok import? Videos already downloaded are kept.'**
+  String get archiveCollClearBody;
+
+  /// No description provided for @archiveCollClearConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get archiveCollClearConfirm;
+
+  /// No description provided for @archiveCollClearDone.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok archive reset'**
+  String get archiveCollClearDone;
 }
 
 class _AppLocalizationsDelegate

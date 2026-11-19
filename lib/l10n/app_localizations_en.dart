@@ -2734,4 +2734,81 @@ class AppLocalizationsEn extends AppLocalizations {
   String onbPageLabel(int current, int total) {
     return 'Page $current of $total';
   }
+
+  @override
+  String etaSeconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String etaMinutesSeconds(int minutes, int seconds) {
+    return '$minutes min $seconds s';
+  }
+
+  @override
+  String etaHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get archiveCollSearch => 'Search a collection';
+
+  @override
+  String get archiveCollEmpty => 'No collection found';
+
+  @override
+  String get archiveCollShowVideos => 'View videos';
+
+  @override
+  String archiveCollDownloadAll(int count) {
+    return 'Download all ($count)';
+  }
+
+  @override
+  String get archiveCollReset => 'Remove the videos from this collection';
+
+  @override
+  String get archiveCollResetTitle => 'Reset the collection';
+
+  @override
+  String archiveCollResetBody(int count, String name) {
+    return 'Remove the $count videos from “$name”? The videos and their other collections are kept.';
+  }
+
+  @override
+  String get archiveCollResetConfirm => 'Remove';
+
+  @override
+  String archiveCollResetDone(String name) {
+    return '“$name” emptied';
+  }
+
+  @override
+  String get archiveCollDelete => 'Delete the collection';
+
+  @override
+  String archiveCollDeleteBody(int count, String name) {
+    return 'Permanently delete “$name”? Its $count videos stay on your device but leave this folder.';
+  }
+
+  @override
+  String get archiveCollDeleteConfirm => 'Delete';
+
+  @override
+  String archiveCollDeleteDone(String name) {
+    return '“$name” deleted';
+  }
+
+  @override
+  String get archiveCollClear => 'Reset the whole archive';
+
+  @override
+  String get archiveCollClearBody =>
+      'Delete all collections, rankings and the local TikTok import? Videos already downloaded are kept.';
+
+  @override
+  String get archiveCollClearConfirm => 'Delete everything';
+
+  @override
+  String get archiveCollClearDone => 'TikTok archive reset';
 }

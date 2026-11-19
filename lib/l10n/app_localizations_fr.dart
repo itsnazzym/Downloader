@@ -2776,4 +2776,81 @@ class AppLocalizationsFr extends AppLocalizations {
   String onbPageLabel(int current, int total) {
     return 'Page $current sur $total';
   }
+
+  @override
+  String etaSeconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String etaMinutesSeconds(int minutes, int seconds) {
+    return '$minutes min $seconds s';
+  }
+
+  @override
+  String etaHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get archiveCollSearch => 'Rechercher une collection';
+
+  @override
+  String get archiveCollEmpty => 'Aucune collection trouvée';
+
+  @override
+  String get archiveCollShowVideos => 'Voir les vidéos';
+
+  @override
+  String archiveCollDownloadAll(int count) {
+    return 'Tout télécharger ($count)';
+  }
+
+  @override
+  String get archiveCollReset => 'Retirer les vidéos de cette collection';
+
+  @override
+  String get archiveCollResetTitle => 'Réinitialiser la collection';
+
+  @override
+  String archiveCollResetBody(int count, String name) {
+    return 'Retirer les $count vidéos de « $name » ? Les vidéos et leurs autres classements seront conservés.';
+  }
+
+  @override
+  String get archiveCollResetConfirm => 'Retirer';
+
+  @override
+  String archiveCollResetDone(String name) {
+    return '« $name » vidée';
+  }
+
+  @override
+  String get archiveCollDelete => 'Supprimer la collection';
+
+  @override
+  String archiveCollDeleteBody(int count, String name) {
+    return 'Supprimer définitivement « $name » ? Ses $count vidéos restent sur l\'appareil mais ne font plus partie de ce dossier.';
+  }
+
+  @override
+  String get archiveCollDeleteConfirm => 'Supprimer';
+
+  @override
+  String archiveCollDeleteDone(String name) {
+    return '« $name » supprimée';
+  }
+
+  @override
+  String get archiveCollClear => 'Réinitialiser toute l\'archive';
+
+  @override
+  String get archiveCollClearBody =>
+      'Supprimer toutes les collections, les classements et l\'import TikTok local ? Les vidéos déjà téléchargées sont conservées.';
+
+  @override
+  String get archiveCollClearConfirm => 'Tout supprimer';
+
+  @override
+  String get archiveCollClearDone => 'Archive TikTok réinitialisée';
 }

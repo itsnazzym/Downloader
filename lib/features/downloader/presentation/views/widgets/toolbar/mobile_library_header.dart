@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,76 +11,8 @@ import 'package:modern_downloader/features/downloader/domain/enums/download_stat
 import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
-
-bool _isActiveItem(DownloadItem item) =>
-    item.status == DownloadStatus.downloading ||
-    item.status == DownloadStatus.extracting ||
-    item.status == DownloadStatus.processing;
-
-/// Parses a yt-dlp style speed such as "6.2MiB/s" into bytes per second.
-/// Returns null when the text is not a recognisable speed.
-double? _parseSpeed(String raw) {
-  final match = RegExp(
-    r'([0-9]+(?:[.,][0-9]+)?)\s*([KMGT]?)i?B\s*/\s*s',
-    caseSensitive: false,
-  ).firstMatch(raw);
-  if (match == null) return null;
-  final number = double.tryParse(match.group(1)!.replaceAll(',', '.'));
-  if (number == null) return null;
-  const exponents = <String, int>{'': 0, 'K': 1, 'M': 2, 'G': 3, 'T': 4};
-  final exponent = exponents[match.group(2)!.toUpperCase()] ?? 0;
-  return number * math.pow(1024, exponent);
-}
-
-/// Sum of the parseable speeds, or null when none of the items has one.
-double? _aggregateSpeed(List<DownloadItem> items) {
-  var total = 0.0;
-  var found = false;
-  for (final item in items) {
-    final speed = _parseSpeed(item.speed);
-    if (speed != null) {
-      total += speed;
-      found = true;
-    }
-  }
-  return found ? total : null;
-}
-
-class _SpeedLabel {
-  const _SpeedLabel(this.value, this.unit);
-
-  final String value;
-  final String unit;
-}
-
-_SpeedLabel _formatSpeed(AppLocalizations l10n, double? bytesPerSecond) {
-  if (bytesPerSecond == null) return const _SpeedLabel('—', '');
-  const k = 1024.0;
-  final decimalSeparator = l10n.localeName.startsWith('en') ? '.' : ',';
-  String fmt(double v) =>
-      v.toStringAsFixed(v >= 100 ? 0 : 1).replaceAll('.', decimalSeparator);
-  if (bytesPerSecond >= k * k * k) {
-    return _SpeedLabel(
-      fmt(bytesPerSecond / (k * k * k)),
-      l10n.libraryHeaderUnitGBps,
-    );
-  }
-  if (bytesPerSecond >= k * k) {
-    return _SpeedLabel(
-      fmt(bytesPerSecond / (k * k)),
-      l10n.libraryHeaderUnitMBps,
-    );
-  }
-  if (bytesPerSecond >= k) {
-    return _SpeedLabel(fmt(bytesPerSecond / k), l10n.libraryHeaderUnitKBps);
-  }
-  return _SpeedLabel(
-    bytesPerSecond.round().toString(),
-    l10n.libraryHeaderUnitBps,
-  );
-}
 
 /// Library header of the Android OLED interface: title, shortcuts, filter
 /// chips and, while something downloads, the live throughput panel.
@@ -106,7 +37,7 @@ class MobileLibraryHeader extends ConsumerWidget {
     final hasActive = ref.watch(
       downloadListProvider.select(
         (async) =>
-            (async.valueOrNull ?? const <DownloadItem>[]).any(_isActiveItem),
+            (async.valueOrNull ?? const <DownloadItem>[]).any(isActiveDownload),
       ),
     );
 
@@ -255,8 +186,11 @@ class _LiveScopeState extends ConsumerState<_LiveScope> {
   void _record() {
     final items =
         ref.read(downloadListProvider).valueOrNull ?? const <DownloadItem>[];
-    final active = items.where(_isActiveItem).toList();
-    _samples.add(_aggregateSpeed(active) ?? 0.0);
+    final active = liveActiveItems(
+      items,
+      (id) => ref.read(downloadRuntimeItemProvider(id)),
+    );
+    _samples.add(aggregateSpeed(active) ?? 0.0);
     if (_samples.length > _maxSamples) {
       _samples.removeAt(0);
     }
@@ -268,11 +202,15 @@ class _LiveScopeState extends ConsumerState<_LiveScope> {
     final l10n = context.l10n;
     final items =
         ref.watch(downloadListProvider).valueOrNull ?? const <DownloadItem>[];
-    final active = items.where(_isActiveItem).toList();
+    // Progress ticks only reach the per-download runtime item.
+    final active = liveActiveItems(
+      items,
+      (id) => ref.watch(downloadRuntimeItemProvider(id)),
+    );
     if (active.isEmpty) return const SizedBox.shrink();
 
     final first = active.first;
-    final speed = _formatSpeed(l10n, _aggregateSpeed(active));
+    final speed = formatSpeed(l10n, aggregateSpeed(active));
     final title =
         first.status == DownloadStatus.extracting &&
             ExtractionPlaceholders.isGenericTitle(first.title)
@@ -412,7 +350,7 @@ class _LiveScopeState extends ConsumerState<_LiveScope> {
                 ),
               if (first.eta.isNotEmpty)
                 Text(
-                  l10n.libraryHeaderRemaining(first.eta),
+                  l10n.libraryHeaderRemaining(etaLabel(l10n, first.eta)),
                   style: OledText.ui(
                     context,
                     size: 13,

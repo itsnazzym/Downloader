@@ -2743,4 +2743,81 @@ class AppLocalizationsAr extends AppLocalizations {
   String onbPageLabel(int current, int total) {
     return 'الصفحة $current من $total';
   }
+
+  @override
+  String etaSeconds(int seconds) {
+    return '$seconds ث';
+  }
+
+  @override
+  String etaMinutesSeconds(int minutes, int seconds) {
+    return '$minutes د $seconds ث';
+  }
+
+  @override
+  String etaHoursMinutes(int hours, int minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String get archiveCollSearch => 'ابحث عن مجموعة';
+
+  @override
+  String get archiveCollEmpty => 'لم يتم العثور على مجموعة';
+
+  @override
+  String get archiveCollShowVideos => 'عرض الفيديوهات';
+
+  @override
+  String archiveCollDownloadAll(int count) {
+    return 'تنزيل الكل ($count)';
+  }
+
+  @override
+  String get archiveCollReset => 'إزالة الفيديوهات من هذه المجموعة';
+
+  @override
+  String get archiveCollResetTitle => 'إعادة تعيين المجموعة';
+
+  @override
+  String archiveCollResetBody(int count, String name) {
+    return 'إزالة $count فيديو من «$name»؟ تبقى الفيديوهات ومجموعاتها الأخرى.';
+  }
+
+  @override
+  String get archiveCollResetConfirm => 'إزالة';
+
+  @override
+  String archiveCollResetDone(String name) {
+    return 'تم إفراغ «$name»';
+  }
+
+  @override
+  String get archiveCollDelete => 'حذف المجموعة';
+
+  @override
+  String archiveCollDeleteBody(int count, String name) {
+    return 'حذف «$name» نهائيًا؟ تبقى فيديوهاتها ($count) على جهازك لكنها تغادر هذا المجلد.';
+  }
+
+  @override
+  String get archiveCollDeleteConfirm => 'حذف';
+
+  @override
+  String archiveCollDeleteDone(String name) {
+    return 'تم حذف «$name»';
+  }
+
+  @override
+  String get archiveCollClear => 'إعادة تعيين الأرشيف بالكامل';
+
+  @override
+  String get archiveCollClearBody =>
+      'حذف كل المجموعات والتصنيفات واستيراد TikTok المحلي؟ تبقى الفيديوهات التي تم تنزيلها.';
+
+  @override
+  String get archiveCollClearConfirm => 'حذف الكل';
+
+  @override
+  String get archiveCollClearDone => 'تمت إعادة تعيين أرشيف TikTok';
 }

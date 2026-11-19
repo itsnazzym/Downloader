@@ -29,27 +29,17 @@ void main() {
     });
   });
 
-  group('computeYtDlpBufferSize', () {
-    test('caps at 16M when more than 4 jobs are active', () {
-      expect(
-        computeYtDlpBufferSize(concurrentFragments: 64, activeCount: 5),
-        '16M',
-      );
-      expect(
-        computeYtDlpBufferSize(concurrentFragments: 64, activeCount: 15),
-        '16M',
-      );
-    });
-
-    test('keeps turbo buffers for 1–4 jobs', () {
-      expect(
-        computeYtDlpBufferSize(concurrentFragments: 64, activeCount: 1),
-        '128M',
-      );
-      expect(
-        computeYtDlpBufferSize(concurrentFragments: 16, activeCount: 2),
-        '64M',
-      );
+  group('kYtDlpBufferSize', () {
+    test('stays small so progress is reported while the file downloads', () {
+      // yt-dlp reports progress once per read, and the first read is this
+      // size: anything above a few MB freezes the live progress of a short
+      // download at 0 % until it ends (measured: 64M gave 2 progress lines
+      // for a 59 MB file, 1M gave 18).
+      final match = RegExp(r'^(\d+)([KM])$').firstMatch(kYtDlpBufferSize);
+      expect(match, isNotNull);
+      final value = int.parse(match!.group(1)!);
+      final megabytes = match.group(2) == 'M' ? value : value / 1024;
+      expect(megabytes, lessThanOrEqualTo(1));
     });
   });
 

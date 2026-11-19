@@ -7,10 +7,10 @@ import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_feed_view.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
-import '../modes/tiktok_collections_view.dart';
+import 'archive_collection_label.dart';
+import 'tiktok_collections_mobile_view.dart';
 import '../archive_hub_view.dart';
 
 /// Android OLED layout of the TikTok archive: a 3-column grid of tiles with
@@ -217,7 +217,12 @@ class _TikTokArchiveMobileViewState
                 onTap: () => setState(() => _manageCollections = false),
               ),
             ),
-            Expanded(child: TikTokCollectionsView(catalog: widget.catalog)),
+            Expanded(
+              child: TikTokCollectionsMobileView(
+                catalog: widget.catalog,
+                onShowVideos: () => setState(() => _manageCollections = false),
+              ),
+            ),
           ],
         ),
       );
@@ -451,7 +456,7 @@ class _TikTokArchiveMobileViewState
       for (final coll in catalog.collections)
         if (coll.videoCount > 0)
           OledChip(
-            label: _collectionLabel(context.l10n, coll.name),
+            label: archiveCollectionLabel(context.l10n, coll.name),
             count: coll.videoCount,
             selected: filter.selectedCollection == (coll.id ?? coll.name),
             onTap: () => notifier.selectCollection(
@@ -938,18 +943,5 @@ class _SelectionBar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-/// The parser stores two system collections under French names that are also
-/// data keys; only the label shown to the user is translated.
-String _collectionLabel(AppLocalizations l10n, String name) {
-  switch (name) {
-    case 'Vidéos Likées':
-      return l10n.archiveMobileCollectionLiked;
-    case 'Favoris non classés':
-      return l10n.archiveMobileCollectionUnsortedFavorites;
-    default:
-      return name;
   }
 }

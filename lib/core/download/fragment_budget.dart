@@ -31,22 +31,13 @@ int computeConcurrentFragments({
   }
 }
 
-/// yt-dlp `--buffer-size` argument. Caps at 16M when many jobs are active.
-String computeYtDlpBufferSize({
-  required int concurrentFragments,
-  required int activeCount,
-}) {
-  if (activeCount > kBufferSizeCapActiveCount) {
-    return '16M';
-  }
-  if (concurrentFragments >= 32) {
-    return '128M';
-  }
-  if (concurrentFragments >= 16) {
-    return '64M';
-  }
-  return '16M';
-}
+/// yt-dlp `--buffer-size`. It is also the size of the FIRST read of a plain
+/// HTTP download, and yt-dlp reports progress once per read: with the 64M or
+/// 128M used before, a file smaller than that reported nothing until it was
+/// finished, so the live speed, ETA and fragment map stayed frozen at 0 %.
+/// 1M keeps updates flowing (about ten per second at 10 MB/s); yt-dlp then
+/// grows the block by itself up to 4M, so throughput does not suffer.
+const String kYtDlpBufferSize = '1M';
 
 /// How many queued jobs may start without exceeding [maxConcurrent].
 int computeStartableCount({

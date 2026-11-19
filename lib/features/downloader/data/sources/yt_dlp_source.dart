@@ -363,10 +363,6 @@ class YtDlpSource {
       perJob: perJobFragments,
       activeCount: activeCount,
     );
-    final bufferSize = computeYtDlpBufferSize(
-      concurrentFragments: concurrentFragments,
-      activeCount: activeCount,
-    );
 
     // Native multi-fragment downloader scales beyond aria2c's 16-connection cap.
     // Max speed stays on; the global fragment budget only shares 64 across jobs.
@@ -377,7 +373,7 @@ class YtDlpSource {
         '($activeCount active, budget $kFragmentGlobalBudget).',
       );
       args.addAll(['--concurrent-fragments', concurrentFragments.toString()]);
-      args.addAll(['--buffer-size', bufferSize]);
+      args.addAll(['--buffer-size', kYtDlpBufferSize]);
       if (concurrentFragments >= 32 &&
           activeCount <= kBufferSizeCapActiveCount) {
         args.addAll(['--http-chunk-size', '10M']);
@@ -397,7 +393,7 @@ class YtDlpSource {
         'Aria2c not found, using native downloader with $concurrentFragments fragments.',
       );
       args.addAll(['--concurrent-fragments', concurrentFragments.toString()]);
-      args.addAll(['--buffer-size', '16M']);
+      args.addAll(['--buffer-size', kYtDlpBufferSize]);
     }
 
     // Skip playlist checks unless Twitter replies were requested
