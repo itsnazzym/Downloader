@@ -441,6 +441,21 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                     customFilename: '$stem [$urlHash].%(ext)s',
                   );
                 }
+              } else if (_isPreResolved(currentRequest)) {
+                // Picked in the in-app browser: the stream, its name and the
+                // session are already known, so nothing to look up.
+                final stem = _stemOf(currentRequest.customFilename!);
+                finalTitle = stem.isEmpty
+                    ? TitleCleanerService.deriveTitleFromUrl(currentRequest.url)
+                    : stem;
+                finalThumbnail =
+                    currentRequest.forceThumbnailUrl ?? finalThumbnail;
+                _update(
+                  _activeDownloads[id]!.copyWith(
+                    title: finalTitle,
+                    thumbnailUrl: finalThumbnail,
+                  ),
+                );
               } else {
                 final metadata = await _source.fetchMetadata(
                   currentRequest.url,
@@ -799,6 +814,23 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         : url.hashCode.toRadixString(36);
     final stem = TitleCleanerService.filenameStem(title);
     return '$stem [$unique].%(ext)s';
+  }
+
+  static bool _isPreResolved(DownloadRequest request) {
+    final stream = request.forceStreamUrl;
+    final name = request.customFilename;
+    return stream != null &&
+        stream.isNotEmpty &&
+        name != null &&
+        name.isNotEmpty &&
+        !KickPageRef.isKickHost(request.url);
+  }
+
+  /// "My video [abc].%(ext)s" -> "My video".
+  static String _stemOf(String customFilename) {
+    final cut = customFilename.indexOf(' [');
+    final stem = cut > 0 ? customFilename.substring(0, cut) : customFilename;
+    return stem.replaceAll('.%(ext)s', '').trim();
   }
 
   void _markDownloadFailed(String id, Object error, {bool notify = true}) {

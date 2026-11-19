@@ -690,6 +690,25 @@ class YtDlpSource {
       args.addAll(['--add-header', 'Origin:https://kick.com']);
     }
 
+    // A stream sniffed in the in-app browser is fetched the way the browser
+    // did: referer and origin of the page that played it.
+    final forced = request.forceStreamUrl;
+    if (forced != null &&
+        forced.isNotEmpty &&
+        !forced.contains('stream.kick.com') &&
+        !request.url.contains('kick.com') &&
+        !args.contains('--referer')) {
+      final page = Uri.tryParse(request.url);
+      args.addAll(['--referer', request.url]);
+      if (page != null && page.host.isNotEmpty) {
+        final port = page.hasPort ? ':${page.port}' : '';
+        args.addAll([
+          '--add-header',
+          'Origin:${page.scheme}://${page.host}$port',
+        ]);
+      }
+    }
+
     // URL — prefer a resolved direct stream (Kick HLS master/variant)
     final downloadUrl =
         (request.forceStreamUrl != null && request.forceStreamUrl!.isNotEmpty)

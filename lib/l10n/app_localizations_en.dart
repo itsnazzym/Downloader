@@ -2622,4 +2622,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get archiveMobileCollectionUnsortedFavorites => 'Unsorted favorites';
+
+  @override
+  String get browserSniffTitle => 'Detected media';
+
+  @override
+  String get browserSniffHint =>
+      'What this page loaded. Picking one downloads it with your browser session.';
+
+  @override
+  String browserSniffCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count media detected',
+      one: '1 media detected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get browserSniffOpen => 'Streams';
+
+  @override
+  String get browserSniffKindHls => 'HLS stream';
+
+  @override
+  String get browserSniffKindDash => 'DASH stream';
+
+  @override
+  String get browserSniffKindVideo => 'Video file';
+
+  @override
+  String get browserSniffKindAudio => 'Audio file';
+
+  @override
+  String get browserSniffDrmNote =>
+      'Protected (DRM) content is detected but cannot be downloaded.';
 }

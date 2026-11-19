@@ -2661,4 +2661,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get archiveMobileCollectionUnsortedFavorites => 'Favoris non classés';
+
+  @override
+  String get browserSniffTitle => 'Médias détectés';
+
+  @override
+  String get browserSniffHint =>
+      'Ce que cette page a chargé. Le choix d\'un flux le télécharge avec la session de votre navigateur.';
+
+  @override
+  String browserSniffCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count médias détectés',
+      one: '1 média détecté',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get browserSniffOpen => 'Flux';
+
+  @override
+  String get browserSniffKindHls => 'Flux HLS';
+
+  @override
+  String get browserSniffKindDash => 'Flux DASH';
+
+  @override
+  String get browserSniffKindVideo => 'Fichier vidéo';
+
+  @override
+  String get browserSniffKindAudio => 'Fichier audio';
+
+  @override
+  String get browserSniffDrmNote =>
+      'Les contenus protégés (DRM) sont détectés mais ne peuvent pas être téléchargés.';
 }

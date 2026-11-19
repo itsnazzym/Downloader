@@ -6,18 +6,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/android/android_engine_bridge.dart';
+import 'package:modern_downloader/core/android/media_sniffer_bridge.dart';
 import 'package:modern_downloader/core/android/netscape_cookie_codec.dart';
 import 'package:modern_downloader/core/android/overlay_download_message.dart';
 import 'package:modern_downloader/core/download/download_url_policy.dart';
 import 'package:modern_downloader/core/download/x_download_url.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
+import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/design_system/components/app_toast.dart';
 import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
+import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
+import 'package:modern_downloader/features/browser/sniff/sniffed_media_sheet.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/mobile/mobile_add_download_sheet.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +44,11 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
   var _overlayJs = '';
   String _pageUrl = '';
   String? _pageTitle;
+
+  // Media the page loaded, read from the native WebView client (Android).
+  final _sniffer = MediaSnifferBridge();
+  List<SniffedMedia> _sniffed = const [];
+  Timer? _sniffTimer;
 
   @override
   void initState() {
@@ -62,6 +73,7 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
                 setState(() {
                   _loading = true;
                   _pageUrl = url;
+                  _sniffed = const [];
                 });
               }
             },
@@ -79,6 +91,12 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
           ),
         );
       unawaited(_bootstrap());
+      if (Platform.isAndroid) {
+        _sniffTimer = Timer.periodic(
+          const Duration(milliseconds: 1500),
+          (_) => unawaited(_pollSniffer()),
+        );
+      }
     } else {
       _loading = false;
     }
@@ -126,6 +144,42 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
     if (uri == null || !uri.hasScheme || uri.host.isEmpty) return false;
     if (uri.path.isEmpty || uri.path == '/') return false;
     return DownloadUrlPolicy.isAllowed(url, includeAdult: includeAdult);
+  }
+
+  Future<void> _pollSniffer() async {
+    final platform = _controller?.platform;
+    if (!mounted || platform is! AndroidWebViewController) return;
+    // Idempotent: also re-wraps the client if the plugin replaced it.
+    if (!await _sniffer.attach(platform.webViewIdentifier)) return;
+    final list = await _sniffer.streams();
+    if (!mounted) return;
+    final changed =
+        list.length != _sniffed.length ||
+        (list.isNotEmpty && list.first.url != _sniffed.first.url);
+    if (changed) setState(() => _sniffed = list);
+  }
+
+  Future<void> _downloadSniffed(SniffedMedia media) async {
+    final l10n = context.l10n;
+    final page = media.page.isNotEmpty ? media.page : _pageUrl;
+    final cookies = await _sniffer.sessionCookies(media);
+    final title = (_pageTitle ?? '').trim();
+    final stem = TitleCleanerService.filenameStem(
+      title.isEmpty ? media.host : title,
+    );
+    final tag = media.url.hashCode.toRadixString(36);
+    if (!mounted) return;
+    await ref
+        .read(downloadListProvider.notifier)
+        .startDownload(
+          page,
+          forceStreamUrl: media.url,
+          customFilename: '$stem [$tag].%(ext)s',
+          rawCookies: cookies,
+          userAgent: (media.userAgent ?? '').isEmpty ? null : media.userAgent,
+          audioOnly: media.kind == SniffedKind.audio ? true : null,
+        );
+    if (mounted) AppToast.showSuccess(context, l10n.downloadStarted);
   }
 
   Future<void> _captureCurrentPage() async {
@@ -225,6 +279,7 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
 
   @override
   void dispose() {
+    _sniffTimer?.cancel();
     _urlController.dispose();
     super.dispose();
   }
@@ -597,10 +652,11 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
                 child: WebViewWidget(controller: controller),
               ),
             ),
-            if (_isCapturable(
-              _pageUrl,
-              includeAdult: ref.watch(settingsProvider).adultSitesEnabled,
-            ))
+            if (_sniffed.isNotEmpty ||
+                _isCapturable(
+                  _pageUrl,
+                  includeAdult: ref.watch(settingsProvider).adultSitesEnabled,
+                ))
               _buildCaptureBar(context, t),
           ],
         ),
@@ -612,6 +668,10 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
     final l10n = context.l10n;
     final host = Uri.tryParse(_pageUrl)?.host.replaceFirst('www.', '') ?? '';
     final title = (_pageTitle ?? '').trim();
+    final capturable = _isCapturable(
+      _pageUrl,
+      includeAdult: ref.watch(settingsProvider).adultSitesEnabled,
+    );
     return DecoratedBox(
       decoration: BoxDecoration(
         color: t.bg,
@@ -627,7 +687,9 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    l10n.browserMobileReadyToDownload,
+                    _sniffed.isNotEmpty
+                        ? l10n.browserSniffCount(_sniffed.length)
+                        : l10n.browserMobileReadyToDownload,
                     style: OledText.ui(context, size: 12, color: t.ink2),
                   ),
                   Text(
@@ -644,12 +706,26 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
               ),
             ),
             const SizedBox(width: 12),
-            OledButton(
-              label: l10n.browserMobileDownload,
-              onPressed: _captureCurrentPage,
-              expand: false,
-              height: 44,
-            ),
+            if (_sniffed.isNotEmpty)
+              OledButton(
+                label: l10n.browserSniffOpen,
+                filled: !capturable,
+                onPressed: () => SniffedMediaSheet.show(
+                  context,
+                  items: _sniffed,
+                  onPick: (m) => unawaited(_downloadSniffed(m)),
+                ),
+                expand: false,
+                height: 44,
+              ),
+            if (_sniffed.isNotEmpty && capturable) const SizedBox(width: 8),
+            if (capturable)
+              OledButton(
+                label: l10n.browserMobileDownload,
+                onPressed: _captureCurrentPage,
+                expand: false,
+                height: 44,
+              ),
           ],
         ),
       ),

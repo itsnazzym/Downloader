@@ -63,6 +63,40 @@ void main() {
   });
 
   test(
+    'a sniffed stream is fetched with the page as referer and origin',
+    () async {
+      final runner = _StartRecordingRunner([
+        _FakeProcess(stdoutLines: const [], stderrLines: const [], exit: 0),
+      ]);
+      final source = YtDlpSource(_Locator(), runner);
+      final out = Directory.systemTemp.createTempSync('md_sniff_');
+      addTearDown(() => out.deleteSync(recursive: true));
+
+      await source
+          .download(
+            'sn1',
+            DownloadRequest(
+              url: 'https://example.com/watch/1',
+              outputFolder: out.path,
+              userAgent: 'Browser UA',
+              forceStreamUrl: 'https://cdn.example.com/v/master.m3u8',
+            ),
+          )
+          .drain<void>()
+          .catchError((_) {});
+
+      final args = runner.starts.single;
+      expect(args.last, 'https://cdn.example.com/v/master.m3u8');
+      expect(
+        args,
+        containsAllInOrder(['--referer', 'https://example.com/watch/1']),
+      );
+      expect(args, contains('Origin:https://example.com'));
+      expect(args, containsAllInOrder(['--user-agent', 'Browser UA']));
+    },
+  );
+
+  test(
     'fetchMetadata retries without browser cookies when they cannot be read',
     () async {
       final runner = _CookieFailingRunner();

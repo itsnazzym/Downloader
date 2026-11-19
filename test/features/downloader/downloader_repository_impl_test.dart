@@ -334,6 +334,30 @@ void main() {
     expect(source.downloadCalls, 0);
   });
 
+  test('a stream picked in the browser skips the metadata lookup', () async {
+    final source = _FakeYtDlp();
+    final repo = buildRepo(source);
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final done = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.completed && !done.isCompleted) {
+        done.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      const DownloadRequest(
+        url: 'https://example.com/watch/1',
+        forceStreamUrl: 'https://cdn.example.com/v/master.m3u8',
+        customFilename: 'My clip [ab12].%(ext)s',
+      ),
+    );
+
+    await done.future.timeout(const Duration(seconds: 8));
+    expect(source.metadataCalls, 0);
+    expect(source.lastRequest?.forceStreamUrl, endsWith('master.m3u8'));
+  });
+
   test('deleteDownload removes item and cleans media files', () async {
     final repo = buildRepo(_FakeYtDlp(metadataHold: Completer()));
     await loaded.future.timeout(const Duration(seconds: 3));
