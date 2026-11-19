@@ -92,6 +92,20 @@ void main() {
       expect(list.map((m) => m.fileName), ['master.m3u8']);
     });
 
+    test('real hls.js page: the master hides its numbered variants', () {
+      // Requests captured with REA on hls-js.netlify.app (headless Chrome).
+      final list = SniffedMediaFilter.rank([
+        media('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'),
+        media(
+          'https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_hd_7.m3u8',
+        ),
+        media(
+          'https://test-streams.mux.dev/x36xhzz/url_2/193039199_mp4_h264_aac_fhd_7.m3u8',
+        ),
+      ]);
+      expect(list.map((m) => m.fileName), ['x36xhzz.m3u8']);
+    });
+
     test('keeps variants when no master was seen', () {
       final list = SniffedMediaFilter.rank([
         media('https://cdn.example.com/v/720p/index.m3u8'),

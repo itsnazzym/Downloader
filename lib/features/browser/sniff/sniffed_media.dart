@@ -131,15 +131,35 @@ class SniffedMediaFilter {
     return null;
   }
 
-  /// Variant playlists (a single quality or the audio track of an HLS
-  /// stream) that are better left to their master playlist.
-  static bool _looksLikeVariant(String url) {
-    final path = (Uri.tryParse(url)?.path ?? '').toLowerCase();
-    final name = path.split('/').last;
-    if (heightHint(url) != null && !name.contains('master')) return true;
-    return RegExp(
-      r'(chunklist|media_|_audio|audio_|index_\d|playlist_\d|variant|rendition)',
-    ).hasMatch(name);
+  static String _dir(SniffedMedia m) {
+    final path = m.uri?.path ?? '';
+    final cut = path.lastIndexOf('/');
+    return cut < 0 ? '/' : path.substring(0, cut + 1);
+  }
+
+  /// HLS playlists that belong to another one: a master playlist lives at the
+  /// top of its stream's folder and its variants (one per quality, audio
+  /// tracks) in or below that folder. The shallowest playlist of a folder
+  /// tree is kept, the others are its variants.
+  static Set<SniffedMedia> _hlsVariants(List<SniffedMedia> hls) {
+    final byDepth = [...hls]
+      ..sort(
+        (a, b) =>
+            _dir(a).split('/').length.compareTo(_dir(b).split('/').length),
+      );
+    final roots = <SniffedMedia>[];
+    final variants = <SniffedMedia>{};
+    for (final m in byDepth) {
+      final isVariant = roots.any(
+        (r) => r.host == m.host && _dir(m).startsWith(_dir(r)),
+      );
+      if (isVariant) {
+        variants.add(m);
+      } else {
+        roots.add(m);
+      }
+    }
+    return variants;
   }
 
   static bool _looksLikeMaster(String url) {
@@ -161,15 +181,14 @@ class SniffedMediaFilter {
       byPath['${uri.host}${uri.path}'] = m;
     }
     var list = byPath.values.toList();
-    final hasMaster = list.any(
-      (m) => m.kind == SniffedKind.hls && !_looksLikeVariant(m.url),
-    );
-    if (hasMaster) {
-      list = [
-        for (final m in list)
-          if (!(m.kind == SniffedKind.hls && _looksLikeVariant(m.url))) m,
-      ];
-    }
+    final variants = _hlsVariants([
+      for (final m in list)
+        if (m.kind == SniffedKind.hls) m,
+    ]);
+    list = [
+      for (final m in list)
+        if (!variants.contains(m)) m,
+    ];
     int weight(SniffedMedia m) {
       switch (m.kind) {
         case SniffedKind.hls:
