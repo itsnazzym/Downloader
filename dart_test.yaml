@@ -1,0 +1,4 @@
+tags:
+  live:
+    skip: "Test live : lancer avec --run-skipped -t live"
+    timeout: 3m
