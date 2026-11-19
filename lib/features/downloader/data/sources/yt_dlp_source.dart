@@ -195,6 +195,18 @@ class YtDlpSource {
         }
       }
 
+      if (result.exitCode != 0 &&
+          args.contains('--cookies-from-browser') &&
+          YtDlpCookieArgs.isBrowserCookieError(result.stderr.toString())) {
+        LoggerService.w(
+          'Browser cookies unreadable, retrying metadata without them',
+        );
+        result = await _processRunner.run(
+          ytDlp,
+          YtDlpCookieArgs.withoutBrowserCookies(args),
+        );
+      }
+
       if (result.exitCode != 0) {
         final stderr = result.stderr.toString();
         if (DownloadStatusGuard.isNonRetryableProxyError(stderr)) {
@@ -296,7 +308,24 @@ class YtDlpSource {
   ) async* {
     _activeDownloadCount++;
     try {
-      yield* _downloadUnlocked(id, request);
+      var started = false;
+      try {
+        await for (final event in _downloadUnlocked(id, request)) {
+          started = true;
+          yield event;
+        }
+      } on YtDlpException catch (e) {
+        // An unreadable browser cookie store must not block public media:
+        // retry once without browser cookies, before any progress.
+        if (started ||
+            !YtDlpCookieArgs.isBrowserCookieError(
+              '${e.message}\n${e.originalLog ?? ''}',
+            )) {
+          rethrow;
+        }
+        LoggerService.w('Browser cookies unreadable, retrying without them');
+        yield* _downloadUnlocked(id, request, allowBrowserCookies: false);
+      }
     } finally {
       if (_activeDownloadCount > 0) {
         _activeDownloadCount--;
@@ -306,8 +335,9 @@ class YtDlpSource {
 
   Stream<DownloadProgressEvent> _downloadUnlocked(
     String id,
-    DownloadRequest request,
-  ) async* {
+    DownloadRequest request, {
+    bool allowBrowserCookies = true,
+  }) async* {
     LoggerService.i('YtDlpSource: Looking for yt-dlp binary...');
     final ytDlp = await _binaryLocator.findYtDlp();
     if (ytDlp == null) {
@@ -602,7 +632,7 @@ class YtDlpSource {
       cookiesFilePath: cookiesFilePath,
       rawCookies: rawCookies,
       cookieBrowser: request.cookieBrowser,
-      allowBrowserCookies: !Platform.isAndroid,
+      allowBrowserCookies: allowBrowserCookies && !Platform.isAndroid,
     );
     args.addAll(cookieArgs);
     if (cookieArgs.contains('--cookies')) {
