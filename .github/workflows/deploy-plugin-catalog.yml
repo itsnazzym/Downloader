@@ -41,6 +41,10 @@ jobs:
           path: site/dist
 
   deploy:
+    # Pages must be enabled for the repository (Settings > Pages > GitHub Actions);
+    # without it the deployment answers 404 and the run is red for nothing.
+    # Set the repository variable PAGES_ENABLED to true once it is.
+    if: ${{ vars.PAGES_ENABLED == 'true' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
