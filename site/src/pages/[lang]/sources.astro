@@ -9,8 +9,8 @@ export function getStaticPaths() {
 
 const copy = {
   fr: {
-    title: 'Catalogue des plugins', description: 'Découvrez les fonctionnalités de Modern Downloader et ouvrez dans l’application les outils qui vous intéressent.',
-    eyebrow: 'Bibliothèque Modern Downloader', heading: 'Explorer les plugins', intro: 'Les fonctionnalités disponibles sur Windows, réunies dans un catalogue.',
+    title: 'Catalogue des plugins', description: 'Découvrez les fonctionnalités de TapLoad et ouvrez dans l’application les outils qui vous intéressent.',
+    eyebrow: 'Bibliothèque TapLoad', heading: 'Explorer les plugins', intro: 'Les fonctionnalités disponibles sur Windows, réunies dans un catalogue.',
     search: 'Rechercher un plugin…', searchLabel: 'Rechercher dans le catalogue', filterTitle: 'Affiner la sélection', filters: 'Catégories', all: 'Tout le catalogue',
     kinds: { core: 'Essentiel', module: 'Modules', download_hook: 'Automatisations', external_extension: 'Extensions navigateur' },
     count: 'fonctionnalités', singular: 'fonctionnalité', empty: 'Aucun plugin ne correspond à cette recherche.',
@@ -20,8 +20,8 @@ const copy = {
     noteLink: 'Voir le guide',
   },
   en: {
-    title: 'Plugin catalog', description: 'Explore Modern Downloader features and open the tools you want in the app.',
-    eyebrow: 'Modern Downloader library', heading: 'Explore plugins', intro: 'Features available on Windows, together in one catalog.',
+    title: 'Plugin catalog', description: 'Explore TapLoad features and open the tools you want in the app.',
+    eyebrow: 'TapLoad library', heading: 'Explore plugins', intro: 'Features available on Windows, together in one catalog.',
     search: 'Search plugins…', searchLabel: 'Search the catalog', filterTitle: 'Refine your list', filters: 'Categories', all: 'All features',
     kinds: { core: 'Essential', module: 'Modules', download_hook: 'Automations', external_extension: 'Browser extensions' },
     count: 'features', singular: 'feature', empty: 'No plugins match this search.',
@@ -31,8 +31,8 @@ const copy = {
     noteLink: 'Read the guide',
   },
   ar: {
-    title: 'كتالوج الإضافات', description: 'اكتشف ميزات Modern Downloader وافتح الأدوات التي تريدها في التطبيق.',
-    eyebrow: 'مكتبة Modern Downloader', heading: 'استكشف الإضافات', intro: 'ميزات Modern Downloader المتاحة على Windows في كتالوج واحد.',
+    title: 'كتالوج الإضافات', description: 'اكتشف ميزات TapLoad وافتح الأدوات التي تريدها في التطبيق.',
+    eyebrow: 'مكتبة TapLoad', heading: 'استكشف الإضافات', intro: 'ميزات TapLoad المتاحة على Windows في كتالوج واحد.',
     search: 'ابحث عن إضافة…', searchLabel: 'ابحث في الكتالوج', filterTitle: 'تصفية النتائج', filters: 'الفئات', all: 'كل الميزات',
     kinds: { core: 'أساسي', module: 'الوحدات', download_hook: 'الأتمتة', external_extension: 'إضافات المتصفح' },
     count: 'ميزات', singular: 'ميزة', empty: 'لا توجد إضافات تطابق بحثك.',
@@ -80,13 +80,13 @@ const filterIconFor: Record<string, string> = {
 <SiteLayout
   lang={languageCode}
   currentPage="sources"
-  title={`${text.title} — Modern Downloader`}
+  title={`${text.title} — TapLoad`}
   description={text.description}
 >
   <main id="main" class="directory-main">
     <header class="directory-heading" data-reveal>
       <div>
-        <p class="eyebrow"><a href={`${basePath}${languageCode}/`}>Modern Downloader</a><span class="breadcrumb-divider">/</span>{text.catalog}</p>
+        <p class="eyebrow"><a href={`${basePath}${languageCode}/`}>TapLoad</a><span class="breadcrumb-divider">/</span>{text.catalog}</p>
         <h1>{text.heading}</h1>
         <p>{text.intro}</p>
       </div>

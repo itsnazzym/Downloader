@@ -1,0 +1,9 @@
+out/
+.superpowers/
+__pycache__/
+*.pyc
+assets/plates/*.mp4
+assets/audio/*
+
+# Rendered films are outputs (60-180 MB each): too big for git.
+/*.mp4

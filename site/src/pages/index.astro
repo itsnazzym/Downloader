@@ -10,7 +10,7 @@ const basePath = import.meta.env.BASE_URL.endsWith('/')
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="refresh" content={`0;url=${basePath}fr/`} />
-    <title>Modern Downloader — accueil</title>
+    <title>TapLoad — accueil</title>
   </head>
   <body>
     <script is:inline define:vars={{ basePath }}>
@@ -20,6 +20,6 @@ const basePath = import.meta.env.BASE_URL.endsWith('/')
         .find((language) => languages.includes(language)) || 'fr';
       window.location.replace(`${basePath}${preferred}/`);
     </script>
-    <p><a href={`${basePath}fr/`}>Accueil Modern Downloader</a></p>
+    <p><a href={`${basePath}fr/`}>Accueil TapLoad</a></p>
   </body>
 </html>

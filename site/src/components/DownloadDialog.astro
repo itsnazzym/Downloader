@@ -2,7 +2,7 @@
 import '../styles/download-dialog.css';
 const copy = {
   fr: {
-    title: 'Installer Modern Downloader',
+    title: 'Installer TapLoad',
     description: 'Une installation guidée ou une version sans installation.',
     installerAction: 'Télécharger l’installeur', portableAction: 'Télécharger le ZIP',
     requested: 'Demande envoyée au navigateur.', unavailable: 'Indisponible dans cette version',
@@ -18,7 +18,7 @@ const copy = {
     close: 'Fermer',
   },
   en: {
-    title: 'Install Modern Downloader',
+    title: 'Install TapLoad',
     description: 'Guided setup or a version that needs no installation.',
     installerAction: 'Download installer', portableAction: 'Download ZIP',
     requested: 'Download requested in your browser.', unavailable: 'Unavailable in this release',
@@ -34,7 +34,7 @@ const copy = {
     close: 'Close',
   },
   ar: {
-    title: 'تثبيت Modern Downloader',
+    title: 'تثبيت TapLoad',
     description: 'إعداد موجّه أو نسخة لا تحتاج إلى تثبيت.',
     installerAction: 'تنزيل المثبّت', portableAction: 'تنزيل ZIP',
     requested: 'تم إرسال طلب التنزيل إلى المتصفح.', unavailable: 'غير متاح في هذا الإصدار',
@@ -71,7 +71,7 @@ const text = copy[lang];
     <header class="download-dialog-header">
       <div>
         <span class="download-platform" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h8v8H3zm10 0h8v8h-8zM3 14h8v7H3zm10 0h8v7h-8z" /></svg></span>
-        <p class="download-dialog-kicker">MODERN DOWNLOADER <span aria-hidden="true">/</span> WINDOWS</p>
+        <p class="download-dialog-kicker">TAPLOAD <span aria-hidden="true">/</span> WINDOWS</p>
         <h2 id="download-dialog-title" tabindex="-1" autofocus>{text.title}</h2>
         <p id="download-dialog-description">{text.description}</p>
       </div>

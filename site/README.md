@@ -1,6 +1,6 @@
-# Modern Downloader website
+# TapLoad website
 
-This static Astro site introduces Modern Downloader and provides a searchable,
+This static Astro site introduces TapLoad and provides a searchable,
 localized directory of its built-in modules, automations, and companion browser
 extensions. The landing page includes a restrained product overview and a feature
 showcase; the directory uses a three-part library layout on desktop and a

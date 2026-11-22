@@ -7,7 +7,7 @@
     "description": "__MSG_extDescription__",
     "minimum_chrome_version": "116",
     "homepage_url": "https://github.com/itsnazzym/Downloader",
-    "author": "Modern Downloader",
+    "author": "TapLoad",
     "permissions": [
         "tabs",
         "activeTab",

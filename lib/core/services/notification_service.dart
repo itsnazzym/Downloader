@@ -34,7 +34,7 @@ class NotificationService {
     try {
       if (PlatformInfo.isDesktop) {
         await localNotifier.setup(
-          appName: 'Modern Downloader',
+          appName: 'TapLoad',
           // The parameter shortcutPolicy argument is only available on Windows
           shortcutPolicy: ShortcutPolicy.requireCreate,
         );
