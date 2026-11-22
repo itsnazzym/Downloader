@@ -85,8 +85,8 @@ const languageLinks = [
     {isSourcesPage ? (
       <div class="library-shell">
         <aside class="library-sidebar" aria-label={copy.navigation}>
-          <a class="library-brand" href={routeFor(languageCode)} aria-label={`Modern Downloader — ${copy.backHome}`}>
-            <span class="wordmark">Modern<span>Downloader</span></span>
+          <a class="library-brand" href={routeFor(languageCode)} aria-label={`TapLoad — ${copy.backHome}`}>
+            <span class="wordmark">Tap<span>Load</span></span>
           </a>
           <p class="rail-label">{copy.discover}</p>
           <nav class="rail-navigation">
@@ -115,8 +115,8 @@ const languageLinks = [
         </aside>
         <div class="library-stage">
           <div class="library-mobile-bar">
-            <a class="library-brand" href={routeFor(languageCode)} aria-label="Modern Downloader">
-              <span class="wordmark">Modern<span>Downloader</span></span>
+            <a class="library-brand" href={routeFor(languageCode)} aria-label="TapLoad">
+              <span class="wordmark">Tap<span>Load</span></span>
             </a>
             <MobileNavigation client:media="(max-width: 1280px)" lang={languageCode} variant="library" menuLabel={copy.menu} navigationLabel={copy.navigation} downloadLabel={copy.download} links={libraryMenuLinks} languages={languageLinks} />
           </div>
@@ -127,8 +127,8 @@ const languageLinks = [
       <>
         <header class="site-header">
           <div class="header-inner">
-            <a class="brand" href={routeFor(languageCode)} aria-label="Modern Downloader">
-              <span class="wordmark">Modern<span>Downloader</span></span>
+            <a class="brand" href={routeFor(languageCode)} aria-label="TapLoad">
+              <span class="wordmark">Tap<span>Load</span></span>
             </a>
             <nav class="desktop-nav" aria-label={copy.navigation}>
               <a href={routeFor(languageCode)} aria-current={currentPage === 'home' ? 'page' : undefined}>{copy.home}</a>
@@ -152,9 +152,9 @@ const languageLinks = [
     )}
     <footer class:list={["site-footer", isSourcesPage && 'source-footer']}>
       <a class="brand footer-brand" href={routeFor(languageCode)}>
-        <span class="wordmark">Modern<span>Downloader</span></span>
+        <span class="wordmark">Tap<span>Load</span></span>
       </a>
-      <p>© 2026 Modern Downloader</p>
+      <p>© 2026 TapLoad</p>
       <nav class="footer-links" aria-label={copy.footer}>
         <a href={routeFor(languageCode)}>{copy.home}</a>
         <a href={routeFor(languageCode, 'sources')}>{copy.plugins}</a>

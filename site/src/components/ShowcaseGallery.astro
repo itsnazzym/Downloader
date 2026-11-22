@@ -5,7 +5,7 @@ const { lang, basePath } = Astro.props as Props;
 const content = {
   fr: {
     label: 'Explorer la démo Windows',
-    caption: 'Capture réelle de Modern Downloader · données de démonstration · aucun fichier personnel · miniatures YouTube officielles chargées en ligne',
+    caption: 'Capture réelle de TapLoad · données de démonstration · aucun fichier personnel · miniatures YouTube officielles chargées en ligne',
     credit: 'Crédits des médias', expand: 'Agrandir la capture',
     previous: 'Capture précédente', next: 'Capture suivante',
     pause: 'Mettre le diaporama en pause', play: 'Reprendre le diaporama', reducedMotion: 'Diaporama désactivé car la réduction des animations est activée',
@@ -20,7 +20,7 @@ const content = {
   },
   en: {
     label: 'Explore the Windows demo',
-    caption: 'Real Modern Downloader capture · demo data · no personal files · official YouTube thumbnails loaded online',
+    caption: 'Real TapLoad capture · demo data · no personal files · official YouTube thumbnails loaded online',
     credit: 'Media credits', expand: 'Open full-size capture',
     previous: 'Previous capture', next: 'Next capture',
     pause: 'Pause the slideshow', play: 'Resume the slideshow', reducedMotion: 'Slideshow disabled because reduced motion is enabled',
@@ -35,7 +35,7 @@ const content = {
   },
   ar: {
     label: 'استكشف عرض Windows',
-    caption: 'لقطة حقيقية من Modern Downloader · بيانات تجريبية · بلا ملفات شخصية · صور YouTube الرسمية تُحمّل عبر الإنترنت',
+    caption: 'لقطة حقيقية من TapLoad · بيانات تجريبية · بلا ملفات شخصية · صور YouTube الرسمية تُحمّل عبر الإنترنت',
     credit: 'حقوق الوسائط', expand: 'افتح الصورة بالحجم الكامل',
     previous: 'اللقطة السابقة', next: 'اللقطة التالية',
     pause: 'إيقاف عرض الشرائح مؤقتاً', play: 'استئناف عرض الشرائح', reducedMotion: 'تم تعطيل عرض الشرائح لأن تقليل الحركة مفعّل',
@@ -56,7 +56,7 @@ const screens = copy.screens.map(([id, label, alt]) => ({ id, label, alt }));
 <div>
   <figure class="showcase-gallery" data-showcase-gallery data-active-index="0" data-cycle-duration="8000" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
     <div class="showcase-gallery-heading">
-      <span class="showcase-gallery-index">MODERN DOWNLOADER / WINDOWS</span>
+      <span class="showcase-gallery-index">TAPLOAD / WINDOWS</span>
       <h2>{copy.label}</h2>
       <div class="showcase-gallery-controls">
         <span aria-live="polite" data-gallery-count><span data-gallery-current>01</span> <span data-gallery-divider>/</span> {String(screens.length).padStart(2, '0')}</span>

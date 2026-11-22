@@ -207,7 +207,7 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
                           right: 0,
                           child: Center(
                             child: Text(
-                              'Modern Downloader • Architecture v${AppConfig.version}',
+                              'TapLoad • Architecture v${AppConfig.version}',
                               style: AppTypography.caption.copyWith(
                                 color: const Color(0xFF52525B),
                                 fontSize: 11,
@@ -253,7 +253,7 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'MODERN DOWNLOADER',
+                'TAPLOAD',
                 style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,

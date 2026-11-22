@@ -80,7 +80,7 @@ class TransferUiState {
     this.pin = '',
     this.port,
     this.lanIp,
-    this.alias = 'Modern Downloader',
+    this.alias = 'TapLoad',
     this.fingerprint = '',
     this.portConflict = false,
     this.activeTab = TransferTab.send,
@@ -254,9 +254,9 @@ class TransferController extends StateNotifier<TransferUiState> {
       try {
         alias = Platform.localHostname;
       } catch (_) {
-        alias = 'Modern Downloader';
+        alias = 'TapLoad';
       }
-      if (alias.trim().isEmpty) alias = 'Modern Downloader';
+      if (alias.trim().isEmpty) alias = 'TapLoad';
       final identity = TransferIdentity(
         alias: alias,
         fingerprint: identityData.fingerprint,

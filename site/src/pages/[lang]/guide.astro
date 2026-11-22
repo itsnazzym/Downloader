@@ -10,13 +10,13 @@ export function getStaticPaths() {
 const copy = {
   fr: {
     title: 'Guide des plugins',
-    description: 'Installez Modern Downloader, choisissez un plugin depuis le catalogue et gérez-le dans l’application.',
+    description: 'Installez TapLoad, choisissez un plugin depuis le catalogue et gérez-le dans l’application.',
     eyebrow: 'Guide rapide',
     heading: 'Vos plugins, en quelques étapes.',
     intro: 'Le catalogue vous aide à trouver les fonctionnalités. L’application les active et les désactive.',
-    flow: ['Explorer le catalogue', 'Ouvrir dans Modern Downloader', 'Activer ou installer dans l’app'],
+    flow: ['Explorer le catalogue', 'Ouvrir dans TapLoad', 'Activer ou installer dans l’app'],
     steps: [
-      { number: '01', title: 'Installez Modern Downloader', body: 'Choisissez l’installeur Windows ou la version portable depuis le site, puis ouvrez l’application.' },
+      { number: '01', title: 'Installez TapLoad', body: 'Choisissez l’installeur Windows ou la version portable depuis le site, puis ouvrez l’application.' },
       { number: '02', title: 'Choisissez un plugin', body: 'Parcourez le catalogue et ouvrez la fonctionnalité qui vous intéresse. Le site transmet votre choix à l’application.' },
       { number: '03', title: 'Suivez les étapes dans l’app', body: 'L’application affiche la demande d’activation ou le guide d’installation de l’extension. Les modules facultatifs peuvent ensuite être désactivés dans les réglages.' },
     ],
@@ -28,13 +28,13 @@ const copy = {
   },
   en: {
     title: 'Plugin guide',
-    description: 'Install Modern Downloader, choose a plugin from the catalog and manage it in the app.',
+    description: 'Install TapLoad, choose a plugin from the catalog and manage it in the app.',
     eyebrow: 'Quick guide',
     heading: 'Your plugins, in a few steps.',
     intro: 'The catalog helps you find features. The app enables and disables them.',
-    flow: ['Explore the catalog', 'Open Modern Downloader', 'Enable or install in the app'],
+    flow: ['Explore the catalog', 'Open TapLoad', 'Enable or install in the app'],
     steps: [
-      { number: '01', title: 'Install Modern Downloader', body: 'Choose the Windows installer or portable version on this site, then open the app.' },
+      { number: '01', title: 'Install TapLoad', body: 'Choose the Windows installer or portable version on this site, then open the app.' },
       { number: '02', title: 'Choose a plugin', body: 'Browse the catalog and open the feature you want. The site passes your choice to the app.' },
       { number: '03', title: 'Follow the in-app steps', body: 'The app shows an activation request or the extension installation guide. Optional modules can be turned off later in settings.' },
     ],
@@ -46,13 +46,13 @@ const copy = {
   },
   ar: {
     title: 'دليل الإضافات',
-    description: 'ثبّت Modern Downloader واختر إضافة من الكتالوج وأدرها في التطبيق.',
+    description: 'ثبّت TapLoad واختر إضافة من الكتالوج وأدرها في التطبيق.',
     eyebrow: 'دليل سريع',
     heading: 'إضافاتك في خطوات بسيطة.',
     intro: 'يساعدك الكتالوج في العثور على الميزات. ويتولى التطبيق تفعيلها وتعطيلها.',
-    flow: ['استكشف الكتالوج', 'افتح Modern Downloader', 'فعّل أو ثبّت في التطبيق'],
+    flow: ['استكشف الكتالوج', 'افتح TapLoad', 'فعّل أو ثبّت في التطبيق'],
     steps: [
-      { number: '01', title: 'ثبّت Modern Downloader', body: 'اختر مثبّت Windows أو النسخة المحمولة من هذا الموقع، ثم افتح التطبيق.' },
+      { number: '01', title: 'ثبّت TapLoad', body: 'اختر مثبّت Windows أو النسخة المحمولة من هذا الموقع، ثم افتح التطبيق.' },
       { number: '02', title: 'اختر إضافة', body: 'تصفّح الكتالوج وافتح الميزة التي تريدها. يرسل الموقع اختيارك إلى التطبيق.' },
       { number: '03', title: 'اتبع الخطوات في التطبيق', body: 'يعرض التطبيق طلب التفعيل أو دليل تثبيت الإضافة. ويمكنك تعطيل الوحدات الاختيارية لاحقاً من الإعدادات.' },
     ],
@@ -75,7 +75,7 @@ const sourcesUrl = `${basePath}${languageCode}/sources/`;
 <SiteLayout
   lang={languageCode}
   currentPage="guide"
-  title={`${text.title} — Modern Downloader`}
+  title={`${text.title} — TapLoad`}
   description={text.description}
 >
   <main id="main" class="guide-main">
@@ -96,7 +96,7 @@ const sourcesUrl = `${basePath}${languageCode}/sources/`;
 
     <section class="guide-callout" aria-labelledby="manage-title" data-reveal>
       <div>
-        <p class="eyebrow">Modern Downloader</p>
+        <p class="eyebrow">TapLoad</p>
         <h2 id="manage-title">{text.manageTitle}</h2>
         <p>{text.manageBody}</p>
       </div>

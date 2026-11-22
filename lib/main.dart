@@ -51,7 +51,7 @@ void main(List<String> args) async {
     return;
   }
   LoggerService.i(
-    'Initializing Modern Downloader on ${Platform.operatingSystem} (${Platform.operatingSystemVersion})',
+    'Initializing TapLoad on ${Platform.operatingSystem} (${Platform.operatingSystemVersion})',
   );
 
   final prefsInstance = await SharedPreferences.getInstance();

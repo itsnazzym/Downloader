@@ -132,7 +132,7 @@ class _ShowcaseAppState extends State<ShowcaseApp> {
       ),
     ],
     child: MaterialApp.router(
-      title: 'Modern Downloader — mode démo',
+      title: 'TapLoad — mode démo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.fromPalette(
         _theme,
@@ -205,7 +205,7 @@ class _ShowcaseShell extends ConsumerWidget {
                           const SizedBox(width: 11),
                           const Expanded(
                             child: Text(
-                              'Modern Downloader',
+                              'TapLoad',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,

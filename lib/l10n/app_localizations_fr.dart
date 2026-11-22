@@ -9,7 +9,7 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'Modern Downloader';
+  String get appTitle => 'TapLoad';
 
   @override
   String get downloads => 'Téléchargements';
@@ -581,7 +581,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pluginsEmptyHint =>
-      'Les plugins étendent les fonctionnalités de Modern Downloader';
+      'Les plugins étendent les fonctionnalités de TapLoad';
 
   @override
   String get statusProcessing => 'Traitement';
@@ -1599,7 +1599,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pluginWebRequest =>
-      'Le site Modern Downloader vous propose cette fonctionnalité. Confirmez ici pour l’ajouter à votre interface.';
+      'Le site TapLoad vous propose cette fonctionnalité. Confirmez ici pour l’ajouter à votre interface.';
 
   @override
   String get pluginExternalHint =>
@@ -2730,7 +2730,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get archiveHubLoading => 'Indexation de votre bibliothèque…';
 
   @override
-  String get launchWordmark => 'Modern Downloader';
+  String get launchWordmark => 'TapLoad';
 
   @override
   String get launchContinueAnyway => 'Continuer quand même';

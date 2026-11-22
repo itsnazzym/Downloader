@@ -4,7 +4,7 @@ Windows Registry Editor Version 5.00
 ; locally built Debug executable. The installer registers HKCU classes.
 
 [HKEY_CURRENT_USER\Software\Classes\moderndownloader]
-@="URL:Modern Downloader Protocol"
+@="URL:TapLoad Protocol"
 "URL Protocol"=""
 
 [HKEY_CURRENT_USER\Software\Classes\moderndownloader\DefaultIcon]

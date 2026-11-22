@@ -1,12 +1,12 @@
 {
     "extName": {
-        "message": "Modern Downloader"
+        "message": "TapLoad"
     },
     "extShortName": {
-        "message": "MD Download"
+        "message": "TapLoad"
     },
     "extDescription": {
-        "message": "أرسل روابط الفيديو إلى تطبيق Modern Downloader."
+        "message": "أرسل روابط الفيديو إلى تطبيق TapLoad."
     },
     "sendTab": {
         "message": "إرسال هذا التبويب"
@@ -123,7 +123,7 @@
         "message": "gobird معطّل في إعدادات التطبيق."
     },
     "xFeedGobirdAppOffline": {
-        "message": "Modern Downloader غير متصل أو لم يجب. شغّل التطبيق ثم أعد المحاولة."
+        "message": "TapLoad غير متصل أو لم يجب. شغّل التطبيق ثم أعد المحاولة."
     },
     "analyzeXFeed": {
         "message": "تحليل الخلاصة المحملة"
@@ -210,7 +210,7 @@
         "message": "حدد مقطع فيديو واحداً على الأقل."
     },
     "xFeedSending": {
-        "message": "جارٍ إرسال {count} من مقاطع الفيديو إلى Modern Downloader…"
+        "message": "جارٍ إرسال {count} من مقاطع الفيديو إلى TapLoad…"
     },
     "xFeedSent": {
         "message": "تم إرسال {count} من مقاطع الفيديو"
@@ -471,7 +471,7 @@
         "message": "صانع المحتوى"
     },
     "feedSendAccountHint": {
-        "message": "سيسترجع Modern Downloader فيديوهات الملف الشخصي."
+        "message": "سيسترجع TapLoad فيديوهات الملف الشخصي."
     },
     "feedLoadAccountHint": {
         "message": "افتح تيك توك وابحث عن فيديوهات هذا الملف الشخصي."
@@ -612,13 +612,13 @@
         "message": "يرجى تحديد حساب واحد على الأقل."
     },
     "feedSendingAccounts": {
-        "message": "جاري إرسال {count} حساب إلى Modern Downloader…"
+        "message": "جاري إرسال {count} حساب إلى TapLoad…"
     },
     "feedSent": {
         "message": "تم الإرسال"
     },
     "feedAccountsSent": {
-        "message": "تم إرسال {count} حساب إلى Modern Downloader."
+        "message": "تم إرسال {count} حساب إلى TapLoad."
     },
     "feedSending": {
         "message": "جاري الإرسال…"

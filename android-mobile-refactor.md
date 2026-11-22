@@ -1,7 +1,7 @@
 # Plan de Refonte Mobile Android & Correction Moteur yt-dlp
 
 ## Objectif
-Transformer l'expérience Android de Modern Downloader en une application mobile native, fluide et ergonomique, avec des composants UI dédiés au tactile et un backend moteur optimisé pour Android résolvant l'erreur d'extraction vidéo (impersonation / aucun format) vue sur la capture d'écran.
+Transformer l'expérience Android de TapLoad en une application mobile native, fluide et ergonomique, avec des composants UI dédiés au tactile et un backend moteur optimisé pour Android résolvant l'erreur d'extraction vidéo (impersonation / aucun format) vue sur la capture d'écran.
 
 ---
 

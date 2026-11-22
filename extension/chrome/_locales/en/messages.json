@@ -1,12 +1,12 @@
 {
     "extName": {
-        "message": "Modern Downloader"
+        "message": "TapLoad"
     },
     "extShortName": {
-        "message": "MD Download"
+        "message": "TapLoad"
     },
     "extDescription": {
-        "message": "Send video links to the Modern Downloader desktop app."
+        "message": "Send video links to the TapLoad desktop app."
     },
     "sendTab": {
         "message": "Send this tab"
@@ -123,7 +123,7 @@
         "message": "gobird is disabled in app settings."
     },
     "xFeedGobirdAppOffline": {
-        "message": "Modern Downloader is offline or did not answer. Start the app and retry."
+        "message": "TapLoad is offline or did not answer. Start the app and retry."
     },
     "analyzeXFeed": {
         "message": "Analyze loaded feed"
@@ -210,7 +210,7 @@
         "message": "Select at least one video."
     },
     "xFeedSending": {
-        "message": "Sending {count} videos to Modern Downloader…"
+        "message": "Sending {count} videos to TapLoad…"
     },
     "xFeedSent": {
         "message": "{count} videos sent"
@@ -471,7 +471,7 @@
         "message": "CREATOR"
     },
     "feedSendAccountHint": {
-        "message": "Modern Downloader will retrieve the profile videos."
+        "message": "TapLoad will retrieve the profile videos."
     },
     "feedLoadAccountHint": {
         "message": "Open TikTok and find videos from this profile."
@@ -612,13 +612,13 @@
         "message": "Select at least one account."
     },
     "feedSendingAccounts": {
-        "message": "Sending {count} accounts to Modern Downloader…"
+        "message": "Sending {count} accounts to TapLoad…"
     },
     "feedSent": {
         "message": "Sent"
     },
     "feedAccountsSent": {
-        "message": "{count} accounts sent to Modern Downloader."
+        "message": "{count} accounts sent to TapLoad."
     },
     "feedSending": {
         "message": "Sending…"

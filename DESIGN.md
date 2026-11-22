@@ -1,6 +1,6 @@
 ---
 version: alpha
-name: Modern Downloader
+name: TapLoad
 description: A compact, dark-first desktop and mobile media library. Existing theme presets provide the live semantic colors; this document records the default Midnight palette and the shared spacing and type scale.
 colors:
   primary: "#0D9488"
@@ -58,7 +58,7 @@ components:
     padding: 16px
 ---
 
-# Modern Downloader
+# TapLoad
 
 ## Overview
 The app is a practical media library and downloader. Screens should explain the current task plainly, keep the main action easy to find, and avoid decorative elements that compete with media or progress.

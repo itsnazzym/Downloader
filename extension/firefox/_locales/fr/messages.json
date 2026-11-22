@@ -1,12 +1,12 @@
 {
     "extName": {
-        "message": "Modern Downloader"
+        "message": "TapLoad"
     },
     "extShortName": {
-        "message": "MD Download"
+        "message": "TapLoad"
     },
     "extDescription": {
-        "message": "Envoyez des liens vidéo vers l'application Modern Downloader."
+        "message": "Envoyez des liens vidéo vers l'application TapLoad."
     },
     "sendTab": {
         "message": "Envoyer cet onglet"
@@ -123,7 +123,7 @@
         "message": "gobird est désactivé dans les réglages de l’app."
     },
     "xFeedGobirdAppOffline": {
-        "message": "Modern Downloader est hors ligne ou n’a pas répondu. Lancez l’app puis réessayez."
+        "message": "TapLoad est hors ligne ou n’a pas répondu. Lancez l’app puis réessayez."
     },
     "analyzeXFeed": {
         "message": "Analyser le fil chargé"
@@ -210,7 +210,7 @@
         "message": "Sélectionnez au moins une vidéo."
     },
     "xFeedSending": {
-        "message": "Envoi de {count} vidéo(s) vers Modern Downloader…"
+        "message": "Envoi de {count} vidéo(s) vers TapLoad…"
     },
     "xFeedSent": {
         "message": "{count} vidéo(s) envoyée(s)"
@@ -471,7 +471,7 @@
         "message": "CRÉATEUR"
     },
     "feedSendAccountHint": {
-        "message": "Modern Downloader récupérera les vidéos du profil."
+        "message": "TapLoad récupérera les vidéos du profil."
     },
     "feedLoadAccountHint": {
         "message": "Ouvre TikTok et repère les vidéos de ce profil."
@@ -612,13 +612,13 @@
         "message": "Sélectionnez au moins un compte."
     },
     "feedSendingAccounts": {
-        "message": "Envoi de {count} comptes à Modern Downloader…"
+        "message": "Envoi de {count} comptes à TapLoad…"
     },
     "feedSent": {
         "message": "Envoyé"
     },
     "feedAccountsSent": {
-        "message": "{count} comptes envoyés à Modern Downloader."
+        "message": "{count} comptes envoyés à TapLoad."
     },
     "feedSending": {
         "message": "Envoi…"

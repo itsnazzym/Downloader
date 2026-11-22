@@ -1,10 +1,10 @@
-# Privacy Policy — Modern Downloader Browser Extension
+# Privacy Policy — TapLoad Browser Extension
 
 **Last updated:** 2026-08-26
 
 ## What this extension does
 
-Modern Downloader helps you send public video page URLs from supported sites (YouTube, Instagram, X/Twitter, TikTok, Twitch, Facebook) to the **Modern Downloader desktop application** running on your computer (`127.0.0.1`). On X.com, an optional local feed panel can analyze video posts already loaded in the active page after the user explicitly requests it.
+TapLoad helps you send public video page URLs from supported sites (YouTube, Instagram, X/Twitter, TikTok, Twitch, Facebook) to the **TapLoad desktop application** running on your computer (`127.0.0.1`). On X.com, an optional local feed panel can analyze video posts already loaded in the active page after the user explicitly requests it.
 
 ## Data collected and where it goes
 

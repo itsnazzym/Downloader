@@ -11,11 +11,11 @@ export function getStaticPaths() {
 
 const copy = {
   fr: {
-    title: 'Modern Downloader — Téléchargements et bibliothèque',
-    description: 'Téléchargez vos médias, retrouvez-les dans votre bibliothèque et choisissez les modules utiles dans Modern Downloader.',
+    title: 'TapLoad — Téléchargements et bibliothèque',
+    description: 'Téléchargez vos médias, retrouvez-les dans votre bibliothèque et choisissez les modules utiles dans TapLoad.',
     eyebrow: 'Une application Windows. Vos médias, à votre façon.',
     headline: ['Téléchargez vos médias.', 'Retrouvez-les simplement.'],
-    intro: 'Modern Downloader réunit les téléchargements, une bibliothèque locale et des modules que vous pouvez activer selon vos besoins.',
+    intro: 'TapLoad réunit les téléchargements, une bibliothèque locale et des modules que vous pouvez activer selon vos besoins.',
     download: 'Télécharger pour Windows', browse: 'Explorer les plugins', github: 'Voir le projet sur GitHub',
     included: 'Dans l’application', coreTitle: 'Du lien au fichier, puis à votre bibliothèque.',
     coreBody: 'Lancez un téléchargement, suivez sa progression et retrouvez le résultat dans votre bibliothèque locale.',
@@ -28,11 +28,11 @@ const copy = {
     closeTitle: 'Commencez avec l’essentiel.', closeBody: 'Installez l’application et ajoutez les outils dont vous avez réellement l’usage.',
   },
   en: {
-    title: 'Modern Downloader — Downloads and library',
-    description: 'Download media, find it in your library, and choose the modules you need in Modern Downloader.',
+    title: 'TapLoad — Downloads and library',
+    description: 'Download media, find it in your library, and choose the modules you need in TapLoad.',
     eyebrow: 'One Windows app. Your media, your way.',
     headline: ['Download your media.', 'Find it again with ease.'],
-    intro: 'Modern Downloader brings together downloads, a local library, and modules you can enable as needed.',
+    intro: 'TapLoad brings together downloads, a local library, and modules you can enable as needed.',
     download: 'Download for Windows', browse: 'Explore plugins', github: 'View project on GitHub',
     included: 'In the app', coreTitle: 'From link to file to your library.',
     coreBody: 'Start a download, follow its progress, and find the result in your local library.',
@@ -45,11 +45,11 @@ const copy = {
     closeTitle: 'Start with the essentials.', closeBody: 'Install the app, then add the tools you actually use.',
   },
   ar: {
-    title: 'Modern Downloader — التنزيلات والمكتبة',
-    description: 'نزّل الوسائط واعثر عليها في مكتبتك واختر الوحدات التي تحتاجها في Modern Downloader.',
+    title: 'TapLoad — التنزيلات والمكتبة',
+    description: 'نزّل الوسائط واعثر عليها في مكتبتك واختر الوحدات التي تحتاجها في TapLoad.',
     eyebrow: 'تطبيق واحد لويندوز. وسائطك بطريقتك.',
     headline: ['نزّل وسائطك.', 'واعثر عليها بسهولة.'],
-    intro: 'يجمع Modern Downloader التنزيلات والمكتبة المحلية والوحدات التي يمكنك تفعيلها عند الحاجة.',
+    intro: 'يجمع TapLoad التنزيلات والمكتبة المحلية والوحدات التي يمكنك تفعيلها عند الحاجة.',
     download: 'التنزيل لنظام Windows', browse: 'استكشف الإضافات', github: 'عرض المشروع على GitHub',
     included: 'داخل التطبيق', coreTitle: 'من الرابط إلى الملف ثم إلى مكتبتك.',
     coreBody: 'ابدأ التنزيل وتابع تقدمه ثم اعثر على الملف في مكتبتك المحلية.',
@@ -88,7 +88,7 @@ const features = featureIds.map((id) => catalog.plugins.find((plugin) => plugin.
     <ShowcaseGallery lang={languageCode} basePath={basePath} />
 
     <section class="product-statement" aria-labelledby="core-title" data-reveal>
-      <div class="statement-topline"><span>MODERN DOWNLOADER / 01</span><span>{text.included}</span></div>
+      <div class="statement-topline"><span>TAPLOAD / 01</span><span>{text.included}</span></div>
       <div class="statement-content">
         <div class="statement-copy">
           <p class="section-index">{text.downloads} <span>→</span> {text.library}</p>
@@ -126,7 +126,7 @@ const features = featureIds.map((id) => catalog.plugins.find((plugin) => plugin.
     </section>
 
     <section class="download-section" aria-labelledby="download-title" data-reveal>
-      <p class="section-index">MODERN DOWNLOADER / 03</p>
+      <p class="section-index">TAPLOAD / 03</p>
       <h2 id="download-title">{text.closeTitle}</h2>
       <p>{text.closeBody}</p>
       <div class="download-actions">

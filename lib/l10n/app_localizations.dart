@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Modern Downloader'**
+  /// **'TapLoad'**
   String get appTitle;
 
   /// No description provided for @downloads.
@@ -1171,7 +1171,7 @@ abstract class AppLocalizations {
   /// No description provided for @pluginsEmptyHint.
   ///
   /// In en, this message translates to:
-  /// **'Plugins extend the functionality of Modern Downloader'**
+  /// **'Plugins extend the functionality of TapLoad'**
   String get pluginsEmptyHint;
 
   /// No description provided for @statusProcessing.
@@ -2929,7 +2929,7 @@ abstract class AppLocalizations {
   /// No description provided for @pluginWebRequest.
   ///
   /// In en, this message translates to:
-  /// **'Modern Downloader’s website requested this feature. Confirm here to add it to your interface.'**
+  /// **'TapLoad’s website requested this feature. Confirm here to add it to your interface.'**
   String get pluginWebRequest;
 
   /// No description provided for @pluginExternalHint.
@@ -4687,7 +4687,7 @@ abstract class AppLocalizations {
   /// No description provided for @launchWordmark.
   ///
   /// In en, this message translates to:
-  /// **'Modern Downloader'**
+  /// **'TapLoad'**
   String get launchWordmark;
 
   /// No description provided for @launchContinueAnyway.
