@@ -12,6 +12,7 @@ import '../../../downloader/presentation/providers/downloader_provider.dart';
 import '../../../../core/logger/logger_service.dart';
 import '../../../../core/services/local_server_service.dart';
 import '../../../../core/download/tiktok_video_url.dart';
+import '../../../../core/download/download_file_resolver.dart';
 import 'tiktok_video_cache_provider.dart';
 import '../../../../showcase/showcase_mode.dart';
 import '../../../../showcase/showcase_data.dart';
@@ -501,6 +502,88 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
     LoggerService.i('Deleted collection "$collectionKey" permanently');
   }
 
+  /// What [purgeCollections] would remove, for the confirmation dialog.
+  ({int videos, int keptShared, int files}) purgePreview(
+    Set<String> collectionKeys,
+  ) {
+    final catalog = state.catalog;
+    if (catalog == null) return (videos: 0, keptShared: 0, files: 0);
+    final result = const TikTokCollectionReconciliationService()
+        .purgeCollections(catalog, collectionKeys);
+    return (
+      videos: result.removedVideoIds.length,
+      keptShared: result.keptSharedCount,
+      files: _libraryRowsFor(catalog, result.removedVideoIds).length,
+    );
+  }
+
+  /// Deletes the collections, the videos that only they contained, and those
+  /// videos' downloaded files (permanently). Videos shared with a kept
+  /// collection stay, so "download all" never brings the purged ones back.
+  Future<({int videosRemoved, int filesDeleted, int keptShared})>
+  purgeCollections(Set<String> collectionKeys) async {
+    await initialized;
+    final catalog = state.catalog;
+    if (catalog == null || collectionKeys.isEmpty) {
+      return (videosRemoved: 0, filesDeleted: 0, keptShared: 0);
+    }
+    final result = await compute(_purgeCollectionsInBackground, {
+      'catalog': catalog.toJson(),
+      'keys': collectionKeys.toList(),
+    });
+    final updatedCatalog = TikTokArchiveCatalog.fromJson(
+      Map<String, dynamic>.from(result['catalog'] as Map),
+    );
+    final removedIds = (result['removed'] as List).cast<String>().toSet();
+    final rows = _ref.read(showcaseModeProvider)
+        ? const <String>[]
+        : _libraryRowsFor(catalog, removedIds);
+    if (rows.isNotEmpty) {
+      await _ref.read(downloadListProvider.notifier).deleteDownloads(rows);
+    }
+    final selected = state.filter.selectedCollection;
+    state = state.copyWith(
+      catalog: updatedCatalog,
+      filter: selected != null && collectionKeys.contains(selected)
+          ? state.filter.copyWith(selectedCollection: () => null)
+          : state.filter,
+    );
+    await _repository.saveCatalog(updatedCatalog);
+    LoggerService.i(
+      'Purged ${collectionKeys.length} collections: '
+      '${removedIds.length} videos, ${rows.length} files',
+    );
+    return (
+      videosRemoved: removedIds.length,
+      filesDeleted: rows.length,
+      keptShared: result['kept'] as int,
+    );
+  }
+
+  /// Library rows downloaded from one of [videoIds]: by the exact URL the
+  /// batch download used, by the video id in the URL, or by the `[id]` yt-dlp
+  /// puts in the file name (re-imported files).
+  List<String> _libraryRowsFor(
+    TikTokArchiveCatalog catalog,
+    Set<String> videoIds,
+  ) {
+    if (videoIds.isEmpty) return const [];
+    final urls = {
+      for (final video in catalog.videos)
+        if (videoIds.contains(video.id)) TikTokVideoUrl.forDownload(video.url),
+    };
+    final items = _ref.read(downloadListProvider).valueOrNull ?? const [];
+    return [
+      for (final item in items)
+        if (urls.contains(TikTokVideoUrl.forDownload(item.request.url)) ||
+            videoIds.contains(
+              TikTokVideoUrl.extractVideoId(item.request.url) ??
+                  DownloadFileResolver.extractBracketId(item.filePath),
+            ))
+          item.id,
+    ];
+  }
+
   /// Trigger collection synchronization from a connected browser extension.
   /// Pending state ends only when the extension returns data or the request times out.
   void triggerExtensionSync() {
@@ -755,6 +838,23 @@ Map<String, dynamic> _reconcileCollectionSyncInBackground(
     'catalog': result.catalog.toJson(),
     'updatedCollections': result.updatedCollections,
     'incompleteCollections': result.incompleteCollections,
+  };
+}
+
+Map<String, dynamic> _purgeCollectionsInBackground(
+  Map<String, dynamic> arguments,
+) {
+  final catalog = TikTokArchiveCatalog.fromJson(
+    Map<String, dynamic>.from(arguments['catalog'] as Map),
+  );
+  final result = const TikTokCollectionReconciliationService().purgeCollections(
+    catalog,
+    (arguments['keys'] as List).cast<String>().toSet(),
+  );
+  return {
+    'catalog': result.catalog.toJson(),
+    'removed': result.removedVideoIds.toList(),
+    'kept': result.keptSharedCount,
   };
 }
 

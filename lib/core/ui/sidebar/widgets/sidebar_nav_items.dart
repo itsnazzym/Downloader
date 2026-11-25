@@ -231,9 +231,19 @@ class _SidebarNavItemState extends State<SidebarNavItem> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: compact ? Tooltip(message: widget.label, child: row) : row,
+      // InkWell (not GestureDetector) so Tab reaches the item, Enter/Space
+      // activate it and a focus ring shows; hover keeps its own look.
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(8),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          focusColor: AppColors.of(context).primary.withValues(alpha: 0.18),
+          child: compact ? Tooltip(message: widget.label, child: row) : row,
+        ),
       ),
     );
   }

@@ -23,6 +23,7 @@ class _CookieFailingRunner extends ProcessRunner {
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
+    Duration? timeout,
   }) async {
     calls.add(arguments);
     if (arguments.contains('--cookies-from-browser')) {
@@ -200,6 +201,41 @@ void downloadRetryTests() {
 
         expect(runner.starts, hasLength(2));
         expect(runner.starts.first, contains('--cookies-from-browser'));
+        expect(runner.starts.last, isNot(contains('--cookies-from-browser')));
+      },
+      skip: Platform.isAndroid ? 'no browser cookies on Android' : false,
+    );
+
+    test(
+      'retries without browser cookies when they hide every format',
+      () async {
+        // Signed-in YouTube needs a JS challenge yt-dlp may not solve; the
+        // parsed "no formats" error used to win over the cookie retry.
+        final runner = _StartRecordingRunner([
+          _FakeProcess(
+            stdoutLines: const [],
+            stderrLines: const [
+              'ERROR: [youtube] abc: No video formats found!; please report',
+            ],
+            exit: 1,
+          ),
+          _FakeProcess(stdoutLines: const [], stderrLines: const [], exit: 0),
+        ]);
+        final source = YtDlpSource(_Locator(), runner);
+
+        await source
+            .download(
+              'id4',
+              DownloadRequest(
+                url: 'https://www.youtube.com/watch?v=abc',
+                outputFolder: out.path,
+                cookieBrowser: 'firefox',
+              ),
+            )
+            .drain<void>()
+            .catchError((_) {});
+
+        expect(runner.starts, hasLength(2));
         expect(runner.starts.last, isNot(contains('--cookies-from-browser')));
       },
       skip: Platform.isAndroid ? 'no browser cookies on Android' : false,

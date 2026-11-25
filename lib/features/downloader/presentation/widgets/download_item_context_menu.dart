@@ -11,6 +11,7 @@ import '../../domain/entities/download_item.dart';
 import '../../domain/enums/download_status.dart';
 import '../providers/downloader_provider.dart';
 import '../providers/filtered_downloads_provider.dart';
+import 'confirm_file_deletion.dart';
 
 /// Right-click (or long-press) menu for a download item.
 class DownloadItemContextMenu extends ConsumerWidget {
@@ -101,7 +102,7 @@ class DownloadItemContextMenu extends ConsumerWidget {
         _item(
           value: 'details',
           icon: Icons.info_outline_rounded,
-          label: 'Détails',
+          label: l10n.detailsAction,
           color: colors.textPrimary,
         ),
         _item(
@@ -126,7 +127,13 @@ class DownloadItemContextMenu extends ConsumerWidget {
     final path = filePath;
     switch (selected) {
       case 'restart':
-        await notifier.retryDownload(item);
+        if (await confirmFileDeletion(
+          context,
+          item,
+          actionLabel: l10n.restartDownload,
+        )) {
+          await notifier.retryDownload(item);
+        }
         break;
       case 'open':
         if (fileExists && path != null) {
@@ -150,7 +157,13 @@ class DownloadItemContextMenu extends ConsumerWidget {
         await Clipboard.setData(ClipboardData(text: item.request.url));
         break;
       case 'delete':
-        await notifier.deleteDownload(item.id);
+        if (await confirmFileDeletion(
+          context,
+          item,
+          actionLabel: l10n.delete,
+        )) {
+          await notifier.deleteDownload(item.id);
+        }
         break;
     }
   }

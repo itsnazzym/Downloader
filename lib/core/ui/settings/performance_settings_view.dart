@@ -93,6 +93,36 @@ class PerformanceSettingsView extends ConsumerWidget {
                             onChanged: settingsNotifier.setMaxSpeedMode,
                             contentPadding: EdgeInsets.zero,
                           ),
+                        if (useOledSettingsStyle(context))
+                          SwitchTile(
+                            title: l10n.reduceEffects,
+                            subtitle: l10n.reduceEffectsDesc,
+                            value: settings.reduceEffects,
+                            onChanged: settingsNotifier.setReduceEffects,
+                            icon: Icons.blur_off_rounded,
+                          )
+                        else
+                          SwitchListTile(
+                            secondary: Icon(
+                              Icons.blur_off_rounded,
+                              color: AppColors.of(context).textSecondary,
+                            ),
+                            title: Text(
+                              l10n.reduceEffects,
+                              style: AppTypography.body.copyWith(
+                                color: AppColors.of(context).textPrimary,
+                              ),
+                            ),
+                            subtitle: Text(
+                              l10n.reduceEffectsDesc,
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.of(context).textSecondary,
+                              ),
+                            ),
+                            value: settings.reduceEffects,
+                            onChanged: settingsNotifier.setReduceEffects,
+                            contentPadding: EdgeInsets.zero,
+                          ),
                       ]
                       .animate(interval: 50.ms)
                       .fadeIn(duration: 300.ms, curve: Curves.easeOut)

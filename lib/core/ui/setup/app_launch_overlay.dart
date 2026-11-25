@@ -77,6 +77,9 @@ class _AppLaunchOverlayState extends ConsumerState<AppLaunchOverlay>
         curve: Curves.easeInOutCubic,
         onEnd: () {
           if (isCompleted && mounted) {
+            // The overlay stays mounted; a repeating ticker would schedule a
+            // frame every vsync for the rest of the session.
+            _shimmerController.stop();
             setState(() => _dismissed = true);
           }
         },

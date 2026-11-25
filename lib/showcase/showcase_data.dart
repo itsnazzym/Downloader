@@ -239,7 +239,7 @@ class ShowcaseDownloaderRepository implements IDownloaderRepository {
   }
 
   @override
-  Future<void> deleteDownload(String id) async {
+  Future<void> deleteDownload(String id, {bool deleteFiles = true}) async {
     _items.removeWhere((entry) => entry.id == id);
   }
 

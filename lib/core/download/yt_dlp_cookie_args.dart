@@ -75,7 +75,15 @@ class YtDlpCookieArgs {
   /// decryption WARNING does not trigger a retry.
   static bool hasBrowserCookieError(String log) {
     for (final line in log.split(RegExp(r'\r?\n'))) {
-      if (line.trimLeft().startsWith('ERROR') && isBrowserCookieError(line)) {
+      // "No video formats found" with a signed-in browser profile: YouTube
+      // then demands a JS challenge yt-dlp may not solve, while the same
+      // video works without the cookies. Callers only retry when browser
+      // cookies were actually passed.
+      final lower = line.toLowerCase();
+      if (line.trimLeft().startsWith('ERROR') &&
+          (isBrowserCookieError(line) ||
+              lower.contains('no video formats found') ||
+              lower.contains('requested format is not available'))) {
         return true;
       }
     }

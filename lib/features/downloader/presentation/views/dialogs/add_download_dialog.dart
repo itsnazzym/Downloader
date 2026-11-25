@@ -51,6 +51,8 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
   bool _isLoading = false;
 
   Future<void> _submit() async {
+    // Enter pressed again during the playlist probe queued the link twice.
+    if (_isLoading) return;
     final url = _urlController.text.trim();
     final formOk = AppColors.of(context).isIosChrome
         ? DownloadUrlValidator.isAcceptableDownloadUrl(url)
@@ -74,10 +76,7 @@ class _AddDownloadDialogState extends ConsumerState<AddDownloadDialog> {
         url,
         includeAdult: settings.adultSitesEnabled,
       )) {
-        AppToast.showError(
-          context,
-          'URL non supportée (Discord, hôte inconnu, etc.).',
-        );
+        AppToast.showError(context, context.l10n.unsupportedDownloadUrl);
         return;
       }
       setState(() => _isLoading = true);

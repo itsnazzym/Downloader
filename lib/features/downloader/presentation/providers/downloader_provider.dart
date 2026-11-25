@@ -211,7 +211,8 @@ class DownloadListNotifier
       if (item.status == DownloadStatus.duplicate) {
         Future<void>.delayed(const Duration(seconds: 5), () {
           if (mounted) {
-            deleteDownload(item.id);
+            // The path is the file already on disk: drop the row, keep the file.
+            deleteDownload(item.id, deleteFiles: false);
           }
         });
       }
@@ -309,7 +310,12 @@ class DownloadListNotifier
         previous.title != next.title ||
         previous.filePath != next.filePath ||
         previous.thumbnailUrl != next.thumbnailUrl ||
-        previous.totalSize != next.totalSize ||
+        // yt-dlp's "~" size estimate moves on every fragment line; the row
+        // reads it from the runtime item and the final size lands on completion.
+        (previous.totalSize != next.totalSize &&
+            next.status != DownloadStatus.downloading &&
+            next.status != DownloadStatus.extracting &&
+            next.status != DownloadStatus.processing) ||
         previous.sortOrder != next.sortOrder ||
         previous.error != next.error ||
         previous.request.url != next.request.url ||
@@ -667,9 +673,34 @@ class DownloadListNotifier
     });
   }
 
-  Future<void> deleteDownload(String id) async {
-    await _repository.deleteDownload(id);
+  Future<void> deleteDownload(String id, {bool deleteFiles = true}) async {
+    // A "duplicate" row points at the file that was already on disk: removing
+    // the row must never delete the user's original.
+    final isDuplicate = _catalogById[id]?.status == DownloadStatus.duplicate;
+    await _repository.deleteDownload(
+      id,
+      deleteFiles: deleteFiles && !isDuplicate,
+    );
     _removeCatalogItem(id);
+  }
+
+  /// Deletes many rows with their files, then updates the list once (one
+  /// rebuild instead of one per row when hundreds go at the same time).
+  Future<void> deleteDownloads(Iterable<String> ids) async {
+    final removed = <String>[];
+    for (final id in ids) {
+      final isDuplicate = _catalogById[id]?.status == DownloadStatus.duplicate;
+      await _repository.deleteDownload(id, deleteFiles: !isDuplicate);
+      removed.add(id);
+    }
+    if (removed.isEmpty) return;
+    final gone = removed.toSet();
+    _catalogIds.removeWhere(gone.contains);
+    for (final id in removed) {
+      _catalogById.remove(id);
+      _clearRuntimeItem(id);
+    }
+    state = AsyncValue.data(_catalogItems());
   }
 
   /// [newIndex] is the insertion index after the item is removed (onReorderItem).
@@ -735,6 +766,8 @@ class DownloadListNotifier
     final completed = items
         .where((item) => item.status == DownloadStatus.completed)
         .toList();
+    // Deletes the files too (the library scan would re-import kept files);
+    // the menu asks for confirmation first.
     for (final item in completed) {
       await deleteDownload(item.id);
     }
@@ -778,8 +811,9 @@ class DownloadListNotifier
     try {
       do {
         _processQueueAgain = false;
-        final currentList =
-            state.valueOrNull ?? _repository.getCurrentDownloads();
+        // The repository is current; the visible list lags by the progress
+        // throttle and let quick batches start more than maxConcurrent.
+        final currentList = _repository.getCurrentDownloads();
         int activeCount = DownloadQueueController.busyCount(currentList);
 
         final settings = _ref.read(settingsProvider);
@@ -903,20 +937,20 @@ String? _tiktokVideoIdFromUrl(String url) {
 }
 
 /// Per-id item so progress ticks rebuild only the row that changed.
-final downloadItemByIdProvider = Provider.family<DownloadItem?, String>((
-  ref,
-  id,
-) {
-  final runtimeItem = ref.watch(downloadRuntimeItemProvider(id));
-  if (runtimeItem != null) return runtimeItem;
-  return ref.watch(
-    downloadListProvider.select((async) {
-      final items = async.valueOrNull;
-      if (items == null) return null;
-      for (final item in items) {
-        if (item.id == id) return item;
-      }
-      return null;
-    }),
-  );
-});
+/// autoDispose: a kept-alive entry per row ever scrolled into view re-ran its
+/// list scan on every catalog change for the rest of the session.
+final downloadItemByIdProvider = Provider.autoDispose
+    .family<DownloadItem?, String>((ref, id) {
+      final runtimeItem = ref.watch(downloadRuntimeItemProvider(id));
+      if (runtimeItem != null) return runtimeItem;
+      return ref.watch(
+        downloadListProvider.select((async) {
+          final items = async.valueOrNull;
+          if (items == null) return null;
+          for (final item in items) {
+            if (item.id == id) return item;
+          }
+          return null;
+        }),
+      );
+    });

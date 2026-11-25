@@ -501,6 +501,10 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
     return parts.join(" • ");
   }
 
+  /// Decode thumbnails near their 48 px box, not at the source's 1280x720
+  /// (~3.7 MB each): enough for BoxFit.cover of 16:9 art at 2x DPR.
+  static const int _thumbDecodeWidth = 192;
+
   /// Helper method to display thumbnail from local file or network URL
   Widget _buildThumbnailImage(String url) {
     if (url.startsWith('assets/showcase/')) {
@@ -515,6 +519,7 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
         fit: BoxFit.cover,
         width: 48,
         height: 48,
+        cacheWidth: _thumbDecodeWidth,
         errorBuilder: (context, _, _) => Icon(
           Icons.movie_outlined,
           color: AppColors.of(context).textSecondary,
@@ -532,6 +537,7 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
         fit: BoxFit.cover,
         width: 48,
         height: 48,
+        memCacheWidth: _thumbDecodeWidth,
         errorWidget: (context, _, _) => Icon(
           Icons.movie_outlined,
           color: AppColors.of(context).textSecondary,
@@ -563,6 +569,7 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
       fit: BoxFit.cover,
       width: 48,
       height: 48,
+      cacheWidth: _thumbDecodeWidth,
       errorBuilder: (context, _, _) => Icon(
         Icons.movie_outlined,
         color: AppColors.of(context).textSecondary,

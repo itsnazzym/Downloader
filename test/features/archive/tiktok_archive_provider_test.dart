@@ -7,6 +7,14 @@ import 'package:modern_downloader/features/archive/domain/entities/tiktok_archiv
 import 'package:modern_downloader/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
+import 'package:modern_downloader/core/providers/settings_provider.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
+import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../visual/visual_fakes.dart';
 
 class MockTikTokArchiveRepository implements ITikTokArchiveRepository {
   TikTokArchiveCatalog? _cached;
@@ -424,5 +432,55 @@ void main() {
         );
       },
     );
+  });
+
+  test('purging a collection deletes its downloaded files only', () async {
+    SharedPreferences.setMockInitialValues({});
+    initPrefs(await SharedPreferences.getInstance());
+    DownloadItem done(String id, String url) => DownloadItem(
+      id: id,
+      request: DownloadRequest(url: url),
+      title: id,
+      status: DownloadStatus.completed,
+      progress: 1,
+      filePath: 'C:/Videos/$id.mp4',
+    );
+    final library = FakeDownloaderRepository([
+      // As "download all" queues them: the catalog URL, normalised.
+      done('dl-tech', 'https://www.tiktokv.com/share/video/1001/'),
+      done('dl-music', 'https://www.tiktokv.com/share/video/1002/'),
+      done('dl-other', 'https://www.youtube.com/watch?v=x'),
+    ]);
+    final archive = MockTikTokArchiveRepository(sampleCatalog);
+    final container = ProviderContainer(
+      overrides: [
+        tikTokArchiveRepositoryProvider.overrideWithValue(archive),
+        tiktokVideoCacheServiceProvider.overrideWith(
+          (ref) =>
+              TikTokVideoCacheService(cacheDirectory: Directory.systemTemp),
+        ),
+        downloaderRepositoryProvider.overrideWithValue(library),
+        persistenceServiceProvider.overrideWithValue(FakePersistence()),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(downloadListProvider, (_, _) {});
+    final notifier = container.read(tikTokArchiveProvider.notifier);
+    await notifier.initialized;
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    final result = await notifier.purgeCollections({'Tech'});
+
+    expect(result.filesDeleted, 1);
+    expect(library.deleteFilesCalls, [true]);
+    final catalog = container.read(tikTokArchiveProvider).catalog!;
+    final names = catalog.collections.map((c) => c.name);
+    expect(names, isNot(contains('Tech')));
+    expect(names, contains('Music'));
+    expect(catalog.videos.map((v) => v.id), isNot(contains('1001')));
+    expect(container.read(downloadListProvider).valueOrNull!.map((e) => e.id), [
+      'dl-music',
+      'dl-other',
+    ]);
   });
 }

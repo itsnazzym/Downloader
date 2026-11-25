@@ -300,6 +300,8 @@ class _ThumbImage extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: url,
         fit: BoxFit.cover,
+        // Mosaic cells are a quarter of a 176 px tile.
+        memCacheWidth: 256,
         fadeInDuration: const Duration(milliseconds: 180),
         errorWidget: (context, _, _) => fallback,
         placeholder: (context, _) => fallback,
@@ -314,6 +316,7 @@ class _ThumbImage extends StatelessWidget {
     return Image.file(
       File(path),
       fit: BoxFit.cover,
+      cacheWidth: 256,
       errorBuilder: (context, _, _) => fallback,
     );
   }

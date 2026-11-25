@@ -83,4 +83,24 @@ void main() {
       );
     });
   });
+
+  test('no formats found while using browser cookies triggers the retry', () {
+    // YouTube with a signed-in profile needs a JS runtime yt-dlp may lack;
+    // the same video downloads fine without the browser cookies.
+    const log =
+        'WARNING: [youtube] x: n challenge solving failed\n'
+        'ERROR: [youtube] jNQXAC9IVRw: No video formats found!; please report';
+    expect(YtDlpCookieArgs.hasBrowserCookieError(log), isTrue);
+    // Same cause, fewer formats left: the format selector finds no match.
+    expect(
+      YtDlpCookieArgs.hasBrowserCookieError(
+        'ERROR: [youtube] x: Requested format is not available. Use --list-formats',
+      ),
+      isTrue,
+    );
+    expect(
+      YtDlpCookieArgs.hasBrowserCookieError('ERROR: Unsupported URL: x'),
+      isFalse,
+    );
+  });
 }

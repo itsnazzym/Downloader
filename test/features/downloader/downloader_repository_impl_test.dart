@@ -29,9 +29,14 @@ class _MemoryPersistence extends PersistenceService {
     stored = List<DownloadItem>.from(downloads);
   }
 
+  /// When set, loading waits on it (a large library decoding slowly).
+  Completer<void>? loadHold;
+
   @override
-  Future<List<DownloadItem>> loadDownloads() async =>
-      List<DownloadItem>.from(stored);
+  Future<List<DownloadItem>> loadDownloads() async {
+    await loadHold?.future;
+    return List<DownloadItem>.from(stored);
+  }
 
   @override
   Future<Map<String, dynamic>?> loadMediaFingerprintIndex() async =>
@@ -60,6 +65,21 @@ class _NoopScanner extends LibraryScannerService {
     String downloadPath,
   ) async {
     return [];
+  }
+}
+
+/// Holds the scan open so the test can change the library meanwhile.
+class _HeldScanner extends _NoopScanner {
+  final release = Completer<void>();
+
+  @override
+  Future<LibraryScanResult> scanLibrary(
+    List<DownloadItem> items,
+    String basePath,
+  ) async {
+    final snapshot = List<DownloadItem>.from(items);
+    await release.future;
+    return LibraryScanResult(fixedItems: snapshot, newItems: const []);
   }
 }
 
@@ -116,8 +136,29 @@ class _FakeYtDlp extends YtDlpSource {
     );
   }
 
+  final List<String> cancelled = [];
+
   @override
-  Future<void> cancel(String id) async {}
+  Future<void> cancel(String id) async => cancelled.add(id);
+}
+
+/// Streams progress lines faster than the save debounce, like real yt-dlp.
+class _SteadyYtDlp extends _FakeYtDlp {
+  @override
+  Stream<DownloadProgressEvent> download(
+    String id,
+    DownloadRequest request,
+  ) async* {
+    for (var i = 1; i <= 15; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      yield DownloadProgressEvent(
+        progress: i / 16,
+        totalSize: '10MiB',
+        speed: '1MiB/s',
+        eta: '00:05',
+      );
+    }
+  }
 }
 
 class _FakeGalleryDl extends GalleryDlSource {
@@ -163,12 +204,13 @@ void main() {
     _FakeYtDlp source, {
     Future<void> Function()? networkPreflight,
     FallbackMediaResolver? fallbackResolver,
+    LibraryScannerService? scanner,
   }) {
     return DownloaderRepositoryImpl(
       source,
       gallery,
       persistence,
-      _NoopScanner(),
+      scanner ?? _NoopScanner(),
       PluginManager(),
       () => tmp.path,
       networkPreflight: networkPreflight,
@@ -468,5 +510,140 @@ void main() {
     expect(source.downloadCalls, 0);
     expect(gallery.downloadCalls, 0);
     expect(item.error, isNull);
+  });
+
+  test(
+    'the library is saved while a download keeps reporting progress',
+    () async {
+      final repo = buildRepo(_SteadyYtDlp());
+      await loaded.future.timeout(const Duration(seconds: 3));
+
+      await repo.startDownload(
+        const DownloadRequest(
+          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+
+      // Progress lines arrive every 200 ms; they must not postpone the save
+      // until the download goes quiet (a crash would lose the queue).
+      expect(persistence.stored, isNotEmpty);
+    },
+  );
+
+  test(
+    'a library refresh keeps downloads that changed during the scan',
+    () async {
+      final scanner = _HeldScanner();
+      final repo = buildRepo(_FakeYtDlp(), scanner: scanner);
+      await loaded.future.timeout(const Duration(seconds: 3));
+
+      final refresh = repo.refreshLibrary();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      // Added while the (slow) scan still works on its snapshot.
+      final id = await repo.startDownload(
+        const DownloadRequest(
+          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      final before = repo.getCurrentDownloads().single;
+
+      scanner.release.complete();
+      await refresh;
+
+      final after = repo.getCurrentDownloads();
+      expect(after.map((e) => e.id), [id]);
+      expect(after.single.status, before.status);
+    },
+  );
+
+  test('shutdown stops running downloads and saves them to resume', () async {
+    final source = _SteadyYtDlp();
+    final repo = buildRepo(source);
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    final id = await repo.startDownload(
+      const DownloadRequest(url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    await repo.shutdown();
+
+    expect(source.cancelled, contains(id));
+    // Saved as still running, so crash recovery re-queues it on next launch.
+    final saved = persistence.stored.singleWhere((e) => e.id == id);
+    expect(saved.status, DownloadStatus.downloading);
+  });
+
+  test('closing the app while the library still loads keeps it', () async {
+    const saved = DownloadItem(
+      id: 'old',
+      request: DownloadRequest(url: 'https://example.com/old'),
+      title: 'Old',
+      status: DownloadStatus.completed,
+      progress: 1,
+    );
+    persistence.stored = [saved];
+    persistence.loadHold = Completer<void>();
+    final repo = buildRepo(_FakeYtDlp());
+
+    final exiting = repo.shutdown();
+    persistence.loadHold!.complete();
+    await exiting;
+
+    // An empty snapshot written here would wipe the library on next launch.
+    expect(persistence.stored.map((e) => e.id), ['old']);
+  });
+
+  test('a second shutdown waits for the first one', () async {
+    final repo = buildRepo(_FakeYtDlp());
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final first = repo.shutdown();
+    final second = repo.shutdown();
+    expect(identical(first, second), isTrue);
+    await first;
+  });
+
+  test('pause then resume during metadata runs yt-dlp once', () async {
+    final hold = Completer<Map<String, dynamic>>();
+    final source = _FakeYtDlp(metadataHold: hold);
+    final repo = buildRepo(source);
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    final id = await repo.startDownload(
+      const DownloadRequest(url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await repo.pauseDownload(id);
+    await repo.resumeDownload(id);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // Both the paused run and the resumed run are now waiting on the probe.
+    hold.complete({'id': 'vid1', 'title': 'Test Video', 'thumbnail': null});
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    // Two runs would mean two yt-dlp processes writing the same file.
+    expect(source.downloadCalls, 1);
+  });
+
+  test('reorder moves the dragged row one place down', () async {
+    DownloadItem row(String id, int order) => DownloadItem(
+      id: id,
+      request: DownloadRequest(url: 'https://example.com/$id'),
+      title: id,
+      status: DownloadStatus.completed,
+      progress: 1,
+      sortOrder: order,
+    );
+    persistence.stored = [row('a', 0), row('b', 1), row('c', 2)];
+    final repo = buildRepo(_FakeYtDlp());
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    // onReorderItem: 'a' dropped after 'b' gives newIndex 1 (post-removal).
+    await repo.reorderDownloads(0, 1);
+
+    final order = repo.getCurrentDownloads().toList()
+      ..sort((x, y) => x.sortOrder.compareTo(y.sortOrder));
+    expect(order.map((e) => e.id), ['b', 'a', 'c']);
   });
 }

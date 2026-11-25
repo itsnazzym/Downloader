@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -68,7 +67,10 @@ class AppShell extends ConsumerWidget {
     final location = GoRouterState.of(context).uri.path;
     final showDock = colors.useFloatingDock && PlatformInfo.isDesktop;
     final mesh = colors.useMeshBackground;
-    final layout = ref.watch(paneLayoutProvider);
+    // Only the sidebar width: dragging the inspector must not rebuild the shell.
+    final sidebarWidth = ref.watch(
+      paneLayoutProvider.select((l) => l.visibleSidebarWidth),
+    );
     final resizing = ref.watch(paneResizeActiveProvider);
 
     if (PlatformInfo.isMobile) {
@@ -86,7 +88,7 @@ class AppShell extends ConsumerWidget {
               child: Row(
                 children: [
                   ResizableWidthPane(
-                    width: layout.visibleSidebarWidth,
+                    width: sidebarWidth,
                     minWidth: PaneLayout.sidebarRail,
                     maxWidth: PaneLayout.sidebarMax,
                     resizeFrom: PaneResizeFrom.trailing,
@@ -175,7 +177,14 @@ class AppShell extends ConsumerWidget {
       return;
     }
 
-    // Show the dialog with the URL and cookies (Deep link fallback)
+    // One add dialog at a time: each copied link used to stack another one,
+    // even while the window was hidden in the tray. A link that arrives
+    // meanwhile is kept and offered once the open dialog closes.
+    if (_addDialogOpen) {
+      _pendingLaunch = data;
+      return;
+    }
+    _addDialogOpen = true;
     showDialog(
       context: context,
       builder: (context) => AddDownloadDialog(
@@ -183,8 +192,17 @@ class AppShell extends ConsumerWidget {
         initialCookies: data.cookies,
         userAgent: data.userAgent,
       ),
-    );
+    ).whenComplete(() {
+      _addDialogOpen = false;
+      final next = _pendingLaunch;
+      _pendingLaunch = null;
+      // Re-publishing it runs the launchDataProvider listener again.
+      if (next != null) ref.read(launchDataProvider.notifier).state = next;
+    });
   }
+
+  static bool _addDialogOpen = false;
+  static LaunchData? _pendingLaunch;
 }
 
 class AppTitleBar extends StatelessWidget {
@@ -195,9 +213,9 @@ class AppTitleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    // iOS chrome already blurs the sidebar; keep a single live BackdropFilter.
-    final useTitleBlur = !colors.isIosChrome;
-    Widget bar = Container(
+    // No BackdropFilter: the bar sits above the content in a Column, so a blur
+    // only re-sampled the solid window colour each frame (GPU cost, no effect).
+    return Container(
       height: WindowChrome.titleBarHeight,
       color: colors.background.withValues(alpha: 0.78),
       child: Row(
@@ -250,13 +268,6 @@ class AppTitleBar extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-    if (!useTitleBlur) return bar;
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: bar,
       ),
     );
   }

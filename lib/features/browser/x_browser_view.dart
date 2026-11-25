@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/utils/browser_launch.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/android/android_engine_bridge.dart';
@@ -272,13 +273,7 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
 
   Future<void> _openExternalUrl(String url) async {
     try {
-      if (Platform.isWindows) {
-        await Process.run('cmd', ['/c', 'start', '', url]);
-      } else if (Platform.isMacOS) {
-        await Process.run('open', [url]);
-      } else if (Platform.isLinux) {
-        await Process.run('xdg-open', [url]);
-      }
+      await openInBrowser(url);
     } catch (e) {
       debugPrint('Failed to open external url: $e');
     }
@@ -341,6 +336,9 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
                               'Hub Médias & Téléchargement Universel',
                               style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(
+                                    // Material's default; the theme's
+                                    // headlineSmall is 20 px for dialogs.
+                                    fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                     color: colors.textPrimary,
                                   ),

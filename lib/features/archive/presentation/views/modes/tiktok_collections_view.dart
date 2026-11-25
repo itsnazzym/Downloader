@@ -8,6 +8,7 @@ import 'package:modern_downloader/features/archive/presentation/providers/tiktok
 import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_feed_view.dart';
 import '../widgets/tiktok_video_card.dart';
 import '../../../../../showcase/showcase_mode.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 class TikTokCollectionsView extends ConsumerStatefulWidget {
   final TikTokArchiveCatalog catalog;
@@ -24,6 +25,10 @@ class _TikTokCollectionsViewState extends ConsumerState<TikTokCollectionsView> {
   String _search = '';
   bool _isApplyingSuggestions = false;
   bool _posterView = false;
+  // Bulk "delete the videos of these collections" mode.
+  bool _selecting = false;
+  final Set<String> _selected = {};
+  bool _purging = false;
 
   @override
   void dispose() {
@@ -118,6 +123,70 @@ class _TikTokCollectionsViewState extends ConsumerState<TikTokCollectionsView> {
           .read(tikTokArchiveProvider.notifier)
           .deleteCollection(collectionKey);
       _showNotice('Collection "$collectionName" supprimée.');
+    }
+  }
+
+  /// Confirms, then deletes the collections, their exclusive videos and the
+  /// downloaded files (permanently). Shared videos are kept.
+  Future<void> _confirmPurge(Set<String> keys) async {
+    if (keys.isEmpty || _purging) return;
+    final l10n = context.l10n;
+    final colors = AppColors.of(context);
+    final notifier = ref.read(tikTokArchiveProvider.notifier);
+    final preview = notifier.purgePreview(keys);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        title: Text(l10n.archivePurgeTitle(keys.length)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.archivePurgeBody(preview.videos, preview.files)),
+            if (preview.keptShared > 0) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.archivePurgeKept(preview.keptShared),
+                style: AppTypography.bodySmall.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            autofocus: true,
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: colors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            icon: const Icon(Icons.delete_forever_rounded, size: 18),
+            label: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _purging = true);
+    try {
+      final result = await notifier.purgeCollections(keys);
+      if (!mounted) return;
+      setState(() {
+        _selecting = false;
+        _selected.clear();
+      });
+      _showNotice(
+        l10n.archivePurgeDone(result.filesDeleted, result.videosRemoved),
+      );
+    } finally {
+      if (mounted) setState(() => _purging = false);
     }
   }
 
@@ -303,6 +372,52 @@ class _TikTokCollectionsViewState extends ConsumerState<TikTokCollectionsView> {
                 ),
               ),
               const SizedBox(width: 8),
+              if (_selecting) ...[
+                Text(
+                  context.l10n.archivePurgeSelectedCount(_selected.length),
+                  style: AppTypography.caption.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colors.error,
+                    foregroundColor: Colors.white,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: _selected.isEmpty || _purging
+                      ? null
+                      : () => _confirmPurge(Set.of(_selected)),
+                  icon: _purging
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.delete_outline_rounded, size: 16),
+                  label: Text(context.l10n.archivePurgeAction),
+                ),
+                const SizedBox(width: 4),
+                TextButton(
+                  onPressed: _purging
+                      ? null
+                      : () => setState(() {
+                          _selecting = false;
+                          _selected.clear();
+                        }),
+                  child: Text(context.l10n.cancel),
+                ),
+              ] else
+                TextButton.icon(
+                  onPressed: () => setState(() => _selecting = true),
+                  icon: const Icon(Icons.checklist_rounded, size: 18),
+                  label: Tooltip(
+                    message: context.l10n.archivePurgeSelectTooltip,
+                    child: Text(context.l10n.archivePurgeSelect),
+                  ),
+                ),
               IconButton(
                 tooltip: _posterView
                     ? 'Afficher les dossiers'
@@ -374,16 +489,28 @@ class _TikTokCollectionsViewState extends ConsumerState<TikTokCollectionsView> {
                             coll.name == 'Favoris non classés' ||
                             coll.name == 'Vidéos Likées';
 
-                        void onOpen() =>
-                            notifier.selectCollection(coll.id ?? coll.name);
-                        final onDelete = isSpecial
+                        final key = coll.id ?? coll.name;
+                        final selected = _selected.contains(key);
+                        // Virtual folders (unclassified, liked) are not
+                        // purgeable: they are views, not collections.
+                        void onOpen() {
+                          if (!_selecting) {
+                            notifier.selectCollection(key);
+                          } else if (!isSpecial) {
+                            setState(() {
+                              if (!_selected.remove(key)) _selected.add(key);
+                            });
+                          }
+                        }
+
+                        final onDelete = isSpecial || _selecting
                             ? null
                             : () => _confirmDeleteCollection(
-                                  coll.id ?? coll.name,
-                                  coll.name,
-                                  coll.videoCount,
-                                );
-                        return _posterView
+                                key,
+                                coll.name,
+                                coll.videoCount,
+                              );
+                        final card = _posterView
                             ? _CollectionPosterCard(
                                 collection: coll,
                                 onOpen: onOpen,
@@ -394,6 +521,53 @@ class _TikTokCollectionsViewState extends ConsumerState<TikTokCollectionsView> {
                                 onOpen: onOpen,
                                 onDelete: onDelete,
                               );
+                        if (!_selecting) return card;
+                        return Opacity(
+                          opacity: isSpecial ? 0.4 : 1,
+                          child: Container(
+                            foregroundDecoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selected
+                                    ? colors.error
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: Stack(
+                              children: [
+                                Positioned.fill(child: card),
+                                if (!isSpecial)
+                                  // Over the folder icon: the bottom-right
+                                  // corner holds the "Open" hint.
+                                  Positioned(
+                                    top: 14,
+                                    left: 14,
+                                    child: IgnorePointer(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: colors.surface,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          selected
+                                              ? Icons.check_box_rounded
+                                              : Icons
+                                                    .check_box_outline_blank_rounded,
+                                          color: selected
+                                              ? colors.error
+                                              : colors.textSecondary,
+                                          size: 28,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
                       },
                     );
                   },
@@ -484,12 +658,31 @@ class _TikTokCollectionsViewState extends ConsumerState<TikTokCollectionsView> {
                         collectionName,
                         videos.length,
                       );
+                    } else if (value == 'purge') {
+                      _confirmPurge({collectionKey});
                     }
                   },
                   itemBuilder: (context) => [
                     const PopupMenuItem(
                       value: 'reset',
                       child: Text('Retirer les vidéos de cette collection'),
+                    ),
+                    PopupMenuItem(
+                      value: 'purge',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_forever_rounded,
+                            size: 18,
+                            color: colors.error,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            context.l10n.archivePurgeMenu,
+                            style: TextStyle(color: colors.error),
+                          ),
+                        ],
+                      ),
                     ),
                     PopupMenuItem(
                       value: 'delete',
@@ -938,8 +1131,9 @@ class _CollectionFolderCardState extends State<_CollectionFolderCard> {
                                             color: colors.error.withValues(
                                               alpha: 0.12,
                                             ),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Icon(
                                             Icons.delete_outline_rounded,
@@ -1109,8 +1303,7 @@ class _CollectionPosterCardState extends State<_CollectionPosterCard> {
                                       color: Colors.transparent,
                                       child: InkWell(
                                         onTap: widget.onDelete,
-                                        borderRadius:
-                                            BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(20),
                                         hoverColor: colors.error.withValues(
                                           alpha: 0.3,
                                         ),
@@ -1120,8 +1313,9 @@ class _CollectionPosterCardState extends State<_CollectionPosterCard> {
                                             color: Colors.black.withValues(
                                               alpha: 0.75,
                                             ),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                             border: Border.all(
                                               color: colors.error.withValues(
                                                 alpha: 0.6,

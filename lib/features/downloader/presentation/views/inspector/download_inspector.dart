@@ -6,6 +6,7 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/app_typography.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
+import 'package:modern_downloader/core/download/download_queue_controller.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
@@ -15,6 +16,7 @@ import 'package:modern_downloader/features/downloader/presentation/providers/dow
 import 'package:modern_downloader/core/ui/widgets/log_viewer.dart';
 import '../dialogs/age_verification_help_dialog.dart';
 import 'video_preview_widget.dart';
+import '../../widgets/confirm_file_deletion.dart';
 import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
@@ -36,11 +38,16 @@ class DownloadInspector extends ConsumerWidget {
       return Center(child: Text(l10n.selectDownload));
     }
 
-    final validPath = DownloadFileResolver.resolvePlayablePath(
-      item.filePath,
-      title: item.title,
-      outputFolder: item.request.outputFolder,
-    );
+    // This build reruns on every progress tick of an active download, and the
+    // resolver falls back to recursive folder scans on the UI thread. There is
+    // no playable file until the download ends, so skip it while busy.
+    final validPath = DownloadQueueController.isBusy(item.status)
+        ? null
+        : DownloadFileResolver.resolvePlayablePath(
+            item.filePath,
+            title: item.title,
+            outputFolder: item.request.outputFolder,
+          );
 
     return Animate(
       key: ValueKey(downloadId),
@@ -166,9 +173,9 @@ class DownloadInspector extends ConsumerWidget {
                           _openMediaFile(ref, validPath);
                         },
                         icon: const Icon(Icons.play_arrow_rounded, size: 22),
-                        label: const Text(
-                          'Lire le média',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.inspectorPlayMedia,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -210,13 +217,13 @@ class DownloadInspector extends ConsumerWidget {
                     isMono: true,
                   ),
                   _InfoRow(
-                    label: 'URL source',
+                    label: l10n.inspectorSourceUrl,
                     value: item.request.url,
                     isMono: true,
                   ),
                   if (validPath != null)
                     _InfoRow(
-                      label: 'Fichier local',
+                      label: l10n.inspectorLocalFile,
                       value: validPath,
                       isMono: true,
                     ),
@@ -231,16 +238,14 @@ class DownloadInspector extends ConsumerWidget {
                               ClipboardData(text: item.request.url),
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'URL copiée dans le presse-papier',
-                                ),
-                                duration: Duration(seconds: 2),
+                              SnackBar(
+                                content: Text(l10n.urlCopied),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           },
                           icon: const Icon(Icons.link_rounded, size: 16),
-                          label: const Text('Copier URL'),
+                          label: Text(l10n.copyUrl),
                         ),
                       ),
                       if (validPath != null) ...[
@@ -266,7 +271,7 @@ class DownloadInspector extends ConsumerWidget {
                             label: Text(
                               PlatformInfo.isAndroid
                                   ? 'Ouvrir avec'
-                                  : 'Explorer',
+                                  : l10n.showInFolder,
                             ),
                           ),
                         ),
@@ -307,17 +312,17 @@ class DownloadInspector extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.shield_outlined,
                                   color: Colors.amber,
                                   size: 20,
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
-                                  'Vérification d\'âge requise (+18)',
-                                  style: TextStyle(
+                                  l10n.ageCheckRequired,
+                                  style: const TextStyle(
                                     color: Colors.amber,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -335,15 +340,13 @@ class DownloadInspector extends ConsumerWidget {
                             ),
                             const SizedBox(height: 12),
                             FilledButton.icon(
-                              onPressed: () => AgeVerificationHelpDialog.show(
-                                context,
-                                item,
-                              ),
+                              onPressed: () =>
+                                  AgeVerificationHelpDialog.show(context, item),
                               icon: const Icon(
                                 Icons.help_outline_rounded,
                                 size: 16,
                               ),
-                              label: const Text('Voir les solutions (+18)'),
+                              label: Text(l10n.ageCheckSeeSolutions),
                               style: FilledButton.styleFrom(
                                 backgroundColor: Colors.amber.shade700,
                               ),
@@ -477,10 +480,17 @@ class DownloadInspector extends ConsumerWidget {
                           item.status == DownloadStatus.completed)
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              ref
-                                  .read(downloadListProvider.notifier)
-                                  .retryDownload(item);
+                            onPressed: () async {
+                              final notifier = ref.read(
+                                downloadListProvider.notifier,
+                              );
+                              if (await confirmFileDeletion(
+                                context,
+                                item,
+                                actionLabel: l10n.restartDownload,
+                              )) {
+                                await notifier.retryDownload(item);
+                              }
                             },
                             icon: const Icon(
                               Icons.restart_alt_rounded,
@@ -512,14 +522,17 @@ class DownloadInspector extends ConsumerWidget {
 
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            // Confirm delete? For now just do it.
-                            ref
-                                .read(downloadListProvider.notifier)
-                                .deleteDownload(item.id);
-                            // Clear selection handled by parent usually, but safe to do?
-                            // The view will rebuild and might error content if we don't handle "not found" carefully.
-                            // It's handled below.
+                          onPressed: () async {
+                            final notifier = ref.read(
+                              downloadListProvider.notifier,
+                            );
+                            if (await confirmFileDeletion(
+                              context,
+                              item,
+                              actionLabel: l10n.delete,
+                            )) {
+                              await notifier.deleteDownload(item.id);
+                            }
                           },
                           icon: const Icon(Icons.delete_outline, size: 16),
                           label: Text(

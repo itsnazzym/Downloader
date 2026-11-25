@@ -57,16 +57,14 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
     );
 
     return PopupMenuButton<String>(
-      tooltip: 'Plus d\'actions',
+      tooltip: l10n.moreActions,
       onSelected: (value) async {
         if (value == 'retry_failed') {
           await ref.read(downloadListProvider.notifier).retryAllFailed();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Relance de $failedCount téléchargement(s) en échec',
-                ),
+                content: Text(l10n.retryingFailed(failedCount)),
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -75,9 +73,9 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
           await ref.read(downloadListProvider.notifier).pauseAllActive();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Tous les téléchargements actifs mis en pause'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.activeDownloadsPaused),
+                duration: const Duration(seconds: 2),
               ),
             );
           }
@@ -85,9 +83,9 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
           await ref.read(downloadListProvider.notifier).resumeAllQueued();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('File d\'attente lancée'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.queueStarted),
+                duration: const Duration(seconds: 2),
               ),
             );
           }
@@ -102,12 +100,35 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
             );
           }
         } else if (value == 'clear_completed') {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (c) => AlertDialog(
+              title: Text(l10n.clearCompletedConfirm(completedCount)),
+              content: Text(l10n.filesDeletedFromDisk),
+              actions: [
+                TextButton(
+                  autofocus: true,
+                  onPressed: () => Navigator.pop(c, false),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(c, true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colors.error,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(l10n.delete),
+                ),
+              ],
+            ),
+          );
+          if (confirmed != true) return;
           await ref.read(downloadListProvider.notifier).clearCompleted();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Téléchargements terminés nettoyés'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.clearCompletedDone),
+                duration: const Duration(seconds: 3),
               ),
             );
           }
@@ -115,9 +136,9 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
           await ref.read(downloadListProvider.notifier).clearFailed();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Téléchargements échoués nettoyés'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.clearFailedDone),
+                duration: const Duration(seconds: 2),
               ),
             );
           }
@@ -139,7 +160,7 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Relancer les échecs ($failedCount)',
+                    '${l10n.retryFailedAction} ($failedCount)',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -166,7 +187,7 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Mettre en pause les actifs',
+                    l10n.pauseActiveAction,
                     style: TextStyle(
                       fontSize: 13,
                       color: activeCount > 0 ? null : colors.textDisabled,
@@ -186,7 +207,7 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Lancer la file d\'attente',
+                    l10n.startQueueAction,
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.primary,
@@ -229,8 +250,8 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Text(
                   completedCount > 0
-                      ? 'Effacer les terminés ($completedCount)'
-                      : 'Effacer les terminés',
+                      ? '${l10n.clearCompletedAction} ($completedCount)'
+                      : l10n.clearCompletedAction,
                   style: TextStyle(
                     fontSize: 13,
                     color: completedCount > 0 ? null : colors.textDisabled,
@@ -254,8 +275,8 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Text(
                   failedCount > 0
-                      ? 'Effacer les échoués ($failedCount)'
-                      : 'Effacer les échoués',
+                      ? '${l10n.clearFailedAction} ($failedCount)'
+                      : l10n.clearFailedAction,
                   style: TextStyle(
                     fontSize: 13,
                     color: failedCount > 0 ? null : colors.textDisabled,

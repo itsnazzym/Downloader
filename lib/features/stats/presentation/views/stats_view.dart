@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -846,50 +845,49 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Cards sit on a solid background: a backdrop blur only cost GPU time on
+    // every scroll frame.
     return ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.m),
-              decoration: BoxDecoration(
-                color: AppColors.of(context).surface.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.of(context).border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(icon, size: 18, color: color),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.m),
+            decoration: BoxDecoration(
+              color: AppColors.of(context).surface.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.of(context).border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      const Spacer(),
-                    ],
-                  ),
-                  const Gap(AppSpacing.m),
-                  Text(
-                    value,
-                    style: AppTypography.h3.copyWith(
-                      color: AppColors.of(context).textPrimary,
-                      fontWeight: FontWeight.w700,
+                      child: Icon(icon, size: 18, color: color),
                     ),
+                    const Spacer(),
+                  ],
+                ),
+                const Gap(AppSpacing.m),
+                Text(
+                  value,
+                  style: AppTypography.h3.copyWith(
+                    color: AppColors.of(context).textPrimary,
+                    fontWeight: FontWeight.w700,
                   ),
-                  const Gap(AppSpacing.xxs),
-                  Text(
-                    label,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.of(context).textSecondary,
-                    ),
+                ),
+                const Gap(AppSpacing.xxs),
+                Text(
+                  label,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.of(context).textSecondary,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         )
@@ -917,38 +915,37 @@ class _GlassPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Cards sit on a solid background: a backdrop blur only cost GPU time on
+    // every scroll frame.
     return ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.l),
-              decoration: BoxDecoration(
-                color: AppColors.of(context).surface.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.of(context).border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.of(context).textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.l),
+            decoration: BoxDecoration(
+              color: AppColors.of(context).surface.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.of(context).border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.of(context).textPrimary,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const Gap(AppSpacing.xxs),
-                  Text(
-                    subtitle,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.of(context).textSecondary,
-                    ),
+                ),
+                const Gap(AppSpacing.xxs),
+                Text(
+                  subtitle,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.of(context).textSecondary,
                   ),
-                  const Gap(AppSpacing.m),
-                  child,
-                ],
-              ),
+                ),
+                const Gap(AppSpacing.m),
+                child,
+              ],
             ),
           ),
         )

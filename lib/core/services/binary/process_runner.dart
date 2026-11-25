@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -38,11 +39,15 @@ class ProcessRunner {
     return process;
   }
 
+  /// With [timeout], a process still running when it expires is killed with
+  /// its whole tree and a [TimeoutException] is thrown (a hung yt-dlp probe
+  /// otherwise held its slot, and blocked every new download, forever).
   Future<ProcessResult> run(
     String executable,
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
+    Duration? timeout,
   }) async {
     LoggerService.debug('Running process: $executable ${arguments.join(' ')}');
     if (PlatformInfo.isAndroid &&
@@ -52,6 +57,15 @@ class ProcessRunner {
         arguments,
         workingDirectory: workingDirectory,
         environment: environment,
+      );
+    }
+    if (timeout != null) {
+      return _runWithTimeout(
+        executable,
+        arguments,
+        workingDirectory: workingDirectory,
+        environment: environment,
+        timeout: timeout,
       );
     }
     final result = await Process.run(
@@ -70,6 +84,40 @@ class ProcessRunner {
       result.exitCode,
       utf8.decode(result.stdout as List<int>, allowMalformed: true),
       utf8.decode(result.stderr as List<int>, allowMalformed: true),
+    );
+  }
+
+  Future<ProcessResult> _runWithTimeout(
+    String executable,
+    List<String> arguments, {
+    required Duration timeout,
+    String? workingDirectory,
+    Map<String, String>? environment,
+  }) async {
+    final process = await Process.start(
+      executable,
+      arguments,
+      workingDirectory: workingDirectory,
+      runInShell: false,
+      environment: environment,
+      includeParentEnvironment: true,
+    );
+    // Drain both pipes while waiting, or a chatty child blocks on a full pipe.
+    final stdout = process.stdout.fold<List<int>>([], (a, b) => a..addAll(b));
+    final stderr = process.stderr.fold<List<int>>([], (a, b) => a..addAll(b));
+    final int exitCode;
+    try {
+      exitCode = await process.exitCode.timeout(timeout);
+    } on TimeoutException {
+      LoggerService.w('Process timed out after $timeout: $executable');
+      await kill(process);
+      rethrow;
+    }
+    return ProcessResult(
+      process.pid,
+      exitCode,
+      utf8.decode(await stdout, allowMalformed: true),
+      utf8.decode(await stderr, allowMalformed: true),
     );
   }
 
@@ -97,15 +145,20 @@ class ProcessRunner {
     if (!Platform.isWindows) return;
     try {
       final kernel32 = DynamicLibrary.open('kernel32.dll');
-      final openProcess = kernel32.lookupFunction<
-          IntPtr Function(Uint32, Int32, Uint32),
-          int Function(int, int, int)>('OpenProcess');
-      final setPriorityClass = kernel32.lookupFunction<
-          Int32 Function(IntPtr, Uint32),
-          int Function(int, int)>('SetPriorityClass');
-      final closeHandle = kernel32.lookupFunction<
-          Int32 Function(IntPtr),
-          int Function(int)>('CloseHandle');
+      final openProcess = kernel32
+          .lookupFunction<
+            IntPtr Function(Uint32, Int32, Uint32),
+            int Function(int, int, int)
+          >('OpenProcess');
+      final setPriorityClass = kernel32
+          .lookupFunction<
+            Int32 Function(IntPtr, Uint32),
+            int Function(int, int)
+          >('SetPriorityClass');
+      final closeHandle = kernel32
+          .lookupFunction<Int32 Function(IntPtr), int Function(int)>(
+            'CloseHandle',
+          );
 
       const processSetInformation = 0x0200;
       const belowNormalPriorityClass = 0x00004000;

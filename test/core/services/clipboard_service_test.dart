@@ -76,4 +76,24 @@ void main() {
     container.read(settingsProvider.notifier).setClipboardMonitorEnabled(false);
     expect(service.isTimerActive, isFalse);
   });
+
+  test('only supported hosts count, not look-alike substrings', () {
+    for (final url in [
+      'https://x.com/a/status/1',
+      'https://www.youtube.com/watch?v=1',
+      'https://m.youtube.com/watch?v=1',
+      'https://youtu.be/1',
+    ]) {
+      expect(ClipboardService.isSupportedUrl(url), isTrue, reason: url);
+    }
+    for (final url in [
+      'https://www.netflix.com/watch/1',
+      'https://www.dropbox.com/s/1',
+      'https://box.com/s/1',
+      'https://evil.example/?u=youtube.com',
+      'youtube.com/watch?v=1',
+    ]) {
+      expect(ClipboardService.isSupportedUrl(url), isFalse, reason: url);
+    }
+  });
 }

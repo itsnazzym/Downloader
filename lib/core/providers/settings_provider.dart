@@ -20,6 +20,8 @@ class AppSettings {
 
   final int concurrentFragments; // Threads per download
   final bool maxSpeedMode; // Saturate bandwidth: 64 native fragments + remux
+  /// Low-end PCs: app-wide reduced motion (no blur, no ambient animation).
+  final bool reduceEffects;
 
   // Site-specific settings
   final bool twitterIncludeReplies;
@@ -61,6 +63,7 @@ class AppSettings {
     this.maxConcurrent = 3,
     this.concurrentFragments = 16, // Default to 16 threads
     this.maxSpeedMode = false,
+    this.reduceEffects = false,
     this.outputFolder = '',
     this.preferredQuality = 'best',
     this.outputFormat = 'mp4', // Default to MP4 for max compatibility
@@ -98,6 +101,7 @@ class AppSettings {
     int? maxConcurrent,
     int? concurrentFragments,
     bool? maxSpeedMode,
+    bool? reduceEffects,
     String? outputFolder,
     String? preferredQuality,
     String? outputFormat,
@@ -134,6 +138,7 @@ class AppSettings {
       maxConcurrent: maxConcurrent ?? this.maxConcurrent,
       concurrentFragments: concurrentFragments ?? this.concurrentFragments,
       maxSpeedMode: maxSpeedMode ?? this.maxSpeedMode,
+      reduceEffects: reduceEffects ?? this.reduceEffects,
       outputFolder: outputFolder ?? this.outputFolder,
       preferredQuality: preferredQuality ?? this.preferredQuality,
       outputFormat: outputFormat ?? this.outputFormat,
@@ -176,6 +181,7 @@ const _kAutoStart = 'auto_start';
 const _kMaxConcurrent = 'max_concurrent';
 const _kConcurrentFragments = 'concurrent_fragments';
 const _kMaxSpeedMode = 'max_speed_mode';
+const _kReduceEffects = 'reduce_effects';
 const _kOutputFolder = 'output_folder';
 const _kPreferredQuality = 'preferred_quality';
 const _kOutputFormat = 'output_format';
@@ -245,6 +251,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       maxConcurrent: prefs.getInt(_kMaxConcurrent) ?? 3,
       concurrentFragments: prefs.getInt(_kConcurrentFragments) ?? 16,
       maxSpeedMode: prefs.getBool(_kMaxSpeedMode) ?? false,
+      reduceEffects: prefs.getBool(_kReduceEffects) ?? false,
       outputFolder: prefs.getString(_kOutputFolder) ?? '',
       preferredQuality: prefs.getString(_kPreferredQuality) ?? 'best',
       outputFormat: prefs.getString(_kOutputFormat) ?? 'mp4',
@@ -310,6 +317,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   void setConcurrentFragments(int value) {
     state = state.copyWith(concurrentFragments: value);
     prefs.setInt(_kConcurrentFragments, value);
+  }
+
+  void setReduceEffects(bool value) {
+    state = state.copyWith(reduceEffects: value);
+    prefs.setBool(_kReduceEffects, value);
   }
 
   void setMaxSpeedMode(bool value) {

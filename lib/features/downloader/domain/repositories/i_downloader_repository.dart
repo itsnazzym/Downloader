@@ -7,7 +7,8 @@ abstract class IDownloaderRepository {
   Future<void> cancelDownload(String id);
   Future<void> pauseDownload(String id);
   Future<void> resumeDownload(String id);
-  Future<void> deleteDownload(String id);
+  /// Removes the entry; [deleteFiles] also deletes the media file from disk.
+  Future<void> deleteDownload(String id, {bool deleteFiles = true});
   Future<void> reorderDownloads(int oldIndex, int newIndex);
   List<DownloadItem> getCurrentDownloads();
   Stream<DownloadItem> get downloadUpdateStream;

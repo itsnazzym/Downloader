@@ -148,4 +148,31 @@ void main() {
 
     expect(shouldExit, isFalse);
   });
+
+  test('never kills another program that holds the port', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final killed = <int>[];
+
+    final shouldExit = await SingleInstanceService.check(
+      const [],
+      container,
+      dependencies: SingleInstanceDependencies(
+        bind: () async => throw const SocketException('in use'),
+        notifyPrimary: (_) async {},
+        hasVisiblePeerWindow: () => false,
+        stalePeerPid: () async => 4321,
+        terminatePid: (id) {
+          killed.add(id);
+          return true;
+        },
+        isOwnProcess: (_) => false,
+        currentPid: 1,
+      ),
+    );
+
+    expect(killed, isEmpty);
+    // Starting without the single-instance channel beats exiting silently.
+    expect(shouldExit, isFalse);
+  });
 }

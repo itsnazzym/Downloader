@@ -21,6 +21,30 @@ void main() {
       if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
 
+    test('a completed file outside the library folder is not "missing"', () async {
+      // yt-dlp saved it in another folder (e.g. Downloads) than the library
+      // root the scan indexes; it exists, so the row must stay completed.
+      final other = Directory.systemTemp.createTempSync('md_elsewhere_');
+      addTearDown(() => other.deleteSync(recursive: true));
+      final file = File(
+        '${other.path}${Platform.pathSeparator}Me at the zoo [jNQXAC9IVRw].mp4',
+      );
+      await file.writeAsBytes(List.filled(2048, 1));
+      final item = DownloadItem(
+        id: 'zoo',
+        request: const DownloadRequest(url: 'https://youtu.be/jNQXAC9IVRw'),
+        title: 'Me at the zoo',
+        status: DownloadStatus.completed,
+        progress: 1,
+        filePath: file.path,
+      );
+
+      final fixed = await scanner.scanAndFix([item], dir.path);
+
+      expect(fixed.single.status, DownloadStatus.completed);
+      expect(fixed.single.error, isNull);
+    });
+
     test('recovers file by bracket id when stored path is stale', () async {
       final real = File(
         '${dir.path}${Platform.pathSeparator}uploader - 99 [209191506225657].mp4',

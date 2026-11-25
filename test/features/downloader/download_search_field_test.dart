@@ -20,7 +20,7 @@ class _EmptyRepo implements IDownloaderRepository {
   @override
   Future<void> clearHistory() async {}
   @override
-  Future<void> deleteDownload(String id) async {}
+  Future<void> deleteDownload(String id, {bool deleteFiles = true}) async {}
   @override
   Stream<DownloadItem> get downloadUpdateStream =>
       const Stream<DownloadItem>.empty();

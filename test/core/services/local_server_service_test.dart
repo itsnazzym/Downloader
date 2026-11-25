@@ -50,7 +50,7 @@ class _FakeRepo implements IDownloaderRepository {
   Future<void> clearHistory() async {}
 
   @override
-  Future<void> deleteDownload(String id) async {}
+  Future<void> deleteDownload(String id, {bool deleteFiles = true}) async {}
 
   @override
   Stream<DownloadItem> get downloadUpdateStream => _controller.stream;

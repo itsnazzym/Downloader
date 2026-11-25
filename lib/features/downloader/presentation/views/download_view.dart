@@ -6,7 +6,6 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
 import 'package:modern_downloader/core/ui/widgets/resizable_width_pane.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import '../providers/creator_folders_provider.dart';
 import '../providers/filtered_downloads_provider.dart';
 import 'inspector/collapsed_inspector_rail.dart';
 import 'inspector/download_inspector.dart';
@@ -73,13 +72,6 @@ class DownloadView extends ConsumerWidget {
                     DownloadSearchFocus.request,
                 const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
                     DownloadSearchFocus.request,
-                const SingleActivator(LogicalKeyboardKey.escape): () {
-                  if (ref.read(openedCreatorFolderKeyProvider) != null) {
-                    ref.read(openedCreatorFolderKeyProvider.notifier).state =
-                        null;
-                    ref.read(selectedDownloadIdProvider.notifier).state = null;
-                  }
-                },
               },
               child: Column(
                 children: [

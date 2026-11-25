@@ -454,6 +454,60 @@ class TikTokCollectionReconciliationService {
     );
   }
 
+  /// Removes [collectionKeys] (ids or names) and every video that only lived
+  /// in them. A video also in a kept collection stays and just leaves the
+  /// purged folders (a like alone does not keep it: most downloaded videos
+  /// are liked too, so the purge would remove almost nothing). Returns the removed video ids so their
+  /// downloaded files can be deleted too.
+  ({
+    TikTokArchiveCatalog catalog,
+    Set<String> removedVideoIds,
+    int keptSharedCount,
+  })
+  purgeCollections(TikTokArchiveCatalog catalog, Set<String> collectionKeys) {
+    final targets = catalog.collections
+        .where(
+          (c) =>
+              collectionKeys.contains(c.id) || collectionKeys.contains(c.name),
+        )
+        .toList();
+    final targetIds = {for (final c in targets) ?c.id};
+    final targetNames = {for (final c in targets) c.name, ...collectionKeys};
+
+    final removed = <String>{};
+    var keptShared = 0;
+    for (final video in catalog.videos) {
+      final ids = video.collectionIds;
+      final inTarget = ids.isNotEmpty
+          ? ids.any(targetIds.contains)
+          : targetNames.contains(video.collectionName);
+      if (!inTarget) continue;
+      final onlyTargets = ids.isNotEmpty ? ids.every(targetIds.contains) : true;
+      if (onlyTargets) {
+        removed.add(video.id);
+      } else {
+        keptShared++;
+      }
+    }
+
+    var updated = _recountCatalog(
+      catalog,
+      videos: catalog.videos.where((v) => !removed.contains(v.id)).toList(),
+      collections: catalog.collections,
+      suggestions: catalog.suggestions
+          .where((s) => !removed.contains(s.videoId))
+          .toList(),
+    );
+    for (final collection in targets) {
+      updated = deleteCollection(updated, collection.id ?? collection.name);
+    }
+    return (
+      catalog: updated,
+      removedVideoIds: removed,
+      keptSharedCount: keptShared,
+    );
+  }
+
   static void _addSuggestion(
     List<TikTokCollectionSuggestion> suggestions,
     TikTokCollectionSuggestion suggestion,

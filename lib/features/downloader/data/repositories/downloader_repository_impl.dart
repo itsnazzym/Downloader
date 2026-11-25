@@ -239,16 +239,25 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   }
 
   Future<void> _runLibrarySynchronization(String downloadPath) async {
+    final snapshot = Map<String, DownloadItem>.of(_activeDownloads);
     final scanResult = await _libraryScanner.scanLibrary(
-      _activeDownloads.values.toList(),
+      snapshot.values.toList(),
       downloadPath,
     );
+    // The scan can take seconds: only touch entries still exactly as scanned,
+    // so a download that progressed, finished, started or was deleted
+    // meanwhile keeps its live state.
+    bool unchangedSinceSnapshot(String id) {
+      final live = _activeDownloads[id];
+      return live != null && identical(live, snapshot[id]);
+    }
+
     final fixedItems = scanResult.fixedItems;
     var hasChanges = false;
     for (final item in fixedItems) {
-      final existing = _activeDownloads[item.id];
-      if (existing == null ||
-          existing.status != item.status ||
+      if (!unchangedSinceSnapshot(item.id)) continue;
+      final existing = _activeDownloads[item.id]!;
+      if (existing.status != item.status ||
           existing.filePath != item.filePath ||
           existing.thumbnailUrl != item.thumbnailUrl ||
           existing.title != item.title ||
@@ -260,7 +269,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     }
     final keptIds = fixedItems.map((item) => item.id).toSet();
     final beforeCount = _activeDownloads.length;
-    _activeDownloads.removeWhere((id, _) => !keptIds.contains(id));
+    _activeDownloads.removeWhere(
+      (id, _) => !keptIds.contains(id) && unchangedSinceSnapshot(id),
+    );
     if (_activeDownloads.length != beforeCount) {
       hasChanges = true;
     }
@@ -334,6 +345,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   }
 
   Future<void> _startDownloadProcess(String id, DownloadRequest request) async {
+    // Each run owns a token: Pause then Resume starts a new run while the old
+    // one may still be inside a probe or retry sleep; the old one must stop
+    // instead of spawning a second yt-dlp on the same file.
+    final token = (_runTokens[id] ?? 0) + 1;
+    _runTokens[id] = token;
     int retryCount = 0;
     const maxRetries = 3;
 
@@ -345,7 +361,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         tempCookiesFile = prepared.tempFile;
 
         while (retryCount < maxRetries) {
-          if (_shouldAbort(id)) {
+          if (_shouldAbort(id, token)) {
             return;
           }
 
@@ -369,9 +385,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                 ),
               );
               await Future.delayed(const Duration(seconds: 5));
-              if (!DownloadStatusGuard.shouldRetryAfterError(
-                _activeDownloads[id]?.status,
-              )) {
+              if (!(_isCurrentRun(id, token) &&
+                  DownloadStatusGuard.shouldRetryAfterError(
+                    _activeDownloads[id]?.status,
+                  ))) {
                 return;
               }
             } else {
@@ -463,7 +480,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   cookiesFilePath: currentRequest.cookiesFilePath,
                   cookieBrowser: currentRequest.cookieBrowser,
                   useTorProxy: currentRequest.useTorProxy,
-                  isCancelled: () => _shouldAbort(id),
+                  isCancelled: () => _shouldAbort(id, token),
                 );
                 final String? fetchedTitle = metadata['title'];
                 finalThumbnail = metadata['thumbnail'];
@@ -536,16 +553,16 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             } on MetadataProbeCancelledException {
               return;
             } catch (e) {
-              if (_shouldAbort(id)) return;
+              if (_shouldAbort(id, token)) return;
               final resolved =
                   (currentRequest.useTorProxy ||
                       e is MetadataProbeLimitException)
                   ? null
                   : await _fallbackResolver.resolve(
                       currentRequest.url,
-                      isCancelled: () => _shouldAbort(id),
+                      isCancelled: () => _shouldAbort(id, token),
                     );
-              if (_shouldAbort(id)) return;
+              if (_shouldAbort(id, token)) return;
               if (resolved != null) {
                 LoggerService.i(
                   'yt-dlp could not read the link ($e); '
@@ -607,7 +624,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               }
             }
 
-            if (_shouldAbort(id)) return;
+            if (_shouldAbort(id, token)) return;
 
             // 5. Download Execution
             _update(
@@ -618,9 +635,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
 
             var alreadyDownloaded = false;
             await for (final progress in _source.download(id, currentRequest)) {
-              if (!DownloadStatusGuard.shouldRetryAfterError(
-                _activeDownloads[id]?.status,
-              )) {
+              if (!(_isCurrentRun(id, token) &&
+                  DownloadStatusGuard.shouldRetryAfterError(
+                    _activeDownloads[id]?.status,
+                  ))) {
                 return;
               }
               if (progress.isDuplicate) {
@@ -730,9 +748,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             if (DownloadStatusGuard.isNonRetryableError(e)) {
               rethrow;
             }
-            if (!DownloadStatusGuard.shouldRetryAfterError(
-              _activeDownloads[id]?.status,
-            )) {
+            if (!(_isCurrentRun(id, token) &&
+                DownloadStatusGuard.shouldRetryAfterError(
+                  _activeDownloads[id]?.status,
+                ))) {
               return;
             }
 
@@ -742,13 +761,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           }
         }
       } catch (e, st) {
-        if (e is MetadataProbeCancelledException || _shouldAbort(id)) {
+        if (e is MetadataProbeCancelledException || _shouldAbort(id, token)) {
           return;
         }
         LoggerService.e('Download $id FATAL ERROR', e, st);
-        if (!DownloadStatusGuard.shouldRetryAfterError(
-          _activeDownloads[id]?.status,
-        )) {
+        if (!(_isCurrentRun(id, token) &&
+            DownloadStatusGuard.shouldRetryAfterError(
+              _activeDownloads[id]?.status,
+            ))) {
           return;
         }
         if (e is WifiOnlyBlockedException) {
@@ -806,7 +826,15 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     }
   }
 
-  bool _shouldAbort(String id) {
+  final _runTokens = <String, int>{};
+
+  bool _isCurrentRun(String id, int token) => _runTokens[id] == token;
+
+  bool _shouldAbort(String id, int token) {
+    if (!_isCurrentRun(id, token)) return true;
+    // After shutdown killed the processes, a run must not retry (it would
+    // start a new, orphaned yt-dlp while the app exits).
+    if (_shuttingDown) return true;
     final status = _activeDownloads[id]?.status;
     return status == DownloadStatus.canceled || status == DownloadStatus.paused;
   }
@@ -910,11 +938,11 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   }
 
   @override
-  Future<void> deleteDownload(String id) async {
+  Future<void> deleteDownload(String id, {bool deleteFiles = true}) async {
     await _source.cancel(id);
 
     final item = _activeDownloads[id];
-    if (item != null && item.filePath != null) {
+    if (deleteFiles && item != null && item.filePath != null) {
       await DownloadFileCleanup.deleteMediaAndSidecars(item.filePath!);
     }
 
@@ -931,7 +959,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   Future<void> reorderDownloads(int oldIndex, int newIndex) async {
     final list = _activeDownloads.values.toList();
     list.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    if (oldIndex < newIndex) newIndex -= 1;
+    // newIndex comes from onReorderItem, already the post-removal index.
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
     for (int i = 0; i < list.length; i++) {
@@ -977,18 +1005,52 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     }
   }
 
-  void _saveToDisk() {
-    _saveRequested = true;
+  bool _shuttingDown = false;
+  Future<void>? _shutdown;
+  Future<void>? _saveInFlightFuture;
+
+  /// App exit: kills every running download's process tree (yt-dlp keeps
+  /// ffmpeg/aria2c children) and writes the library as it was, so crash
+  /// recovery re-queues those downloads on the next launch. Repeated calls
+  /// (close then tray Exit) share the same work.
+  Future<void> shutdown() => _shutdown ??= _runShutdown();
+
+  Future<void> _runShutdown() async {
+    _shuttingDown = true;
+    _backgroundLibrarySyncTimer?.cancel();
     _saveTimer?.cancel();
+    // Before the library is loaded the map is empty: saving it would wipe
+    // the library on disk.
+    await _initialDataCompleter.future;
+    // One writer at a time on the library file.
+    await _saveInFlightFuture;
+    final snapshot = _activeDownloads.values.toList(growable: false);
+    await Future.wait([
+      for (final item in snapshot)
+        if (DownloadCrashRecovery.isInterrupted(item.status)) ...[
+          _source.cancel(item.id),
+          _galleryDlSource.cancel(item.id),
+        ],
+    ]);
+    await _persistenceService.saveDownloads(snapshot);
+  }
+
+  void _saveToDisk() {
+    // After shutdown the kills make runs report failures; keep the snapshot.
+    if (_shuttingDown) return;
+    _saveRequested = true;
+    // Coalesce, but never re-arm: progress lines arrive faster than 750 ms and
+    // re-arming postponed every save until all downloads went quiet.
+    if (_saveTimer?.isActive ?? false) return;
     _saveTimer = Timer(const Duration(milliseconds: 750), _flushSave);
   }
 
   void _flushSave() {
-    if (_saveInFlight || !_saveRequested) return;
+    if (_shuttingDown || _saveInFlight || !_saveRequested) return;
     _saveRequested = false;
     _saveInFlight = true;
     final snapshot = _activeDownloads.values.toList(growable: false);
-    unawaited(_persistSnapshot(snapshot));
+    _saveInFlightFuture = _persistSnapshot(snapshot);
   }
 
   Future<void> _persistSnapshot(List<DownloadItem> snapshot) async {
@@ -999,7 +1061,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       LoggerService.e('Failed to persist download snapshot', e);
     } finally {
       _saveInFlight = false;
-      if (_saveRequested) {
+      if (_saveRequested && !_shuttingDown) {
         _saveTimer?.cancel();
         _saveTimer = Timer(const Duration(milliseconds: 750), _flushSave);
       }

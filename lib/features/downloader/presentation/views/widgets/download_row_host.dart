@@ -10,6 +10,8 @@ import '../../widgets/download_card.dart';
 import '../../widgets/download_item_card.dart';
 import '../../widgets/download_item_context_menu.dart';
 import '../../widgets/download_item_grid_card.dart';
+import '../../widgets/confirm_file_deletion.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../widgets/mobile_download_card.dart';
 
 class DownloadRowHost extends ConsumerWidget {
@@ -40,23 +42,43 @@ class DownloadRowHost extends ConsumerWidget {
       ref.read(selectedDownloadIdProvider.notifier).state = item.id;
     }
 
-    void onRetry() {
-      ref.read(downloadListProvider.notifier).retryDownload(item);
-    }
-
-    void onCancel() {
-      ref.read(downloadListProvider.notifier).deleteDownload(item.id);
-    }
-
     if (PlatformInfo.isMobile) {
+      // The mobile card confirms its own swipe-to-delete.
       return RepaintBoundary(
         child: MobileDownloadCard(
           item: item,
           onTap: onTap,
-          onRetry: onRetry,
-          onCancel: onCancel,
+          onRetry: () =>
+              ref.read(downloadListProvider.notifier).retryDownload(item),
+          onCancel: () =>
+              ref.read(downloadListProvider.notifier).deleteDownload(item.id),
         ),
       );
+    }
+
+    // Both remove a finished file from disk first, so ask before doing it.
+    // Read before awaiting: the row may be gone when the dialog closes.
+    final notifier = ref.read(downloadListProvider.notifier);
+    Future<void> onRetry() async {
+      if (!await confirmFileDeletion(
+        context,
+        item,
+        actionLabel: context.l10n.restartDownload,
+      )) {
+        return;
+      }
+      await notifier.retryDownload(item);
+    }
+
+    Future<void> onCancel() async {
+      if (!await confirmFileDeletion(
+        context,
+        item,
+        actionLabel: context.l10n.delete,
+      )) {
+        return;
+      }
+      await notifier.deleteDownload(item.id);
     }
 
     if (useGridCard) {

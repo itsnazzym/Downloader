@@ -207,6 +207,9 @@ class _DownloadItemGridCardState extends State<DownloadItemGridCard> {
     );
   }
 
+  /// Grid tiles are at most 300 px wide; decode for that at 2x DPR.
+  static const int _thumbDecodeWidth = 640;
+
   /// Helper method to display thumbnail from local file or network URL
   Widget _buildThumbnailImage(String url) {
     if (url.startsWith('assets/showcase/')) {
@@ -220,6 +223,7 @@ class _DownloadItemGridCardState extends State<DownloadItemGridCard> {
       return Image.network(
         url,
         fit: BoxFit.cover,
+        cacheWidth: _thumbDecodeWidth,
         errorBuilder: (context, _, _) => Center(
           child: Icon(
             Icons.movie_outlined,
@@ -239,6 +243,7 @@ class _DownloadItemGridCardState extends State<DownloadItemGridCard> {
     return Image.file(
       File(decodedPath),
       fit: BoxFit.cover,
+      cacheWidth: _thumbDecodeWidth,
       errorBuilder: (context, _, _) => Center(
         child: Icon(
           Icons.movie_outlined,
