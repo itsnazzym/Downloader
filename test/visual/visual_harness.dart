@@ -83,7 +83,12 @@ Future<void> _preloadGoogleFonts() async {
       FontWeight.w600,
       FontWeight.w700,
     ],
-    'JetBrains Mono': const [FontWeight.w400, FontWeight.w500, FontWeight.w700],
+    'JetBrains Mono': const [
+      FontWeight.w400,
+      FontWeight.w500,
+      FontWeight.w600,
+      FontWeight.w700,
+    ],
     'Outfit': const [FontWeight.w400, FontWeight.w500, FontWeight.w600],
     // The desktop designs (DesignSpec): display, UI and mono faces.
     for (final family in const [

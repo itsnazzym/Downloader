@@ -163,7 +163,7 @@ class SliderTile extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(color: AppColors.of(context).border.withAlpha(128)),
       ),
       child: Column(
@@ -286,7 +286,7 @@ class SwitchTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
         color: AppColors.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(color: AppColors.of(context).border.withAlpha(128)),
       ),
       child: Row(
@@ -395,7 +395,7 @@ class DropdownTile extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(
           color: AppColors.of(context).border.withValues(alpha: 0.5),
         ),
@@ -414,14 +414,18 @@ class DropdownTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.of(context).background,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.controlOf(context),
               border: Border.all(color: AppColors.of(context).border),
             ),
             child: DropdownButton<String>(
               value: value,
               underline: const SizedBox(),
               dropdownColor: AppColors.of(context).surface,
-              style: AppTypography.body,
+              // Without a colour the value fell back to a pale grey that was
+              // unreadable on the light designs.
+              style: AppTypography.body.copyWith(
+                color: AppColors.of(context).textPrimary,
+              ),
               icon: Icon(
                 Icons.arrow_drop_down,
                 color: AppColors.of(context).textSecondary,
@@ -495,17 +499,17 @@ class ActionTile extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.m),
       child: Material(
         color: AppColors.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.panelOf(context),
           hoverColor: AppColors.of(context).primary.withValues(alpha: 0.05),
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
                 color: AppColors.of(context).border.withValues(alpha: 0.5),
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.panelOf(context),
             ),
             padding: const EdgeInsets.all(AppSpacing.m),
             child: Row(
@@ -614,7 +618,7 @@ class StatusTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
         color: AppColors.of(context).surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(
           color: status.isInstalled
               ? AppColors.of(context).success.withValues(alpha: 0.3)

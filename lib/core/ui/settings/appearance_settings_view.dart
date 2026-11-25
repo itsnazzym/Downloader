@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../design_system/foundation/colors.dart' as ds;
@@ -45,9 +46,12 @@ class _AppearanceSettingsViewState
               children:
                   [
                         SectionTitle(l10n.theme),
-                        // The OLED preset is dark-only with its own accent:
-                        // the mode and accent controls would do nothing.
-                        if (settings.themePreset != 'oled')
+                        // Designs with their own brightness (every desktop
+                        // design, OLED) ignore light/dark: only iOS follows it.
+                        if (DesignSpec.forId(
+                              ThemePresets.migrateId(settings.themePreset),
+                            ).brightness ==
+                            null)
                           DropdownTile(
                             title: l10n.theme,
                             value: settings.themeMode,

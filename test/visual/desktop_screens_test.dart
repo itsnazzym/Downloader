@@ -257,4 +257,46 @@ void main() {
       expect(find.byType(shown).hitTestable(), findsOneWidget);
     }
   });
+
+  // Every design on every page, on the real routes: writes
+  // build/visual/design_<id>_<page>.png to look at, fails only on a crash.
+  const designs = [
+    'signal',
+    'porcelaine',
+    'pastille',
+    'studio',
+    'terminal',
+    'nocturne',
+  ];
+  const pages = {
+    'library': '/',
+    'archive': '/archive',
+    'stats': '/stats',
+    'transfer': '/transfer',
+    'settings': '/settings/general',
+  };
+  for (final id in designs) {
+    for (final page in pages.entries) {
+      testWidgets('design $id ${page.key}', (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final router = container.read(routerProvider);
+        final key = await pump(
+          tester,
+          () => const SizedBox(),
+          router: router,
+          preset: ThemePresets.getById(id),
+          extra: [
+            ...archive(),
+            transferControllerProvider.overrideWith(
+              (ref) => FakeTransferController(ref),
+            ),
+          ],
+        );
+        router.go(page.value);
+        await settle(tester);
+        await shot(tester, key, 'design_${id}_${page.key}');
+      });
+    }
+  }
 }

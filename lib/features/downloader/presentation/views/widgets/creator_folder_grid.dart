@@ -80,7 +80,7 @@ class CreatorFolderOpenHeader extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(20),
                         color: colors.surfaceHighlight.withValues(alpha: 0.7),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                         ),
                       ),
                       child: Icon(
@@ -134,7 +134,7 @@ class CreatorFolderOpenHeader extends ConsumerWidget {
         Container(
           height: 1,
           margin: const EdgeInsets.symmetric(horizontal: 16),
-          color: Colors.white.withValues(alpha: 0.06),
+          color: AppColors.of(context).textPrimary.withValues(alpha: 0.06),
         ),
       ],
     );
@@ -160,7 +160,7 @@ class _FolderContentsViewToggle extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: colors.surfaceHighlight.withValues(alpha: 0.7),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.of(context).textPrimary.withValues(alpha: 0.08)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(3),

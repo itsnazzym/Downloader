@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/design_system/components/design_progress_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
@@ -53,7 +54,7 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
       transform: Matrix4.translationValues(0, _isHovering ? -2 : 0, 0),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(
           color: widget.isSelected
               ? colors.primary
@@ -72,9 +73,9 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppRadius.panelOf(context),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.panelOf(context),
           onTap: () {
             if (isMobile) HapticFeedback.lightImpact();
             widget.onTap();
@@ -128,18 +129,11 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
 
                       // Progress or Meta Information
                       if (isDownloading || isExtracting) ...[
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: widget.item.progress > 0
-                                ? widget.item.progress
-                                : null,
-                            minHeight: 2.5,
-                            backgroundColor: colors.surfaceHighlight,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              colors.primary,
-                            ),
-                          ),
+                        DesignProgressBar(
+                          value: widget.item.progress > 0
+                              ? widget.item.progress
+                              : null,
+                          live: isDownloading,
                         ),
                         const SizedBox(height: 6),
                         Row(

@@ -209,10 +209,10 @@ class _TransferViewState extends ConsumerState<TransferView> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: AppColors.of(context).textPrimary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                   ),
                 ),
                 child: Row(
@@ -258,11 +258,11 @@ class _TransferViewState extends ConsumerState<TransferView> {
                   ),
                   counterText: '',
                   filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.06),
+                  fillColor: AppColors.of(context).textPrimary.withValues(alpha: 0.06),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: AppColors.of(context).textPrimary.withValues(alpha: 0.1),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -486,9 +486,9 @@ class _PinBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: AppColors.of(context).textPrimary.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: AppColors.of(context).textPrimary.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -579,9 +579,9 @@ class _SegmentedTabSwitcher extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.of(context).textPrimary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.of(context).textPrimary.withValues(alpha: 0.08)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -772,7 +772,7 @@ class _LiveTransferBanner extends StatelessWidget {
                     ? null
                     : progress!.fraction,
                 minHeight: 8,
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
+                backgroundColor: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                 valueColor: AlwaysStoppedAnimation(colors.primary),
               ),
             ),
@@ -820,9 +820,9 @@ class _SubnetScanBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: AppColors.of(context).textPrimary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.of(context).textPrimary.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -859,7 +859,7 @@ class _SubnetScanBanner extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 4,
-                backgroundColor: Colors.white.withValues(alpha: 0.06),
+                backgroundColor: AppColors.of(context).textPrimary.withValues(alpha: 0.06),
               ),
             ),
           ],
@@ -963,12 +963,16 @@ class _DoppelrandCard extends StatelessWidget {
         color: colors.surface.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.light
+                  ? 0.08
+                  : 0.25,
+            ),
             blurRadius: 32,
             offset: const Offset(0, 12),
           ),
@@ -977,10 +981,14 @@ class _DoppelrandCard extends StatelessWidget {
       padding: const EdgeInsets.all(2),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.2),
+          // A dark inset on dark designs; on light ones it turned the panel
+          // grey, so they get their plain surface.
+          color: Theme.of(context).brightness == Brightness.light
+              ? colors.surface
+              : Colors.black.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(26),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.03),
+            color: AppColors.of(context).textPrimary.withValues(alpha: 0.03),
             width: 1,
           ),
         ),
@@ -1194,10 +1202,10 @@ class _MePanelState extends ConsumerState<_MePanel> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: AppColors.of(context).textPrimary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                   ),
                 ),
                 child: Row(
@@ -1507,7 +1515,7 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
                     ),
                   ),
                   minHeight: 3,
-                  backgroundColor: Colors.white.withValues(alpha: 0.05),
+                  backgroundColor: AppColors.of(context).textPrimary.withValues(alpha: 0.05),
                   valueColor: AlwaysStoppedAnimation(colors.primary),
                 ),
               ),
@@ -1576,7 +1584,7 @@ class _PeerTile extends ConsumerWidget {
     final l10n = context.l10n;
 
     return Material(
-      color: Colors.white.withValues(alpha: 0.05),
+      color: AppColors.of(context).textPrimary.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
@@ -2138,17 +2146,17 @@ class _PayloadPanelState extends ConsumerState<_PayloadPanel> {
                       icon: const Icon(Icons.close_rounded, size: 18),
                     ),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.06),
+              fillColor: AppColors.of(context).textPrimary.withValues(alpha: 0.06),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                 ),
               ),
               contentPadding: const EdgeInsets.symmetric(
@@ -2473,7 +2481,7 @@ class _SendMemoryStatusBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: AppColors.of(context).textPrimary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.primary.withValues(alpha: 0.25)),
       ),
@@ -2530,12 +2538,12 @@ class _SendMemoryStatusBanner extends StatelessWidget {
               decoration: BoxDecoration(
                 color: onlyNewVideos
                     ? colors.primary.withValues(alpha: 0.12)
-                    : Colors.white.withValues(alpha: 0.05),
+                    : AppColors.of(context).textPrimary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: onlyNewVideos
                       ? colors.primary.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.08),
+                      : AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                 ),
               ),
               child: Row(
@@ -2609,12 +2617,12 @@ class _PayloadCompressionBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: compressZip
             ? colors.primary.withValues(alpha: 0.12)
-            : Colors.white.withValues(alpha: 0.04),
+            : AppColors.of(context).textPrimary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: compressZip
               ? colors.primary.withValues(alpha: 0.35)
-              : Colors.white.withValues(alpha: 0.08),
+              : AppColors.of(context).textPrimary.withValues(alpha: 0.08),
         ),
       ),
       child: Row(
@@ -2624,7 +2632,7 @@ class _PayloadCompressionBanner extends StatelessWidget {
             decoration: BoxDecoration(
               color: compressZip
                   ? colors.primary.withValues(alpha: 0.2)
-                  : Colors.white.withValues(alpha: 0.08),
+                  : AppColors.of(context).textPrimary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -2709,12 +2717,12 @@ class _PayloadCompressionBanner extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: compressZip
                       ? colors.primary
-                      : Colors.white.withValues(alpha: 0.08),
+                      : AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(99),
                   border: Border.all(
                     color: compressZip
                         ? colors.primary
-                        : Colors.white.withValues(alpha: 0.12),
+                        : AppColors.of(context).textPrimary.withValues(alpha: 0.12),
                   ),
                 ),
                 child: Row(
@@ -2834,11 +2842,11 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
               hintText: l10n.transferMobileSubfoldersFilter,
               prefixIcon: const Icon(Icons.search_rounded, size: 18),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.05),
+              fillColor: AppColors.of(context).textPrimary.withValues(alpha: 0.05),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: AppColors.of(context).textPrimary.withValues(alpha: 0.08),
                 ),
               ),
               contentPadding: const EdgeInsets.symmetric(
@@ -2891,9 +2899,9 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.03),
+              color: AppColors.of(context).textPrimary.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              border: Border.all(color: AppColors.of(context).textPrimary.withValues(alpha: 0.06)),
             ),
             child: filtered.isEmpty
                 ? Center(
@@ -2908,7 +2916,7 @@ class _SubfolderSelectionDialogState extends State<_SubfolderSelectionDialog> {
                     itemCount: filtered.length,
                     separatorBuilder: (_, _) => Divider(
                       height: 1,
-                      color: Colors.white.withValues(alpha: 0.04),
+                      color: AppColors.of(context).textPrimary.withValues(alpha: 0.04),
                     ),
                     itemBuilder: (context, index) {
                       final item = filtered[index];
@@ -3057,7 +3065,7 @@ class _QuickAction extends StatelessWidget {
     return Material(
       color: selected
           ? colors.primary.withValues(alpha: 0.22)
-          : Colors.white.withValues(alpha: 0.06),
+          : AppColors.of(context).textPrimary.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,

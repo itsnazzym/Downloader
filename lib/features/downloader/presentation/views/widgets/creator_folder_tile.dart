@@ -142,7 +142,7 @@ class _FolderWell extends StatelessWidget {
         border: Border.all(
           color: hovering
               ? colors.primary.withValues(alpha: 0.28)
-              : Colors.white.withValues(alpha: 0.08),
+              : AppColors.of(context).textPrimary.withValues(alpha: 0.08),
         ),
         boxShadow: hovering
             ? [
@@ -158,7 +158,7 @@ class _FolderWell extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: innerRadius,
           color: colors.background.withValues(alpha: 0.92),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          border: Border.all(color: AppColors.of(context).textPrimary.withValues(alpha: 0.05)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x33000000),
