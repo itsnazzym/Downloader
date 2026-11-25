@@ -1,0 +1,25 @@
+import 'package:flutter/widgets.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/theme/design_spec.dart';
+import 'package:modern_downloader/features/designs/design_pages.dart';
+
+/// The top-level pages a design can redraw from its own mockup.
+enum DesignRoute { home, archive, stats, transfer, settings }
+
+/// Shows the active design's own version of [route] on desktop, or
+/// [fallback] (today's view) when the design has none, on mobile, and for
+/// the platform looks (OLED, iOS). Read in build, so switching design in
+/// Appearance swaps the page live.
+class DesignedPage extends StatelessWidget {
+  const DesignedPage({super.key, required this.route, required this.fallback});
+
+  final DesignRoute route;
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!PlatformInfo.isDesktop) return fallback;
+    final page = designPageFor(DesignSpec.of(context).id, route);
+    return page ?? fallback;
+  }
+}

@@ -3008,4 +3008,79 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transferAddressTooltip =>
       'Your address on this Wi-Fi: other devices connect to it';
+
+  @override
+  String get designHeroTitle => 'What are we\ndownloading?';
+
+  @override
+  String get designPasteHint => 'Paste a YouTube, TikTok, Instagram, X… link';
+
+  @override
+  String get designDownload => 'Download';
+
+  @override
+  String get designClipboardFound => 'Link found in the clipboard';
+
+  @override
+  String designTodayCaption(String size) {
+    return 'downloads · $size';
+  }
+
+  @override
+  String get designInProgress => 'In progress';
+
+  @override
+  String get designPauseAll => 'Pause all';
+
+  @override
+  String get designResumeAll => 'Resume all';
+
+  @override
+  String designRemaining(String eta) {
+    return '$eta left';
+  }
+
+  @override
+  String get designQueue => 'Queue';
+
+  @override
+  String get designSeeAll => 'See all';
+
+  @override
+  String designStorageDrive(String drive) {
+    return 'Storage · $drive';
+  }
+
+  @override
+  String designFree(String size) {
+    return '$size free';
+  }
+
+  @override
+  String get designFilterAll => 'All';
+
+  @override
+  String get designFilterVideo => 'Video';
+
+  @override
+  String get designFilterAudio => 'Audio';
+
+  @override
+  String get designFilterImages => 'Images';
+
+  @override
+  String get designFailed => 'Failed';
+
+  @override
+  String get designNothingActive =>
+      'Nothing is downloading. Paste a link to start.';
+
+  @override
+  String get designQueueEmpty => 'Nothing waiting';
+
+  @override
+  String get designLibraryEmpty => 'Your library is empty for now.';
+
+  @override
+  String get designArchivesTab => 'Archives';
 }

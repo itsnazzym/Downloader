@@ -5223,6 +5223,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your address on this Wi-Fi: other devices connect to it'**
   String get transferAddressTooltip;
+
+  /// No description provided for @designHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are we\ndownloading?'**
+  String get designHeroTitle;
+
+  /// No description provided for @designPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram, X… link'**
+  String get designPasteHint;
+
+  /// No description provided for @designDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get designDownload;
+
+  /// No description provided for @designClipboardFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Link found in the clipboard'**
+  String get designClipboardFound;
+
+  /// No description provided for @designTodayCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads · {size}'**
+  String designTodayCaption(String size);
+
+  /// No description provided for @designInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get designInProgress;
+
+  /// No description provided for @designPauseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause all'**
+  String get designPauseAll;
+
+  /// No description provided for @designResumeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume all'**
+  String get designResumeAll;
+
+  /// No description provided for @designRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{eta} left'**
+  String designRemaining(String eta);
+
+  /// No description provided for @designQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get designQueue;
+
+  /// No description provided for @designSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get designSeeAll;
+
+  /// No description provided for @designStorageDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage · {drive}'**
+  String designStorageDrive(String drive);
+
+  /// No description provided for @designFree.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} free'**
+  String designFree(String size);
+
+  /// No description provided for @designFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get designFilterAll;
+
+  /// No description provided for @designFilterVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get designFilterVideo;
+
+  /// No description provided for @designFilterAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get designFilterAudio;
+
+  /// No description provided for @designFilterImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get designFilterImages;
+
+  /// No description provided for @designFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get designFailed;
+
+  /// No description provided for @designNothingActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is downloading. Paste a link to start.'**
+  String get designNothingActive;
+
+  /// No description provided for @designQueueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing waiting'**
+  String get designQueueEmpty;
+
+  /// No description provided for @designLibraryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is empty for now.'**
+  String get designLibraryEmpty;
+
+  /// No description provided for @designArchivesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Archives'**
+  String get designArchivesTab;
 }
 
 class _AppLocalizationsDelegate

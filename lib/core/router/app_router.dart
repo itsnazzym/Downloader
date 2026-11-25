@@ -17,6 +17,7 @@ import '../../features/stats/presentation/views/stats_view.dart';
 import '../../features/transfer/presentation/transfer_view.dart';
 import '../../features/archive/presentation/views/tiktok_archive_view.dart';
 import '../ui/plugin_route_gate.dart';
+import '../ui/shell/designed_page.dart';
 
 // Keys for navigation
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -33,7 +34,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           return AppShell(child: child);
         },
         routes: [
-          GoRoute(path: '/', builder: (context, state) => const DownloadView()),
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.home,
+              fallback: DownloadView(),
+            ),
+          ),
           GoRoute(
             path: '/browse',
             builder: (context, state) {
@@ -48,30 +55,45 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/stats',
             builder: (context, state) => const PluginRouteGate(
               pluginId: 'statistics',
-              child: StatsView(),
+              child: DesignedPage(
+                route: DesignRoute.stats,
+                fallback: StatsView(),
+              ),
             ),
           ),
           GoRoute(
             path: '/transfer',
             builder: (context, state) => const PluginRouteGate(
               pluginId: 'device_transfer',
-              child: TransferView(),
+              child: DesignedPage(
+                route: DesignRoute.transfer,
+                fallback: TransferView(),
+              ),
             ),
           ),
           GoRoute(
             path: '/archive',
             builder: (context, state) => const PluginRouteGate(
               pluginId: 'tiktok_archives',
-              child: TikTokArchiveView(),
+              child: DesignedPage(
+                route: DesignRoute.archive,
+                fallback: TikTokArchiveView(),
+              ),
             ),
           ),
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const AdaptiveSettingsHome(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: AdaptiveSettingsHome(),
+            ),
           ),
           GoRoute(
             path: '/settings/general',
-            builder: (context, state) => const GeneralSettingsView(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: GeneralSettingsView(),
+            ),
           ),
           GoRoute(
             path: '/settings/output',

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../desktop_destinations.dart';
@@ -21,14 +22,33 @@ class SignalChrome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final destinations = desktopDestinations(context, ref, location);
-    final tabs = destinations.where((d) => d.id != 'settings').toList();
+    final l10n = context.l10n;
+    // Mockup labels: "Accueil" and "Archives" (short, the home holds the
+    // library and the add-link field).
+    final tabs = [
+      for (final d in destinations)
+        if (d.id != 'settings')
+          DesktopDestination(
+            id: d.id,
+            label: d.id == 'library'
+                ? l10n.mainPage
+                : d.id == 'archive'
+                ? l10n.designArchivesTab
+                : d.label,
+            icon: d.icon,
+            selected: d.selected,
+            onTap: d.onTap,
+          ),
+    ];
     final settings = destinations.firstWhere((d) => d.id == 'settings');
-    final strip = shellStripFor(location);
+    final strip = location.startsWith('/settings')
+        ? SettingsSectionStrip(location: location)
+        : null;
     return Column(
       children: [
         Container(
-          height: 64,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          height: 74,
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: colors.borderSubtle)),
           ),
@@ -43,16 +63,8 @@ class SignalChrome extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              const _LivePill(),
+              const _SpeedPill(),
               const SizedBox(width: 12),
-              KeyedSubtree(
-                key: OnboardingTargets.newDownload,
-                child: _AccentButton(
-                  label: context.l10n.newDownload,
-                  onTap: () => openNewDownload(context),
-                ),
-              ),
-              const SizedBox(width: 6),
               _RoundIconButton(
                 icon: Icons.settings_outlined,
                 tooltip: settings.label,
@@ -64,7 +76,7 @@ class SignalChrome extends ConsumerWidget {
         ),
         if (strip != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
+            padding: const EdgeInsets.fromLTRB(32, 14, 32, 0),
             child: Align(alignment: Alignment.centerLeft, child: strip),
           ),
         Expanded(child: child),
@@ -113,7 +125,7 @@ class _SlidingTabs extends StatelessWidget {
 
   final List<DesktopDestination> tabs;
 
-  static const double _tabWidth = 132;
+  static const double _tabWidth = 116;
 
   @override
   Widget build(BuildContext context) {
@@ -218,31 +230,36 @@ class _TabState extends State<_Tab> {
   }
 }
 
-/// How many downloads are running, with a pulsing dot while any is.
-class _LivePill extends ConsumerWidget {
-  const _LivePill();
+/// Total live speed with a pulsing dot while anything downloads.
+class _SpeedPill extends ConsumerWidget {
+  const _SpeedPill();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
-    final active = ref.watch(
-      downloadLibraryCountsProvider.select((c) => c.active),
+    final items =
+        ref.watch(downloadListProvider).valueOrNull ?? const <DownloadItem>[];
+    // Progress ticks only reach the per-download runtime item.
+    final active = liveActiveItems(
+      items,
+      (id) => ref.watch(downloadRuntimeItemProvider(id)),
     );
-    if (active == 0) return const SizedBox.shrink();
+    if (active.isEmpty) return const SizedBox.shrink();
+    final speed = formatSpeed(context.l10n, aggregateSpeed(active));
     return Container(
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: colors.border),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           const PulsingDot(),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Text(
-            '$active · ${context.l10n.sidebarActive}',
+            '${speed.value} ${speed.unit}'.trim(),
             style: AppTypography.mono.copyWith(
               fontSize: 12.5,
               color: colors.textPrimary,
@@ -311,82 +328,6 @@ class _PulsingDotState extends State<PulsingDot>
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _AccentButton extends StatefulWidget {
-  const _AccentButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  State<_AccentButton> createState() => _AccentButtonState();
-}
-
-class _AccentButtonState extends State<_AccentButton> {
-  bool _hover = false;
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    final reduce = MediaQuery.disableAnimationsOf(context);
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _down = true),
-        onTapCancel: () => setState(() => _down = false),
-        onTapUp: (_) => setState(() => _down = false),
-        child: AnimatedScale(
-          scale: _down ? 0.97 : 1,
-          duration: reduce ? Duration.zero : const Duration(milliseconds: 120),
-          child: Material(
-            color: colors.primary,
-            borderRadius: BorderRadius.circular(999),
-            elevation: 0,
-            child: InkWell(
-              onTap: widget.onTap,
-              borderRadius: BorderRadius.circular(999),
-              child: AnimatedContainer(
-                duration: reduce
-                    ? Duration.zero
-                    : const Duration(milliseconds: 180),
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(
-                        alpha: _hover ? 0.26 : 0.14,
-                      ),
-                      blurRadius: _hover ? 22 : 14,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add_rounded, size: 18, color: colors.onPrimary),
-                    const SizedBox(width: 6),
-                    Text(
-                      widget.label,
-                      style: AppTypography.label.copyWith(
-                        color: colors.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

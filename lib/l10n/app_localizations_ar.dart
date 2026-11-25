@@ -3016,4 +3016,79 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transferAddressTooltip =>
       'عنوانك على شبكة Wi-Fi هذه: تتصل به الأجهزة الأخرى';
+
+  @override
+  String get designHeroTitle => 'ماذا\nسنحمّل؟';
+
+  @override
+  String get designPasteHint =>
+      'الصق رابط YouTube أو TikTok أو Instagram أو X…';
+
+  @override
+  String get designDownload => 'تحميل';
+
+  @override
+  String get designClipboardFound => 'تم العثور على رابط في الحافظة';
+
+  @override
+  String designTodayCaption(String size) {
+    return 'تنزيلات · $size';
+  }
+
+  @override
+  String get designInProgress => 'قيد التنزيل';
+
+  @override
+  String get designPauseAll => 'إيقاف الكل مؤقتًا';
+
+  @override
+  String get designResumeAll => 'استئناف الكل';
+
+  @override
+  String designRemaining(String eta) {
+    return 'متبقٍ $eta';
+  }
+
+  @override
+  String get designQueue => 'قائمة الانتظار';
+
+  @override
+  String get designSeeAll => 'عرض الكل';
+
+  @override
+  String designStorageDrive(String drive) {
+    return 'التخزين · $drive';
+  }
+
+  @override
+  String designFree(String size) {
+    return '$size متاحة';
+  }
+
+  @override
+  String get designFilterAll => 'الكل';
+
+  @override
+  String get designFilterVideo => 'فيديو';
+
+  @override
+  String get designFilterAudio => 'صوت';
+
+  @override
+  String get designFilterImages => 'صور';
+
+  @override
+  String get designFailed => 'فشل';
+
+  @override
+  String get designNothingActive => 'لا يوجد تنزيل الآن. الصق رابطًا للبدء.';
+
+  @override
+  String get designQueueEmpty => 'لا شيء في الانتظار';
+
+  @override
+  String get designLibraryEmpty => 'مكتبتك فارغة حاليًا.';
+
+  @override
+  String get designArchivesTab => 'الأرشيف';
 }

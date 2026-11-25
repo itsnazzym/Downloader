@@ -22,6 +22,7 @@ import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
 import 'package:modern_downloader/core/ui/shell/shell_strips.dart';
+import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
@@ -51,8 +52,9 @@ void main() {
     String locale = 'fr',
     GoRouter? router,
     ThemePreset preset = ThemePresets.signal,
+    Size size = const Size(1280, 800),
   }) async {
-    tester.view.physicalSize = const Size(1280 * 2, 800 * 2);
+    tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -78,6 +80,10 @@ void main() {
             ),
           ),
           downloadStatsProvider.overrideWith((ref) => FakeStatsNotifier()),
+          // A disk probe spawns a process, which a widget test cannot finish.
+          designFreeSpaceProvider.overrideWith(
+            (ref) async => 412 * 1024 * 1024 * 1024,
+          ),
           ...extra,
         ],
         child: RepaintBoundary(
@@ -298,5 +304,35 @@ void main() {
         await shot(tester, key, 'design_${id}_${page.key}');
       });
     }
+  }
+
+  // The designs' own pages at their mockup's size, for side-by-sides with
+  // build/visual/ref/<mockup>.png.
+  const mockups = {
+    'Main': ('signal', '/', Size(1280, 1180)),
+  };
+  for (final entry in mockups.entries) {
+    testWidgets('mockup ${entry.key}', (tester) async {
+      final (id, route, size) = entry.value;
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      final key = await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.getById(id),
+        size: size,
+        extra: [
+          ...archive(),
+          transferControllerProvider.overrideWith(
+            (ref) => FakeTransferController(ref),
+          ),
+        ],
+      );
+      router.go(route);
+      await settle(tester);
+      await shot(tester, key, 'app_${entry.key}');
+    });
   }
 }

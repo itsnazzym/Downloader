@@ -3053,4 +3053,79 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get transferAddressTooltip =>
       'Ton adresse sur ce Wi-Fi : les autres appareils s\'y connectent';
+
+  @override
+  String get designHeroTitle => 'Qu’est-ce qu’on\ntélécharge ?';
+
+  @override
+  String get designPasteHint => 'Colle un lien YouTube, TikTok, Instagram, X…';
+
+  @override
+  String get designDownload => 'Télécharger';
+
+  @override
+  String get designClipboardFound => 'Lien trouvé dans le presse-papiers';
+
+  @override
+  String designTodayCaption(String size) {
+    return 'téléchargements · $size';
+  }
+
+  @override
+  String get designInProgress => 'En cours';
+
+  @override
+  String get designPauseAll => 'Tout mettre en pause';
+
+  @override
+  String get designResumeAll => 'Tout reprendre';
+
+  @override
+  String designRemaining(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String get designQueue => 'File d’attente';
+
+  @override
+  String get designSeeAll => 'Tout voir';
+
+  @override
+  String designStorageDrive(String drive) {
+    return 'Stockage · $drive';
+  }
+
+  @override
+  String designFree(String size) {
+    return '$size libres';
+  }
+
+  @override
+  String get designFilterAll => 'Tout';
+
+  @override
+  String get designFilterVideo => 'Vidéo';
+
+  @override
+  String get designFilterAudio => 'Audio';
+
+  @override
+  String get designFilterImages => 'Images';
+
+  @override
+  String get designFailed => 'Échec';
+
+  @override
+  String get designNothingActive =>
+      'Rien ne télécharge. Colle un lien pour commencer.';
+
+  @override
+  String get designQueueEmpty => 'Rien en attente';
+
+  @override
+  String get designLibraryEmpty => 'Ta bibliothèque est vide pour l’instant.';
+
+  @override
+  String get designArchivesTab => 'Archives';
 }
