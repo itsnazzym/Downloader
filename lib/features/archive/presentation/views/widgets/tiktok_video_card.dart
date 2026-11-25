@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:modern_downloader/core/utils/browser_launch.dart';
 import 'package:flutter/services.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
@@ -35,15 +36,7 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
 
   Future<void> _openUrl(String url) async {
     if (Uri.tryParse(url)?.host.endsWith('.invalid') == true) return;
-    try {
-      if (Platform.isWindows) {
-        await Process.run('cmd', ['/c', 'start', '', url]);
-      } else if (Platform.isMacOS) {
-        await Process.run('open', [url]);
-      } else if (Platform.isLinux) {
-        await Process.run('xdg-open', [url]);
-      }
-    } catch (_) {}
+    await openInBrowser(url);
   }
 
   void _showNotice(String message) {
@@ -171,22 +164,29 @@ class _TikTokVideoCardState extends State<TikTokVideoCard> {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              demoIndex == null
-                                  ? 'ID: ${item.id}'
-                                  : '${demoFilms[demoIndex]} · extrait ${(demoNumber! - 1) ~/ 4 + 1}',
-                              style: AppTypography.mono.copyWith(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textPrimary,
+                            // The export has no titles: a date reads better
+                            // than a 19-digit id, which stays as a hint.
+                            Expanded(
+                              child: Text(
+                                demoIndex == null
+                                    ? context.l10n.archiveVideoTitle(
+                                        _formatDate(item.date),
+                                      )
+                                    : '${demoFilms[demoIndex]} · extrait ${(demoNumber! - 1) ~/ 4 + 1}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.textPrimary,
+                                ),
                               ),
                             ),
-                            const Spacer(),
-                            Text(
-                              _formatDate(item.date),
+                            const SizedBox(width: 8),
+                            SelectableText(
+                              item.id,
                               style: AppTypography.mono.copyWith(
                                 fontSize: 11,
-                                color: colors.textSecondary,
+                                color: colors.textDisabled,
                               ),
                             ),
                           ],

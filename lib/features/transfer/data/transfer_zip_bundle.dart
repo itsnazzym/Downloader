@@ -49,12 +49,8 @@ class TransferZipBundle {
     final dir = tempDir ?? Directory.systemTemp;
     await dir.create(recursive: true);
     final zipPath = p.join(dir.path, 'md-bundle-${const Uuid().v4()}.zip');
-    await _writeEntriesToPath(
-      entries: _entriesOf(files),
-      zipPath: zipPath,
-      flatten: flatten,
-    );
-    return File(zipPath);
+    // The zip encoder reads files synchronously: keep GBs off the UI isolate.
+    return writeToTempIsolated(files, zipPath: zipPath, flatten: flatten);
   }
 
   static Future<File> writeToTempIsolated(

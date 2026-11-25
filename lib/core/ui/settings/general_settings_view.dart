@@ -46,36 +46,6 @@ class GeneralSettingsView extends ConsumerWidget {
                         // The app bar already carries the title on phones.
                         if (!PlatformInfo.isMobile)
                           SectionTitle(l10n.settingsGeneral),
-                        if (!PlatformInfo.isMobile) ...[
-                          ActionTile(
-                            title: l10n.previewSetup,
-                            subtitle: l10n.previewSetupDesc,
-                            icon: Icons.install_desktop_outlined,
-                            onTap: () {
-                              ref
-                                  .read(dependencyBootstrapProvider.notifier)
-                                  .ensureReady();
-                            },
-                          ),
-                          ActionTile(
-                            title: l10n.onboardingReplay,
-                            subtitle: l10n.onboardingReplayDesc,
-                            icon: Icons.replay_outlined,
-                            onTap: () {
-                              context.go('/');
-                              ref
-                                  .read(onboardingControllerProvider.notifier)
-                                  .replay();
-                            },
-                          ),
-                          ActionTile(
-                            title: l10n.smartOrganization,
-                            subtitle: l10n.smartOrganizationDesc,
-                            icon: Icons.auto_awesome_motion,
-                            onTap: () =>
-                                context.push('/settings/smart_organizer'),
-                          ),
-                        ],
                         if (PlatformInfo.isMobile)
                           ActionTile(
                             title: l10n.onboardingReplay,
@@ -110,6 +80,38 @@ class GeneralSettingsView extends ConsumerWidget {
                           onChanged: settingsNotifier.setPreferredQuality,
                           icon: Icons.high_quality,
                         ),
+                        if (!PlatformInfo.isMobile) ...[
+                          // Maintenance last: everyday options come first.
+                          SectionTitle(l10n.settingsToolsSection),
+                          ActionTile(
+                            title: l10n.previewSetup,
+                            subtitle: l10n.previewSetupDesc,
+                            icon: Icons.install_desktop_outlined,
+                            onTap: () {
+                              ref
+                                  .read(dependencyBootstrapProvider.notifier)
+                                  .ensureReady();
+                            },
+                          ),
+                          ActionTile(
+                            title: l10n.onboardingReplay,
+                            subtitle: l10n.onboardingReplayDesc,
+                            icon: Icons.replay_outlined,
+                            onTap: () {
+                              context.go('/');
+                              ref
+                                  .read(onboardingControllerProvider.notifier)
+                                  .replay();
+                            },
+                          ),
+                          ActionTile(
+                            title: l10n.smartOrganization,
+                            subtitle: l10n.smartOrganizationDesc,
+                            icon: Icons.auto_awesome_motion,
+                            onTap: () =>
+                                context.push('/settings/smart_organizer'),
+                          ),
+                        ],
                         // The phone has no Performance page: speed lives here.
                         if (PlatformInfo.isMobile) ...[
                           SliderTile(

@@ -959,11 +959,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get previewSetup => 'عرض شاشة الإعداد (مؤقت)';
+  String get previewSetup => 'التحقق من أدوات التنزيل وإصلاحها';
 
   @override
   String get previewSetupDesc =>
-      'إعادة تشغيل فحص الأدوات وتثبيتها على كامل الشاشة';
+      'يعيد فحص yt-dlp وffmpeg وaria2c ويثبّت ما ينقص';
 
   @override
   String get pluginsSectionTitle => 'إضافات سير التنزيل';
@@ -2087,6 +2087,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get downloadCardAgeVerification => 'التحقق من العمر (+18)، عرض الحلول';
 
   @override
+  String get fileDeletedFromDisk =>
+      'سيُحذف الملف من القرص نهائيًا. لا يمكن التراجع عن ذلك.';
+
+  @override
   String downloadCardFailedMeta(String source) {
     return '$source، فشل. عرض التشخيص';
   }
@@ -2857,4 +2861,159 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alreadyDismiss => 'إغلاق';
+
+  @override
+  String get sortFieldDate => 'التاريخ';
+
+  @override
+  String get sortFieldName => 'الاسم';
+
+  @override
+  String get sortFieldSize => 'الحجم';
+
+  @override
+  String get moreActions => 'مزيد من الإجراءات';
+
+  @override
+  String get retryFailedAction => 'إعادة محاولة الفاشلة';
+
+  @override
+  String retryingFailed(int count) {
+    return 'إعادة محاولة $count من التنزيلات الفاشلة';
+  }
+
+  @override
+  String get pauseActiveAction => 'إيقاف التنزيلات النشطة مؤقتًا';
+
+  @override
+  String get pauseActiveTooltip => 'إيقاف كل التنزيلات النشطة مؤقتًا';
+
+  @override
+  String get activeDownloadsPaused => 'تم إيقاف التنزيلات النشطة مؤقتًا';
+
+  @override
+  String get startQueueAction => 'بدء قائمة الانتظار';
+
+  @override
+  String get startQueueTooltip => 'بدء التنزيلات المنتظرة والمتوقفة والفاشلة';
+
+  @override
+  String get queueStarted => 'بدأت قائمة الانتظار';
+
+  @override
+  String get clearCompletedAction => 'مسح المكتملة';
+
+  @override
+  String get clearCompletedDone => 'تم حذف التنزيلات المكتملة';
+
+  @override
+  String get clearFailedAction => 'مسح الفاشلة';
+
+  @override
+  String get clearFailedDone => 'تم مسح التنزيلات الفاشلة';
+
+  @override
+  String get reduceEffects => 'تقليل المؤثرات المرئية';
+
+  @override
+  String get reduceEffectsDesc =>
+      'يعطّل التمويه والرسوم المتحركة في الخلفية. أكثر سلاسة على الأجهزة المتواضعة.';
+
+  @override
+  String get emptyLibraryHint => 'اضغط Ctrl+N والصق رابط فيديو.';
+
+  @override
+  String get clearSearchAndFilters => 'مسح البحث والمرشحات';
+
+  @override
+  String get inspectorPlayMedia => 'تشغيل الوسائط';
+
+  @override
+  String get inspectorSourceUrl => 'رابط المصدر';
+
+  @override
+  String get inspectorLocalFile => 'الملف المحلي';
+
+  @override
+  String get urlCopied => 'تم نسخ الرابط إلى الحافظة';
+
+  @override
+  String get showInFolder => 'إظهار في المجلد';
+
+  @override
+  String get detailsAction => 'التفاصيل';
+
+  @override
+  String failedRetryBadge(int count) {
+    return '$count فاشلة · إعادة المحاولة';
+  }
+
+  @override
+  String retryAllFailedTooltip(int count) {
+    return 'إعادة محاولة كل التنزيلات الفاشلة ($count)';
+  }
+
+  @override
+  String get ageCheckRequired => 'مطلوب التحقق من العمر (+18)';
+
+  @override
+  String get ageCheckSeeSolutions => 'عرض الحلول (+18)';
+
+  @override
+  String clearCompletedConfirm(int count) {
+    return 'حذف $count من التنزيلات المكتملة؟';
+  }
+
+  @override
+  String get filesDeletedFromDisk =>
+      'ستُحذف ملفاتها من القرص نهائيًا. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get archivePurgeSelect => 'تحديد';
+
+  @override
+  String get archivePurgeSelectTooltip => 'حدد مجموعات لحذف فيديوهاتها';
+
+  @override
+  String archivePurgeSelectedCount(int count) {
+    return '$count محددة';
+  }
+
+  @override
+  String get archivePurgeAction => 'حذف فيديوهاتها';
+
+  @override
+  String get archivePurgeMenu => 'حذف الفيديوهات المنزّلة';
+
+  @override
+  String archivePurgeTitle(int count) {
+    return 'حذف فيديوهات $count من المجموعات؟';
+  }
+
+  @override
+  String archivePurgeBody(int videos, int files) {
+    return 'ستخرج $videos فيديو من الأرشيف وستُحذف $files ملفات منزّلة نهائيًا من القرص. وستُزال المجموعات.';
+  }
+
+  @override
+  String archivePurgeKept(int count) {
+    return 'سيتم الاحتفاظ بـ $count فيديو موجودة أيضًا في مجموعة تحتفظ بها.';
+  }
+
+  @override
+  String archivePurgeDone(int files, int videos) {
+    return 'حُذفت $files ملفات وأُزيلت $videos فيديو';
+  }
+
+  @override
+  String archiveVideoTitle(String date) {
+    return 'فيديو بتاريخ $date';
+  }
+
+  @override
+  String get settingsToolsSection => 'الأدوات';
+
+  @override
+  String get transferAddressTooltip =>
+      'عنوانك على شبكة Wi-Fi هذه: تتصل به الأجهزة الأخرى';
 }

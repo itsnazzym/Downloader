@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:modern_downloader/core/ui/widgets/custom_empty_state.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
-import '../../../../../core/design_system/foundation/colors.dart';
 import '../../../../../core/design_system/foundation/spacing.dart';
-import '../../../../../core/design_system/foundation/typography.dart';
 import '../../providers/creator_folders_provider.dart';
 import '../../providers/downloader_provider.dart';
 import '../../providers/filtered_downloads_provider.dart';
+import '../dialogs/add_download_dialog.dart';
+import '../mobile/mobile_add_download_sheet.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'creator_folder_content_view.dart';
 import 'creator_folder_grid.dart';
 import 'download_item_skeleton.dart';
@@ -28,9 +29,13 @@ class DownloadList extends ConsumerWidget {
     final listPhase = ref.watch(filteredDownloadListPhaseProvider);
     final idList = ref.watch(filteredDownloadIdListProvider);
     final viewMode = ref.watch(downloadViewModeProvider);
+    // Drag indices map onto the stored order only when the visible list is
+    // the whole library in that same order (oldest first, no filter).
     final isReorderEnabled =
         searchQuery.isEmpty &&
         statusFilter == DownloadStatusFilter.all &&
+        ref.watch(downloadSourceFilterProvider) == null &&
+        ref.watch(downloadSortProvider) == DownloadSort.dateAsc &&
         idList.ids.length <= 50;
 
     ref.listen(downloadViewModeProvider, (previous, next) {
@@ -54,32 +59,12 @@ class DownloadList extends ConsumerWidget {
         itemBuilder: (context, index) => const DownloadItemSkeleton(),
       ),
 
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppColors.of(context).error,
-            ),
-            const Gap(AppSpacing.m),
-            Text(
-              l10n.error,
-              style: AppTypography.body.copyWith(
-                color: AppColors.of(context).textPrimary,
-              ),
-            ),
-            const Gap(AppSpacing.s),
-            Text(
-              error.toString(),
-              style: AppTypography.caption.copyWith(
-                color: AppColors.of(context).error,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      error: (error, stack) => CustomEmptyState(
+        title: l10n.error,
+        description: error.toString(),
+        icon: Icons.error_outline,
+        actionLabel: l10n.retry,
+        onAction: () => ref.read(downloadListProvider.notifier).refreshList(),
       ),
 
       data: (count) {
@@ -87,9 +72,32 @@ class DownloadList extends ConsumerWidget {
           final isFiltered =
               searchQuery.isNotEmpty ||
               statusFilter != DownloadStatusFilter.all;
+          // Each empty state offers the next step instead of a dead end.
+          if (isFiltered) {
+            return CustomEmptyState(
+              title: l10n.noResults,
+              icon: Icons.search_off_rounded,
+              actionLabel: l10n.clearSearchAndFilters,
+              onAction: () {
+                ref.read(downloadSearchQueryProvider.notifier).state = '';
+                ref.read(downloadStatusFilterProvider.notifier).state =
+                    DownloadStatusFilter.all;
+              },
+            );
+          }
+          final mobile = PlatformInfo.isMobile;
           return CustomEmptyState(
-            title: isFiltered ? l10n.noResults : l10n.yourListIsEmpty,
+            title: l10n.yourListIsEmpty,
+            // The Ctrl+N hint only makes sense with a keyboard.
+            description: mobile ? null : l10n.emptyLibraryHint,
             icon: Icons.inbox_outlined,
+            actionLabel: l10n.newDownload,
+            onAction: () => mobile
+                ? MobileAddDownloadSheet.show(context)
+                : showDialog<void>(
+                    context: context,
+                    builder: (_) => const AddDownloadDialog(),
+                  ),
           );
         }
 

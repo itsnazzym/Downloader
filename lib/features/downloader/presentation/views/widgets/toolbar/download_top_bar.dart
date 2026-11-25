@@ -131,7 +131,7 @@ class DownloadTopBar extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Date',
+                              context.l10n.sortFieldDate,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: isDate
@@ -171,7 +171,7 @@ class DownloadTopBar extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Nom (A-Z)',
+                              context.l10n.sortFieldName,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: isName
@@ -211,7 +211,7 @@ class DownloadTopBar extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Taille',
+                              context.l10n.sortFieldSize,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: isSize

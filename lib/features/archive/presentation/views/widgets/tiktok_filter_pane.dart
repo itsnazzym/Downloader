@@ -180,34 +180,39 @@ class _TikTokFilterPaneState extends ConsumerState<TikTokFilterPane> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(10),
-              itemCount: collections.length,
-              itemBuilder: (context, index) {
-                final collection = collections[index];
-                final selected = filter.selectedCollection == collection.name;
-                return ListTile(
-                  dense: true,
-                  selected: selected,
-                  selectedTileColor: colors.primary.withValues(alpha: 0.12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  leading: Icon(
-                    Icons.folder_outlined,
-                    color: selected ? colors.primary : colors.textSecondary,
-                  ),
-                  title: Text(
-                    collection.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Text('${collection.videoCount}'),
-                  onTap: () => notifier.selectCollection(
-                    selected ? null : collection.name,
-                  ),
-                );
-              },
+            // ListTiles paint hover/selection on the nearest Material; the
+            // pane's coloured box above would hide them.
+            child: Material(
+              type: MaterialType.transparency,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(10),
+                itemCount: collections.length,
+                itemBuilder: (context, index) {
+                  final collection = collections[index];
+                  final selected = filter.selectedCollection == collection.name;
+                  return ListTile(
+                    dense: true,
+                    selected: selected,
+                    selectedTileColor: colors.primary.withValues(alpha: 0.12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    leading: Icon(
+                      Icons.folder_outlined,
+                      color: selected ? colors.primary : colors.textSecondary,
+                    ),
+                    title: Text(
+                      collection.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Text('${collection.videoCount}'),
+                    onTap: () => notifier.selectCollection(
+                      selected ? null : collection.name,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],

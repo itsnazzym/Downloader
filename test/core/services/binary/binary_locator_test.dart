@@ -15,6 +15,7 @@ class _CountingProcessRunner extends ProcessRunner {
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
+    Duration? timeout,
   }) async {
     calls++;
     executables.add(executable);

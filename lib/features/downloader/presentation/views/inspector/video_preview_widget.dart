@@ -32,6 +32,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   StreamSubscription<Duration>? _durationSub;
 
   Duration _position = Duration.zero;
+  DateTime _lastPositionPaint = DateTime.fromMillisecondsSinceEpoch(0);
   Duration _duration = Duration.zero;
   bool _isHovering = false;
   bool _userActivated = false;
@@ -80,7 +81,14 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
       await player.setPlaylistMode(PlaylistMode.loop);
 
       _positionSub = player.stream.position.listen((pos) {
-        if (mounted && !_isDragging) {
+        // 250 ms cap, like the fullscreen player: unthrottled position events
+        // rebuilt the inspector preview many times per second.
+        final now = DateTime.now();
+        if (mounted &&
+            !_isDragging &&
+            now.difference(_lastPositionPaint) >=
+                const Duration(milliseconds: 250)) {
+          _lastPositionPaint = now;
           setState(() => _position = pos);
         }
       });
@@ -225,10 +233,7 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black.withValues(alpha: 0.6),
-              ],
+              colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
             ),
           ),
         ),
@@ -260,11 +265,18 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.broken_image_rounded, color: AppColors.of(context).error, size: 36),
+            Icon(
+              Icons.broken_image_rounded,
+              color: AppColors.of(context).error,
+              size: 36,
+            ),
             const Gap(8),
             Text(
               l10n.error,
-              style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 13),
+              style: TextStyle(
+                color: AppColors.of(context).textSecondary,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -340,7 +352,9 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                     color: Colors.black.withValues(alpha: 0.65),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.of(context).primary.withValues(alpha: 0.8),
+                      color: AppColors.of(
+                        context,
+                      ).primary.withValues(alpha: 0.8),
                       width: 2,
                     ),
                   ),
@@ -383,7 +397,10 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                 duration: 300.ms,
                 opacity: _isHovering ? 1.0 : 0.0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -397,8 +414,10 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                           setState(() => _isDragging = false);
                           if (_isHovering) _player?.play();
                         },
-                        onTapDown: (details) => _handleSeek(details.localPosition.dx, context),
-                        onPanUpdate: (details) => _handleSeek(details.localPosition.dx, context),
+                        onTapDown: (details) =>
+                            _handleSeek(details.localPosition.dx, context),
+                        onPanUpdate: (details) =>
+                            _handleSeek(details.localPosition.dx, context),
                         child: Container(
                           height: 20,
                           width: double.infinity,
@@ -420,9 +439,10 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                                   borderRadius: BorderRadius.circular(3),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.of(context).primary.withValues(
-                                        alpha: _isDragging ? 0.8 : 0.5,
-                                      ),
+                                      color: AppColors.of(context).primary
+                                          .withValues(
+                                            alpha: _isDragging ? 0.8 : 0.5,
+                                          ),
                                       blurRadius: _isDragging ? 8 : 4,
                                     ),
                                   ],
@@ -453,12 +473,17 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 10,
+                                    sigmaY: 10,
+                                  ),
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
                                     color: Colors.black.withValues(alpha: 0.35),
                                     child: Icon(
-                                      _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                                      _isMuted
+                                          ? Icons.volume_off_rounded
+                                          : Icons.volume_up_rounded,
                                       color: Colors.white,
                                       size: 16,
                                     ),
@@ -478,10 +503,15 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: BackdropFilter(
-                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 10,
+                                      sigmaY: 10,
+                                    ),
                                     child: Container(
                                       padding: const EdgeInsets.all(6),
-                                      color: Colors.black.withValues(alpha: 0.35),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.35,
+                                      ),
                                       child: const Icon(
                                         Icons.fullscreen_rounded,
                                         color: Colors.white,
@@ -504,21 +534,24 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
             Center(
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(AppColors.of(context).primary),
+                valueColor: AlwaysStoppedAnimation(
+                  AppColors.of(context).primary,
+                ),
               ),
             ),
 
           if (!_isHovering)
             IgnorePointer(
-              child: Icon(
-                Icons.play_circle_outline_rounded,
-                color: Colors.white.withValues(alpha: 0.5),
-                size: 54,
-              ).animate().scale(
-                delay: 100.ms,
-                duration: 400.ms,
-                curve: Curves.easeOutBack,
-              ),
+              child:
+                  Icon(
+                    Icons.play_circle_outline_rounded,
+                    color: Colors.white.withValues(alpha: 0.5),
+                    size: 54,
+                  ).animate().scale(
+                    delay: 100.ms,
+                    duration: 400.ms,
+                    curve: Curves.easeOutBack,
+                  ),
             ),
         ],
       ),
@@ -526,7 +559,8 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
   }
 
   void _handleSeek(double localX, BuildContext context) {
-    if (_player == null || !_isInitialized || _duration.inMilliseconds <= 0) return;
+    if (_player == null || !_isInitialized || _duration.inMilliseconds <= 0)
+      return;
 
     final now = DateTime.now();
     if (_lastSeekTime != null &&
@@ -540,7 +574,8 @@ class _VideoPreviewWidgetState extends State<VideoPreviewWidget> {
     if (width <= 0) return;
 
     final double relative = localX / width;
-    final targetMs = (_duration.inMilliseconds * relative.clamp(0.0, 1.0)).toInt();
+    final targetMs = (_duration.inMilliseconds * relative.clamp(0.0, 1.0))
+        .toInt();
     _player?.seek(Duration(milliseconds: targetMs));
   }
 

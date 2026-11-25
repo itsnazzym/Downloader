@@ -106,7 +106,7 @@ class ClipboardService {
       if (content == _lastContent) return;
       _lastContent = content;
 
-      if (_isValidUrl(content)) {
+      if (isSupportedUrl(content)) {
         LoggerService.debug('Clipboard match found: $content');
         _controller.add(content);
       }
@@ -115,7 +115,10 @@ class ClipboardService {
     }
   }
 
-  bool _isValidUrl(String text) {
+  /// An http(s) link on a supported host or one of its subdomains. A plain
+  /// `contains` matched netflix.com / dropbox.com for "x.com" and opened the
+  /// add dialog for unsupported links.
+  static bool isSupportedUrl(String text) {
     if (text.isEmpty) return false;
 
     // Basic supported domains check
@@ -139,6 +142,9 @@ class ClipboardService {
       return false;
     }
 
-    return supported.any((domain) => text.contains(domain));
+    final host = Uri.tryParse(text)?.host.toLowerCase() ?? '';
+    return supported.any(
+      (domain) => host == domain || host.endsWith('.$domain'),
+    );
   }
 }

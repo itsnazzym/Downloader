@@ -23,6 +23,7 @@ class _CookieFailingRunner extends ProcessRunner {
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
+    Duration? timeout,
   }) async {
     calls.add(arguments);
     if (arguments.contains('--cookies-from-browser')) {

@@ -73,7 +73,14 @@ class AppTypography {
   }) {
     final ios = palette.isIosChrome;
     _family = palette.id == 'oled' ? 'Instrument Sans' : 'Inter';
-    final baseTextTheme = useGoogleFonts ? _baseTheme() : const TextTheme();
+    // google_fonts' base theme carries near-black colours: every style not
+    // overridden below (dialog titles, dropdown values...) was unreadable on
+    // dark presets. Give them all the palette's text colour first.
+    final baseTextTheme = (useGoogleFonts ? _baseTheme() : const TextTheme())
+        .apply(
+          bodyColor: palette.textPrimary,
+          displayColor: palette.textPrimary,
+        );
     return baseTextTheme.copyWith(
       displayLarge: _ui(
         fontSize: ios ? 28 : 24,
@@ -81,6 +88,15 @@ class AppTypography {
         letterSpacing: -0.6,
         color: palette.textPrimary,
         height: 1.2,
+        useGoogleFonts: useGoogleFonts,
+      ),
+      // AlertDialog titles: without this the google_fonts base kept its
+      // near-black default, unreadable on every dark preset.
+      headlineSmall: _ui(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: palette.textPrimary,
+        height: 1.3,
         useGoogleFonts: useGoogleFonts,
       ),
       titleSmall: _ui(

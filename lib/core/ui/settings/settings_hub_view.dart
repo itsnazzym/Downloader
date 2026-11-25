@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:modern_downloader/core/plugins/feature_activation.dart';
 import 'package:flutter/services.dart';
@@ -86,12 +84,6 @@ class SettingsHubView extends StatelessWidget {
         backgroundColor: colors.background.withValues(alpha: 0.8),
         elevation: 0,
         centerTitle: true,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: const ColoredBox(color: Colors.transparent),
-          ),
-        ),
         title: Text(
           l10n.settings,
           style: AppTypography.h3.copyWith(

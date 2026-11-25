@@ -14,14 +14,21 @@ class SingleInstanceDependencies {
     required this.hasVisiblePeerWindow,
     required this.stalePeerPid,
     required this.terminatePid,
+    this.isOwnProcess = _assumeOwnProcess,
     this.currentPid,
   });
+
+  static bool _assumeOwnProcess(int processId) => true;
 
   final Future<ServerSocket> Function() bind;
   final Future<void> Function(String payload) notifyPrimary;
   final bool Function() hasVisiblePeerWindow;
   final Future<int?> Function() stalePeerPid;
   final bool Function(int processId) terminatePid;
+
+  /// Whether [processId] runs this app's executable. The port may be held by
+  /// an unrelated program: that one must never be killed.
+  final bool Function(int processId) isOwnProcess;
   final int? currentPid;
 
   factory SingleInstanceDependencies.production({
@@ -48,8 +55,28 @@ class SingleInstanceDependencies {
       },
       stalePeerPid: () => WindowsDesktopWindowProbe.listenerPidOnPort(port),
       terminatePid: WindowsDesktopWindowProbe.terminatePid,
+      isOwnProcess: _runsThisExecutable,
       currentPid: pid,
     );
+  }
+}
+
+/// Compares the image name of [processId] (from `tasklist`) with ours.
+bool _runsThisExecutable(int processId) {
+  if (!Platform.isWindows) return false;
+  try {
+    final result = Process.runSync('tasklist', [
+      '/FI',
+      'PID eq $processId',
+      '/FO',
+      'CSV',
+      '/NH',
+    ]);
+    final image = result.stdout.toString().split(',').first.replaceAll('"', '');
+    final own = Platform.resolvedExecutable.split(RegExp(r'[\\/]')).last;
+    return image.trim().toLowerCase() == own.toLowerCase();
+  } catch (_) {
+    return false;
   }
 }
 
@@ -93,6 +120,13 @@ class SingleInstanceService {
         final stalePid = await deps.stalePeerPid();
         final selfPid = deps.currentPid ?? pid;
         if (stalePid != null && stalePid != selfPid) {
+          if (!deps.isOwnProcess(stalePid)) {
+            LoggerService.w(
+              'Port $port is held by another program (PID $stalePid); '
+              'starting without single-instance hand-off',
+            );
+            return false;
+          }
           deps.terminatePid(stalePid);
         }
         _server = await _rebind(deps);

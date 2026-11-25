@@ -64,6 +64,10 @@ class YtDlpSource {
     return null;
   }
 
+  /// A probe stuck on a locked browser cookie store or a stalled site used to
+  /// hold one of the two probe slots forever; it is killed after this.
+  static const probeTimeout = Duration(seconds: 90);
+
   Future<Map<String, dynamic>> fetchMetadata(
     String url, {
     String? cookies,
@@ -183,7 +187,7 @@ class YtDlpSource {
 
       args.add(TikTokVideoUrl.forDownload(url));
 
-      var result = await _processRunner.run(ytDlp, args);
+      var result = await _processRunner.run(ytDlp, args, timeout: probeTimeout);
       if (result.exitCode != 0 && isTwitter) {
         // Fallback retry without syndication (in case Twitter changed back to GraphQL)
         final fallbackArgs = List<String>.from(args);
@@ -194,7 +198,11 @@ class YtDlpSource {
               fallbackArgs[syndIndex - 1] == '--extractor-args') {
             fallbackArgs.removeAt(syndIndex - 1);
           }
-          final retryResult = await _processRunner.run(ytDlp, fallbackArgs);
+          final retryResult = await _processRunner.run(
+            ytDlp,
+            fallbackArgs,
+            timeout: probeTimeout,
+          );
           if (retryResult.exitCode == 0) {
             result = retryResult;
           }
@@ -210,6 +218,7 @@ class YtDlpSource {
         result = await _processRunner.run(
           ytDlp,
           YtDlpCookieArgs.withoutBrowserCookies(args),
+          timeout: probeTimeout,
         );
       }
 
@@ -285,7 +294,7 @@ class YtDlpSource {
     if (torProxy != null) args.addAll(['--proxy', torProxy]);
     args.add(url);
 
-    final result = await _processRunner.run(ytDlp, args);
+    final result = await _processRunner.run(ytDlp, args, timeout: probeTimeout);
 
     if (result.exitCode == 0) {
       try {
@@ -724,6 +733,13 @@ class YtDlpSource {
       environment: {'PYTHONIOENCODING': 'utf-8'},
     );
     _downloadProcesses[id] = process;
+    // Pause/cancel during the awaits above found no process to kill: honour
+    // it now, or yt-dlp keeps downloading behind a row shown as paused.
+    if (_cancelRequested.contains(id)) {
+      _downloadProcesses.remove(id);
+      await _processRunner.kill(process);
+      throw StateError('Download $id canceled before it started');
+    }
 
     LoggerService.i('Process started with PID: ${process.pid}');
 
@@ -809,26 +825,11 @@ class YtDlpSource {
           cancelOnError: false,
         );
 
-    DateTime lastYieldTime = DateTime.fromMillisecondsSinceEpoch(0);
-    double lastYieldProgress = -1.0;
-    String lastYieldStep = '';
+    final gate = ProgressYieldGate();
 
     await for (final line in lineController.stream) {
       for (final update in parser.onLine(line)) {
-        final now = DateTime.now();
-        final isSignificant =
-            update.isDuplicate ||
-            update.filePath != null ||
-            (update.title != null && update.title!.isNotEmpty) ||
-            update.step != lastYieldStep ||
-            update.progress >= 1.0 ||
-            (update.progress - lastYieldProgress).abs() >= 0.05 ||
-            now.difference(lastYieldTime).inMilliseconds >= 250;
-
-        if (isSignificant) {
-          lastYieldTime = now;
-          lastYieldProgress = update.progress;
-          lastYieldStep = update.step;
+        if (gate.shouldYield(update, DateTime.now())) {
           yield DownloadProgressEvent(
             progress: update.progress,
             totalSize: update.totalSize,

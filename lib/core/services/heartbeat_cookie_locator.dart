@@ -15,22 +15,17 @@ class HeartbeatCookieLocator {
       final cookieHost = host == 'tiktokv.com' || host == 'www.tiktokv.com'
           ? 'www.tiktok.com'
           : host;
-      final appDir = Directory.systemTemp;
-      await for (final entity in appDir.list()) {
-        if (entity is! File) continue;
-        final name = entity.uri.pathSegments.isNotEmpty
-            ? entity.uri.pathSegments.last
-            : entity.path;
-        if (!name.startsWith('heartbeat_cookies_') || !name.endsWith('.txt')) {
-          continue;
-        }
-        final domainPart = name.substring(
-          'heartbeat_cookies_'.length,
-          name.length - '.txt'.length,
+      // Only the host and its parent domains can match: check those few
+      // file names instead of listing %TEMP% (tens of thousands of entries on
+      // a neglected PC) for every download.
+      final labels = cookieHost.toLowerCase().split('.');
+      for (var i = 0; i < labels.length; i++) {
+        final domain = labels.sublist(i).join('.');
+        final safeName = LocalServerAuth.sanitizeDomainForFilename(domain);
+        final file = File(
+          '${Directory.systemTemp.path}/heartbeat_cookies_$safeName.txt',
         );
-        if (LocalServerAuth.hostMatchesDomain(cookieHost, domainPart)) {
-          return entity.path;
-        }
+        if (await file.exists()) return file.path;
       }
     } catch (_) {}
     return null;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../../providers/download_library_counts.dart';
 import '../../../providers/downloader_provider.dart';
 
@@ -20,7 +21,7 @@ class FailedDownloadsBadge extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Tooltip(
-        message: 'Relancer tous les téléchargements en échec ($failedCount)',
+        message: context.l10n.retryAllFailedTooltip(failedCount),
         child: Material(
           color: colors.warning.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(8),
@@ -31,9 +32,7 @@ class FailedDownloadsBadge extends ConsumerWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                      'Relance de $failedCount téléchargement(s) en échec',
-                    ),
+                    content: Text(context.l10n.retryingFailed(failedCount)),
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -60,7 +59,7 @@ class FailedDownloadsBadge extends ConsumerWidget {
                   Text(
                     compact
                         ? '$failedCount'
-                        : '$failedCount ${failedCount > 1 ? "échecs" : "échec"} · Relancer',
+                        : context.l10n.failedRetryBadge(failedCount),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

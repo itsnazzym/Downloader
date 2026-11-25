@@ -570,8 +570,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get outputFolderNotConfigured => 'Output folder not configured';
 
   @override
-  String get pluginsEmptyHint =>
-      'Plugins extend the functionality of TapLoad';
+  String get pluginsEmptyHint => 'Plugins extend the functionality of TapLoad';
 
   @override
   String get statusProcessing => 'Processing';
@@ -965,11 +964,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get previewSetup => 'Show setup screen (temporary)';
+  String get previewSetup => 'Check and repair the download tools';
 
   @override
   String get previewSetupDesc =>
-      'Replay the full-screen tools check and install overlay';
+      'Re-checks yt-dlp, ffmpeg and aria2c and reinstalls what is missing';
 
   @override
   String get pluginsSectionTitle => 'Download workflow plugins';
@@ -2087,6 +2086,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Age verification (18+), see solutions';
 
   @override
+  String get fileDeletedFromDisk =>
+      'The file will be deleted from your disk. This can\'t be undone.';
+
+  @override
   String downloadCardFailedMeta(String source) {
     return '$source, failed. See diagnostic';
   }
@@ -2848,4 +2851,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alreadyDismiss => 'Close';
+
+  @override
+  String get sortFieldDate => 'Date';
+
+  @override
+  String get sortFieldName => 'Name';
+
+  @override
+  String get sortFieldSize => 'Size';
+
+  @override
+  String get moreActions => 'More actions';
+
+  @override
+  String get retryFailedAction => 'Retry failed';
+
+  @override
+  String retryingFailed(int count) {
+    return 'Retrying $count failed download(s)';
+  }
+
+  @override
+  String get pauseActiveAction => 'Pause active downloads';
+
+  @override
+  String get pauseActiveTooltip => 'Pause all active downloads';
+
+  @override
+  String get activeDownloadsPaused => 'Active downloads paused';
+
+  @override
+  String get startQueueAction => 'Start the queue';
+
+  @override
+  String get startQueueTooltip =>
+      'Start all waiting, paused and failed downloads';
+
+  @override
+  String get queueStarted => 'Queue started';
+
+  @override
+  String get clearCompletedAction => 'Clear completed';
+
+  @override
+  String get clearCompletedDone => 'Completed downloads deleted';
+
+  @override
+  String get clearFailedAction => 'Clear failed';
+
+  @override
+  String get clearFailedDone => 'Failed downloads cleared';
+
+  @override
+  String get reduceEffects => 'Reduce visual effects';
+
+  @override
+  String get reduceEffectsDesc =>
+      'Turns off blur and background animations. Smoother on modest PCs.';
+
+  @override
+  String get emptyLibraryHint => 'Press Ctrl+N and paste a video link.';
+
+  @override
+  String get clearSearchAndFilters => 'Clear search and filters';
+
+  @override
+  String get inspectorPlayMedia => 'Play media';
+
+  @override
+  String get inspectorSourceUrl => 'Source URL';
+
+  @override
+  String get inspectorLocalFile => 'Local file';
+
+  @override
+  String get urlCopied => 'URL copied to the clipboard';
+
+  @override
+  String get showInFolder => 'Show in folder';
+
+  @override
+  String get detailsAction => 'Details';
+
+  @override
+  String failedRetryBadge(int count) {
+    return '$count failed · Retry';
+  }
+
+  @override
+  String retryAllFailedTooltip(int count) {
+    return 'Retry all failed downloads ($count)';
+  }
+
+  @override
+  String get ageCheckRequired => 'Age verification required (18+)';
+
+  @override
+  String get ageCheckSeeSolutions => 'See solutions (18+)';
+
+  @override
+  String clearCompletedConfirm(int count) {
+    return 'Delete $count completed download(s)?';
+  }
+
+  @override
+  String get filesDeletedFromDisk =>
+      'Their files will be deleted from your disk. This can\'t be undone.';
+
+  @override
+  String get archivePurgeSelect => 'Select';
+
+  @override
+  String get archivePurgeSelectTooltip =>
+      'Select collections to delete their videos';
+
+  @override
+  String archivePurgeSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get archivePurgeAction => 'Delete their videos';
+
+  @override
+  String get archivePurgeMenu => 'Delete the downloaded videos';
+
+  @override
+  String archivePurgeTitle(int count) {
+    return 'Delete the videos of $count collection(s)?';
+  }
+
+  @override
+  String archivePurgeBody(int videos, int files) {
+    return '$videos videos leave the archive and $files downloaded files are permanently deleted from your disk. The collections are removed.';
+  }
+
+  @override
+  String archivePurgeKept(int count) {
+    return '$count videos that are also in a collection you keep are kept.';
+  }
+
+  @override
+  String archivePurgeDone(int files, int videos) {
+    return '$files files deleted, $videos videos removed';
+  }
+
+  @override
+  String archiveVideoTitle(String date) {
+    return 'Video from $date';
+  }
+
+  @override
+  String get settingsToolsSection => 'Tools';
+
+  @override
+  String get transferAddressTooltip =>
+      'Your address on this Wi-Fi: other devices connect to it';
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/utils/browser_launch.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -200,11 +201,7 @@ class _AgeVerificationHelpDialogState
                     if (isMobile) {
                       context.push('/browse', extra: widget.item.request.url);
                     } else {
-                      Process.run(
-                        'cmd',
-                        ['/c', 'start', '', widget.item.request.url],
-                        runInShell: true,
-                      );
+                      openInBrowser(widget.item.request.url);
                     }
                   },
                   icon: Icon(

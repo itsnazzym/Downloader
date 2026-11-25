@@ -45,7 +45,11 @@ class _TransferViewState extends ConsumerState<TransferView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(transferControllerProvider);
+    // Progress ticks (every 150 ms during a transfer) only rebuild the two
+    // progress banners; the rest of the page ignores the moving numbers.
+    final state = PlatformInfo.isMobile
+        ? ref.watch(transferControllerProvider)
+        : _watchLayout(ref);
 
     ref.listen(transferControllerProvider.select((s) => s.incoming), (
       previous,
@@ -84,23 +88,36 @@ class _TransferViewState extends ConsumerState<TransferView> {
           if (state.progress != null || state.diagnostic != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: _LiveTransferBanner(
-                progress: state.progress,
-                diagnostic: state.diagnostic,
-                scanStatus: state.scanStatus,
-                lastError: state.lastError,
-                onRetry: () => ref
-                    .read(transferControllerProvider.notifier)
-                    .retryLastTransfer(),
-                onCancel: () => ref
-                    .read(transferControllerProvider.notifier)
-                    .cancelTransfer(),
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final live = ref.watch(transferControllerProvider);
+                  return _LiveTransferBanner(
+                    progress: live.progress,
+                    diagnostic: live.diagnostic,
+                    scanStatus: live.scanStatus,
+                    lastError: live.lastError,
+                    onRetry: () => ref
+                        .read(transferControllerProvider.notifier)
+                        .retryLastTransfer(),
+                    onCancel: () => ref
+                        .read(transferControllerProvider.notifier)
+                        .cancelTransfer(),
+                  );
+                },
               ),
             ),
           if (state.isScanningSubnet)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: _SubnetScanBanner(progress: state.subnetScanProgress),
+              child: Consumer(
+                builder: (context, ref, _) => _SubnetScanBanner(
+                  progress: ref.watch(
+                    transferControllerProvider.select(
+                      (s) => s.subnetScanProgress,
+                    ),
+                  ),
+                ),
+              ),
             ),
           Expanded(
             child: AnimatedSwitcher(
@@ -385,6 +402,77 @@ class _HeaderBar extends ConsumerWidget {
   }
 }
 
+/// A text button when there is room, an icon with a tooltip when not.
+class _LabelledAction extends StatelessWidget {
+  const _LabelledAction({
+    required this.wide,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final bool wide;
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!wide) {
+      return IconButton(
+        tooltip: label,
+        icon: Icon(icon, size: 20),
+        onPressed: onPressed,
+      );
+    }
+    return TextButton.icon(
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      onPressed: onPressed,
+    );
+  }
+}
+
+/// Watches the transfer state except the values that move on every tick
+/// (byte counts, speed, scan percentage): those only rebuild their banners.
+/// Their appearance and disappearance still rebuild the page.
+TransferUiState _watchLayout(WidgetRef ref) {
+  ref.watch(
+    transferControllerProvider.select(
+      (s) => (
+        s.started,
+        s.pin,
+        s.port,
+        s.lanIp,
+        s.alias,
+        s.fingerprint,
+        s.portConflict,
+        s.activeTab,
+        s.peers,
+        s.selectedCreatorKeys,
+        s.extraFolders,
+        s.extraFiles,
+        s.compressZip,
+        s.selectedFilesCount,
+        s.selectedTotalBytes,
+        s.sendPreview,
+        s.onlyNewVideos,
+        s.activeTargetFingerprint,
+        s.progress != null,
+        s.progress?.phase,
+        s.incoming,
+        s.peerPinPrompt,
+        s.lastError,
+        s.diagnostic,
+        s.scanStatus,
+        s.lastPeerAttempt,
+        s.isScanningSubnet,
+      ),
+    ),
+  );
+  return ref.read(transferControllerProvider);
+}
+
 class _PinBadge extends StatelessWidget {
   const _PinBadge({required this.pin});
 
@@ -411,6 +499,14 @@ class _PinBadge extends StatelessWidget {
               color: colors.textSecondary,
             ),
             const Gap(5),
+            // Spelled out: a bare 6-digit number next to the IP read as noise.
+            Text(
+              'PIN ',
+              style: AppTypography.mono.copyWith(
+                fontSize: 12,
+                color: colors.textSecondary,
+              ),
+            ),
             Text(
               pin,
               style: AppTypography.mono.copyWith(
@@ -435,34 +531,37 @@ class _NetworkStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: colors.success.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: colors.success.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              color: colors.success,
-              shape: BoxShape.circle,
+    return Tooltip(
+      message: context.l10n.transferAddressTooltip,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: colors.success.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: colors.success.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: colors.success,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          const Gap(7),
-          Text(
-            '$ip:$port',
-            style: AppTypography.mono.copyWith(
-              fontSize: 12,
-              color: colors.textPrimary,
-              fontWeight: FontWeight.w500,
+            const Gap(7),
+            Text(
+              '$ip:$port',
+              style: AppTypography.mono.copyWith(
+                fontSize: 12,
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1223,7 +1322,7 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
     final peers = widget.peers;
     final fill = widget.fill;
     final onSend = widget.onSend;
-    final state = ref.watch(transferControllerProvider);
+    final state = _watchLayout(ref);
 
     if (state.isScanningSubnet) {
       if (!_rotationController.isAnimating) {
@@ -1305,95 +1404,112 @@ class _PeersPanelState extends ConsumerState<_PeersPanel>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Text(
-                l10n.transferDevices,
-                style: AppTypography.h3.copyWith(color: colors.textPrimary),
-              ),
-              if (peers.isNotEmpty) ...[
-                const Gap(8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
+          // Labels only when they fit; narrow panes keep icon + tooltip.
+          LayoutBuilder(
+            builder: (context, box) {
+              final wide = box.maxWidth >= 780;
+              return Row(
+                children: [
+                  Text(
+                    l10n.transferDevices,
+                    style: AppTypography.h3.copyWith(color: colors.textPrimary),
                   ),
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${peers.length}',
-                    style: AppTypography.caption.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
+                  if (peers.isNotEmpty) ...[
+                    const Gap(8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${peers.length}',
+                        style: AppTypography.caption.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
                     ),
+                  ],
+                  const Spacer(),
+                  // 1. Refresh button (with rotation animation)
+                  IconButton(
+                    tooltip: l10n.transferMobileRefreshSearch,
+                    icon: RotationTransition(
+                      turns: _rotationController,
+                      child: const Icon(Icons.sync_rounded, size: 20),
+                    ),
+                    onPressed: () {
+                      _rotationController.repeat();
+                      unawaited(
+                        ref
+                            .read(transferControllerProvider.notifier)
+                            .triggerDiscoveryPulse()
+                            .whenComplete(() {
+                              if (mounted &&
+                                  !ref
+                                      .read(transferControllerProvider)
+                                      .isScanningSubnet) {
+                                _rotationController.stop();
+                                _rotationController.reset();
+                              }
+                            }),
+                      );
+                    },
                   ),
-                ),
-              ],
-              const Spacer(),
-              // 1. Refresh button (with rotation animation)
-              IconButton(
-                tooltip: l10n.transferMobileRefreshSearch,
-                icon: RotationTransition(
-                  turns: _rotationController,
-                  child: const Icon(Icons.sync_rounded, size: 20),
-                ),
-                onPressed: () {
-                  _rotationController.repeat();
-                  unawaited(
-                    ref
-                        .read(transferControllerProvider.notifier)
-                        .triggerDiscoveryPulse()
-                        .whenComplete(() {
-                          if (mounted &&
-                              !ref
-                                  .read(transferControllerProvider)
-                                  .isScanningSubnet) {
-                            _rotationController.stop();
-                            _rotationController.reset();
-                          }
-                        }),
-                  );
-                },
-              ),
-              // 2. Subnet scan button
-              IconButton(
-                tooltip: l10n.transferScanSubnet,
-                icon: const Icon(Icons.travel_explore_rounded, size: 20),
-                onPressed: () {
-                  unawaited(
-                    ref.read(transferControllerProvider.notifier).scanSubnet(),
-                  );
-                },
-              ),
-              // 3. Direct IP button
-              IconButton(
-                tooltip: l10n.transferDirectIpTitle,
-                icon: const Icon(Icons.add_link_rounded, size: 20),
-                onPressed: () => _showDirectIpDialog(context, ref),
-              ),
-              // 4. Clear peer list button
-              if (peers.isNotEmpty)
-                IconButton(
-                  tooltip: l10n.transferMobileClearList,
-                  icon: const Icon(Icons.delete_sweep_outlined, size: 20),
-                  onPressed: () {
-                    ref.read(transferControllerProvider.notifier).clearPeers();
-                  },
-                ),
-            ],
+                  // 2-3. Labelled: four bare icons in a row were unreadable.
+                  _LabelledAction(
+                    wide: wide,
+                    icon: Icons.travel_explore_rounded,
+                    label: l10n.transferScanSubnet,
+                    onPressed: () {
+                      unawaited(
+                        ref
+                            .read(transferControllerProvider.notifier)
+                            .scanSubnet(),
+                      );
+                    },
+                  ),
+                  _LabelledAction(
+                    wide: wide,
+                    icon: Icons.add_link_rounded,
+                    label: l10n.transferDirectIpTitle,
+                    onPressed: () => _showDirectIpDialog(context, ref),
+                  ),
+                  // 4. Clear peer list button
+                  if (peers.isNotEmpty)
+                    IconButton(
+                      tooltip: l10n.transferMobileClearList,
+                      icon: const Icon(Icons.delete_sweep_outlined, size: 20),
+                      onPressed: () {
+                        ref
+                            .read(transferControllerProvider.notifier)
+                            .clearPeers();
+                      },
+                    ),
+                ],
+              );
+            },
           ),
           if (state.isScanningSubnet) ...[
             const Gap(10),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: state.subnetScanProgress,
-                minHeight: 3,
-                backgroundColor: Colors.white.withValues(alpha: 0.05),
-                valueColor: AlwaysStoppedAnimation(colors.primary),
+              child: Consumer(
+                builder: (context, ref, _) => LinearProgressIndicator(
+                  value: ref.watch(
+                    transferControllerProvider.select(
+                      (s) => s.subnetScanProgress,
+                    ),
+                  ),
+                  minHeight: 3,
+                  backgroundColor: Colors.white.withValues(alpha: 0.05),
+                  valueColor: AlwaysStoppedAnimation(colors.primary),
+                ),
               ),
             ),
           ],

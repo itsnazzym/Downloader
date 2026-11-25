@@ -23,6 +23,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_presets.dart';
 import 'core/theme/theme_resolver.dart';
 import 'core/ui/setup/app_launch_overlay.dart';
+import 'features/downloader/data/repositories/downloader_repository_impl.dart';
 import 'features/downloader/presentation/providers/downloader_provider.dart';
 import 'features/onboarding/presentation/mobile/mobile_onboarding.dart';
 import 'l10n/app_localizations.dart';
@@ -43,6 +44,9 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
   StreamSubscription<String>? _clipboardSub;
   StreamSubscription<String>? _shareSub;
   bool _windowTickersEnabled = true;
+  Object? _themeKey;
+  ThemeData? _lightTheme;
+  ThemeData? _darkTheme;
 
   void _setWindowTickersEnabled(bool enabled) {
     if (!mounted || _windowTickersEnabled == enabled) return;
@@ -210,7 +214,18 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
   Future<void> _exitApplication() async {
     try {
-      await ref.read(torProxyServiceProvider.notifier).shutdown();
+      final repository = ref.read(downloaderRepositoryProvider);
+      await Future.wait([
+        ref.read(torProxyServiceProvider.notifier).shutdown(),
+        // Otherwise yt-dlp/ffmpeg/aria2c keep running after the window closes.
+        if (repository is DownloaderRepositoryImpl)
+          repository.shutdown().timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {},
+          ),
+      ]);
+    } catch (e) {
+      LoggerService.e('Shutdown cleanup failed', e);
     } finally {
       await windowManager.setPreventClose(false);
       await windowManager.close();
@@ -244,7 +259,19 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       }
     });
     final router = ref.watch(routerProvider);
-    final settings = ref.watch(settingsProvider);
+    // Only the fields the root reads: any other settings change must not
+    // rebuild MaterialApp (and restart its theme animation).
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          themeMode: s.themeMode,
+          themePreset: s.themePreset,
+          customAccentColor: s.customAccentColor,
+          locale: s.locale,
+          reduceEffects: s.reduceEffects,
+        ),
+      ),
+    );
     ThemeMode themeMode;
     switch (settings.themeMode) {
       case 'light':
@@ -272,20 +299,30 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
 
     final bootstrap = ref.watch(dependencyBootstrapProvider);
     final warmup = ref.watch(appWarmupProvider);
-    final downloadLibrary = ref.watch(downloadListProvider);
-    final libraryReady = downloadLibrary.hasValue || downloadLibrary.hasError;
+    final libraryReady = ref.watch(
+      downloadListProvider.select((s) => s.hasValue || s.hasError),
+    );
+
+    // ThemeData has no value equality here (AppPalette), so a fresh instance
+    // would animate the whole tree; rebuild it only when the palette changes.
+    final themeKey = (settings.themePreset, settings.customAccentColor);
+    if (themeKey != _themeKey) {
+      _themeKey = themeKey;
+      _lightTheme = AppTheme.fromPalette(
+        ThemeResolver.forBrightness(resolved, Brightness.light),
+        Brightness.light,
+      );
+      _darkTheme = AppTheme.fromPalette(
+        ThemeResolver.forBrightness(resolved, Brightness.dark),
+        Brightness.dark,
+      );
+    }
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: AppConfig.appName,
-      theme: AppTheme.fromPalette(
-        ThemeResolver.forBrightness(resolved, Brightness.light),
-        Brightness.light,
-      ),
-      darkTheme: AppTheme.fromPalette(
-        ThemeResolver.forBrightness(resolved, Brightness.dark),
-        Brightness.dark,
-      ),
+      theme: _lightTheme,
+      darkTheme: _darkTheme,
       themeMode: themeMode,
       locale: Locale(settings.locale),
       localizationsDelegates: const [
@@ -297,7 +334,7 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       builder: (context, child) {
-        final content = Stack(
+        Widget content = Stack(
           fit: StackFit.expand,
           children: [
             TickerMode(
@@ -315,6 +352,19 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
               ),
             AppLaunchOverlay(libraryReady: libraryReady),
           ],
+        );
+        // Blur / ambient-motion guards read disableAnimations; the setting
+        // turns them off at once on modest PCs. Scope: blur and continuous
+        // background motion only; one-shot flutter_animate entrance effects
+        // (settings lists, stats cards, empty states) still play. Always
+        // present so toggling it does not remount the router below.
+        final mediaQuery = MediaQuery.of(context);
+        content = MediaQuery(
+          data: mediaQuery.copyWith(
+            disableAnimations:
+                settings.reduceEffects || mediaQuery.disableAnimations,
+          ),
+          child: content,
         );
         // Native video textures inject AX nodes that Flutter's Windows
         // accessibility bridge cannot reconcile ("will not be in the tree").

@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../domain/entities/download_request.dart';
 import '../../../../../core/logger/logger_service.dart';
 import '../../../../../core/services/binary/binary_locator.dart';
+import '../../../../../core/services/binary/process_runner.dart';
 import '../../../../../core/download/tor_proxy_guard.dart';
 import '../../../../../core/download/cookie_browser_args.dart';
 
@@ -172,11 +173,12 @@ class GalleryDlSource {
 
   /// Cancel ongoing download
   Future<void> cancel(String id) async {
-    final process = _activeProcesses[id];
+    // Remove first: a run restarted while the kill awaits keeps its entry.
+    final process = _activeProcesses.remove(id);
     if (process != null) {
       LoggerService.i('GalleryDlSource: Canceling download $id');
-      process.kill();
-      _activeProcesses.remove(id);
+      // Tree kill: a bare kill leaves the PyInstaller child running.
+      await ProcessRunner().kill(process);
     }
   }
 

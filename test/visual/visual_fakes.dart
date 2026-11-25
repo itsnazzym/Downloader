@@ -104,7 +104,13 @@ class FakeDownloaderRepository implements IDownloaderRepository {
   Stream<DownloadItem> get downloadUpdateStream => _updates.stream;
 
   @override
-  Future<String> startDownload(DownloadRequest request) async => 'new';
+  Future<String> startDownload(DownloadRequest request) async {
+    startCalls++;
+    return 'new';
+  }
+
+  /// How many downloads the provider asked this repository to start.
+  int startCalls = 0;
 
   @override
   Future<void> cancelDownload(String id) async {}
@@ -118,8 +124,12 @@ class FakeDownloaderRepository implements IDownloaderRepository {
   /// Pushes an update as the real repository does.
   void emit(DownloadItem item) => _updates.add(item);
 
+  /// Every `deleteFiles` flag passed to [deleteDownload], in call order.
+  final List<bool> deleteFilesCalls = [];
+
   @override
-  Future<void> deleteDownload(String id) async {
+  Future<void> deleteDownload(String id, {bool deleteFiles = true}) async {
+    deleteFilesCalls.add(deleteFiles);
     final index = _items.indexWhere((e) => e.id == id);
     if (index < 0) return;
     // Like the real repository: a final `canceled` copy goes out on the stream.

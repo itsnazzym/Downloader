@@ -28,6 +28,38 @@ class YtDlpProgressUpdate {
   });
 }
 
+/// Decides which parsed updates are worth sending to the app. The parser puts
+/// the current path and title on every progress line once a destination is
+/// known, so "has a path / has a title" used to let every line through (dozens
+/// per second with 16 fragments); only a *changed* path or title counts.
+class ProgressYieldGate {
+  DateTime _lastTime = DateTime.fromMillisecondsSinceEpoch(0);
+  double _lastProgress = -1.0;
+  String _lastStep = '';
+  String? _lastPath;
+  String? _lastTitle;
+
+  bool shouldYield(YtDlpProgressUpdate update, DateTime now) {
+    final title = (update.title?.isNotEmpty ?? false) ? update.title : null;
+    final significant =
+        update.isDuplicate ||
+        (update.filePath != null && update.filePath != _lastPath) ||
+        (title != null && title != _lastTitle) ||
+        update.step != _lastStep ||
+        update.progress >= 1.0 ||
+        (update.progress - _lastProgress).abs() >= 0.05 ||
+        now.difference(_lastTime).inMilliseconds >= 250;
+    if (significant) {
+      _lastTime = now;
+      _lastProgress = update.progress;
+      _lastStep = update.step;
+      _lastPath = update.filePath ?? _lastPath;
+      _lastTitle = title ?? _lastTitle;
+    }
+    return significant;
+  }
+}
+
 /// Parses yt-dlp stdout/stderr lines for progress, destinations, and after_move paths.
 ///
 /// With `--print after_move:%(filepath)s`, the final path is often on stdout while

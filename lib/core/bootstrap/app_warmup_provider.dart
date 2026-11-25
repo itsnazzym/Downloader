@@ -101,11 +101,7 @@ class AppWarmupNotifier extends StateNotifier<AppWarmupState> {
         statusMessage: 'Connexion aux services locaux & extension...',
       );
 
-      try {
-        await _ref.read(localServerServiceProvider).start();
-      } catch (e) {
-        LoggerService.w('LocalServerService start warning: $e');
-      }
+      await _startLocalServer();
 
       _updateStageStatus(
         WarmupStageId.localServices,
@@ -131,20 +127,7 @@ class AppWarmupNotifier extends StateNotifier<AppWarmupState> {
         statusMessage: 'Enregistrement des intégrations système...',
       );
 
-      if (PlatformInfo.isDesktop) {
-        try {
-          _ref.read(clipboardServiceProvider).startMonitoring();
-        } catch (e) {
-          LoggerService.w('Clipboard monitoring warning: $e');
-        }
-      } else if (PlatformInfo.isAndroid) {
-        try {
-          await AndroidPermissions.ensure();
-          AndroidShareService.instance.start();
-        } catch (e) {
-          LoggerService.w('Android integrations warning: $e');
-        }
-      }
+      await _startIntegrations();
 
       _updateStageStatus(
         WarmupStageId.systemIntegrations,
@@ -202,8 +185,46 @@ class AppWarmupNotifier extends StateNotifier<AppWarmupState> {
     }
   }
 
+  bool _serverStarted = false;
+  bool _integrationsStarted = false;
+
+  Future<void> _startLocalServer() async {
+    if (_serverStarted) return;
+    _serverStarted = true;
+    try {
+      await _ref.read(localServerServiceProvider).start();
+    } catch (e) {
+      LoggerService.w('LocalServerService start warning: $e');
+    }
+  }
+
+  Future<void> _startIntegrations() async {
+    if (_integrationsStarted) return;
+    _integrationsStarted = true;
+    if (PlatformInfo.isDesktop) {
+      try {
+        _ref.read(clipboardServiceProvider).startMonitoring();
+      } catch (e) {
+        LoggerService.w('Clipboard monitoring warning: $e');
+      }
+    } else if (PlatformInfo.isAndroid) {
+      try {
+        await AndroidPermissions.ensure();
+        AndroidShareService.instance.start();
+      } catch (e) {
+        LoggerService.w('Android integrations warning: $e');
+      }
+    }
+  }
+
+  /// The user skips a failed tool setup. The pipeline stopped at stage 1, so
+  /// finish what it skipped: unblock the UI (tickers, launch links, library
+  /// scan) and start the extension server and clipboard monitor.
   void continueAnyway() {
+    _ref.read(dependencyBootstrapProvider.notifier).continueAnyway();
     state = state.copyWith(isCompleted: true, canContinueAnyway: false);
+    unawaited(_startLocalServer());
+    unawaited(_startIntegrations());
   }
 }
 

@@ -41,12 +41,14 @@ AppBar buildSettingsAppBar(BuildContext context, {required String title}) {
     backgroundColor: colors.background.withValues(alpha: 0.8),
     elevation: 0,
     centerTitle: true,
-    flexibleSpace: ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(color: Colors.transparent),
-      ),
-    ),
+    flexibleSpace: MediaQuery.disableAnimationsOf(context)
+        ? null
+        : ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(color: Colors.transparent),
+            ),
+          ),
     title: Text(
       title,
       style: AppTypography.h3.copyWith(

@@ -37,6 +37,8 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
   bool _showActionIcon = false;
   IconData _actionIcon = Icons.play_arrow_rounded;
   Duration _position = Duration.zero;
+  DateTime _lastPositionPaint = DateTime.fromMillisecondsSinceEpoch(0);
+  bool? _appliedMuted;
   Duration _duration = Duration.zero;
   String? _loadedPath;
 
@@ -91,7 +93,16 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
 
     _subscriptions.add(
       player.stream.position.listen((pos) {
-        if (mounted) setState(() => _position = pos);
+        // Same 250 ms cap as the fullscreen player: position events arrive
+        // far faster and each one rebuilt the whole card, video included.
+        final now = DateTime.now();
+        if (!mounted ||
+            now.difference(_lastPositionPaint) <
+                const Duration(milliseconds: 250)) {
+          return;
+        }
+        _lastPositionPaint = now;
+        setState(() => _position = pos);
       }),
     );
 
@@ -103,6 +114,7 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
 
     player.setPlaylistMode(PlaylistMode.loop);
     player.setVolume(isMuted ? 0.0 : 100.0);
+    _appliedMuted = isMuted;
     player.open(Media(filePath), play: widget.isActive);
   }
 
@@ -182,8 +194,10 @@ class _TikTokVideoCardPlayerState extends ConsumerState<TikTokVideoCardPlayer> {
     );
     final isMuted = ref.watch(tiktokMutedProvider);
 
-    // Sync volume when muted state changes globally
-    if (_player != null) {
+    // Sync volume only when the global mute changes, not on every rebuild
+    // (each call is a command sent to libmpv).
+    if (_player != null && _appliedMuted != isMuted) {
+      _appliedMuted = isMuted;
       _player?.setVolume(isMuted ? 0.0 : 100.0);
     }
 

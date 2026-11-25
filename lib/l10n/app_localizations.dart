@@ -1861,13 +1861,13 @@ abstract class AppLocalizations {
   /// No description provided for @previewSetup.
   ///
   /// In en, this message translates to:
-  /// **'Show setup screen (temporary)'**
+  /// **'Check and repair the download tools'**
   String get previewSetup;
 
   /// No description provided for @previewSetupDesc.
   ///
   /// In en, this message translates to:
-  /// **'Replay the full-screen tools check and install overlay'**
+  /// **'Re-checks yt-dlp, ffmpeg and aria2c and reinstalls what is missing'**
   String get previewSetupDesc;
 
   /// No description provided for @pluginsSectionTitle.
@@ -3826,6 +3826,12 @@ abstract class AppLocalizations {
   /// **'Age verification (18+), see solutions'**
   String get downloadCardAgeVerification;
 
+  /// No description provided for @fileDeletedFromDisk.
+  ///
+  /// In en, this message translates to:
+  /// **'The file will be deleted from your disk. This can\'t be undone.'**
+  String get fileDeletedFromDisk;
+
   /// No description provided for @downloadCardFailedMeta.
   ///
   /// In en, this message translates to:
@@ -4953,6 +4959,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get alreadyDismiss;
+
+  /// No description provided for @sortFieldDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get sortFieldDate;
+
+  /// No description provided for @sortFieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sortFieldName;
+
+  /// No description provided for @sortFieldSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get sortFieldSize;
+
+  /// No description provided for @moreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get moreActions;
+
+  /// No description provided for @retryFailedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed'**
+  String get retryFailedAction;
+
+  /// No description provided for @retryingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrying {count} failed download(s)'**
+  String retryingFailed(int count);
+
+  /// No description provided for @pauseActiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause active downloads'**
+  String get pauseActiveAction;
+
+  /// No description provided for @pauseActiveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause all active downloads'**
+  String get pauseActiveTooltip;
+
+  /// No description provided for @activeDownloadsPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Active downloads paused'**
+  String get activeDownloadsPaused;
+
+  /// No description provided for @startQueueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the queue'**
+  String get startQueueAction;
+
+  /// No description provided for @startQueueTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Start all waiting, paused and failed downloads'**
+  String get startQueueTooltip;
+
+  /// No description provided for @queueStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue started'**
+  String get queueStarted;
+
+  /// No description provided for @clearCompletedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear completed'**
+  String get clearCompletedAction;
+
+  /// No description provided for @clearCompletedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed downloads deleted'**
+  String get clearCompletedDone;
+
+  /// No description provided for @clearFailedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear failed'**
+  String get clearFailedAction;
+
+  /// No description provided for @clearFailedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed downloads cleared'**
+  String get clearFailedDone;
+
+  /// No description provided for @reduceEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce visual effects'**
+  String get reduceEffects;
+
+  /// No description provided for @reduceEffectsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Turns off blur and background animations. Smoother on modest PCs.'**
+  String get reduceEffectsDesc;
+
+  /// No description provided for @emptyLibraryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Press Ctrl+N and paste a video link.'**
+  String get emptyLibraryHint;
+
+  /// No description provided for @clearSearchAndFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search and filters'**
+  String get clearSearchAndFilters;
+
+  /// No description provided for @inspectorPlayMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Play media'**
+  String get inspectorPlayMedia;
+
+  /// No description provided for @inspectorSourceUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Source URL'**
+  String get inspectorSourceUrl;
+
+  /// No description provided for @inspectorLocalFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Local file'**
+  String get inspectorLocalFile;
+
+  /// No description provided for @urlCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'URL copied to the clipboard'**
+  String get urlCopied;
+
+  /// No description provided for @showInFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in folder'**
+  String get showInFolder;
+
+  /// No description provided for @detailsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get detailsAction;
+
+  /// No description provided for @failedRetryBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} failed · Retry'**
+  String failedRetryBadge(int count);
+
+  /// No description provided for @retryAllFailedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry all failed downloads ({count})'**
+  String retryAllFailedTooltip(int count);
+
+  /// No description provided for @ageCheckRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Age verification required (18+)'**
+  String get ageCheckRequired;
+
+  /// No description provided for @ageCheckSeeSolutions.
+  ///
+  /// In en, this message translates to:
+  /// **'See solutions (18+)'**
+  String get ageCheckSeeSolutions;
+
+  /// No description provided for @clearCompletedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} completed download(s)?'**
+  String clearCompletedConfirm(int count);
+
+  /// No description provided for @filesDeletedFromDisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Their files will be deleted from your disk. This can\'t be undone.'**
+  String get filesDeletedFromDisk;
+
+  /// No description provided for @archivePurgeSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get archivePurgeSelect;
+
+  /// No description provided for @archivePurgeSelectTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select collections to delete their videos'**
+  String get archivePurgeSelectTooltip;
+
+  /// No description provided for @archivePurgeSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String archivePurgeSelectedCount(int count);
+
+  /// No description provided for @archivePurgeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete their videos'**
+  String get archivePurgeAction;
+
+  /// No description provided for @archivePurgeMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the downloaded videos'**
+  String get archivePurgeMenu;
+
+  /// No description provided for @archivePurgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the videos of {count} collection(s)?'**
+  String archivePurgeTitle(int count);
+
+  /// No description provided for @archivePurgeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{videos} videos leave the archive and {files} downloaded files are permanently deleted from your disk. The collections are removed.'**
+  String archivePurgeBody(int videos, int files);
+
+  /// No description provided for @archivePurgeKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos that are also in a collection you keep are kept.'**
+  String archivePurgeKept(int count);
+
+  /// No description provided for @archivePurgeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{files} files deleted, {videos} videos removed'**
+  String archivePurgeDone(int files, int videos);
+
+  /// No description provided for @archiveVideoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Video from {date}'**
+  String archiveVideoTitle(String date);
+
+  /// No description provided for @settingsToolsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get settingsToolsSection;
+
+  /// No description provided for @transferAddressTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Your address on this Wi-Fi: other devices connect to it'**
+  String get transferAddressTooltip;
 }
 
 class _AppLocalizationsDelegate

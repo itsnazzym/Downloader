@@ -392,4 +392,48 @@ void main() {
     expect(v3.collectionIds, ['col-2']);
     expect(v3.collectionName, 'Dossier 2');
   });
+
+  test('purgeCollections drops videos only kept by the purged folders', () {
+    const service = TikTokCollectionReconciliationService();
+    TikTokArchiveItem video(String id, List<String> ids, String name) =>
+        TikTokArchiveItem(
+          id: id,
+          url: 'https://www.tiktokv.com/share/video/$id/',
+          date: DateTime(2026, 1, 1),
+          isFavorite: true,
+          collectionIds: ids,
+          collectionName: name,
+        );
+    final catalog = TikTokArchiveCatalog(
+      videos: [
+        video('v1', const ['col-1'], 'Dossier 1'),
+        video('v2', const ['col-1', 'col-2'], 'Dossier 1 · Dossier 2'),
+        video('v3', const ['col-2'], 'Dossier 2'),
+        video('v4', const ['col-1', 'col-3'], 'Dossier 1 · Dossier 3'),
+      ],
+      collections: const [
+        TikTokCollectionItem(id: 'col-1', name: 'Dossier 1', videoCount: 3),
+        TikTokCollectionItem(id: 'col-2', name: 'Dossier 2', videoCount: 2),
+        TikTokCollectionItem(id: 'col-3', name: 'Dossier 3', videoCount: 1),
+      ],
+      suggestions: const [],
+      sounds: const [],
+      totalFavorites: 4,
+      totalLikes: 0,
+      totalOverlap: 0,
+      yearCounts: {2026: 4},
+    );
+
+    final result = service.purgeCollections(catalog, {'col-1', 'col-3'});
+
+    // v1 and v4 only lived in purged folders; v2 is also in kept Dossier 2.
+    expect(result.removedVideoIds, {'v1', 'v4'});
+    expect(result.keptSharedCount, 1);
+    expect(result.catalog.videos.map((v) => v.id), ['v2', 'v3']);
+    expect(result.catalog.collections.map((c) => c.name), ['Dossier 2']);
+    expect(
+      result.catalog.videos.firstWhere((v) => v.id == 'v2').collectionIds,
+      ['col-2'],
+    );
+  });
 }

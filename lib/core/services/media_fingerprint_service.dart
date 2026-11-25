@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:modern_downloader/features/downloader/data/datasources/persistence_service.dart';
@@ -143,14 +144,18 @@ class MediaFingerprintService {
     return changed;
   }
 
-  Future<String> _hashFile(File file) async {
-    RandomAccessFile? handle;
+  // Pure-Dart SHA-256 is CPU-bound (seconds for a multi-GB video on a slow
+  // CPU); running it on the UI isolate froze the window after each download.
+  Future<String> _hashFile(File file) =>
+      Isolate.run(() => _hashFileSync(file.path));
+
+  static String _hashFileSync(String path) {
+    final handle = File(path).openSync(mode: FileMode.read);
     try {
-      handle = await file.open(mode: FileMode.read);
       final digestSink = _DigestSink();
       final hashSink = sha256.startChunkedConversion(digestSink);
       while (true) {
-        final chunk = await handle.read(_chunkSize);
+        final chunk = handle.readSync(_chunkSize);
         if (chunk.isEmpty) {
           break;
         }
@@ -163,7 +168,7 @@ class MediaFingerprintService {
       }
       return digest.toString();
     } finally {
-      await handle?.close();
+      handle.closeSync();
     }
   }
 

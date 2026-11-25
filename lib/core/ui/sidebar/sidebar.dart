@@ -386,7 +386,8 @@ class AppSidebar extends ConsumerWidget {
         ),
       );
 
-      if (ios) {
+      // Reduce effects (or the OS setting) drops the always-on rail blur.
+      if (ios && !MediaQuery.disableAnimationsOf(context)) {
         rail = ClipRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
