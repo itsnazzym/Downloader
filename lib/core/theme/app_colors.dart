@@ -20,7 +20,7 @@ class AppColors {
   Color get primaryVariant => Color.lerp(preset.primary, Colors.black, 0.15)!;
   Color get accent => preset.accent;
   Color get onPrimary =>
-      preset.primary.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+      preset.onPrimary;
 
   Color get textPrimary => preset.textPrimary;
   Color get textSecondary => preset.textSecondary;

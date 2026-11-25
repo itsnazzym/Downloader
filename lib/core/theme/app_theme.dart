@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_palette.dart';
 import 'app_typography.dart';
+import 'design_spec.dart';
 import 'theme_presets.dart';
 import 'theme_resolver.dart';
 
@@ -23,9 +24,7 @@ class AppTheme {
       colorScheme: ColorScheme(
         brightness: brightness,
         primary: palette.primary,
-        onPrimary: palette.primary.computeLuminance() > 0.5
-            ? Colors.black
-            : Colors.white,
+        onPrimary: palette.onPrimary,
         secondary: palette.accent,
         onSecondary: isDark ? Colors.black : Colors.white,
         surface: palette.surface,
@@ -37,7 +36,9 @@ class AppTheme {
         palette,
         useGoogleFonts: useGoogleFonts,
       ),
-      fontFamily: useGoogleFonts ? GoogleFonts.outfit().fontFamily : null,
+      fontFamily: useGoogleFonts
+          ? GoogleFonts.getFont(DesignSpec.forId(palette.id).uiFont).fontFamily
+          : null,
       dividerTheme: DividerThemeData(
         color: palette.border,
         thickness: 1,

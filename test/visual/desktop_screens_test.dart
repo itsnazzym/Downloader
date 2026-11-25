@@ -13,6 +13,7 @@ import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/theme/app_theme.dart';
+import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/router/app_router.dart';
 import 'package:modern_downloader/core/ui/app_shell.dart';
@@ -20,6 +21,7 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
+import 'package:modern_downloader/core/ui/shell/shell_strips.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
@@ -48,6 +50,7 @@ void main() {
     List<Override> extra = const [],
     String locale = 'fr',
     GoRouter? router,
+    ThemePreset preset = ThemePresets.signal,
   }) async {
     tester.view.physicalSize = const Size(1280 * 2, 800 * 2);
     tester.view.devicePixelRatio = 2;
@@ -82,7 +85,10 @@ void main() {
           child: MaterialApp.router(
             debugShowCheckedModeBanner: false,
             locale: Locale(locale),
-            theme: AppTheme.fromPalette(ThemePresets.midnight, Brightness.dark),
+            theme: AppTheme.fromPalette(
+              preset,
+              DesignSpec.forId(preset.id).brightness ?? Brightness.dark,
+            ),
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
@@ -191,7 +197,12 @@ void main() {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final router = container.read(routerProvider);
-    final key = await pump(tester, () => const SizedBox(), router: router);
+    final key = await pump(
+      tester,
+      () => const SizedBox(),
+      router: router,
+      preset: ThemePresets.ios,
+    );
     Finder inSidebar(IconData icon) => find.descendant(
       of: find.byType(AppSidebar),
       matching: find.byIcon(icon),
@@ -217,5 +228,33 @@ void main() {
       expect(find.byType(shown).hitTestable(), findsOneWidget);
     }
     await shot(tester, key, 'desktop_sidebar_settings');
+  });
+
+  testWidgets('designed chromes switch between settings pages', (tester) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final router = container.read(routerProvider);
+    await pump(tester, () => const SizedBox(), router: router);
+    await tester.tap(find.byTooltip('Paramètres'));
+    await settle(tester);
+    Future<void> open(String label) async {
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SettingsSectionStrip),
+          matching: find.text(label),
+        ),
+      );
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+    }
+
+    // Plugins twice: a stacked page would hold its onboarding GlobalKey twice.
+    for (final label in ['Plugins', 'Général', 'Plugins', 'Général']) {
+      await open(label);
+      final shown = label == 'Général'
+          ? GeneralSettingsView
+          : PluginsSettingsView;
+      expect(find.byType(shown).hitTestable(), findsOneWidget);
+    }
   });
 }
