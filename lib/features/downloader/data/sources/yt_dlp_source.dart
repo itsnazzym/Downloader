@@ -853,13 +853,15 @@ class YtDlpSource {
 
       if (exitCode != 0) {
         LoggerService.e('Full Stderr: $errorBuffer');
-        if (detectedException != null) throw detectedException!;
         final errText = errorBuffer.toString();
+        // Before the parsed error: a retry without browser cookies can still
+        // succeed (e.g. "no formats" from a signed-in YouTube profile).
         if (allowBrowserCookies &&
             cookieArgs.contains('--cookies-from-browser') &&
             YtDlpCookieArgs.hasBrowserCookieError(errText)) {
           throw _BrowserCookiesUnreadable(errText);
         }
+        if (detectedException != null) throw detectedException!;
         if (DownloadStatusGuard.isNonRetryableProxyError(errText)) {
           throw YtDlpException(
             DownloadStatusGuard.userFacingProxyErrorMessage(errText),

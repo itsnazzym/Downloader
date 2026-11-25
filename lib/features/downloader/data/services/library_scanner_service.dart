@@ -356,6 +356,10 @@ class LibraryScannerService {
     if (item.filePath != null && item.filePath!.trim().isNotEmpty) {
       final existing = _videoByPath[item.filePath!.toLowerCase()];
       if (existing != null) return existing.path;
+      // The index only covers the library root; a file yt-dlp saved
+      // elsewhere (Downloads, a per-download folder) still exists. Runs in
+      // the scan isolate, so the sync check is off the UI thread.
+      if (File(item.filePath!).existsSync()) return item.filePath;
     }
 
     if (videoId != null && videoId.isNotEmpty) {
