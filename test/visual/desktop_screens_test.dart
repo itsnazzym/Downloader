@@ -14,7 +14,11 @@ import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/theme/app_theme.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/router/app_router.dart';
 import 'package:modern_downloader/core/ui/app_shell.dart';
+import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
+import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
+import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
@@ -43,6 +47,7 @@ void main() {
     Widget Function() page, {
     List<Override> extra = const [],
     String locale = 'fr',
+    GoRouter? router,
   }) async {
     tester.view.physicalSize = const Size(1280 * 2, 800 * 2);
     tester.view.devicePixelRatio = 2;
@@ -85,21 +90,24 @@ void main() {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: GoRouter(
-              initialLocation: '/',
-              routes: [
-                ShellRoute(
-                  builder: (context, state, child) => AppShell(child: child),
+            routerConfig:
+                router ??
+                GoRouter(
+                  initialLocation: '/',
                   routes: [
-                    GoRoute(
-                      path: '/',
-                      pageBuilder: (context, state) =>
-                          NoTransitionPage(child: page()),
+                    ShellRoute(
+                      builder: (context, state, child) =>
+                          AppShell(child: child),
+                      routes: [
+                        GoRoute(
+                          path: '/',
+                          pageBuilder: (context, state) =>
+                              NoTransitionPage(child: page()),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
           ),
         ),
       ),
@@ -175,5 +183,39 @@ void main() {
       ],
     );
     await shot(tester, key, 'desktop_transfer');
+  });
+
+  testWidgets('desktop sidebar switches between settings pages', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final router = container.read(routerProvider);
+    final key = await pump(tester, () => const SizedBox(), router: router);
+    Finder inSidebar(IconData icon) => find.descendant(
+      of: find.byType(AppSidebar),
+      matching: find.byIcon(icon),
+    );
+    Future<void> open(IconData icon) async {
+      await tester.tap(inSidebar(icon));
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+    }
+
+    await open(Icons.settings_outlined); // expand the group
+    // Plugins twice: a stacked page would hold its onboarding GlobalKey twice.
+    for (final icon in [
+      Icons.extension_outlined,
+      Icons.tune,
+      Icons.extension_outlined,
+      Icons.tune,
+    ]) {
+      await open(icon);
+      final shown = icon == Icons.tune
+          ? GeneralSettingsView
+          : PluginsSettingsView;
+      expect(find.byType(shown).hitTestable(), findsOneWidget);
+    }
+    await shot(tester, key, 'desktop_sidebar_settings');
   });
 }

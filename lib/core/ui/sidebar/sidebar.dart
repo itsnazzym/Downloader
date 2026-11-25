@@ -111,6 +111,8 @@ class AppSidebar extends ConsumerWidget {
 
     final String location = GoRouterState.of(context).uri.path;
     final bool isSettingsActive = location.startsWith('/settings');
+    // Library filters only read as selected while the library is on screen.
+    final bool onLibrary = location == '/';
     final colors = AppColors.of(context);
     final ios = colors.isIosChrome;
     final collapsed = ref.watch(
@@ -206,7 +208,6 @@ class AppSidebar extends ConsumerWidget {
               ),
 
               const Gap(AppSpacing.l),
-              const Gap(AppSpacing.l),
 
               Expanded(
                 child: SingleChildScrollView(
@@ -223,6 +224,7 @@ class AppSidebar extends ConsumerWidget {
                               count: libraryCounts.total,
                               isLoading: listLoading,
                               isSelected:
+                                  onLibrary &&
                                   statusFilter == DownloadStatusFilter.all &&
                                   sourceFilter == null,
                               onTap: () => setStatus(DownloadStatusFilter.all),
@@ -233,6 +235,7 @@ class AppSidebar extends ConsumerWidget {
                               count: countActive,
                               isLoading: listLoading,
                               isSelected:
+                                  onLibrary &&
                                   statusFilter == DownloadStatusFilter.active,
                               onTap: () =>
                                   setStatus(DownloadStatusFilter.active),
@@ -243,8 +246,9 @@ class AppSidebar extends ConsumerWidget {
                               count: countCompleted,
                               isLoading: listLoading,
                               isSelected:
+                                  onLibrary &&
                                   statusFilter ==
-                                  DownloadStatusFilter.completed,
+                                      DownloadStatusFilter.completed,
                               onTap: () =>
                                   setStatus(DownloadStatusFilter.completed),
                             ),
@@ -254,11 +258,21 @@ class AppSidebar extends ConsumerWidget {
                               count: countFailed,
                               isLoading: listLoading,
                               isSelected:
+                                  onLibrary &&
                                   statusFilter == DownloadStatusFilter.failed,
                               onTap: () =>
                                   setStatus(DownloadStatusFilter.failed),
                             ),
-                            const Gap(AppSpacing.s),
+                          ],
+                        ),
+                      ),
+                      if (features.isEnabledById('statistics') ||
+                          features.isEnabledById('device_transfer') ||
+                          features.isEnabledById('tiktok_archives')) ...[
+                        const Gap(AppSpacing.m),
+                        SidebarNavSection(
+                          title: l10n.settingsToolsSection,
+                          children: [
                             if (features.isEnabledById('statistics'))
                               SidebarNavItem(
                                 icon: Icons.bar_chart_rounded,
@@ -288,19 +302,12 @@ class AppSidebar extends ConsumerWidget {
                               ),
                           ],
                         ),
-                      ),
-                      const Gap(AppSpacing.m),
-                      Divider(
-                        color: AppColors.of(
-                          context,
-                        ).border.withValues(alpha: 0.3),
-                        height: 1,
-                      ),
+                      ],
                       const Gap(AppSpacing.m),
                       SidebarSourcesSection(
                         availableSources: availableSources,
                         sourceCounts: sourceCounts,
-                        activeSourceFilter: sourceFilter,
+                        activeSourceFilter: onLibrary ? sourceFilter : null,
                         listLoading: listLoading,
                         onSelectSource: setSource,
                         sourceLabel: sourceLabel,
@@ -311,12 +318,6 @@ class AppSidebar extends ConsumerWidget {
                 ),
               ),
 
-              const Gap(AppSpacing.l),
-
-              Divider(
-                color: AppColors.of(context).border.withValues(alpha: 0.3),
-                height: 1,
-              ),
               const Gap(AppSpacing.m),
 
               SidebarExpandableNavItem(
@@ -334,49 +335,49 @@ class AppSidebar extends ConsumerWidget {
                     icon: Icons.tune,
                     label: l10n.settingsGeneral,
                     isSelected: location == '/settings/general',
-                    onTap: () => context.push('/settings/general'),
+                    onTap: () => context.go('/settings/general'),
                   ),
                   SidebarNavItem(
                     icon: Icons.folder_open_outlined,
                     label: l10n.settingsOutput,
                     isSelected: location == '/settings/output',
-                    onTap: () => context.push('/settings/output'),
+                    onTap: () => context.go('/settings/output'),
                   ),
                   SidebarNavItem(
                     icon: Icons.build_circle_outlined,
                     label: l10n.settingsAdvanced,
                     isSelected: location == '/settings/advanced',
-                    onTap: () => context.push('/settings/advanced'),
+                    onTap: () => context.go('/settings/advanced'),
                   ),
                   SidebarNavItem(
                     icon: Icons.speed_rounded,
                     label: l10n.settingsPerformance,
                     isSelected: location == '/settings/performance',
-                    onTap: () => context.push('/settings/performance'),
+                    onTap: () => context.go('/settings/performance'),
                   ),
                   SidebarNavItem(
                     icon: Icons.memory_outlined,
                     label: l10n.settingsSystem,
                     isSelected: location == '/settings/system',
-                    onTap: () => context.push('/settings/system'),
+                    onTap: () => context.go('/settings/system'),
                   ),
                   SidebarNavItem(
                     icon: Icons.palette_outlined,
                     label: l10n.settingsAppearance,
                     isSelected: location == '/settings/appearance',
-                    onTap: () => context.push('/settings/appearance'),
+                    onTap: () => context.go('/settings/appearance'),
                   ),
                   SidebarNavItem(
                     icon: Icons.extension_outlined,
                     label: l10n.settingsPlugins,
                     isSelected: location == '/settings/plugins',
-                    onTap: () => context.push('/settings/plugins'),
+                    onTap: () => context.go('/settings/plugins'),
                   ),
                   SidebarNavItem(
                     icon: Icons.auto_awesome_motion,
                     label: l10n.smartOrganization,
                     isSelected: location == '/settings/smart_organizer',
-                    onTap: () => context.push('/settings/smart_organizer'),
+                    onTap: () => context.go('/settings/smart_organizer'),
                   ),
                 ],
               ),
