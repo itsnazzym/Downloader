@@ -21,7 +21,6 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
-import 'package:modern_downloader/core/ui/shell/shell_strips.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
@@ -236,33 +235,49 @@ void main() {
     await shot(tester, key, 'desktop_sidebar_settings');
   });
 
-  testWidgets('designed chromes switch between settings pages', (tester) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final router = container.read(routerProvider);
-    await pump(tester, () => const SizedBox(), router: router);
-    await tester.tap(find.byTooltip('Paramètres'));
-    await settle(tester);
-    Future<void> open(String label) async {
-      await tester.tap(
-        find.descendant(
-          of: find.byType(SettingsSectionStrip),
-          matching: find.text(label),
-        ),
+  // Each design draws its own settings section navigation: going Plugins ->
+  // Général twice must land on the right page every time (a stacked page
+  // would hold the Plugins onboarding GlobalKey twice and jam the navigator).
+  for (final id in const [
+    'signal',
+    'porcelaine',
+    'pastille',
+    'studio',
+    'terminal',
+    'nocturne',
+  ]) {
+    testWidgets('design $id switches between settings sections', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.getById(id),
       );
+      router.go('/settings/general');
       await settle(tester);
-      expect(tester.takeException(), isNull);
-    }
+      Future<void> open(String label, String path) async {
+        // Terminal writes its sections in lower case.
+        final target = find.byWidgetPredicate(
+          (w) => w is Text && w.data?.toLowerCase() == label.toLowerCase(),
+        );
+        await tester.tap(target.hitTestable().first);
+        await settle(tester);
+        expect(tester.takeException(), isNull);
+        expect(router.routerDelegate.currentConfiguration.uri.path, path);
+      }
 
-    // Plugins twice: a stacked page would hold its onboarding GlobalKey twice.
-    for (final label in ['Plugins', 'Général', 'Plugins', 'Général']) {
-      await open(label);
-      final shown = label == 'Général'
-          ? GeneralSettingsView
-          : PluginsSettingsView;
-      expect(find.byType(shown).hitTestable(), findsOneWidget);
-    }
-  });
+      for (var round = 0; round < 2; round++) {
+        await open('Plugins', '/settings/plugins');
+        expect(find.byType(PluginsSettingsView), findsOneWidget);
+        await open('Général', '/settings/general');
+      }
+    });
+  }
 
   // Every design on every page, on the real routes: writes
   // build/visual/design_<id>_<page>.png to look at, fails only on a crash.
