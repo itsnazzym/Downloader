@@ -5,6 +5,7 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
+import '../../design_system/design_skin.dart';
 import 'widgets/settings_tiles.dart';
 import 'widgets/settings_app_bar.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -63,7 +64,8 @@ class PerformanceSettingsView extends ConsumerWidget {
                               .setConcurrentFragments(v.toInt()),
                           icon: Icons.bolt_rounded,
                         ),
-                        if (useOledSettingsStyle(context))
+                        if (useOledSettingsStyle(context) ||
+                            DesignSkin.of(context)?.switchTile != null)
                           SwitchTile(
                             title: l10n.maxSpeedMode,
                             subtitle: l10n.maxSpeedModeDesc,
@@ -93,7 +95,8 @@ class PerformanceSettingsView extends ConsumerWidget {
                             onChanged: settingsNotifier.setMaxSpeedMode,
                             contentPadding: EdgeInsets.zero,
                           ),
-                        if (useOledSettingsStyle(context))
+                        if (useOledSettingsStyle(context) ||
+                            DesignSkin.of(context)?.switchTile != null)
                           SwitchTile(
                             title: l10n.reduceEffects,
                             subtitle: l10n.reduceEffectsDesc,

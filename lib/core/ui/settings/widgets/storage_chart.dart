@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:universal_disk_space/universal_disk_space.dart';
 
+import '../../../design_system/design_skin.dart';
 import '../../../design_system/foundation/colors.dart';
 import '../../../design_system/foundation/spacing.dart';
 import '../../../design_system/foundation/typography.dart';
@@ -55,8 +56,9 @@ class _StorageChartState extends State<StorageChart> {
       final normalizedPath = isWindows ? path.replaceAll('/', '\\') : path;
       Disk? targetDisk;
       for (final disk in disks) {
-        final diskPath =
-            isWindows ? disk.devicePath.replaceAll('/', '\\') : disk.devicePath;
+        final diskPath = isWindows
+            ? disk.devicePath.replaceAll('/', '\\')
+            : disk.devicePath;
         if (normalizedPath.toUpperCase().startsWith(diskPath.toUpperCase())) {
           targetDisk = disk;
           break;
@@ -76,10 +78,7 @@ class _StorageChartState extends State<StorageChart> {
     final free = await DiskSpaceService.getFreeDiskSpace();
     final freeBytes = free ?? (10 * 1024 * 1024 * 1024);
     final totalBytes = max(freeBytes * 2, 64 * 1024 * 1024 * 1024);
-    return DiskChartData(
-      totalBytes: totalBytes,
-      freeBytes: freeBytes,
-    );
+    return DiskChartData(totalBytes: totalBytes, freeBytes: freeBytes);
   }
 
   @override
@@ -300,17 +299,20 @@ class _StorageChartState extends State<StorageChart> {
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.l),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.border.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+      decoration: designPanel(
+        context,
+        BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.border.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
