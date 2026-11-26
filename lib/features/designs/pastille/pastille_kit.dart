@@ -1178,13 +1178,20 @@ class PastilleHeader extends StatelessWidget {
         const SizedBox(height: 10),
         Semantics(
           header: true,
-          child: Text(
-            title,
-            style: pNum(
-              44,
-              weight: FontWeight.w700,
-              color: pCream,
-            ).copyWith(letterSpacing: -0.04 * 44),
+          // One line: the title shrinks beside wide actions instead of
+          // breaking mid-word ("Appearanc / e").
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              title,
+              maxLines: 1,
+              style: pNum(
+                44,
+                weight: FontWeight.w700,
+                color: pCream,
+              ).copyWith(letterSpacing: -0.04 * 44),
+            ),
           ),
         ),
       ],

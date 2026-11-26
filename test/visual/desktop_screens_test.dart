@@ -21,6 +21,7 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
+import 'package:modern_downloader/features/designs/pastille/pastille_kit.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
@@ -288,6 +289,33 @@ void main() {
       }
     });
   }
+
+  // Seen in the real app in a 1000 px window: the title broke into "Appearanc / e".
+  testWidgets('pastille settings title stays on one line beside its tabs', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final router = container.read(routerProvider);
+    await pump(
+      tester,
+      () => const SizedBox(),
+      router: router,
+      locale: 'en',
+      preset: ThemePresets.pastille,
+      // The client area of a 1000 x 720 window.
+      size: const Size(984, 680),
+    );
+    router.go('/settings/appearance');
+    await settle(tester);
+    final title = find.descendant(
+      of: find.byType(PastilleHeader),
+      matching: find.text('Appearance'),
+    ).first; // the title; the section tab comes after it
+    expect(title, findsOneWidget);
+    // One line of 44 px Sora at 0.9 line height, not two.
+    expect(tester.getSize(title).height, lessThan(60));
+  });
 
   // Every design on every page, on the real routes: writes
   // build/visual/design_<id>_<page>.png to look at, fails only on a crash.
