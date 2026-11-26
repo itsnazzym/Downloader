@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:modern_downloader/core/ui/shell/designed_page.dart';
 
+import 'nocturne_archive.dart';
 import 'nocturne_home.dart';
 import 'nocturne_settings.dart';
 import 'nocturne_stats.dart';
@@ -16,6 +17,7 @@ Widget? nocturnePage(DesignRoute route, Widget current) {
     case DesignRoute.settings:
       return NocturneSettings(current: current);
     case DesignRoute.archive:
+      return NocturneArchive(current: current);
     case DesignRoute.transfer:
       return null;
   }

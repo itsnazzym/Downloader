@@ -3223,4 +3223,111 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nocturneIncrease => 'Augmenter';
+
+  @override
+  String get nocturneArchiveEyebrow => 'Archive locale · TikTok';
+
+  @override
+  String nocturneWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'vidéos',
+      one: 'vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'collections',
+      one: 'collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'favoris',
+      one: 'favori',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSync => 'Synchroniser';
+
+  @override
+  String get nocturneSyncing => 'Synchronisation…';
+
+  @override
+  String nocturneStopBatch(int done, int total) {
+    return 'Arrêter · $done/$total';
+  }
+
+  @override
+  String get nocturneDownloadAll => 'Tout télécharger';
+
+  @override
+  String get nocturneTabVideos => 'Vidéos';
+
+  @override
+  String get nocturneTabCollections => 'Collections';
+
+  @override
+  String get nocturneTabFavorites => 'Favoris';
+
+  @override
+  String get nocturneImport => 'Importer';
+
+  @override
+  String get nocturneArchiveSearch => 'Rechercher une vidéo ou une collection…';
+
+  @override
+  String get nocturneClear => 'Effacer';
+
+  @override
+  String nocturneCountVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '1 vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSelectAll => 'Tout sélectionner';
+
+  @override
+  String nocturneSelectedClear(int count) {
+    return '$count sélectionnées · Effacer';
+  }
+
+  @override
+  String get nocturneDownloadSelection => 'Télécharger la sélection';
+
+  @override
+  String get nocturneQueued => 'Vidéos ajoutées à la file de téléchargement.';
+
+  @override
+  String nocturneBatchSkipped(int done, int total, int skipped) {
+    return '$done / $total ($skipped ignorées)';
+  }
+
+  @override
+  String get nocturneNoMatch => 'Aucune vidéo ne correspond aux filtres actifs';
+
+  @override
+  String get nocturneResetFilters => 'Réinitialiser les filtres';
+
+  @override
+  String get nocturneFilters => 'Filtres';
 }

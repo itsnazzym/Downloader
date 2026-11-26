@@ -3189,4 +3189,111 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nocturneIncrease => 'زيادة';
+
+  @override
+  String get nocturneArchiveEyebrow => 'أرشيف محلي · TikTok';
+
+  @override
+  String nocturneWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فيديوهات',
+      one: 'فيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مجموعات',
+      one: 'مجموعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مفضلات',
+      one: 'مفضلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSync => 'مزامنة';
+
+  @override
+  String get nocturneSyncing => 'جارٍ المزامنة…';
+
+  @override
+  String nocturneStopBatch(int done, int total) {
+    return 'إيقاف · $done/$total';
+  }
+
+  @override
+  String get nocturneDownloadAll => 'تنزيل الكل';
+
+  @override
+  String get nocturneTabVideos => 'الفيديوهات';
+
+  @override
+  String get nocturneTabCollections => 'المجموعات';
+
+  @override
+  String get nocturneTabFavorites => 'المفضلة';
+
+  @override
+  String get nocturneImport => 'استيراد';
+
+  @override
+  String get nocturneArchiveSearch => 'ابحث عن فيديو أو مجموعة…';
+
+  @override
+  String get nocturneClear => 'مسح';
+
+  @override
+  String nocturneCountVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSelectAll => 'تحديد الكل';
+
+  @override
+  String nocturneSelectedClear(int count) {
+    return '$count محددة · مسح';
+  }
+
+  @override
+  String get nocturneDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get nocturneQueued => 'أُضيفت الفيديوهات إلى قائمة التنزيل.';
+
+  @override
+  String nocturneBatchSkipped(int done, int total, int skipped) {
+    return '$done / $total ($skipped متجاهلة)';
+  }
+
+  @override
+  String get nocturneNoMatch => 'لا يوجد فيديو يطابق عوامل التصفية';
+
+  @override
+  String get nocturneResetFilters => 'إعادة ضبط عوامل التصفية';
+
+  @override
+  String get nocturneFilters => 'عوامل التصفية';
 }
