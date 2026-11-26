@@ -1687,5 +1687,16 @@
   "signalTransferTo": "إلى {name}",
   "signalTransferPickDevice": "اختر الجهاز من قائمة الأجهزة.",
   "porcelaineSelectedCollections": "{count, plural, =0{لا شيء محدد} =1{مجموعة واحدة محددة} two{مجموعتان محددتان} few{{count} مجموعات محددة} other{{count} مجموعة محددة}}",
-  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد"
+  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد",
+  "studioEmptyTitle": "مكتبتك فارغة.",
+  "studioEmptyBody": "انسخ رابط فيديو ثم الصقه هنا. يبدأ Ctrl+N أيضًا تنزيلًا جديدًا.",
+  "studioNoResultsFor": "لا شيء يطابق «{query}».",
+  "studioNoResultsHint": "تحقق من الإملاء أو أزل عامل تصفية.",
+  "studioLoadErrorTitle": "تعذّر تحميل المكتبة.",
+  "studioLoadErrorBody": "لم تُمسّ ملفاتك. حاول مجددًا بعد لحظة.",
+  "studioFailedCount": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيلًا}}",
+  "studioRetryFailed": "إعادة محاولة الفاشلة ({count})",
+  "studioNoDevicesTitle": "لا يوجد جهاز قريب",
+  "studioNoStatsTitle": "لا توجد إحصاءات بعد",
+  "studioNoStatsBody": "ستظهر هنا بعد أول تنزيل لك."
 }

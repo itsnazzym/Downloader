@@ -303,18 +303,62 @@ class _Devices extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
     final l10n = context.l10n;
-    final (peers, target) = ref.watch(
+    final (peers, target, scanning) = ref.watch(
       transferControllerProvider.select(
-        (s) => (s.peers, s.activeTargetFingerprint),
+        (s) => (s.peers, s.activeTargetFingerprint, s.isScanningSubnet),
       ),
     );
     final controller = ref.read(transferControllerProvider.notifier);
     if (peers.isEmpty) {
+      // An unlit recording ring: nothing on the air yet, and a way to look.
       return StudioPanel(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        child: Text(
-          l10n.transferNoDevices,
-          style: studioText(c, color: c.textSecondary),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StudioCap(l10n.transferDevices),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  width: 9,
+                  height: 9,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: c.accent, width: 1.3),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.studioNoDevicesTitle,
+                    style: studioTitle(c, 17).copyWith(letterSpacing: -0.34),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 19),
+              child: Text(
+                l10n.studioScanTitle,
+                style: studioText(c, color: c.textSecondary),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 19),
+              child: StudioButton(
+                label: scanning
+                    ? l10n.transferScanningSubnet
+                    : l10n.transferScanSubnet,
+                icon: Icons.wifi_tethering_rounded,
+                kind: StudioButtonKind.light,
+                height: 32,
+                onTap: scanning ? null : controller.scanSubnet,
+              ),
+            ),
+          ],
         ),
       );
     }

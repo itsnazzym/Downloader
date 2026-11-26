@@ -4898,4 +4898,53 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Pas encore téléchargée';
+
+  @override
+  String get studioEmptyTitle => 'Ta bibliothèque est vide.';
+
+  @override
+  String get studioEmptyBody =>
+      'Copie le lien d’une vidéo, puis colle-le ici. Ctrl+N ouvre aussi un nouveau téléchargement.';
+
+  @override
+  String studioNoResultsFor(String query) {
+    return 'Rien ne correspond à « $query ».';
+  }
+
+  @override
+  String get studioNoResultsHint =>
+      'Vérifie l’orthographe ou retire un filtre.';
+
+  @override
+  String get studioLoadErrorTitle => 'La bibliothèque n’a pas pu être chargée.';
+
+  @override
+  String get studioLoadErrorBody =>
+      'Tes fichiers ne sont pas touchés. Réessaie dans un instant.';
+
+  @override
+  String studioFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements ont échoué',
+      one: '1 téléchargement a échoué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioRetryFailed(int count) {
+    return 'Relancer les échecs ($count)';
+  }
+
+  @override
+  String get studioNoDevicesTitle => 'Aucun appareil à portée';
+
+  @override
+  String get studioNoStatsTitle => 'Pas encore de statistiques';
+
+  @override
+  String get studioNoStatsBody =>
+      'Elles apparaîtront ici après ton premier téléchargement.';
 }

@@ -31,6 +31,7 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
+import 'studio_states.dart';
 import 'studio_widgets.dart';
 
 /// Studio's home (mockup Studio.dc.html): the library as an editorial table.
@@ -90,10 +91,65 @@ class _Library extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final listMode =
         ref.watch(downloadViewModeProvider) == DownloadViewMode.list;
-    final hasRows =
-        (ref.watch(filteredDownloadListPhaseProvider).valueOrNull ?? 0) > 0;
+    final phase = ref.watch(filteredDownloadListPhaseProvider);
+    final query = ref.watch(downloadSearchQueryProvider);
+    final filtered =
+        query.isNotEmpty ||
+        ref.watch(downloadStatusFilterProvider) != DownloadStatusFilter.all ||
+        ref.watch(downloadSourceFilterProvider) != null;
+    final failed = ref.watch(
+      downloadListProvider.select(
+        (v) => (v.valueOrNull ?? const <DownloadItem>[])
+            .where((i) => i.status == DownloadStatus.failed)
+            .length,
+      ),
+    );
+    // One child per situation, cross-faded when the situation changes.
+    final (String kind, Widget body) = switch (phase) {
+      AsyncValue(hasValue: true, :final value) when value! > 0 =>
+        listMode
+            ? ('table', const _Table())
+            : ('list', const DownloadList()),
+      AsyncValue(hasValue: true) when filtered => (
+        'noresults',
+        _NoResults(query: query),
+      ),
+      AsyncValue(hasValue: true) => (
+        'empty',
+        StudioSituation(
+          title: l10n.studioEmptyTitle,
+          body: l10n.studioEmptyBody,
+          actions: [
+            StudioButton(
+              label: l10n.studioPasteLink,
+              icon: Icons.content_paste_rounded,
+              onTap: () => _pasteLink(context),
+            ),
+          ],
+        ),
+      ),
+      AsyncError(:final error) => (
+        'error',
+        StudioSituation(
+          broken: true,
+          title: l10n.studioLoadErrorTitle,
+          body: l10n.studioLoadErrorBody,
+          detail: studioErrorReason('$error'),
+          actions: [
+            StudioButton(
+              label: l10n.retry,
+              icon: Icons.refresh_rounded,
+              onTap: () =>
+                  ref.read(downloadListProvider.notifier).refreshList(),
+            ),
+          ],
+        ),
+      ),
+      _ => ('loading', const _TableSkeleton()),
+    };
     return LayoutBuilder(
       builder: (context, constraints) {
         final side = constraints.maxWidth < 640 ? 16.0 : 40.0;
@@ -104,21 +160,213 @@ class _Library extends ConsumerWidget {
             children: [
               _Header(stacked: constraints.maxWidth < 900),
               const SizedBox(height: 24),
-              if (listMode && hasRows)
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 30),
-                    child: KeyedSubtree(
-                      key: OnboardingTargets.creatorList,
-                      child: const _Table(),
+              if (failed >= 2 && kind == 'table') ...[
+                _FailedStrip(count: failed),
+                const SizedBox(height: 12),
+              ],
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: kind == 'list' ? 0 : 30),
+                  child: KeyedSubtree(
+                    key: OnboardingTargets.creatorList,
+                    child: AnimatedSwitcher(
+                      duration: studioMotion(context, 180),
+                      layoutBuilder: (current, previous) => Stack(
+                        fit: StackFit.expand,
+                        children: [...previous, ?current],
+                      ),
+                      child: KeyedSubtree(key: ValueKey(kind), child: body),
                     ),
                   ),
-                )
-              else
-                Expanded(
-                  child: DownloadList(key: OnboardingTargets.creatorList),
                 ),
+              ),
             ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// « 5 téléchargements ont échoué » and « Relancer les échecs (5) », above
+/// the table when more than one failed.
+class _FailedStrip extends ConsumerWidget {
+  const _FailedStrip({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: c.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: c.error, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              l10n.studioFailedCount(count),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: studioText(c, color: c.error),
+            ),
+          ),
+          const SizedBox(width: 12),
+          StudioButton(
+            label: l10n.studioRetryFailed(count),
+            icon: Icons.refresh_rounded,
+            kind: StudioButtonKind.light,
+            height: 32,
+            onTap: () =>
+                ref.read(downloadListProvider.notifier).retryAllFailed(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A search or filter that matches nothing: the table's frame, the query
+/// quoted, and one way back.
+class _NoResults extends ConsumerWidget {
+  const _NoResults({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    void reset() {
+      ref.read(downloadSearchQueryProvider.notifier).state = '';
+      ref.read(downloadStatusFilterProvider.notifier).state =
+          DownloadStatusFilter.all;
+      ref.read(downloadSourceFilterProvider.notifier).state = null;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) => Align(
+        alignment: Alignment.topCenter,
+        child: StudioPanel(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _HeaderRow(compact: constraints.maxWidth < 620),
+              const StudioRule(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 28, 16, 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StudioCap(l10n.studioItems(0)),
+                    const SizedBox(height: 10),
+                    Text(
+                      query.isEmpty
+                          ? l10n.noResults
+                          : l10n.studioNoResultsFor(query),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: studioTitle(c, 22),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.studioNoResultsHint,
+                      style: studioText(c, color: c.textSecondary),
+                    ),
+                    const SizedBox(height: 18),
+                    StudioButton(
+                      label: l10n.clearSearchAndFilters,
+                      icon: Icons.close_rounded,
+                      kind: StudioButtonKind.light,
+                      onTap: reset,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The table while the library loads: its real header over six rows of
+/// shimmering bars in the columns' places.
+class _TableSkeleton extends StatelessWidget {
+  const _TableSkeleton();
+
+  static const _titles = [0.62, 0.44, 0.7, 0.36, 0.55, 0.48];
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 620;
+        return Align(
+          alignment: Alignment.topCenter,
+          child: StudioPanel(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _HeaderRow(compact: compact),
+                StudioShimmer(
+                  child: Column(
+                    children: [
+                      for (final f in _titles)
+                        Container(
+                          height: _rowHeight,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                color: AppColors.of(context).borderSubtle,
+                              ),
+                            ),
+                          ),
+                          child: _Columns(
+                            compact: compact,
+                            title: LayoutBuilder(
+                              builder: (context, box) => Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: StudioBone(width: box.maxWidth * f),
+                              ),
+                            ),
+                            source: const Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: StudioBone(width: 56),
+                            ),
+                            size: const Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: StudioBone(width: 44),
+                            ),
+                            state: const Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: StudioBone(width: 64),
+                            ),
+                            format: const Align(
+                              alignment: AlignmentDirectional.centerEnd,
+                              child: StudioBone(width: 28),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -148,7 +396,17 @@ class _Header extends ConsumerWidget {
         return sum;
       }),
     );
-    final summary = Text.rich(
+    final loaded = ref.watch(downloadListProvider.select((v) => v.hasValue));
+    // While the library loads, a bar instead of a false « 0 élément ».
+    final summary = !loaded
+        ? const SizedBox(
+            height: 22,
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: StudioShimmer(child: StudioBone(width: 120)),
+            ),
+          )
+        : Text.rich(
       TextSpan(
         style: studioText(c, color: c.textSecondary),
         children: [
@@ -468,11 +726,76 @@ const double _lineRowHeight = 52;
 bool _hasLine(DownloadItem item) =>
     isActiveDownload(item) || item.status == DownloadStatus.paused;
 
-class _Table extends ConsumerWidget {
+class _Table extends ConsumerStatefulWidget {
   const _Table();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Table> createState() => _TableState();
+}
+
+/// Rows that rise in when the table opens.
+const int _entranceRows = 12;
+const int _entranceStepMs = 30;
+const int _entranceRowMs = 280;
+
+class _TableState extends ConsumerState<_Table>
+    with SingleTickerProviderStateMixin {
+  // Played once per opening: rows scrolled in or refiltered later find it
+  // finished.
+  late final AnimationController _entrance = AnimationController(
+    vsync: this,
+    duration: const Duration(
+      milliseconds: _entranceStepMs * (_entranceRows - 1) + _entranceRowMs,
+    ),
+  );
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _entrance.value = 1;
+    } else {
+      _entrance.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _entrance.dispose();
+    super.dispose();
+  }
+
+  Animation<double> _rise(int i) {
+    if (i >= _entranceRows) return kAlwaysCompleteAnimation;
+    final total = _entrance.duration!.inMilliseconds;
+    final start = i * _entranceStepMs / total;
+    return _entrance.drive(
+      CurveTween(
+        curve: Interval(start, start + _entranceRowMs / total, curve: studioEase),
+      ),
+    );
+  }
+
+  Widget _entering(int i, Widget row) {
+    final t = _rise(i);
+    return FadeTransition(
+      opacity: t,
+      child: AnimatedBuilder(
+        animation: t,
+        child: row,
+        builder: (context, child) => Transform.translate(
+          offset: Offset(0, 8 * (1 - t.value)),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final c = AppColors.of(context);
     // Ids and which rows carry a line: both change with status, not progress.
     final rows = ref.watch(
@@ -524,19 +847,21 @@ class _Table extends ConsumerWidget {
                               ReorderableDelayedDragStartListener(
                                 key: ValueKey(rows.list[i].$1),
                                 index: i,
-                                child: _Row(
-                                  id: rows.list[i].$1,
-                                  compact: compact,
+                                child: _entering(
+                                  i,
+                                  _Row(id: rows.list[i].$1, compact: compact),
                                 ),
                               ),
                         )
                       : ListView.builder(
                           itemCount: rows.list.length,
                           itemExtentBuilder: extent,
-                          itemBuilder: (context, i) => _Row(
+                          itemBuilder: (context, i) => KeyedSubtree(
                             key: ValueKey(rows.list[i].$1),
-                            id: rows.list[i].$1,
-                            compact: compact,
+                            child: _entering(
+                              i,
+                              _Row(id: rows.list[i].$1, compact: compact),
+                            ),
                           ),
                         ),
                 ),
@@ -633,7 +958,7 @@ class _HeaderRow extends StatelessWidget {
 }
 
 class _Row extends ConsumerStatefulWidget {
-  const _Row({super.key, required this.id, required this.compact});
+  const _Row({required this.id, required this.compact});
 
   final String id;
   final bool compact;
@@ -642,8 +967,26 @@ class _Row extends ConsumerStatefulWidget {
   ConsumerState<_Row> createState() => _RowState();
 }
 
-class _RowState extends ConsumerState<_Row> {
+class _RowState extends ConsumerState<_Row>
+    with SingleTickerProviderStateMixin {
   bool _hover = false;
+
+  /// The finish moment, created the first time this row completes.
+  AnimationController? _done;
+
+  void _celebrate() {
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    (_done ??= AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )).forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _done?.dispose();
+    super.dispose();
+  }
 
   void _play(DownloadItem item) {
     final path = item.filePath;
@@ -666,8 +1009,23 @@ class _RowState extends ConsumerState<_Row> {
 
   @override
   Widget build(BuildContext context) {
+    // Live -> done on this row's own item: the recording dot becomes a check.
+    ref.listen<DownloadItem?>(downloadItemByIdProvider(widget.id), (
+      previous,
+      next,
+    ) {
+      if (previous != null &&
+          isActiveDownload(previous) &&
+          next?.status == DownloadStatus.completed) {
+        _celebrate();
+      }
+    });
     final item = ref.watch(downloadItemByIdProvider(widget.id));
     if (item == null) return const SizedBox.shrink();
+    final failed =
+        item.status == DownloadStatus.failed ||
+        item.status == DownloadStatus.canceled;
+    final reason = failed ? studioErrorReason(item.error) : '';
     final c = AppColors.of(context);
     final l10n = context.l10n;
     final selected = ref.watch(
@@ -701,12 +1059,34 @@ class _RowState extends ConsumerState<_Row> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  StudioUnderline(
-                    text: TitleCleanerService.clean(
-                      item.title ?? item.request.url,
-                    ),
-                    hover: _hover,
-                    style: studioText(c).copyWith(fontWeight: FontWeight.w500),
+                  Row(
+                    children: [
+                      Flexible(
+                        flex: 3,
+                        child: StudioUnderline(
+                          text: TitleCleanerService.clean(
+                            item.title ?? item.request.url,
+                          ),
+                          hover: _hover,
+                          style: studioText(
+                            c,
+                          ).copyWith(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      // Why it failed, short, beside the title.
+                      if (reason.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        Flexible(
+                          flex: 2,
+                          child: Text(
+                            reason,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: studioText(c, size: 12, color: c.error),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   if (line) ...[
                     const SizedBox(height: 8),
@@ -721,7 +1101,12 @@ class _RowState extends ConsumerState<_Row> {
                 style: secondary,
               ),
               size: _cell(Text(_sizeLabel(l10n, item), style: studioMono(c))),
-              state: _State(item: item, onRetry: () => _retry(item)),
+              state: _State(
+                item: item,
+                reason: reason,
+                done: _done,
+                onRetry: () => _retry(item),
+              ),
               format: Text(
                 formatLabelOf(item),
                 textAlign: TextAlign.end,
@@ -744,9 +1129,16 @@ class _RowState extends ConsumerState<_Row> {
 /// État: a blinking red dot with percent and speed while live, plain words
 /// otherwise, « Échec · Réessayer » in red when it failed.
 class _State extends StatelessWidget {
-  const _State({required this.item, required this.onRetry});
+  const _State({
+    required this.item,
+    required this.reason,
+    required this.done,
+    required this.onRetry,
+  });
 
   final DownloadItem item;
+  final String reason;
+  final Animation<double>? done;
   final VoidCallback onRetry;
 
   @override
@@ -788,7 +1180,7 @@ class _State extends StatelessWidget {
             Text('${l10n.designFailed} · ', style: red),
             Flexible(
               child: Tooltip(
-                message: (item.error ?? '').split('\n').first,
+                message: reason,
                 child: InkWell(
                   onTap: onRetry,
                   child: Text(
@@ -813,10 +1205,123 @@ class _State extends StatelessWidget {
           style: pill,
         );
       case DownloadStatus.completed:
+        final done = this.done;
+        if (done != null) {
+          return _DoneMark(animation: done, label: l10n.statusCompleted);
+        }
         return Text(l10n.statusCompleted, style: pill);
       case DownloadStatus.duplicate:
         return Text(l10n.statusDuplicate, style: pill);
     }
+  }
+}
+
+/// The finish moment (900 ms): the red recording dot shrinks away as an ink
+/// check stamps in, an ink underline sweeps under « Terminé », then check
+/// and underline fade and the cell settles to its plain resting look.
+class _DoneMark extends StatelessWidget {
+  const _DoneMark({required this.animation, required this.label});
+
+  final Animation<double> animation;
+  final String label;
+
+  static double _at(double t, double a, double b, [Curve curve = studioEase]) =>
+      curve.transform(((t - a) / (b - a)).clamp(0.0, 1.0));
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          final t = animation.value;
+          final dotOut = _at(t, 0, 0.3);
+          final checkIn = _at(t, 0.12, 0.42, Curves.easeOutBack);
+          final sweep = _at(t, 0.35, 0.75);
+          final settle = _at(t, 0.8, 1);
+          return Row(
+            children: [
+              SizedBox(
+                width: 19 * (1 - settle),
+                height: 14,
+                child: OverflowBox(
+                  maxWidth: 19,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Transform.scale(
+                        scale: 1 - dotOut,
+                        child: Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: c.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      Opacity(
+                        opacity: (1 - settle) * checkIn.clamp(0.0, 1.0),
+                        child: Transform.scale(
+                          scale: checkIn,
+                          child: Icon(
+                            Icons.check_rounded,
+                            size: 14,
+                            color: c.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Flexible(
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: studioText(
+                          c,
+                          size: 12,
+                          color: Color.lerp(
+                            c.textPrimary,
+                            c.textSecondary,
+                            settle,
+                          ),
+                        ),
+                      ),
+                    ),
+                    PositionedDirectional(
+                      start: 0,
+                      end: 0,
+                      bottom: 0,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FractionallySizedBox(
+                          widthFactor: sweep,
+                          child: Container(
+                            height: 1,
+                            color: c.textPrimary.withValues(
+                              alpha: 1 - settle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }
 

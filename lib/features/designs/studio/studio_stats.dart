@@ -192,6 +192,9 @@ class _ChartState extends ConsumerState<_Chart> {
             DailyStats(date: _key(now.subtract(Duration(days: i)))),
     ];
     final peak = days.fold<int>(0, (m, d) => d.downloads > m ? d.downloads : m);
+    final none = ref.watch(
+      downloadStatsProvider.select((s) => s.totalDownloads == 0),
+    );
     return StudioPanel(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
       child: Column(
@@ -219,7 +222,37 @@ class _ChartState extends ConsumerState<_Chart> {
             height: 160,
             child: CustomPaint(
               painter: _GridPainter(c.borderSubtle),
-              child: Padding(
+              // Nothing downloaded yet: say so on the empty grid.
+              child: peak == 0 && none
+                  ? Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
+                        color: c.surface,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.studioNoStatsTitle,
+                              textAlign: TextAlign.center,
+                              style: studioTitle(
+                                c,
+                                17,
+                              ).copyWith(letterSpacing: -0.34),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              l10n.studioNoStatsBody,
+                              textAlign: TextAlign.center,
+                              style: studioText(c, color: c.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
