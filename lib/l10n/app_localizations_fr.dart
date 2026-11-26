@@ -3128,4 +3128,31 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'Archives';
+
+  @override
+  String studioItems(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString éléments',
+      one: '1 élément',
+      zero: '0 élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioLiveCount(int count) {
+    return '$count en cours';
+  }
+
+  @override
+  String get studioPasteLink => 'Coller un lien';
+
+  @override
+  String get studioColState => 'État';
 }

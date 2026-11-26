@@ -3091,4 +3091,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'الأرشيف';
+
+  @override
+  String studioItems(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString عنصر',
+      many: '$countString عنصرًا',
+      few: '$countString عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+      zero: 'لا عناصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioLiveCount(int count) {
+    return '$count قيد التنزيل';
+  }
+
+  @override
+  String get studioPasteLink => 'الصق رابطًا';
+
+  @override
+  String get studioColState => 'الحالة';
 }

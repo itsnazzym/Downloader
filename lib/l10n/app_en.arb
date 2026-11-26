@@ -1419,5 +1419,11 @@
   "designNothingActive": "Nothing is downloading. Paste a link to start.",
   "designQueueEmpty": "Nothing waiting",
   "designLibraryEmpty": "Your library is empty for now.",
-  "designArchivesTab": "Archives"
+  "designArchivesTab": "Archives",
+  "studioItems": "{count, plural, =0{0 items} =1{1 item} other{{count} items}}",
+  "@studioItems": {"placeholders": {"count": {"type": "int", "format": "decimalPattern"}}},
+  "studioLiveCount": "{count} in progress",
+  "@studioLiveCount": {"placeholders": {"count": {"type": "int"}}},
+  "studioPasteLink": "Paste a link",
+  "studioColState": "Status"
 }

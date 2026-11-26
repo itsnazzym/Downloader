@@ -1190,5 +1190,9 @@
   "designNothingActive": "لا يوجد تنزيل الآن. الصق رابطًا للبدء.",
   "designQueueEmpty": "لا شيء في الانتظار",
   "designLibraryEmpty": "مكتبتك فارغة حاليًا.",
-  "designArchivesTab": "الأرشيف"
+  "designArchivesTab": "الأرشيف",
+  "studioItems": "{count, plural, =0{لا عناصر} =1{عنصر واحد} =2{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
+  "studioLiveCount": "{count} قيد التنزيل",
+  "studioPasteLink": "الصق رابطًا",
+  "studioColState": "الحالة"
 }

@@ -5355,6 +5355,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archives'**
   String get designArchivesTab;
+
+  /// No description provided for @studioItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 items} =1{1 item} other{{count} items}}'**
+  String studioItems(int count);
+
+  /// No description provided for @studioLiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in progress'**
+  String studioLiveCount(int count);
+
+  /// No description provided for @studioPasteLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link'**
+  String get studioPasteLink;
+
+  /// No description provided for @studioColState.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get studioColState;
 }
 
 class _AppLocalizationsDelegate

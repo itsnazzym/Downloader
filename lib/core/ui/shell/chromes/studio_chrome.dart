@@ -10,7 +10,7 @@ import 'package:modern_downloader/features/onboarding/presentation/onboarding_ta
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../desktop_destinations.dart';
-import '../shell_strips.dart';
+import '../shell_strips.dart' show libraryFilterSources;
 
 /// Studio: ink on paper. A text-only left sidebar (library filters, pages,
 /// sources, settings) separated by hairlines; the page fills the rest. The
@@ -27,31 +27,27 @@ class StudioChrome extends ConsumerWidget {
     final destinations = desktopDestinations(context, ref, location);
     final library = destinations.firstWhere((d) => d.id == 'library');
     final settings = destinations.firstWhere((d) => d.id == 'settings');
-    final pages = destinations
-        .where((d) => d.id != 'library' && d.id != 'settings')
-        .toList();
+    // The mockup's order: Statistiques, Transfert, Archives TikTok.
+    const order = ['stats', 'transfer', 'archive'];
+    final pages =
+        destinations
+            .where((d) => d.id != 'library' && d.id != 'settings')
+            .toList()
+          ..sort((a, b) => order.indexOf(a.id).compareTo(order.indexOf(b.id)));
     final onLibrary = location == '/';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          width: 248,
-          padding: const EdgeInsets.fromLTRB(14, 22, 14, 18),
+          width: 220,
+          padding: const EdgeInsets.fromLTRB(14, 22, 14, 22),
           decoration: BoxDecoration(
-            border: Border(right: BorderSide(color: colors.border)),
+            border: BorderDirectional(end: BorderSide(color: colors.border)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _Wordmark(),
-              KeyedSubtree(
-                key: OnboardingTargets.newDownload,
-                child: _InkButton(
-                  label: context.l10n.newDownload,
-                  onTap: () => openNewDownload(context),
-                ),
-              ),
-              const SizedBox(height: 18),
               // The flexible gap: sections scroll when sources overflow,
               // settings stays pinned at the bottom.
               Expanded(
@@ -92,21 +88,8 @@ class StudioChrome extends ConsumerWidget {
             ],
           ),
         ),
-        Expanded(
-          child: Column(
-            children: [
-              if (location.startsWith('/settings'))
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(32, 18, 32, 0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: SettingsSectionStrip(location: location),
-                  ),
-                ),
-              Expanded(child: child),
-            ],
-          ),
-        ),
+        // Settings draws its own section tabs under its title.
+        Expanded(child: child),
       ],
     );
   }
@@ -119,13 +102,13 @@ class _Wordmark extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = AppColors.of(context).textPrimary;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 18),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
       child: Row(
         children: [
           Icon(Icons.download_rounded, size: 16, color: color),
           const SizedBox(width: 8),
           Text(
-            'tapload',
+            'TapLoad',
             style: AppTypography.display(
               15,
               weight: FontWeight.w600,
@@ -144,7 +127,7 @@ class _Hairline extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+      margin: const EdgeInsets.fromLTRB(10, 14, 10, 16),
       color: AppColors.of(context).border,
     );
   }
@@ -181,27 +164,18 @@ class _StatusFilters extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final (filter, label, count) in [
-          (DownloadStatusFilter.all, l10n.allDownloads, total),
-          (DownloadStatusFilter.active, l10n.sidebarActive, active),
+          (DownloadStatusFilter.all, l10n.sidebarAll, total),
+          (DownloadStatusFilter.active, l10n.designInProgress, active),
           (DownloadStatusFilter.completed, l10n.sidebarCompleted, completed),
-          (DownloadStatusFilter.failed, l10n.sidebarFailed, failed),
+          (DownloadStatusFilter.failed, l10n.libraryHeaderFailed, failed),
         ])
           _StudioRow(
             label: label,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (filter == DownloadStatusFilter.active && count > 0) ...[
-                  const _RecDot(),
-                  const SizedBox(width: 6),
-                ],
-                _Count(
-                  count,
-                  color: filter == DownloadStatusFilter.failed && count > 0
-                      ? colors.error
-                      : null,
-                ),
-              ],
+            trailing: _Count(
+              count,
+              color: filter == DownloadStatusFilter.failed && count > 0
+                  ? colors.error
+                  : null,
             ),
             selected: onLibrary && source == null && status == filter,
             onTap: () => select(filter),
@@ -296,6 +270,7 @@ class _StudioRowState extends State<_StudioRow> {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    // 6px: the mockup's row corners.
     final radius = BorderRadius.circular(
       DesignSpec.of(context).controlRadius.clamp(0, 8) - 2,
     );
@@ -310,7 +285,9 @@ class _StudioRowState extends State<_StudioRow> {
         duration: MediaQuery.disableAnimationsOf(context)
             ? Duration.zero
             : const Duration(milliseconds: 180),
-        height: 36,
+        // 30px rows as drawn, 2px apart; shortcut: below the 36px target rule.
+        height: 30,
+        margin: const EdgeInsets.only(bottom: 2),
         decoration: BoxDecoration(
           color: selected
               ? colors.surface
@@ -374,135 +351,3 @@ class _StudioRowState extends State<_StudioRow> {
   }
 }
 
-/// The recording light: a red dot that slowly dims and returns; still when
-/// effects are reduced.
-class _RecDot extends StatefulWidget {
-  const _RecDot();
-
-  @override
-  State<_RecDot> createState() => _RecDotState();
-}
-
-class _RecDotState extends State<_RecDot> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 800),
-  );
-  late final Animation<double> _opacity = Tween<double>(
-    begin: 1,
-    end: 0.25,
-  ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _controller.value = 0;
-      _controller.stop();
-    } else if (!_controller.isAnimating) {
-      _controller.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: FadeTransition(
-        opacity: _opacity,
-        child: Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: AppColors.of(context).accent,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The ink button: near-black, lifts a pixel on hover and sinks on press.
-class _InkButton extends StatefulWidget {
-  const _InkButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  State<_InkButton> createState() => _InkButtonState();
-}
-
-class _InkButtonState extends State<_InkButton> {
-  bool _hover = false;
-  bool _down = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    final radius = BorderRadius.circular(
-      DesignSpec.of(context).controlRadius.clamp(0, 8),
-    );
-    final dy = _down ? 1.0 : (_hover ? -1.0 : 0.0);
-    return AnimatedContainer(
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 160),
-      transform: Matrix4.translationValues(0, dy, 0),
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.2),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.18),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: colors.primary,
-        borderRadius: radius,
-        child: InkWell(
-          onTap: widget.onTap,
-          onHover: (v) => setState(() => _hover = v),
-          onHighlightChanged: (v) => setState(() => _down = v),
-          borderRadius: radius,
-          focusColor: colors.onPrimary.withValues(alpha: 0.18),
-          child: Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_rounded, size: 16, color: colors.onPrimary),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    widget.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.label.copyWith(
-                      color: colors.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
