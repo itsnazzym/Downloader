@@ -209,8 +209,9 @@ class DownloadStatsNotifier extends StateNotifier<DownloadStats> {
     while (mounted) {
       final revision = _librarySnapshotRevision;
       final snapshot = _pendingLibrarySnapshot;
-      // The mobile activity heatmap shows 12 weeks; desktop plots 7 days.
-      final historyDays = PlatformInfo.isMobile ? 84 : 7;
+      // The mobile activity heatmap shows 12 weeks; the desktop designs plot
+      // 7 or 30 days.
+      final historyDays = PlatformInfo.isMobile ? 84 : 30;
       if (snapshot == null) break;
 
       try {
