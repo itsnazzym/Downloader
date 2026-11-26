@@ -83,9 +83,33 @@ Future<void> _preloadGoogleFonts() async {
       FontWeight.w600,
       FontWeight.w700,
     ],
-    'JetBrains Mono': const [FontWeight.w400, FontWeight.w500, FontWeight.w700],
-    // AppTheme.fromPalette sets Outfit as the ThemeData default family.
+    'JetBrains Mono': const [
+      FontWeight.w400,
+      FontWeight.w500,
+      FontWeight.w600,
+      FontWeight.w700,
+    ],
     'Outfit': const [FontWeight.w400, FontWeight.w500, FontWeight.w600],
+    // The desktop designs (DesignSpec): display, UI and mono faces.
+    for (final family in const [
+      'Geist',
+      'Geist Mono',
+      'Bricolage Grotesque',
+      'Plus Jakarta Sans',
+      'Sora',
+      'DM Sans',
+      'DM Mono',
+      'Manrope',
+      'Inter Tight',
+      'IBM Plex Mono',
+    ])
+      family: const [
+        FontWeight.w400,
+        FontWeight.w500,
+        FontWeight.w600,
+        FontWeight.w700,
+        FontWeight.w800,
+      ],
   };
   for (final entry in families.entries) {
     for (final weight in entry.value) {

@@ -9,7 +9,11 @@ import 'package:modern_downloader/core/design_system/foundation/typography.dart'
 class SidebarDensity extends InheritedWidget {
   final bool compact;
 
-  const SidebarDensity({super.key, required this.compact, required super.child});
+  const SidebarDensity({
+    super.key,
+    required this.compact,
+    required super.child,
+  });
 
   static bool of(BuildContext context) {
     return context
@@ -21,6 +25,58 @@ class SidebarDensity extends InheritedWidget {
   @override
   bool updateShouldNotify(SidebarDensity oldWidget) {
     return compact != oldWidget.compact;
+  }
+}
+
+/// Sidebar motion, or none when reduce effects / the OS asks for it.
+Duration _motion(BuildContext context, int ms) =>
+    MediaQuery.disableAnimationsOf(context)
+    ? Duration.zero
+    : Duration(milliseconds: ms);
+
+/// A raised card that groups one sidebar section: gradient face, a light
+/// top edge and a soft drop shadow give it depth without any blur.
+class SidebarPanel extends StatelessWidget {
+  const SidebarPanel({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final compact = SidebarDensity.of(context);
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(compact ? 3 : AppSpacing.xs),
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.largeBorder,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.alphaBlend(
+              colors.surfaceHighlight.withValues(alpha: 0.55),
+              colors.surface,
+            ),
+            colors.surface,
+          ],
+        ),
+        border: Border.all(color: colors.border.withValues(alpha: 0.55)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.28),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: child,
+    );
   }
 }
 
@@ -37,28 +93,55 @@ class SidebarNavSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final compact = SidebarDensity.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!compact) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xs,
-              vertical: AppSpacing.xxs,
-            ),
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.caption.copyWith(
-                fontWeight: FontWeight.bold,
+    final colors = AppColors.of(context);
+    return SidebarPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!compact)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xs,
+                AppSpacing.xxs,
+                AppSpacing.xs,
+                AppSpacing.xs,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.primary.withValues(alpha: 0.6),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Gap(AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      title.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.caption.copyWith(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.1,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const Gap(AppSpacing.xxs),
+          ...children,
         ],
-        ...children,
-      ],
+      ),
     );
   }
 }
@@ -87,61 +170,81 @@ class SidebarNavItem extends StatefulWidget {
 
 class _SidebarNavItemState extends State<SidebarNavItem> {
   bool _isHovering = false;
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     final compact = SidebarDensity.of(context);
     final isSelected = widget.isSelected;
+    final colors = AppColors.of(context);
+    final motion = _motion(context, 180);
+    final lifted = _isHovering && !_isPressed;
 
-    Color backgroundColor = Colors.transparent;
-    if (isSelected) {
-      backgroundColor = AppColors.of(context).primary.withValues(alpha: 0.15);
-    } else if (_isHovering) {
-      backgroundColor = AppColors.of(
-        context,
-      ).surfaceHighlight.withValues(alpha: 0.5);
-    }
-
-    final textColor = isSelected
-        ? AppColors.of(context).textPrimary
-        : (_isHovering
-              ? AppColors.of(context).textPrimary
-              : AppColors.of(context).textSecondary);
-
+    final textColor = isSelected || _isHovering
+        ? colors.textPrimary
+        : colors.textSecondary;
     final iconColor = isSelected
-        ? AppColors.of(context).primary
-        : (_isHovering
-              ? AppColors.of(context).textPrimary
-              : AppColors.of(context).textSecondary);
+        ? colors.primary
+        : (_isHovering ? colors.textPrimary : colors.textSecondary);
+
+    final decoration = BoxDecoration(
+      borderRadius: AppRadius.mediumBorder,
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: isSelected
+            ? [
+                colors.primary.withValues(alpha: 0.30),
+                colors.primary.withValues(alpha: 0.10),
+              ]
+            : [
+                colors.surfaceHighlight.withValues(alpha: lifted ? 0.75 : 0),
+                colors.surfaceHighlight.withValues(alpha: lifted ? 0.40 : 0),
+              ],
+      ),
+      border: Border.all(
+        color: isSelected
+            ? colors.primary.withValues(alpha: 0.40)
+            : colors.border.withValues(alpha: lifted ? 0.6 : 0),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: isSelected
+              ? colors.primary.withValues(alpha: 0.28)
+              : Colors.black.withValues(alpha: lifted ? 0.30 : 0),
+          blurRadius: isSelected ? 12 : 8,
+          offset: Offset(0, isSelected ? 4 : 3),
+        ),
+      ],
+    );
+
+    final icon = AnimatedScale(
+      scale: isSelected ? 1.12 : 1.0,
+      duration: motion,
+      curve: Curves.easeOutBack,
+      child: Icon(widget.icon, size: 16, color: iconColor),
+    );
 
     final row = AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: motion,
       curve: Curves.easeOutCubic,
       height: 32,
       width: compact ? double.infinity : null,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      margin: const EdgeInsets.only(bottom: 2),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: AppRadius.mediumBorder,
-        border: Border.all(
-          color: isSelected
-              ? AppColors.of(context).primary.withValues(alpha: 0.2)
-              : Colors.transparent,
-          width: 1,
-        ),
+      padding: EdgeInsets.only(
+        left: compact ? AppSpacing.xs : 0,
+        right: AppSpacing.xs,
       ),
+      margin: const EdgeInsets.only(bottom: 2),
+      // Hover lifts the tile; a press (scale below) pushes it back in.
+      transform: Matrix4.translationValues(0, lifted ? -1.0 : 0, 0),
+      decoration: decoration,
       child: compact
           ? Center(
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  AnimatedScale(
-                    scale: isSelected ? 1.1 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(widget.icon, size: 16, color: iconColor),
-                  ),
+                  icon,
                   if (!widget.isLoading &&
                       widget.count != null &&
                       widget.count! > 0)
@@ -155,7 +258,7 @@ class _SidebarNavItemState extends State<SidebarNavItem> {
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.of(context).primary,
+                          color: colors.primary,
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: Text(
@@ -175,11 +278,25 @@ class _SidebarNavItemState extends State<SidebarNavItem> {
             )
           : Row(
               children: [
-                AnimatedScale(
-                  scale: isSelected ? 1.1 : 1.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(widget.icon, size: 16, color: iconColor),
+                // Active indicator: grows out of the tile's left edge.
+                AnimatedContainer(
+                  duration: motion,
+                  curve: Curves.easeOutCubic,
+                  width: 3,
+                  height: isSelected ? 16 : 0,
+                  decoration: BoxDecoration(
+                    color: colors.primary,
+                    borderRadius: AppRadius.fullBorder,
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.primary.withValues(alpha: 0.7),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
                 ),
+                const Gap(AppSpacing.xs),
+                icon,
                 const Gap(AppSpacing.s),
                 Expanded(
                   child: Text(
@@ -208,8 +325,8 @@ class _SidebarNavItemState extends State<SidebarNavItem> {
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.of(context).primary
-                          : AppColors.of(context).surfaceHighlight,
+                          ? colors.primary
+                          : colors.surfaceHighlight,
                       borderRadius: AppRadius.fullBorder,
                     ),
                     child: Text(
@@ -217,9 +334,7 @@ class _SidebarNavItemState extends State<SidebarNavItem> {
                       style: AppTypography.caption.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.of(context).textSecondary,
+                        color: isSelected ? Colors.white : colors.textSecondary,
                       ),
                     ),
                   ),
@@ -237,12 +352,17 @@ class _SidebarNavItemState extends State<SidebarNavItem> {
         type: MaterialType.transparency,
         child: InkWell(
           onTap: widget.onTap,
+          onHighlightChanged: (down) => setState(() => _isPressed = down),
           borderRadius: BorderRadius.circular(8),
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
-          focusColor: AppColors.of(context).primary.withValues(alpha: 0.18),
-          child: compact ? Tooltip(message: widget.label, child: row) : row,
+          focusColor: colors.primary.withValues(alpha: 0.18),
+          child: AnimatedScale(
+            scale: _isPressed ? 0.97 : 1.0,
+            duration: _motion(context, 90),
+            child: compact ? Tooltip(message: widget.label, child: row) : row,
+          ),
         ),
       ),
     );
@@ -323,80 +443,114 @@ class _SidebarExpandableNavItemState extends State<SidebarExpandableNavItem>
   Widget build(BuildContext context) {
     final compact = SidebarDensity.of(context);
     if (compact) {
-      return Tooltip(
-        message: widget.label,
-        child: SidebarNavItem(
-          icon: widget.icon,
-          label: widget.label,
-          isSelected: widget.initiallyExpanded,
-          onTap: () => GoRouter.of(context).push('/settings/general'),
+      return SidebarPanel(
+        child: Tooltip(
+          message: widget.label,
+          child: SidebarNavItem(
+            icon: widget.icon,
+            label: widget.label,
+            isSelected: widget.initiallyExpanded,
+            onTap: () => GoRouter.of(context).go('/settings/general'),
+          ),
         ),
       );
     }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Parent Item
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: _handleTap,
-            borderRadius: AppRadius.mediumBorder,
-            hoverColor: AppColors.of(context).surfaceHighlight,
-            child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-              decoration: BoxDecoration(borderRadius: AppRadius.mediumBorder),
-              child: Row(
-                children: [
-                  Icon(
-                    widget.icon,
-                    size: 16,
-                    color: AppColors.of(context).textSecondary,
-                  ),
-                  const Gap(AppSpacing.s),
-                  Expanded(
-                    child: Text(
-                      widget.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.of(context).textSecondary,
-                        fontWeight: FontWeight.w400,
+    final colors = AppColors.of(context);
+    final active = widget.initiallyExpanded;
+    final motion = _motion(context, 220);
+    return SidebarPanel(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Parent Item
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _handleTap,
+              borderRadius: AppRadius.mediumBorder,
+              hoverColor: colors.surfaceHighlight.withValues(alpha: 0.6),
+              child: Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                child: Row(
+                  children: [
+                    Icon(
+                      widget.icon,
+                      size: 16,
+                      color: active ? colors.primary : colors.textSecondary,
+                    ),
+                    const Gap(AppSpacing.s),
+                    Expanded(
+                      child: Text(
+                        widget.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: active
+                              ? colors.textPrimary
+                              : colors.textSecondary,
+                          fontWeight: active
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  RotationTransition(
-                    turns: _iconTurns,
-                    child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 16,
-                      color: AppColors.of(context).textSecondary,
+                    RotationTransition(
+                      turns: _iconTurns,
+                      child: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: colors.textSecondary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        // Children
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          child: SizedBox(
-            width: double.infinity,
-            child: _isExpanded
-                ? Padding(
-                    padding: const EdgeInsets.only(left: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: widget.children,
-                    ),
-                  )
-                : const SizedBox.shrink(),
+          // Children
+          AnimatedSize(
+            duration: motion,
+            curve: Curves.easeOutCubic,
+            child: SizedBox(
+              width: double.infinity,
+              child: _isExpanded
+                  ? TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: motion,
+                      curve: Curves.easeOutCubic,
+                      builder: (context, t, child) => Opacity(
+                        opacity: t,
+                        child: Transform.translate(
+                          offset: Offset(0, (1 - t) * -6),
+                          child: child,
+                        ),
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.only(
+                          left: AppSpacing.s,
+                          top: AppSpacing.xxs,
+                        ),
+                        padding: const EdgeInsets.only(left: AppSpacing.xxs),
+                        // Guide line ties the sub-pages to their group.
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              color: colors.border.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: widget.children,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_palette.dart';
 import 'app_typography.dart';
+import 'design_spec.dart';
+import 'design_transitions.dart';
 import 'theme_presets.dart';
 import 'theme_resolver.dart';
 
@@ -15,6 +17,27 @@ class AppTheme {
   }) {
     final isDark = brightness == Brightness.dark;
     final fieldRadius = palette.isIosChrome ? 14.0 : 8.0;
+    final spec = DesignSpec.forId(palette.id);
+    // The six desktop designs restyle shared Material pieces (dialogs,
+    // toasts, menus, toggles) and their page transitions; OLED and iOS keep
+    // the platform look they were built with.
+    final designed = spec.nav != DesignNav.sidebar;
+    final panel = BorderRadius.circular(
+      spec.cardRadius.clamp(0, 24).toDouble(),
+    );
+    final control = BorderRadius.circular(
+      spec.controlRadius.clamp(0, 20).toDouble(),
+    );
+    TextStyle font(double size, FontWeight weight, Color color, String family) {
+      final style = TextStyle(fontSize: size, fontWeight: weight, color: color);
+      if (!useGoogleFonts) return style;
+      try {
+        return GoogleFonts.getFont(family, textStyle: style);
+      } catch (_) {
+        return style;
+      }
+    }
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -23,9 +46,7 @@ class AppTheme {
       colorScheme: ColorScheme(
         brightness: brightness,
         primary: palette.primary,
-        onPrimary: palette.primary.computeLuminance() > 0.5
-            ? Colors.black
-            : Colors.white,
+        onPrimary: palette.onPrimary,
         secondary: palette.accent,
         onSecondary: isDark ? Colors.black : Colors.white,
         surface: palette.surface,
@@ -37,7 +58,9 @@ class AppTheme {
         palette,
         useGoogleFonts: useGoogleFonts,
       ),
-      fontFamily: useGoogleFonts ? GoogleFonts.outfit().fontFamily : null,
+      fontFamily: useGoogleFonts
+          ? GoogleFonts.getFont(DesignSpec.forId(palette.id).uiFont).fontFamily
+          : null,
       dividerTheme: DividerThemeData(
         color: palette.border,
         thickness: 1,
@@ -90,6 +113,108 @@ class AppTheme {
         ),
         textStyle: TextStyle(color: palette.textPrimary, fontSize: 12),
       ),
+      pageTransitionsTheme: designed ? designPageTransitions(spec) : null,
+      dialogTheme: designed
+          ? DialogThemeData(
+              backgroundColor: palette.surface,
+              surfaceTintColor: Colors.transparent,
+              elevation: 24,
+              shape: RoundedRectangleBorder(
+                borderRadius: panel,
+                side: BorderSide(color: palette.border),
+              ),
+              titleTextStyle: font(
+                20,
+                FontWeight.w600,
+                palette.textPrimary,
+                spec.displayFont,
+              ),
+              contentTextStyle: font(
+                14,
+                FontWeight.w400,
+                palette.textSecondary,
+                spec.uiFont,
+              ),
+            )
+          : null,
+      snackBarTheme: designed
+          ? SnackBarThemeData(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: palette.textPrimary,
+              contentTextStyle: font(
+                13.5,
+                FontWeight.w500,
+                palette.background,
+                spec.uiFont,
+              ),
+              // The toast is the text colour inverted: the page background
+              // reads on it in every design.
+              actionTextColor: palette.background,
+              shape: RoundedRectangleBorder(borderRadius: control),
+              elevation: 12,
+            )
+          : null,
+      popupMenuTheme: designed
+          ? PopupMenuThemeData(
+              color: palette.surfaceHighlight,
+              surfaceTintColor: Colors.transparent,
+              elevation: 16,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  spec.cardRadius.clamp(0, 16).toDouble(),
+                ),
+                side: BorderSide(color: palette.border),
+              ),
+              textStyle: font(
+                13.5,
+                FontWeight.w400,
+                palette.textPrimary,
+                spec.uiFont,
+              ),
+            )
+          : null,
+      switchTheme: designed
+          ? SwitchThemeData(
+              thumbColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? palette.onPrimary
+                    : palette.textSecondary,
+              ),
+              trackColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? palette.primary
+                    : palette.surfaceHighlight,
+              ),
+              trackOutlineColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? Colors.transparent
+                    : palette.border,
+              ),
+            )
+          : null,
+      checkboxTheme: designed
+          ? CheckboxThemeData(
+              fillColor: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.selected)
+                    ? palette.primary
+                    : Colors.transparent,
+              ),
+              checkColor: WidgetStatePropertyAll(palette.onPrimary),
+              side: BorderSide(color: palette.textSecondary, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  spec.controlRadius == 0 ? 0 : 5,
+                ),
+              ),
+            )
+          : null,
+      progressIndicatorTheme: designed
+          ? ProgressIndicatorThemeData(
+              color: palette.primary,
+              linearTrackColor: palette.surfaceHighlight,
+              circularTrackColor: Colors.transparent,
+            )
+          : null,
       extensions: <ThemeExtension<dynamic>>[AppPalette(palette)],
     );
   }

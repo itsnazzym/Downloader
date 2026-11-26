@@ -30,7 +30,7 @@ void main() {
   });
 
   testWidgets('AppColors.of reads the ThemeExtension palette', (tester) async {
-    final ocean = ThemePresets.ocean;
+    final ocean = ThemePresets.nocturne;
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.fromPalette(

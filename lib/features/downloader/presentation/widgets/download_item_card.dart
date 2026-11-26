@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/design_system/components/design_progress_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 import 'package:modern_downloader/core/design_system/components/status_badge.dart';
@@ -10,6 +11,7 @@ import 'package:modern_downloader/core/design_system/foundation/typography.dart'
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/download/download_error_reason.dart';
 import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../domain/entities/download_item.dart';
@@ -53,7 +55,7 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
       transform: Matrix4.translationValues(0, _isHovering ? -2 : 0, 0),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(
           color: widget.isSelected
               ? colors.primary
@@ -72,9 +74,9 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppRadius.panelOf(context),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.panelOf(context),
           onTap: () {
             if (isMobile) HapticFeedback.lightImpact();
             widget.onTap();
@@ -128,18 +130,11 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
 
                       // Progress or Meta Information
                       if (isDownloading || isExtracting) ...[
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: widget.item.progress > 0
-                                ? widget.item.progress
-                                : null,
-                            minHeight: 2.5,
-                            backgroundColor: colors.surfaceHighlight,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              colors.primary,
-                            ),
-                          ),
+                        DesignProgressBar(
+                          value: widget.item.progress > 0
+                              ? widget.item.progress
+                              : null,
+                          live: isDownloading,
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -207,6 +202,27 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
                             ),
                           ],
                         ),
+                        if (widget.item.status == DownloadStatus.failed &&
+                            !DownloadStatusGuard.isAgeVerificationFailure(
+                              error: widget.item.error,
+                              url: widget.item.request.url,
+                            ) &&
+                            downloadErrorReason(
+                              widget.item.error,
+                            ).isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          // Why it failed, readable; the full log stays in
+                          // the status badge's tooltip.
+                          Text(
+                            downloadErrorReason(widget.item.error),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.bodySmall.copyWith(
+                              fontSize: 11.5,
+                              color: colors.error,
+                            ),
+                          ),
+                        ],
                         if (widget.item.status == DownloadStatus.failed &&
                             DownloadStatusGuard.isAgeVerificationFailure(
                               error: widget.item.error,

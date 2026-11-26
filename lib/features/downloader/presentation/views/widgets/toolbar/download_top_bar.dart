@@ -10,7 +10,10 @@ import 'failed_downloads_badge.dart';
 import 'queue_control_capsule.dart';
 
 class DownloadTopBar extends ConsumerWidget {
-  const DownloadTopBar({super.key});
+  const DownloadTopBar({super.key, this.showFailedBadge = true});
+
+  /// Off where the page already offers its own "retry failed" control.
+  final bool showFailedBadge;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +42,7 @@ class DownloadTopBar extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              if (!isVeryCompact)
+              if (!isVeryCompact && showFailedBadge)
                 FailedDownloadsBadge(compact: isCompact),
               if (!isCompact) ...[
                 const QueueControlCapsule(),

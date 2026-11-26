@@ -99,6 +99,18 @@ flutter:
     - assets/android/x_overlay.js
     - site/plugin-catalog.json
     - assets/showcase/
+    # Empty-state illustrations of the signal design (rendered in Blender).
+    - assets/designs/signal/
+    # Empty-state illustrations of the porcelaine design (rendered in Blender).
+    - assets/designs/porcelaine/
+    # Empty-state illustrations of the pastille design (rendered in Blender).
+    - assets/designs/pastille/
+    # Empty-state illustrations of the studio design (rendered in Blender).
+    - assets/designs/studio/
+    # Empty-state illustrations of the terminal design (rendered in Blender).
+    - assets/designs/terminal/
+    # Empty-state illustrations of the nocturne design (rendered in Blender).
+    - assets/designs/nocturne/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -3016,4 +3016,2213 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transferAddressTooltip =>
       'عنوانك على شبكة Wi-Fi هذه: تتصل به الأجهزة الأخرى';
+
+  @override
+  String get designHeroTitle => 'ماذا\nسنحمّل؟';
+
+  @override
+  String get designPasteHint =>
+      'الصق رابط YouTube أو TikTok أو Instagram أو X…';
+
+  @override
+  String get designDownload => 'تحميل';
+
+  @override
+  String get designClipboardFound => 'تم العثور على رابط في الحافظة';
+
+  @override
+  String designTodayCaption(String size) {
+    return 'تنزيلات · $size';
+  }
+
+  @override
+  String get designInProgress => 'قيد التنزيل';
+
+  @override
+  String get designPauseAll => 'إيقاف الكل مؤقتًا';
+
+  @override
+  String get designResumeAll => 'استئناف الكل';
+
+  @override
+  String designRemaining(String eta) {
+    return 'متبقٍ $eta';
+  }
+
+  @override
+  String get designQueue => 'قائمة الانتظار';
+
+  @override
+  String get designSeeAll => 'عرض الكل';
+
+  @override
+  String designStorageDrive(String drive) {
+    return 'التخزين · $drive';
+  }
+
+  @override
+  String designFree(String size) {
+    return '$size متاحة';
+  }
+
+  @override
+  String get designFilterAll => 'الكل';
+
+  @override
+  String get designFilterVideo => 'فيديو';
+
+  @override
+  String get designFilterAudio => 'صوت';
+
+  @override
+  String get designFilterImages => 'صور';
+
+  @override
+  String get designFailed => 'فشل';
+
+  @override
+  String get designNothingActive => 'لا يوجد تنزيل الآن. الصق رابطًا للبدء.';
+
+  @override
+  String get designQueueEmpty => 'لا شيء في الانتظار';
+
+  @override
+  String get designLibraryEmpty => 'مكتبتك فارغة حاليًا.';
+
+  @override
+  String get designArchivesTab => 'الأرشيف';
+
+  @override
+  String get nocturneGreetingMorning => 'صباح الخير';
+
+  @override
+  String get nocturneGreetingAfternoon => 'طاب يومك';
+
+  @override
+  String get nocturneGreetingEvening => 'مساء الخير';
+
+  @override
+  String nocturneActiveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنزيل جارٍ',
+      many: '$count تنزيلًا جاريًا',
+      few: '$count تنزيلات جارية',
+      two: 'تنزيلان جاريان',
+      one: 'تنزيل واحد جارٍ',
+      zero: 'لا توجد تنزيلات جارية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneNext => 'التالي';
+
+  @override
+  String get nocturneRecent => 'آخر التنزيلات';
+
+  @override
+  String nocturneSizeOf(String done, String total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get nocturneStatsTitle => 'نشاطك';
+
+  @override
+  String get nocturneStatDownloads => 'التنزيلات';
+
+  @override
+  String get nocturneStatVolume => 'الحجم المُنزَّل';
+
+  @override
+  String nocturneLastDays(int count) {
+    return 'آخر $count يومًا';
+  }
+
+  @override
+  String get nocturnePerDay => 'التنزيلات في اليوم';
+
+  @override
+  String nocturneDaysShort(int count) {
+    return '$count ي';
+  }
+
+  @override
+  String nocturneDaysAgo(int count) {
+    return 'قبل $count يومًا';
+  }
+
+  @override
+  String get nocturneToday => 'اليوم';
+
+  @override
+  String get nocturneBySource => 'حسب المصدر';
+
+  @override
+  String get nocturneByFormat => 'حسب الصيغة';
+
+  @override
+  String get nocturneChange => 'تغيير';
+
+  @override
+  String get nocturneFileLayout => 'ترتيب الملفات';
+
+  @override
+  String get nocturneTokenSite => 'الموقع';
+
+  @override
+  String get nocturneTokenCreator => 'المنشئ';
+
+  @override
+  String get nocturneTokenTitle => 'العنوان';
+
+  @override
+  String get nocturneAppearanceDesc => 'اختر تصميم TapLoad.';
+
+  @override
+  String get nocturneToolsDesc => 'الأدوات التي تُجري التنزيلات.';
+
+  @override
+  String get nocturneDecrease => 'إنقاص';
+
+  @override
+  String get nocturneIncrease => 'زيادة';
+
+  @override
+  String get nocturneArchiveEyebrow => 'أرشيف محلي · TikTok';
+
+  @override
+  String nocturneWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فيديوهات',
+      one: 'فيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مجموعات',
+      one: 'مجموعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مفضلات',
+      one: 'مفضلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSync => 'مزامنة';
+
+  @override
+  String get nocturneSyncing => 'جارٍ المزامنة…';
+
+  @override
+  String nocturneStopBatch(int done, int total) {
+    return 'إيقاف · $done/$total';
+  }
+
+  @override
+  String get nocturneDownloadAll => 'تنزيل الكل';
+
+  @override
+  String get nocturneTabVideos => 'الفيديوهات';
+
+  @override
+  String get nocturneTabCollections => 'المجموعات';
+
+  @override
+  String get nocturneTabFavorites => 'المفضلة';
+
+  @override
+  String get nocturneImport => 'استيراد';
+
+  @override
+  String get nocturneArchiveSearch => 'ابحث عن فيديو أو مجموعة…';
+
+  @override
+  String get nocturneClear => 'مسح';
+
+  @override
+  String nocturneCountVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSelectAll => 'تحديد الكل';
+
+  @override
+  String nocturneSelectedClear(int count) {
+    return '$count محددة · مسح';
+  }
+
+  @override
+  String get nocturneDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get nocturneQueued => 'أُضيفت الفيديوهات إلى قائمة التنزيل.';
+
+  @override
+  String nocturneBatchSkipped(int done, int total, int skipped) {
+    return '$done / $total ($skipped متجاهلة)';
+  }
+
+  @override
+  String get nocturneNoMatch => 'لا يوجد فيديو يطابق عوامل التصفية';
+
+  @override
+  String get nocturneResetFilters => 'إعادة ضبط عوامل التصفية';
+
+  @override
+  String get nocturneFilters => 'عوامل التصفية';
+
+  @override
+  String get nocturneTransferEyebrow => 'شبكة Wi-Fi محلية';
+
+  @override
+  String get nocturneTransferTitle => 'أرسل إلى هاتفك';
+
+  @override
+  String get nocturneAllOptions => 'كل الخيارات';
+
+  @override
+  String get nocturneSimpleView => 'عرض مبسّط';
+
+  @override
+  String get nocturneQrCaption => 'رمز QR';
+
+  @override
+  String get nocturneScanTitle => 'افتح TapLoad على هاتفك وامسح الرمز';
+
+  @override
+  String get nocturnePinLabel => 'رمز PIN';
+
+  @override
+  String get nocturneAddressLabel => 'العنوان';
+
+  @override
+  String get nocturneOnNetwork => 'على شبكة Wi-Fi هذه';
+
+  @override
+  String get nocturneNoTransfer => 'لا يوجد إرسال جارٍ';
+
+  @override
+  String get nocturneFilesToSend => 'الملفات المراد إرسالها';
+
+  @override
+  String get nocturneAddFolder => 'مجلد…';
+
+  @override
+  String get nocturneAddFiles => 'ملفات…';
+
+  @override
+  String get nocturneTotalSelected => 'إجمالي المحدد';
+
+  @override
+  String get nocturneZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String nocturneSendTo(String name) {
+    return 'إرسال إلى $name';
+  }
+
+  @override
+  String get nocturneRefreshDevices => 'البحث عن الأجهزة';
+
+  @override
+  String get nocturneClassicView => 'العرض الكلاسيكي';
+
+  @override
+  String get nocturneCardsView => 'عرض البطاقات';
+
+  @override
+  String get nocturneDone => 'إنهاء';
+
+  @override
+  String get nocturnePurgeHint =>
+      'تُحفظ الفيديوهات المشتركة مع مجموعة محتفَظ بها.';
+
+  @override
+  String get nocturneAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String nocturnePartDownloaded(int percent) {
+    return 'تم تنزيل $percent٪';
+  }
+
+  @override
+  String studioItems(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString عنصر',
+      many: '$countString عنصرًا',
+      few: '$countString عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+      zero: 'لا عناصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioLiveCount(int count) {
+    return '$count قيد التنزيل';
+  }
+
+  @override
+  String get studioPasteLink => 'الصق رابطًا';
+
+  @override
+  String get studioColState => 'الحالة';
+
+  @override
+  String get studioAutoStart => 'البدء تلقائيًا';
+
+  @override
+  String get studioChange => 'تغيير';
+
+  @override
+  String get studioTools => 'أدوات التنزيل';
+
+  @override
+  String get studioChecking => 'جارٍ التحقق…';
+
+  @override
+  String get studioReplay => 'إعادة';
+
+  @override
+  String get studioDecrease => 'إنقاص';
+
+  @override
+  String get studioIncrease => 'زيادة';
+
+  @override
+  String get studioStatsSubtitle => 'ما نزّلته، ومن أين، ولمن.';
+
+  @override
+  String get studioStorage => 'التخزين';
+
+  @override
+  String get studioChartTitle7 => 'التنزيلات · آخر 7 أيام';
+
+  @override
+  String get studioChartTitle30 => 'التنزيلات · آخر 30 يومًا';
+
+  @override
+  String get studioDays7 => '7 أيام';
+
+  @override
+  String get studioDays30 => '30 يومًا';
+
+  @override
+  String studioDaysAgo(int count) {
+    return 'قبل $count يومًا';
+  }
+
+  @override
+  String get studioToday => 'اليوم';
+
+  @override
+  String get studioBySource => 'حسب المصدر';
+
+  @override
+  String get studioByFormat => 'حسب الصيغة';
+
+  @override
+  String get studioTopCreators => 'أبرز صنّاع المحتوى';
+
+  @override
+  String get studioPeriod => 'الفترة';
+
+  @override
+  String get studioTransferSubtitle =>
+      'أرسل ملفاتك إلى هاتفك عبر شبكة Wi-Fi المحلية، بلا كابل ولا سحابة.';
+
+  @override
+  String get studioScanTitle => 'افتح TapLoad على هاتفك وامسح الرمز.';
+
+  @override
+  String get studioQrCode => 'رمز QR';
+
+  @override
+  String get studioPin => 'رمز PIN';
+
+  @override
+  String get studioAddress => 'العنوان';
+
+  @override
+  String get studioFilesToSend => 'ملفات للإرسال';
+
+  @override
+  String get studioSelection => 'التحديد';
+
+  @override
+  String get studioZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String get studioTarget => 'المستلم';
+
+  @override
+  String get studioChoose => 'اختيار';
+
+  @override
+  String get studioAllOptions => 'كل الخيارات';
+
+  @override
+  String get studioSimpleView => 'العرض البسيط';
+
+  @override
+  String get studioTransferIssue => 'واجه النقل مشكلة.';
+
+  @override
+  String get studioArchiveCap => 'أرشيف محلي · TikTok';
+
+  @override
+  String get studioArchiveTitle => 'أرشيفي';
+
+  @override
+  String get studioSync => 'مزامنة';
+
+  @override
+  String get studioDownloadAll => 'تنزيل الكل';
+
+  @override
+  String studioDownloadAllConfirm(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ستُضاف $countString من مقاطع الفيديو غير المنزّلة بعد إلى قائمة الانتظار.';
+  }
+
+  @override
+  String get studioVideos => 'الفيديوهات';
+
+  @override
+  String get studioCollections => 'المجموعات';
+
+  @override
+  String get studioVideosUnit => 'فيديو';
+
+  @override
+  String get studioCollectionsUnit => 'مجموعة';
+
+  @override
+  String get studioFavoritesUnit => 'مفضلة';
+
+  @override
+  String get studioDone => 'تم';
+
+  @override
+  String get studioPurgeNote =>
+      'تُحفظ مقاطع الفيديو المشتركة مع مجموعة محفوظة.';
+
+  @override
+  String get studioAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String get studioPartDownloaded => 'تم تنزيله';
+
+  @override
+  String get studioToDownload => 'للتنزيل';
+
+  @override
+  String get terminalCommandHint => 'الصق رابطًا';
+
+  @override
+  String get terminalEnterKey => 'Enter';
+
+  @override
+  String get terminalEnterDownload => 'تنزيل';
+
+  @override
+  String get terminalHelp => 'مساعدة';
+
+  @override
+  String get terminalAll => 'الكل';
+
+  @override
+  String get terminalActive => 'جارية';
+
+  @override
+  String get terminalDone => 'مكتملة';
+
+  @override
+  String get terminalFailed => 'فاشلة';
+
+  @override
+  String terminalDesignLine(String id) {
+    return 'التصميم $id';
+  }
+
+  @override
+  String terminalActiveCount(int count) {
+    return '$count نشطة';
+  }
+
+  @override
+  String terminalQueuedCount(int count) {
+    return '$count في الانتظار';
+  }
+
+  @override
+  String terminalDownloadsCount(int count) {
+    return '$count تنزيلات';
+  }
+
+  @override
+  String get terminalLocalArchive => 'أرشيف محلي';
+
+  @override
+  String terminalVideosCount(int count) {
+    return '$count فيديو';
+  }
+
+  @override
+  String terminalCollectionsCount(int count) {
+    return '$count مجموعات';
+  }
+
+  @override
+  String get terminalLocalWifi => 'Wi-Fi محلي';
+
+  @override
+  String get terminalSending => 'جارٍ الإرسال';
+
+  @override
+  String get terminalKeyFilters => 'تصفية المكتبة';
+
+  @override
+  String get terminalKeyTools => 'الإحصائيات، النقل، الأرشيف';
+
+  @override
+  String get terminalKeySearch => 'بحث';
+
+  @override
+  String get terminalFlagLive => '--live';
+
+  @override
+  String get terminalFlagRecent => '--recent';
+
+  @override
+  String get terminalColState => 'الحالة';
+
+  @override
+  String get terminalColTitle => 'العنوان';
+
+  @override
+  String get terminalColSource => 'المصدر';
+
+  @override
+  String get terminalColFormat => 'الصيغة';
+
+  @override
+  String get terminalStateOk => 'تم';
+
+  @override
+  String get terminalStateErr => 'خطأ';
+
+  @override
+  String get terminalStateWait => 'انتظار';
+
+  @override
+  String get terminalStateRun => 'تشغيل';
+
+  @override
+  String get terminalFlagSummary => '--summary';
+
+  @override
+  String get terminalKpiDownloads => 'التنزيلات';
+
+  @override
+  String get terminalKpiStorage => 'التخزين';
+
+  @override
+  String get terminalKpiToday => 'اليوم';
+
+  @override
+  String get terminalKpiFree => 'المساحة_الحرة';
+
+  @override
+  String get terminalPeriod => 'الفترة';
+
+  @override
+  String get terminalPeriod7 => '7 أيام';
+
+  @override
+  String get terminalPeriod30 => '30 يومًا';
+
+  @override
+  String get terminalPeriod12 => '12 شهرًا';
+
+  @override
+  String get terminalFlagPeriod => '--period';
+
+  @override
+  String get terminalPerDay => 'التنزيلات يوميًا';
+
+  @override
+  String get terminalPerMonth => 'التنزيلات شهريًا';
+
+  @override
+  String terminalLastDays(int count) {
+    return 'آخر $count يومًا';
+  }
+
+  @override
+  String terminalLastMonths(int count) {
+    return 'آخر $count شهرًا';
+  }
+
+  @override
+  String terminalDaysAgo(int count) {
+    return 'ي-$count';
+  }
+
+  @override
+  String get terminalToday => 'اليوم';
+
+  @override
+  String terminalMonthsAgo(int count) {
+    return 'ش-$count';
+  }
+
+  @override
+  String get terminalThisMonth => 'هذا الشهر';
+
+  @override
+  String get terminalFlagBySource => '--by source';
+
+  @override
+  String get terminalFlagByFormat => '--by format';
+
+  @override
+  String get terminalFlagTopCreators => '--top creators';
+
+  @override
+  String get terminalSections => 'الأقسام';
+
+  @override
+  String get terminalSection => 'قسم';
+
+  @override
+  String get terminalFlagEdit => '--edit';
+
+  @override
+  String get terminalChangeFolder => 'تغيير المجلد';
+
+  @override
+  String get terminalAdjust => 'ضبط';
+
+  @override
+  String get terminalCheckTools => 'فحص الأدوات';
+
+  @override
+  String get terminalToolOk => 'جاهز';
+
+  @override
+  String get terminalToolChecking => 'جارٍ الفحص…';
+
+  @override
+  String get terminalToolMissing => 'مفقود';
+
+  @override
+  String get terminalToolUnchecked => 'لم يُفحص';
+
+  @override
+  String get terminalConfigComment => 'إعدادات tapload · تُعدَّل مباشرة';
+
+  @override
+  String get terminalCfgAudioOnly => 'صوت_فقط';
+
+  @override
+  String get terminalCfgAutoStart => 'بدء_تلقائي';
+
+  @override
+  String get terminalCfgQuality => 'الجودة_المفضلة';
+
+  @override
+  String get terminalCfgFolder => 'المجلد';
+
+  @override
+  String get terminalCfgDesign => 'التصميم';
+
+  @override
+  String get terminalCfgConcurrent => 'تنزيلات_متزامنة';
+
+  @override
+  String get terminalCfgReduceEffects => 'تقليل_المؤثرات';
+
+  @override
+  String get terminalChange => 'تغيير';
+
+  @override
+  String get terminalFlagArchive => '--archive';
+
+  @override
+  String get terminalTabVideos => 'فيديوهات';
+
+  @override
+  String get terminalTabCollections => 'مجموعات';
+
+  @override
+  String get terminalTabFavorites => 'المفضلة';
+
+  @override
+  String get terminalTabLikes => 'الإعجابات';
+
+  @override
+  String get terminalFinish => 'إنهاء';
+
+  @override
+  String get terminalFlagCollections => '--collections';
+
+  @override
+  String get terminalFlagVideos => '--videos';
+
+  @override
+  String terminalSuggestions(int count) {
+    return '$count اقتراحات تصنيف';
+  }
+
+  @override
+  String get terminalReview => 'مراجعة';
+
+  @override
+  String get terminalPurgeNote => 'تُحفظ الفيديوهات المشتركة مع مجموعة محفوظة';
+
+  @override
+  String get terminalSelection => 'تحديد';
+
+  @override
+  String get terminalRightClick => 'نقر يمين';
+
+  @override
+  String get terminalActions => 'إجراءات';
+
+  @override
+  String terminalDownloadedOf(int done, int total) {
+    return 'تم تنزيل $done / $total فيديو';
+  }
+
+  @override
+  String get terminalDownloadAll => 'تنزيل الكل';
+
+  @override
+  String get terminalAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String terminalDownloadedPct(int percent) {
+    return 'تم تنزيل $percent%';
+  }
+
+  @override
+  String get terminalToDownload => 'للتنزيل';
+
+  @override
+  String terminalVidCount(int count) {
+    return '$count فيديو';
+  }
+
+  @override
+  String get terminalAllCollections => 'كل المجموعات';
+
+  @override
+  String terminalDownloadSelection(int count) {
+    return 'تنزيل المحدد ($count)';
+  }
+
+  @override
+  String get terminalCopyLink => 'نسخ الرابط';
+
+  @override
+  String get terminalOpenBrowser => 'فتح في المتصفح';
+
+  @override
+  String terminalApply(int count) {
+    return 'تطبيق ($count)';
+  }
+
+  @override
+  String get terminalFlagWifi => '--wifi';
+
+  @override
+  String get terminalFlagSelect => '--select';
+
+  @override
+  String get terminalFlagStatus => '--status';
+
+  @override
+  String get terminalFlagPeers => '--devices';
+
+  @override
+  String get terminalPin => 'رمز PIN';
+
+  @override
+  String get terminalAddress => 'العنوان';
+
+  @override
+  String get terminalScanHint => 'افتح TapLoad على هاتفك وامسح الرمز';
+
+  @override
+  String get terminalDevice => 'الجهاز';
+
+  @override
+  String get terminalOnline => 'متصل';
+
+  @override
+  String get terminalBroadcast => 'إعلان';
+
+  @override
+  String get terminalCheckAll => 'تحديد الكل';
+
+  @override
+  String get terminalAddFiles => 'إضافة';
+
+  @override
+  String get terminalClearPayload => 'إفراغ';
+
+  @override
+  String get terminalZipKey => 'ضغط_zip';
+
+  @override
+  String get terminalOnlyNewKey => 'الجديدة_فقط';
+
+  @override
+  String get terminalTotal => 'المجموع';
+
+  @override
+  String get terminalNoTransfer => 'لا يوجد إرسال جارٍ';
+
+  @override
+  String get pastilleGreetingMorning => 'صباح الخير';
+
+  @override
+  String get pastilleGreetingEvening => 'مساء الخير';
+
+  @override
+  String pastilleHomeBusy(String greeting) {
+    return '$greeting، كل شيء يعمل.';
+  }
+
+  @override
+  String pastilleHomeIdle(String greeting) {
+    return '$greeting، كل شيء هادئ.';
+  }
+
+  @override
+  String pastilleOneOf(int index, int total) {
+    return '$index من $total';
+  }
+
+  @override
+  String get pastilleQuickLink => 'رابط سريع';
+
+  @override
+  String pastilleClipboard(String url) {
+    return 'الحافظة: $url';
+  }
+
+  @override
+  String get pastilleAdded => 'أُضيف ✓';
+
+  @override
+  String get pastilleSpeed => 'السرعة';
+
+  @override
+  String get pastilleStorage => 'التخزين';
+
+  @override
+  String pastilleActivity(String month) {
+    return 'النشاط · $month';
+  }
+
+  @override
+  String pastilleTodayCount(int count) {
+    return '$count اليوم';
+  }
+
+  @override
+  String get pastilleThisMonth => 'هذا الشهر';
+
+  @override
+  String pastilleNext(String title) {
+    return 'التالي: $title';
+  }
+
+  @override
+  String get pastilleRecent => 'الأحدث';
+
+  @override
+  String pastilleTotal(int count) {
+    return '$count إجمالاً';
+  }
+
+  @override
+  String get pastilleAllLibrary => 'المكتبة كاملة';
+
+  @override
+  String get pastilleNothingYet => 'لا شيء مكتمل بعد';
+
+  @override
+  String get pastilleLibraryTitle => 'مكتبتك كاملة.';
+
+  @override
+  String get pastilleStatsTitle => 'نشاطك، في نقاط.';
+
+  @override
+  String get pastilleDownloads => 'التنزيلات';
+
+  @override
+  String get pastilleSinceStart => 'منذ البداية';
+
+  @override
+  String get pastilleVolume => 'الحجم';
+
+  @override
+  String get pastilleDownloadedTotal => 'تم تنزيلها إجمالاً';
+
+  @override
+  String get pastilleLast7 => 'آخر 7 أيام';
+
+  @override
+  String get pastilleLast30 => 'آخر 30 يومًا';
+
+  @override
+  String get pastilleDownloadsWord => 'تنزيلات';
+
+  @override
+  String pastilleChartTitle(String period) {
+    return 'التنزيلات · $period';
+  }
+
+  @override
+  String get pastillePeriod7 => '7 أيام';
+
+  @override
+  String get pastillePeriod30 => '30 يومًا';
+
+  @override
+  String pastilleDaysAgo(int days) {
+    return 'ي-$days';
+  }
+
+  @override
+  String get pastilleTodayShort => 'اليوم';
+
+  @override
+  String get pastilleByFormat => 'حسب الصيغة';
+
+  @override
+  String get pastilleBySource => 'حسب المصدر';
+
+  @override
+  String get pastilleSettingsEyebrow => 'الإعدادات';
+
+  @override
+  String get pastilleMoreSettings => 'إعدادات أخرى';
+
+  @override
+  String get pastilleChange => 'تغيير';
+
+  @override
+  String get pastilleAppDesign => 'تصميم التطبيق';
+
+  @override
+  String get pastilleConcurrentLess => 'تنزيل متزامن أقل';
+
+  @override
+  String get pastilleConcurrentMore => 'تنزيل متزامن إضافي';
+
+  @override
+  String get pastilleReduceEffects => 'تقليل التأثيرات';
+
+  @override
+  String get pastilleSystemTools => 'النظام · الأدوات';
+
+  @override
+  String get pastilleToolReady => 'جاهز';
+
+  @override
+  String get pastilleToolChecking => 'جارٍ التحقق…';
+
+  @override
+  String get pastilleToolUnchecked => 'لم يتم التحقق';
+
+  @override
+  String get pastilleRepair => 'تحقق وأصلح';
+
+  @override
+  String get pastilleArchiveEyebrow => 'أرشيف TikTok';
+
+  @override
+  String get pastilleArchiveTitle => 'أرشيفك، مرتب.';
+
+  @override
+  String get pastilleSync => 'مزامنة';
+
+  @override
+  String get pastilleDownloadAll => 'تنزيل الكل';
+
+  @override
+  String pastilleBatchStop(int done, int total) {
+    return '$done / $total · إيقاف';
+  }
+
+  @override
+  String get pastilleDemoDownload => 'وضع العرض: تنزيل محاكى.';
+
+  @override
+  String get pastilleArchiveVideos => 'الفيديوهات';
+
+  @override
+  String get pastilleArchiveCollections => 'المجموعات';
+
+  @override
+  String get pastilleArchiveFavorites => 'المفضلة';
+
+  @override
+  String get pastilleDone => 'إنهاء';
+
+  @override
+  String get pastilleMoreActions => 'إجراءات أخرى';
+
+  @override
+  String get pastilleDetailedView => 'عرض مفصل للمجموعات';
+
+  @override
+  String get pastilleInArchive => 'في الأرشيف';
+
+  @override
+  String get pastilleByTheme => 'مرتبة حسب الموضوع';
+
+  @override
+  String get pastilleKeptOnTikTok => 'محفوظة على TikTok';
+
+  @override
+  String get pastilleVideosLabel => 'فيديو في الأرشيف';
+
+  @override
+  String get pastilleFavoritesLabel => 'مفضلة';
+
+  @override
+  String get pastilleVideosText =>
+      'كل فيديوهات أرشيفك مرتبة حسب المجموعة. افتح تبويب المجموعات لتختار ما تحتفظ به على هذا الحاسوب.';
+
+  @override
+  String get pastilleFavoritesText =>
+      'الفيديوهات التي أضفتها إلى المفضلة على TikTok. «تنزيل الكل» يجلبها مع بقية الأرشيف.';
+
+  @override
+  String get pastilleLocalArchive => 'الأرشيف المحلي';
+
+  @override
+  String pastilleLikes(int count) {
+    return '$count إعجاب';
+  }
+
+  @override
+  String get pastilleSharedKept => 'الفيديوهات المشتركة مع مجموعة محفوظة تبقى.';
+
+  @override
+  String get pastilleNoCollections => 'لم يتم العثور على مجموعات';
+
+  @override
+  String get pastilleAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String pastillePercentDownloaded(int percent) {
+    return 'تم تنزيل $percent٪';
+  }
+
+  @override
+  String get pastilleToDownload => 'للتنزيل';
+
+  @override
+  String get pastilleVideosWord => 'فيديو';
+
+  @override
+  String get pastilleOneDotTen => 'نقطة = 10 فيديوهات';
+
+  @override
+  String get pastilleSeeCollections => 'عرض المجموعات';
+
+  @override
+  String get pastilleArchiveSearch => 'ابحث عن فيديو أو مجموعة…';
+
+  @override
+  String pastilleVideoCount(int count) {
+    return '$count فيديو';
+  }
+
+  @override
+  String get pastilleSelectAll => 'تحديد الكل';
+
+  @override
+  String pastilleClearSelection(int count) {
+    return '$count محدد · مسح';
+  }
+
+  @override
+  String pastilleBatchProgress(int done, int total) {
+    return 'قيد التنفيذ ($done/$total)';
+  }
+
+  @override
+  String get pastilleDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get pastilleQueued => 'أُضيفت الفيديوهات إلى قائمة التنزيل.';
+
+  @override
+  String get pastilleNoVideoMatch => 'لا يوجد فيديو يطابق عوامل التصفية';
+
+  @override
+  String get pastilleResetFilters => 'إعادة ضبط عوامل التصفية';
+
+  @override
+  String get pastilleTransferEyebrow => 'النقل عبر شبكة Wi-Fi المحلية';
+
+  @override
+  String get pastilleTransferTitle => 'أرسل إلى هاتفك.';
+
+  @override
+  String get pastilleConnection => 'الاتصال';
+
+  @override
+  String get pastilleQrCode => 'رمز QR';
+
+  @override
+  String get pastillePinCode => 'رمز PIN';
+
+  @override
+  String get pastilleScanHint => 'افتح TapLoad على هاتفك وامسح الرمز.';
+
+  @override
+  String get pastilleTransferInFlight => 'نقل جارٍ';
+
+  @override
+  String pastilleTo(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String get pastilleLocalWifi => 'Wi-Fi محلي';
+
+  @override
+  String get pastilleNoTransfer => 'لا يوجد نقل جارٍ';
+
+  @override
+  String get pastilleConnectedDevice => 'الجهاز المتصل';
+
+  @override
+  String get pastilleConnected => 'متصل';
+
+  @override
+  String get pastilleNoDevice => 'لم يتم اختيار جهاز';
+
+  @override
+  String get pastilleFilesToSend => 'ملفات للإرسال';
+
+  @override
+  String get pastilleCreator => 'منشئ';
+
+  @override
+  String get pastilleFolder => 'مجلد';
+
+  @override
+  String get pastilleFile => 'ملف';
+
+  @override
+  String get pastilleAddFiles => 'إضافة ملفات';
+
+  @override
+  String get pastilleAddFolder => 'إضافة مجلد';
+
+  @override
+  String get pastilleSelection => 'التحديد';
+
+  @override
+  String get pastilleZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String get pastilleMoreOptions => 'خيارات أخرى';
+
+  @override
+  String get porcelaineSpace => 'المساحة';
+
+  @override
+  String get porcelaineSettingsTab => 'الإعدادات';
+
+  @override
+  String get porcelaineEdit => 'تعديل';
+
+  @override
+  String get porcelaineDone => 'تم';
+
+  @override
+  String get porcelaineReset => 'إعادة التعيين';
+
+  @override
+  String get porcelaineAddWidget => 'إضافة أداة';
+
+  @override
+  String get porcelaineGoodMorning => 'مرحبًا.';
+
+  @override
+  String get porcelaineGoodEvening => 'مساء الخير.';
+
+  @override
+  String get porcelaineIdle => 'لا شيء قيد التنزيل';
+
+  @override
+  String porcelaineActiveNow(int count, String speed) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنزيل جارٍ',
+      few: '$count تنزيلات جارية',
+      two: 'تنزيلان جاريان',
+      one: 'تنزيل واحد جارٍ',
+    );
+    return '$_temp0، $speed';
+  }
+
+  @override
+  String get porcelaineEditHint =>
+      'اسحب بطاقة لنقلها · اسحب الزاوية لتغيير حجمها';
+
+  @override
+  String get porcelaineQuickLink => 'رابط سريع';
+
+  @override
+  String get porcelaineSpeed => 'السرعة';
+
+  @override
+  String get porcelaineStorage => 'التخزين';
+
+  @override
+  String get porcelaineRecent => 'الأحدث';
+
+  @override
+  String get porcelaineDescActive => 'تقدّم ما يجري تنزيله.';
+
+  @override
+  String get porcelaineDescPaste => 'الصق وابدأ بنقرة واحدة.';
+
+  @override
+  String get porcelaineDescSpeed => 'السرعة المباشرة وسجلّها.';
+
+  @override
+  String get porcelaineDescStorage => 'المساحة الحرة وما يملؤها.';
+
+  @override
+  String get porcelaineDescRecent => 'أحدث تنزيلاتك.';
+
+  @override
+  String get porcelaineDescQueue => 'ما سيبدأ بعد ذلك.';
+
+  @override
+  String get porcelaineSizeSmall => 'صغير';
+
+  @override
+  String get porcelaineSizeMedium => 'متوسط';
+
+  @override
+  String get porcelaineSizeLarge => 'كبير';
+
+  @override
+  String get porcelaineSizeSmallShort => 'ص';
+
+  @override
+  String get porcelaineSizeMediumShort => 'م';
+
+  @override
+  String get porcelaineSizeLargeShort => 'ك';
+
+  @override
+  String porcelaineSizeLabel(String size) {
+    return 'الحجم $size';
+  }
+
+  @override
+  String get porcelaineMoveBack => 'نقل إلى الخلف';
+
+  @override
+  String get porcelaineMoveForward => 'نقل إلى الأمام';
+
+  @override
+  String porcelaineRemoveWidget(String name) {
+    return 'إزالة أداة $name';
+  }
+
+  @override
+  String porcelaineWidgetOptions(String name) {
+    return 'خيارات أداة $name';
+  }
+
+  @override
+  String get porcelaineResizeHint => 'اسحب لتغيير الحجم';
+
+  @override
+  String porcelaineRemoved(String name) {
+    return 'تمت إزالة «$name»';
+  }
+
+  @override
+  String get porcelaineCatalogHint => 'تُضاف في نهاية مساحتك بحجمها المقترح.';
+
+  @override
+  String get porcelaineAlreadyThere => 'موجودة في مساحتك';
+
+  @override
+  String porcelaineAddAt(String size) {
+    return 'إضافة · $size';
+  }
+
+  @override
+  String get porcelaineEmptyTitle => 'مساحتك فارغة';
+
+  @override
+  String get porcelaineEmptyBody =>
+      'أضف الأدوات التي تحتاجها: التقدّم، الرابط السريع، السرعة، التخزين…';
+
+  @override
+  String get porcelainePaste => 'لصق';
+
+  @override
+  String get porcelainePasteAndDownload => 'لصق وتنزيل';
+
+  @override
+  String get porcelainePasteHint => 'الصق رابطًا…';
+
+  @override
+  String get porcelaineAdded => 'تمت الإضافة ✓';
+
+  @override
+  String get porcelaineAddedShort => 'أُضيف';
+
+  @override
+  String porcelaineClipboard(String url) {
+    return 'الحافظة: $url';
+  }
+
+  @override
+  String get porcelaineClipboardTitle => 'رابط في الحافظة';
+
+  @override
+  String get porcelaineClipboardNone => 'لا يوجد رابط في الحافظة';
+
+  @override
+  String get porcelaineFormatAuto => 'تلقائي';
+
+  @override
+  String get porcelaineFormatAudio => 'صوت فقط';
+
+  @override
+  String get porcelaineMoreOptions => 'خيارات أخرى…';
+
+  @override
+  String porcelaineSpeedNow(String unit) {
+    return '$unit الآن';
+  }
+
+  @override
+  String get porcelainePeak => 'الذروة';
+
+  @override
+  String get porcelaineAverage => 'المتوسط';
+
+  @override
+  String porcelaineFreeUnit(String unit) {
+    return '$unit متاحة';
+  }
+
+  @override
+  String get porcelaineHeaviest => 'الأكبر حجمًا';
+
+  @override
+  String get porcelaineFreeUp => 'تحرير مساحة';
+
+  @override
+  String get porcelaineWholeLibrary => 'المكتبة كاملة';
+
+  @override
+  String get porcelaineWaiting => 'في الانتظار';
+
+  @override
+  String get porcelaineStatsDownloads => 'التنزيلات';
+
+  @override
+  String get porcelaineStatsVolume => 'الحجم المُنزَّل';
+
+  @override
+  String get porcelaineStatsDownloadsUnit => 'تنزيلات';
+
+  @override
+  String porcelaineStatsChartTitle(String period) {
+    return 'التنزيلات · $period';
+  }
+
+  @override
+  String get porcelaineLast30Days => 'آخر 30 يومًا';
+
+  @override
+  String porcelaineDaysShort(int days) {
+    return '$days ي';
+  }
+
+  @override
+  String porcelaineDaysAgo(int days) {
+    return 'قبل $days ي';
+  }
+
+  @override
+  String get porcelaineTodayAxis => 'اليوم';
+
+  @override
+  String get porcelaineBySource => 'حسب المصدر';
+
+  @override
+  String get porcelaineByFormat => 'حسب الصيغة';
+
+  @override
+  String get porcelaineTopCreators => 'أبرز المبدعين';
+
+  @override
+  String get porcelaineSettingsGeneralDesc => 'سلوك TapLoad اليومي.';
+
+  @override
+  String get porcelaineAutoStart => 'البدء تلقائيًا';
+
+  @override
+  String get porcelaineChange => 'تغيير';
+
+  @override
+  String get porcelaineParallelDownloads => 'التنزيلات المتزامنة';
+
+  @override
+  String get porcelaineOneLess => 'واحد أقل';
+
+  @override
+  String get porcelaineOneMore => 'واحد أكثر';
+
+  @override
+  String get porcelaineReduceEffects => 'تقليل المؤثرات';
+
+  @override
+  String get porcelaineReduceEffectsHint =>
+      'رسوم متحركة أقل، مفيد على حاسوب متواضع.';
+
+  @override
+  String porcelaineDesignActive(String name) {
+    return '$name مُفعَّل';
+  }
+
+  @override
+  String get porcelaineToolReady => 'جاهز';
+
+  @override
+  String get porcelaineToolChecking => 'جارٍ التحقق…';
+
+  @override
+  String get porcelaineToolUnchecked => 'لم يُتحقق منه';
+
+  @override
+  String get porcelaineTransferTitle => 'إلى هاتفك';
+
+  @override
+  String get porcelaineTransferSubtitle =>
+      'عبر شبكة Wi-Fi المحلية، بلا كابل ولا سحابة.';
+
+  @override
+  String get porcelaineSimpleView => 'العرض البسيط';
+
+  @override
+  String get porcelaineConnection => 'الاتصال';
+
+  @override
+  String get porcelaineScanTitle => 'افتح TapLoad على هاتفك وامسح الرمز';
+
+  @override
+  String get porcelaineScanHint => 'أو أدخل الرمز والعنوان يدويًا.';
+
+  @override
+  String get porcelaineQrCode => 'رمز QR';
+
+  @override
+  String get porcelainePinCode => 'رمز PIN';
+
+  @override
+  String get porcelaineAddress => 'العنوان';
+
+  @override
+  String get porcelaineConnectedDevice => 'الجهاز المتصل';
+
+  @override
+  String get porcelaineConnected => 'متصل';
+
+  @override
+  String get porcelaineTransferInProgress => 'نقل جارٍ';
+
+  @override
+  String porcelaineToDevice(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String get porcelaineFilesToSend => 'الملفات المراد إرسالها';
+
+  @override
+  String porcelaineVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو',
+      few: '$count فيديوهات',
+      two: 'فيديوهان',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get porcelaineCompressZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String get porcelaineSelectedTotal => 'إجمالي المحدد';
+
+  @override
+  String get porcelaineNearbyDevices => 'الأجهزة القريبة';
+
+  @override
+  String get porcelaineRecipient => 'المستلم';
+
+  @override
+  String get porcelaineSearchDevices => 'بحث';
+
+  @override
+  String get porcelaineAllTransferTools => 'كل الأدوات';
+
+  @override
+  String get porcelaineLocalArchive => 'أرشيف محلي';
+
+  @override
+  String get porcelaineArchiveVideos => 'فيديو';
+
+  @override
+  String get porcelaineArchiveCollections => 'مجموعة';
+
+  @override
+  String get porcelaineArchiveFavorites => 'مفضلة';
+
+  @override
+  String get porcelaineArchiveVideosTab => 'الفيديوهات';
+
+  @override
+  String get porcelaineArchiveCollectionsTab => 'المجموعات';
+
+  @override
+  String get porcelaineArchiveFavoritesTab => 'المفضلة';
+
+  @override
+  String get porcelaineArchiveKeptHint =>
+      'تُحفظ الفيديوهات المشتركة مع مجموعة محتفَظ بها.';
+
+  @override
+  String get porcelaineSync => 'مزامنة';
+
+  @override
+  String porcelaineDownloadSelection(int count) {
+    return 'تنزيل ($count)';
+  }
+
+  @override
+  String get porcelaineDownloadSelectionNone => 'تنزيل المحدد';
+
+  @override
+  String get porcelaineSelectFirst => 'حدد فيديوهات في القائمة أولًا.';
+
+  @override
+  String get signalStatsVolume => 'الحجم المُنزَّل';
+
+  @override
+  String signalStatsLastDays(int count) {
+    return 'آخر $count يومًا';
+  }
+
+  @override
+  String signalStatsPeriodDays(int count) {
+    return '$count ي';
+  }
+
+  @override
+  String signalStatsDaysAgo(int count) {
+    return 'قبل $count يومًا';
+  }
+
+  @override
+  String get signalStatsTodayAxis => 'اليوم';
+
+  @override
+  String get signalStatsByFormat => 'حسب الصيغة';
+
+  @override
+  String get signalStatsInVideo => 'فيديو';
+
+  @override
+  String get signalStatsTopCreators => 'أبرز صنّاع المحتوى';
+
+  @override
+  String get signalStatsNoCreators => 'لا يوجد صنّاع محتوى بعد.';
+
+  @override
+  String get signalSettingsGeneralHint => 'ما يفعله TapLoad افتراضيًا.';
+
+  @override
+  String get signalSettingsChange => 'تغيير';
+
+  @override
+  String get signalSettingsDesignTitle => 'المظهر · التصميم';
+
+  @override
+  String signalSettingsCurrentDesign(String name) {
+    return 'الحالي: $name';
+  }
+
+  @override
+  String get signalSettingsToolsTitle => 'النظام · الأدوات';
+
+  @override
+  String get signalSettingsLess => 'واحد أقل';
+
+  @override
+  String get signalSettingsMore => 'واحد أكثر';
+
+  @override
+  String get signalArchiveLocal => 'أرشيف محلي';
+
+  @override
+  String signalArchiveDownloaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تنزيل $count فيديو',
+      many: 'تم تنزيل $count فيديو',
+      few: 'تم تنزيل $count فيديوهات',
+      two: 'تم تنزيل فيديوين',
+      one: 'تم تنزيل فيديو واحد',
+      zero: 'لم يُنزَّل شيء بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get signalArchiveVideosTab => 'الفيديوهات';
+
+  @override
+  String get signalArchiveCollectionsTab => 'المجموعات';
+
+  @override
+  String get signalArchiveSync => 'مزامنة';
+
+  @override
+  String get signalArchiveDownloadAll => 'تنزيل الكل';
+
+  @override
+  String signalArchiveConfirmAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيل $count فيديو؟',
+      many: 'تنزيل $count فيديو؟',
+      few: 'تنزيل $count فيديوهات؟',
+      two: 'تنزيل فيديوين؟',
+      one: 'تنزيل فيديو واحد؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get signalArchiveConfirmAllBody =>
+      'تنضم الفيديوهات غير المُنزَّلة بعد إلى قائمة الانتظار.';
+
+  @override
+  String get signalArchiveAllDone => 'تم تنزيل الكل';
+
+  @override
+  String get signalArchiveNotDownloaded => 'غير مُنزَّلة';
+
+  @override
+  String get signalArchiveSharedKept =>
+      'تبقى الفيديوهات المشتركة مع مجموعة محفوظة.';
+
+  @override
+  String get signalArchiveCardView => 'العودة إلى البطاقات';
+
+  @override
+  String get signalArchiveDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get signalTransferWifi => 'على شبكة Wi-Fi المحلية';
+
+  @override
+  String get signalTransferTitle => 'الإرسال إلى الهاتف';
+
+  @override
+  String get signalTransferScanHint => 'افتح TapLoad على هاتفك وامسح الرمز.';
+
+  @override
+  String get signalTransferCode => 'أو أدخل الرمز';
+
+  @override
+  String get signalTransferTarget => 'الوجهة';
+
+  @override
+  String get signalTransferReachable => 'متاح';
+
+  @override
+  String get signalTransferFiles => 'الملفات المراد إرسالها';
+
+  @override
+  String get signalTransferTotal => 'إجمالي المحدد';
+
+  @override
+  String get signalTransferInProgress => 'نقل جارٍ';
+
+  @override
+  String signalTransferTo(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String get signalTransferPickDevice => 'اختر الجهاز من قائمة الأجهزة.';
+
+  @override
+  String porcelaineSelectedCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجموعة محددة',
+      few: '$count مجموعات محددة',
+      two: 'مجموعتان محددتان',
+      one: 'مجموعة واحدة محددة',
+      zero: 'لا شيء محدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get porcelaineNotDownloadedYet => 'لم تُنزَّل بعد';
+
+  @override
+  String get terminalEmptyTitle => 'لم يُنزَّل شيء بعد';
+
+  @override
+  String get terminalEmptyBody =>
+      'الصق رابطًا في شريط الأوامر بالأعلى، أو ابدأ تنزيلًا جديدًا.';
+
+  @override
+  String terminalNoMatch(String query) {
+    return 'grep: «$query»: لا يوجد سطر مطابق';
+  }
+
+  @override
+  String get terminalNoMatchFilters => 'لا يوجد سطر يطابق عوامل التصفية';
+
+  @override
+  String get terminalLoading => 'جارٍ قراءة المكتبة…';
+
+  @override
+  String get terminalLoadError => 'تعذّرت قراءة المكتبة';
+
+  @override
+  String terminalFailedSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنزيل فاشل',
+      many: '$count تنزيلًا فاشلًا',
+      few: '$count تنزيلات فاشلة',
+      two: 'تنزيلان فاشلان',
+      one: 'تنزيل واحد فاشل',
+      zero: 'لا تنزيلات فاشلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get terminalFinished => 'اكتمل';
+
+  @override
+  String terminalFinishedIn(String size, String duration) {
+    return '$size في $duration';
+  }
+
+  @override
+  String get terminalStatsEmpty => 'لا توجد إحصاءات بعد';
+
+  @override
+  String get terminalStatsEmptyBody => 'تظهر الأرقام بعد اكتمال أول تنزيل لك.';
+
+  @override
+  String get terminalNoPeers => 'لم يُعثر على أي جهاز في هذه الشبكة';
+
+  @override
+  String get terminalArchiveEmpty => 'لم تُستورد أي أرشيفات';
+
+  @override
+  String get terminalArchiveEmptyBody =>
+      'استورد ملف بيانات TikTok لتصفّح المفضلة والإعجابات والمجموعات.';
+
+  @override
+  String get pastilleEmptyTitle => 'لا شيء هنا بعد.';
+
+  @override
+  String get pastilleEmptyBody =>
+      'الصق رابطًا من YouTube أو TikTok أو Instagram أو X: كل تنزيل يملأ هذه الشبكة، نقطة بعد نقطة.';
+
+  @override
+  String pastilleNoResultsTitle(String query) {
+    return 'لا نتائج لـ «$query»';
+  }
+
+  @override
+  String get pastilleNoResultsFilters => 'لا يوجد تنزيل يطابق هذه الفلاتر';
+
+  @override
+  String get pastilleNoResultsBody => 'تحقّق من الإملاء أو وسّع الفلاتر.';
+
+  @override
+  String get pastilleLoadErrorTitle => 'تعذّر تحميل المكتبة.';
+
+  @override
+  String get pastilleLoadErrorBody =>
+      'ملفاتك ما زالت على القرص. حاول مجددًا بعد قليل.';
+
+  @override
+  String pastilleRetryFailed(int count) {
+    return 'إعادة المحاولة للفاشلة ($count)';
+  }
+
+  @override
+  String get pastilleLoading => 'جارٍ تحميل المكتبة…';
+
+  @override
+  String get pastilleFinished => 'اكتمل';
+
+  @override
+  String pastilleFailedIdle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيلًا',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pastilleStatsEmptyTitle => 'لا نقاط بعد.';
+
+  @override
+  String get pastilleStatsEmptyBody =>
+      'كل تنزيل مكتمل يضيف عمودًا هنا، يومًا بعد يوم.';
+
+  @override
+  String get studioEmptyTitle => 'مكتبتك فارغة.';
+
+  @override
+  String get studioEmptyBody =>
+      'انسخ رابط فيديو ثم الصقه هنا. يبدأ Ctrl+N أيضًا تنزيلًا جديدًا.';
+
+  @override
+  String studioNoResultsFor(String query) {
+    return 'لا شيء يطابق «$query».';
+  }
+
+  @override
+  String get studioNoResultsHint => 'تحقق من الإملاء أو أزل عامل تصفية.';
+
+  @override
+  String get studioLoadErrorTitle => 'تعذّر تحميل المكتبة.';
+
+  @override
+  String get studioLoadErrorBody => 'لم تُمسّ ملفاتك. حاول مجددًا بعد لحظة.';
+
+  @override
+  String studioFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيلًا',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioRetryFailed(int count) {
+    return 'إعادة محاولة الفاشلة ($count)';
+  }
+
+  @override
+  String get studioNoDevicesTitle => 'لا يوجد جهاز قريب';
+
+  @override
+  String get studioNoStatsTitle => 'لا توجد إحصاءات بعد';
+
+  @override
+  String get studioNoStatsBody => 'ستظهر هنا بعد أول تنزيل لك.';
+
+  @override
+  String get nocturneEmptyTitle => 'مكتبتك في انتظارك';
+
+  @override
+  String get nocturneEmptyBody =>
+      'الصق رابطًا من YouTube أو TikTok أو Instagram أو X: يقوم TapLoad بتنزيله وحفظه هنا.';
+
+  @override
+  String get nocturneNoResultsTitle => 'لا توجد نتائج';
+
+  @override
+  String nocturneNoResultsQuery(String query) {
+    return 'لا شيء يطابق «$query» مع عوامل التصفية هذه.';
+  }
+
+  @override
+  String get nocturneNoResultsFilters => 'لا شيء يطابق عوامل التصفية النشطة.';
+
+  @override
+  String get nocturneClearSearchFilters => 'مسح البحث وعوامل التصفية';
+
+  @override
+  String get nocturneLoadErrorTitle => 'تعذّر تحميل المكتبة';
+
+  @override
+  String get nocturneLoadErrorBody => 'ملفاتك سليمة. أعد المحاولة بعد لحظة.';
+
+  @override
+  String nocturneFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيل',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneStatsEmptyTitle => 'لا توجد إحصاءات بعد';
+
+  @override
+  String get nocturneStatsEmptyBody => 'ستظهر أرقامك هنا بعد أول تنزيل.';
+
+  @override
+  String get nocturneArchiveEmptyTitle => 'لم يتم استيراد أي أرشيف بعد';
+
+  @override
+  String get nocturneArchiveEmptyBody =>
+      'استورد ملف JSON لمفضلاتك على TikTok أو زامن مجموعاتك عبر الإضافة. لا يُنزَّل شيء دون موافقتك.';
+
+  @override
+  String get nocturneArchiveImportJson => 'اختر ملف JSON';
+
+  @override
+  String get nocturneArchiveSyncHint =>
+      'للمزامنة، افتح TikTok في متصفح مثبّت عليه الإضافة، ثم عد إلى هنا.';
+
+  @override
+  String get porcelaineEmptyLibTitle => 'مساحتك تنتظر أول رابط.';
+
+  @override
+  String get porcelaineEmptyLibBody =>
+      'الصق رابط فيديو أو موسيقى أو صورة: تمتلئ أدواتك مع انتهاء التنزيلات.';
+
+  @override
+  String get porcelaineNoResultsTitle => 'لا شيء مطابق.';
+
+  @override
+  String porcelaineNoResultsQuery(String query) {
+    return 'لا يوجد تنزيل لـ «$query».';
+  }
+
+  @override
+  String get porcelaineNoResultsFilters => 'لا يوجد تنزيل يطابق هذه المرشحات.';
+
+  @override
+  String get porcelaineLoadingLibrary => 'جارٍ تحميل مكتبتك…';
+
+  @override
+  String get porcelaineLoadErrorTitle => 'تعذّر فتح المكتبة.';
+
+  @override
+  String get porcelaineLoadErrorBody =>
+      'ملفاتك سليمة على القرص. أعد المحاولة بعد قليل.';
+
+  @override
+  String porcelaineFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيل',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String porcelaineRetryFailedCount(int count) {
+    return 'إعادة المحاولات الفاشلة ($count)';
+  }
+
+  @override
+  String get porcelaineNothingActiveTitle => 'لا شيء قيد التنزيل';
+
+  @override
+  String get porcelaineUnavailable => 'غير متاح حاليًا';
+
+  @override
+  String get signalEmptyTitle => 'أول تنزيل لك يبدأ من هنا.';
+
+  @override
+  String get signalEmptyBody =>
+      'انسخ رابطًا من يوتيوب أو تيك توك أو إنستغرام أو X والصقه في الأعلى: يصل الفيديو إلى هنا جاهزًا للمشاهدة.';
+
+  @override
+  String get signalEmptyAction => 'الصق رابطًا';
+
+  @override
+  String get signalLoadErrorTitle => 'تعذّر تحميل المكتبة.';
+
+  @override
+  String get signalLoadErrorBody =>
+      'ملفاتك لا تزال على القرص. أعد المحاولة لقراءة القائمة.';
+
+  @override
+  String get signalNoResultsTitle => 'لا توجد نتائج';
+
+  @override
+  String signalNoResultsQuery(String query) {
+    return 'لا شيء يطابق «$query».';
+  }
+
+  @override
+  String get signalNoResultsFilters => 'لا شيء يطابق هذه المرشحات.';
+
+  @override
+  String get signalClearFilters => 'مسح البحث والمرشحات';
+
+  @override
+  String signalFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيل',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String signalRetryFailed(int count) {
+    return 'إعادة محاولة الفاشلة ($count)';
+  }
+
+  @override
+  String get signalStatsEmptyTitle => 'لا توجد إحصائيات بعد.';
+
+  @override
+  String get signalStatsEmptyBody =>
+      'ستظهر هنا الأحجام والمصادر والمنشئون بعد أول تنزيل لك.';
+
+  @override
+  String get signalTransferNoDevicesHint =>
+      'افتح TapLoad على الهاتف على شبكة Wi-Fi نفسها، أو ابحث عنه في الشبكة.';
+
+  @override
+  String get signalArchiveEmptyTitle => 'لم يتم استيراد أي أرشيف بعد.';
+
+  @override
+  String get signalArchiveEmptyBody =>
+      'استورد ملف JSON لمفضلات تيك توك: تظهر مجموعاتك والفيديوهات التي أعجبتك هنا جاهزة للتنزيل.';
+
+  @override
+  String get signalArchiveImport => 'اختر ملف JSON';
+
+  @override
+  String get signalArchiveSyncHint =>
+      'تتم المزامنة عبر الإضافة في متصفح مفتوح على تيك توك.';
+
+  @override
+  String get archiveDeskIntro =>
+      'استورد قائمة مفضلاتك في TikTok، وابحث عن مقطع حسب المجموعة أو بالبحث، ثم نزّله متى احتجت إليه. هذه الصفحة لا تنزّل أي شيء بمفردها.';
+
+  @override
+  String get archiveDeskImportTitle => 'استيراد تصدير TikTok';
+
+  @override
+  String get archiveDeskImportBody =>
+      'اختر ملف JSON المُصدَّر من TikTok لتحميل مفضلاتك وإعجاباتك.';
+
+  @override
+  String get archiveDeskPickJson => 'اختر ملف JSON';
+
+  @override
+  String get archiveDeskSyncTitle => 'مزامنة المجموعات';
+
+  @override
+  String get archiveDeskSyncConnected =>
+      'تجلب الإضافة مقاطع مجموعاتك من صفحة TikTok مفتوحة.';
+
+  @override
+  String get archiveDeskSyncDisconnected =>
+      'افتح TikTok في متصفح مثبّت فيه امتداد Modern Downloader، ثم عُد إلى هنا.';
+
+  @override
+  String get archiveDeskSyncing => 'جارٍ المزامنة…';
+
+  @override
+  String get archiveDeskSyncAction => 'مزامنة مجموعاتي';
+
+  @override
+  String get archiveDeskSyncManual =>
+      'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
 }

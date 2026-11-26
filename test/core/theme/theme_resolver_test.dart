@@ -8,20 +8,20 @@ import 'package:modern_downloader/core/theme/theme_resolver.dart';
 void main() {
   group('ThemeResolver.resolve', () {
     test('returns the named preset when accent matches preset primary', () {
-      final ocean = ThemePresets.ocean;
+      final nocturne = ThemePresets.nocturne;
       final resolved = ThemeResolver.resolve(
-        presetId: 'ocean',
-        customAccentArgb: ocean.primary.toARGB32(),
+        presetId: 'nocturne',
+        customAccentArgb: nocturne.primary.toARGB32(),
       );
-      expect(resolved.id, 'ocean');
-      expect(resolved.primary, ocean.primary);
-      expect(resolved.background, ocean.background);
+      expect(resolved.id, 'nocturne');
+      expect(resolved.primary, nocturne.primary);
+      expect(resolved.background, nocturne.background);
     });
 
     test('overrides primary with the custom accent color', () {
       const accent = Color(0xFFEF4444);
       final resolved = ThemeResolver.resolve(
-        presetId: 'midnight',
+        presetId: 'signal',
         customAccentArgb: accent.toARGB32(),
       );
       expect(resolved.primary, accent);
@@ -35,23 +35,23 @@ void main() {
       expect(ThemePresets.midnight.isIosChrome, isFalse);
     });
 
-    test('falls back to midnight for unknown ids', () {
+    test('falls back to signal for unknown ids', () {
       final resolved = ThemeResolver.resolve(
         presetId: 'does-not-exist',
         customAccentArgb: ThemePresets.midnight.primary.toARGB32(),
       );
-      expect(resolved.id, 'midnight');
+      expect(resolved.id, 'signal');
     });
   });
 
   group('ThemeResolver.forBrightness', () {
     test('keeps dark surfaces in dark mode', () {
       final dark = ThemeResolver.forBrightness(
-        ThemePresets.ocean,
+        ThemePresets.nocturne,
         Brightness.dark,
       );
-      expect(dark.background, ThemePresets.ocean.background);
-      expect(dark.primary, ThemePresets.ocean.primary);
+      expect(dark.background, ThemePresets.nocturne.background);
+      expect(dark.primary, ThemePresets.nocturne.primary);
     });
 
     test('light mode keeps iOS chrome flags', () {
@@ -65,12 +65,13 @@ void main() {
     });
 
     test('uses light surfaces but keeps the accent in light mode', () {
+      // iOS follows the light/dark setting; the desktop designs do not.
       final light = ThemeResolver.forBrightness(
-        ThemePresets.ocean,
+        ThemePresets.ios,
         Brightness.light,
       );
-      expect(light.primary, ThemePresets.ocean.primary);
-      expect(light.background, isNot(ThemePresets.ocean.background));
+      expect(light.primary, ThemePresets.ios.primary);
+      expect(light.background, isNot(ThemePresets.ios.background));
       expect(light.textPrimary.computeLuminance(), lessThan(0.5));
     });
   });
@@ -79,16 +80,16 @@ void main() {
     test('applies palette colors to ThemeData', () {
       TestWidgetsFlutterBinding.ensureInitialized();
       final theme = AppTheme.fromPalette(
-        ThemePresets.ocean,
+        ThemePresets.nocturne,
         Brightness.dark,
         useGoogleFonts: false,
       );
-      expect(theme.colorScheme.primary, ThemePresets.ocean.primary);
-      expect(theme.scaffoldBackgroundColor, ThemePresets.ocean.background);
+      expect(theme.colorScheme.primary, ThemePresets.nocturne.primary);
+      expect(theme.scaffoldBackgroundColor, ThemePresets.nocturne.background);
       expect(theme.brightness, Brightness.dark);
       expect(
         theme.extension<AppPalette>()!.primary,
-        ThemePresets.ocean.primary,
+        ThemePresets.nocturne.primary,
       );
     });
   });

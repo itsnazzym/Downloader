@@ -1,3 +1,4 @@
+import '../../theme/design_spec.dart';
 import 'package:flutter/material.dart';
 import 'colors.dart';
 
@@ -28,11 +29,20 @@ class AppRadius {
   static BorderRadius get xlBorder => BorderRadius.all(xl);
   static BorderRadius get fullBorder => BorderRadius.all(full);
 
+  /// Card and panel corners of the active design (Pastille is round,
+  /// Terminal square).
   static BorderRadius panelOf(BuildContext context) {
-    return AppColors.of(context).isIosChrome ? xlBorder : mediumBorder;
+    if (AppColors.of(context).isIosChrome) return xlBorder;
+    return BorderRadius.circular(
+      DesignSpec.of(context).cardRadius.clamp(0, 24).toDouble(),
+    );
   }
 
+  /// Button and field corners of the active design.
   static BorderRadius controlOf(BuildContext context) {
-    return AppColors.of(context).isIosChrome ? largeBorder : mediumBorder;
+    if (AppColors.of(context).isIosChrome) return largeBorder;
+    return BorderRadius.circular(
+      DesignSpec.of(context).controlRadius.clamp(0, 999).toDouble(),
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'design_spec.dart';
 import 'theme_presets.dart';
 
 class ThemeResolver {
@@ -7,6 +8,9 @@ class ThemeResolver {
     required int customAccentArgb,
   }) {
     final preset = ThemePresets.getById(presetId);
+    // A recolour theme that was retired: its stored accent is the old
+    // theme's own colour, not a choice the user made for the new design.
+    if (ThemePresets.legacyIds.containsKey(presetId)) return preset;
     final accent = Color(customAccentArgb);
     if (accent.toARGB32() != preset.primary.toARGB32()) {
       return preset.withAccent(accent);
@@ -15,7 +19,9 @@ class ThemeResolver {
   }
 
   static ThemePreset forBrightness(ThemePreset preset, Brightness brightness) {
-    if (brightness == Brightness.dark) {
+    // A design with its own brightness keeps its colours in both modes.
+    if (brightness == Brightness.dark ||
+        DesignSpec.forId(preset.id).brightness != null) {
       return preset;
     }
     return ThemePreset(

@@ -20,6 +20,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/tor/tor_proxy_service.dart';
 import 'core/setup/dependency_bootstrap_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/design_spec.dart';
 import 'core/theme/theme_presets.dart';
 import 'core/theme/theme_resolver.dart';
 import 'core/ui/setup/app_launch_overlay.dart';
@@ -296,6 +297,14 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
             presetId: settings.themePreset,
             customAccentArgb: settings.customAccentColor,
           );
+    // Each desktop design has its own brightness (Porcelaine and Studio are
+    // light, the others dark); only iOS follows the light/dark setting.
+    final designBrightness = DesignSpec.forId(resolved.id).brightness;
+    if (designBrightness != null) {
+      themeMode = designBrightness == Brightness.light
+          ? ThemeMode.light
+          : ThemeMode.dark;
+    }
 
     final bootstrap = ref.watch(dependencyBootstrapProvider);
     final warmup = ref.watch(appWarmupProvider);
@@ -310,11 +319,11 @@ class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
       _themeKey = themeKey;
       _lightTheme = AppTheme.fromPalette(
         ThemeResolver.forBrightness(resolved, Brightness.light),
-        Brightness.light,
+        designBrightness ?? Brightness.light,
       );
       _darkTheme = AppTheme.fromPalette(
         ThemeResolver.forBrightness(resolved, Brightness.dark),
-        Brightness.dark,
+        designBrightness ?? Brightness.dark,
       );
     }
 

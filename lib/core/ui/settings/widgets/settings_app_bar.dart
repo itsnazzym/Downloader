@@ -8,11 +8,24 @@ import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'settings_app_bar_leading.dart';
 import 'settings_tiles.dart';
 
-/// App bar shared by the settings sub-pages.
+/// Marks a settings view drawn inside a design's own settings page, which
+/// already shows the section title: the view then drops its app bar.
+class SettingsFramed extends InheritedWidget {
+  const SettingsFramed({super.key, required super.child});
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SettingsFramed>() != null;
+
+  @override
+  bool updateShouldNotify(SettingsFramed oldWidget) => false;
+}
+
+/// App bar shared by the settings sub-pages; none inside a design's frame.
 ///
 /// Desktop keeps the translucent blurred bar. On phones (and with the OLED
 /// preset) it is plain black with a hairline: no blur, no elevation tint.
-AppBar buildSettingsAppBar(BuildContext context, {required String title}) {
+AppBar? buildSettingsAppBar(BuildContext context, {required String title}) {
+  if (SettingsFramed.of(context)) return null;
   final colors = AppColors.of(context);
 
   if (useOledSettingsStyle(context)) {

@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../theme/design_spec.dart';
 import '../../theme/theme_presets.dart';
 
 class AppTypography {
   const AppTypography._();
 
+  // Set from the active design when its theme is built (one design is on
+  // screen at a time), so the static styles below follow it.
   static String _family = 'Inter';
+  static String _displayFamily = 'Inter';
+  static String _monoFamily = 'JetBrains Mono';
 
-  static TextStyle get _base => GoogleFonts.inter();
+  static TextStyle _font(String family, [TextStyle? style]) {
+    try {
+      return GoogleFonts.getFont(family, textStyle: style);
+    } catch (_) {
+      return GoogleFonts.inter(textStyle: style);
+    }
+  }
 
-  static TextStyle get h1 => _base.copyWith(
+  static TextStyle get _base => _font(_family);
+  static TextStyle get _display => _font(_displayFamily);
+
+  static TextStyle get h1 => _display.copyWith(
     fontSize: 24,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.5,
   );
-  static TextStyle get h2 => _base.copyWith(
+  static TextStyle get h2 => _display.copyWith(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.3,
@@ -31,10 +45,22 @@ class AppTypography {
 
   static TextStyle get label =>
       _base.copyWith(fontSize: 13, fontWeight: FontWeight.w500);
-  static TextStyle get mono => GoogleFonts.jetBrainsMono(
-    fontSize: 12,
-    fontFeatures: const [FontFeature.tabularFigures()],
+  static TextStyle get mono => _font(
+    _monoFamily,
+    const TextStyle(
+      fontSize: 12,
+      fontFeatures: [FontFeature.tabularFigures()],
+    ),
   );
+
+  /// Big numbers and page titles in the design's display face.
+  static TextStyle display(double size, {FontWeight weight = FontWeight.w700}) =>
+      _display.copyWith(
+        fontSize: size,
+        fontWeight: weight,
+        height: 1.0,
+        letterSpacing: -0.03 * size,
+      );
 
   static TextStyle _ui({
     required double fontSize,
@@ -43,6 +69,7 @@ class AppTypography {
     double? letterSpacing,
     double height = 1.4,
     required bool useGoogleFonts,
+    String? family,
   }) {
     final style = TextStyle(
       fontSize: fontSize,
@@ -52,11 +79,7 @@ class AppTypography {
       height: height,
     );
     if (!useGoogleFonts) return style;
-    try {
-      return GoogleFonts.getFont(_family, textStyle: style);
-    } catch (_) {
-      return GoogleFonts.inter(textStyle: style);
-    }
+    return _font(family ?? _family, style);
   }
 
   static TextTheme _baseTheme() {
@@ -72,7 +95,10 @@ class AppTypography {
     bool useGoogleFonts = true,
   }) {
     final ios = palette.isIosChrome;
-    _family = palette.id == 'oled' ? 'Instrument Sans' : 'Inter';
+    final spec = DesignSpec.forId(palette.id);
+    _family = spec.uiFont;
+    _displayFamily = spec.displayFont;
+    _monoFamily = spec.monoFont;
     // google_fonts' base theme carries near-black colours: every style not
     // overridden below (dialog titles, dropdown values...) was unreadable on
     // dark presets. Give them all the palette's text colour first.
@@ -89,6 +115,7 @@ class AppTypography {
         color: palette.textPrimary,
         height: 1.2,
         useGoogleFonts: useGoogleFonts,
+        family: _displayFamily,
       ),
       // AlertDialog titles: without this the google_fonts base kept its
       // near-black default, unreadable on every dark preset.
@@ -98,6 +125,7 @@ class AppTypography {
         color: palette.textPrimary,
         height: 1.3,
         useGoogleFonts: useGoogleFonts,
+        family: _displayFamily,
       ),
       titleSmall: _ui(
         fontSize: 13,
@@ -132,11 +160,14 @@ class AppTypography {
   }
 
   static TextStyle monoFor(ThemePreset palette) {
-    return GoogleFonts.jetBrainsMono(
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
-      color: palette.textSecondary,
-      fontFeatures: const [FontFeature.tabularFigures()],
+    return _font(
+      DesignSpec.forId(palette.id).monoFont,
+      TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: palette.textSecondary,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
     );
   }
 }

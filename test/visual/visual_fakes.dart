@@ -203,6 +203,15 @@ class PinnedDownloadList extends DownloadListNotifier {
   final List<DownloadItem> _items;
 }
 
+/// A library that never finishes loading (skeleton / loading states).
+class LoadingDownloadList extends DownloadListNotifier {
+  LoadingDownloadList(super.repository, super.ref) {
+    Future<void>.delayed(const Duration(milliseconds: 40), () {
+      if (mounted) state = const AsyncValue.loading();
+    });
+  }
+}
+
 /// Stats matching the Stats mockup: 18.6 GB, 142 downloads, three sources.
 class FakeStatsNotifier extends DownloadStatsNotifier {
   FakeStatsNotifier() {

@@ -16,6 +16,7 @@ import '../../plugins/plugin_manager.dart'; // Added
 import 'widgets/settings_tiles.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'widgets/settings_app_bar_leading.dart';
+import 'widgets/settings_app_bar.dart';
 
 class SmartOrganizerSettingsView extends ConsumerStatefulWidget {
   const SmartOrganizerSettingsView({super.key});
@@ -276,17 +277,19 @@ class _SmartOrganizerSettingsViewState
 
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
-      appBar: AppBar(
-        leading: const SettingsAppBarLeading(),
-        title: Text(context.l10n.smartOrganization),
-        backgroundColor: AppColors.of(context).background,
-        surfaceTintColor: useOledSettingsStyle(context)
-            ? Colors.transparent
-            : null,
-        scrolledUnderElevation: useOledSettingsStyle(context) ? 0 : null,
-        elevation: 0,
-        foregroundColor: AppColors.of(context).textPrimary,
-      ),
+      appBar: SettingsFramed.of(context)
+          ? null
+          : AppBar(
+              leading: const SettingsAppBarLeading(),
+              title: Text(context.l10n.smartOrganization),
+              backgroundColor: AppColors.of(context).background,
+              surfaceTintColor: useOledSettingsStyle(context)
+                  ? Colors.transparent
+                  : null,
+              scrolledUnderElevation: useOledSettingsStyle(context) ? 0 : null,
+              elevation: 0,
+              foregroundColor: AppColors.of(context).textPrimary,
+            ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.l),
         child: Column(

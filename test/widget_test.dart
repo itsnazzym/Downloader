@@ -197,5 +197,10 @@ void main() {
 
     expect(find.text('Content'), findsOneWidget);
     expect(find.byType(AppShell), findsOneWidget);
+
+    // The onboarding tour measures its targets after a short delay; unmount
+    // so that pending timer wakes up to a disposed overlay.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 100));
   });
 }

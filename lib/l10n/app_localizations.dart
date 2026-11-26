@@ -5223,6 +5223,3678 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your address on this Wi-Fi: other devices connect to it'**
   String get transferAddressTooltip;
+
+  /// No description provided for @designHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are we\ndownloading?'**
+  String get designHeroTitle;
+
+  /// No description provided for @designPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram, X… link'**
+  String get designPasteHint;
+
+  /// No description provided for @designDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get designDownload;
+
+  /// No description provided for @designClipboardFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Link found in the clipboard'**
+  String get designClipboardFound;
+
+  /// No description provided for @designTodayCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads · {size}'**
+  String designTodayCaption(String size);
+
+  /// No description provided for @designInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get designInProgress;
+
+  /// No description provided for @designPauseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause all'**
+  String get designPauseAll;
+
+  /// No description provided for @designResumeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume all'**
+  String get designResumeAll;
+
+  /// No description provided for @designRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{eta} left'**
+  String designRemaining(String eta);
+
+  /// No description provided for @designQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get designQueue;
+
+  /// No description provided for @designSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get designSeeAll;
+
+  /// No description provided for @designStorageDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage · {drive}'**
+  String designStorageDrive(String drive);
+
+  /// No description provided for @designFree.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} free'**
+  String designFree(String size);
+
+  /// No description provided for @designFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get designFilterAll;
+
+  /// No description provided for @designFilterVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get designFilterVideo;
+
+  /// No description provided for @designFilterAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get designFilterAudio;
+
+  /// No description provided for @designFilterImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get designFilterImages;
+
+  /// No description provided for @designFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get designFailed;
+
+  /// No description provided for @designNothingActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is downloading. Paste a link to start.'**
+  String get designNothingActive;
+
+  /// No description provided for @designQueueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing waiting'**
+  String get designQueueEmpty;
+
+  /// No description provided for @designLibraryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is empty for now.'**
+  String get designLibraryEmpty;
+
+  /// No description provided for @designArchivesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Archives'**
+  String get designArchivesTab;
+
+  /// No description provided for @nocturneGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get nocturneGreetingMorning;
+
+  /// No description provided for @nocturneGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get nocturneGreetingAfternoon;
+
+  /// No description provided for @nocturneGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get nocturneGreetingEvening;
+
+  /// No description provided for @nocturneActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No downloads in progress} =1{1 download in progress} other{{count} downloads in progress}}'**
+  String nocturneActiveTitle(int count);
+
+  /// No description provided for @nocturneNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get nocturneNext;
+
+  /// No description provided for @nocturneRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest downloads'**
+  String get nocturneRecent;
+
+  /// No description provided for @nocturneSizeOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String nocturneSizeOf(String done, String total);
+
+  /// No description provided for @nocturneStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your activity'**
+  String get nocturneStatsTitle;
+
+  /// No description provided for @nocturneStatDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get nocturneStatDownloads;
+
+  /// No description provided for @nocturneStatVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded volume'**
+  String get nocturneStatVolume;
+
+  /// No description provided for @nocturneLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {count} days'**
+  String nocturneLastDays(int count);
+
+  /// No description provided for @nocturnePerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads per day'**
+  String get nocturnePerDay;
+
+  /// No description provided for @nocturneDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d'**
+  String nocturneDaysShort(int count);
+
+  /// No description provided for @nocturneDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String nocturneDaysAgo(int count);
+
+  /// No description provided for @nocturneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get nocturneToday;
+
+  /// No description provided for @nocturneBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get nocturneBySource;
+
+  /// No description provided for @nocturneByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get nocturneByFormat;
+
+  /// No description provided for @nocturneChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get nocturneChange;
+
+  /// No description provided for @nocturneFileLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'File layout'**
+  String get nocturneFileLayout;
+
+  /// No description provided for @nocturneTokenSite.
+  ///
+  /// In en, this message translates to:
+  /// **'site'**
+  String get nocturneTokenSite;
+
+  /// No description provided for @nocturneTokenCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'creator'**
+  String get nocturneTokenCreator;
+
+  /// No description provided for @nocturneTokenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'title'**
+  String get nocturneTokenTitle;
+
+  /// No description provided for @nocturneAppearanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick TapLoad’s design.'**
+  String get nocturneAppearanceDesc;
+
+  /// No description provided for @nocturneToolsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The tools that do the downloading.'**
+  String get nocturneToolsDesc;
+
+  /// No description provided for @nocturneDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get nocturneDecrease;
+
+  /// No description provided for @nocturneIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get nocturneIncrease;
+
+  /// No description provided for @nocturneArchiveEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive · TikTok'**
+  String get nocturneArchiveEyebrow;
+
+  /// No description provided for @nocturneWordVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{video} other{videos}}'**
+  String nocturneWordVideos(int count);
+
+  /// No description provided for @nocturneWordCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{collection} other{collections}}'**
+  String nocturneWordCollections(int count);
+
+  /// No description provided for @nocturneWordFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{favourite} other{favourites}}'**
+  String nocturneWordFavorites(int count);
+
+  /// No description provided for @nocturneSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get nocturneSync;
+
+  /// No description provided for @nocturneSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get nocturneSyncing;
+
+  /// No description provided for @nocturneStopBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop · {done}/{total}'**
+  String nocturneStopBatch(int done, int total);
+
+  /// No description provided for @nocturneDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get nocturneDownloadAll;
+
+  /// No description provided for @nocturneTabVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get nocturneTabVideos;
+
+  /// No description provided for @nocturneTabCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get nocturneTabCollections;
+
+  /// No description provided for @nocturneTabFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get nocturneTabFavorites;
+
+  /// No description provided for @nocturneImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get nocturneImport;
+
+  /// No description provided for @nocturneArchiveSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a video or a collection…'**
+  String get nocturneArchiveSearch;
+
+  /// No description provided for @nocturneClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get nocturneClear;
+
+  /// No description provided for @nocturneCountVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String nocturneCountVideos(int count);
+
+  /// No description provided for @nocturneSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get nocturneSelectAll;
+
+  /// No description provided for @nocturneSelectedClear.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected · Clear'**
+  String nocturneSelectedClear(int count);
+
+  /// No description provided for @nocturneDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get nocturneDownloadSelection;
+
+  /// No description provided for @nocturneQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos added to the download queue.'**
+  String get nocturneQueued;
+
+  /// No description provided for @nocturneBatchSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} ({skipped} skipped)'**
+  String nocturneBatchSkipped(int done, int total, int skipped);
+
+  /// No description provided for @nocturneNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No video matches the active filters'**
+  String get nocturneNoMatch;
+
+  /// No description provided for @nocturneResetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get nocturneResetFilters;
+
+  /// No description provided for @nocturneFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get nocturneFilters;
+
+  /// No description provided for @nocturneTransferEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Wi-Fi'**
+  String get nocturneTransferEyebrow;
+
+  /// No description provided for @nocturneTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your phone'**
+  String get nocturneTransferTitle;
+
+  /// No description provided for @nocturneAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get nocturneAllOptions;
+
+  /// No description provided for @nocturneSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get nocturneSimpleView;
+
+  /// No description provided for @nocturneQrCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get nocturneQrCaption;
+
+  /// No description provided for @nocturneScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan'**
+  String get nocturneScanTitle;
+
+  /// No description provided for @nocturnePinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get nocturnePinLabel;
+
+  /// No description provided for @nocturneAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get nocturneAddressLabel;
+
+  /// No description provided for @nocturneOnNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'On this Wi-Fi'**
+  String get nocturneOnNetwork;
+
+  /// No description provided for @nocturneNoTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing being sent'**
+  String get nocturneNoTransfer;
+
+  /// No description provided for @nocturneFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get nocturneFilesToSend;
+
+  /// No description provided for @nocturneAddFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder…'**
+  String get nocturneAddFolder;
+
+  /// No description provided for @nocturneAddFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Files…'**
+  String get nocturneAddFiles;
+
+  /// No description provided for @nocturneTotalSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Total selected'**
+  String get nocturneTotalSelected;
+
+  /// No description provided for @nocturneZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress as ZIP'**
+  String get nocturneZip;
+
+  /// No description provided for @nocturneSendTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {name}'**
+  String nocturneSendTo(String name);
+
+  /// No description provided for @nocturneRefreshDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for devices'**
+  String get nocturneRefreshDevices;
+
+  /// No description provided for @nocturneClassicView.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic view'**
+  String get nocturneClassicView;
+
+  /// No description provided for @nocturneCardsView.
+  ///
+  /// In en, this message translates to:
+  /// **'Card view'**
+  String get nocturneCardsView;
+
+  /// No description provided for @nocturneDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get nocturneDone;
+
+  /// No description provided for @nocturnePurgeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection stay.'**
+  String get nocturnePurgeHint;
+
+  /// No description provided for @nocturneAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get nocturneAllDownloaded;
+
+  /// No description provided for @nocturnePartDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% downloaded'**
+  String nocturnePartDownloaded(int percent);
+
+  /// No description provided for @studioItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 items} =1{1 item} other{{count} items}}'**
+  String studioItems(int count);
+
+  /// No description provided for @studioLiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in progress'**
+  String studioLiveCount(int count);
+
+  /// No description provided for @studioPasteLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link'**
+  String get studioPasteLink;
+
+  /// No description provided for @studioColState.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get studioColState;
+
+  /// No description provided for @studioAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start automatically'**
+  String get studioAutoStart;
+
+  /// No description provided for @studioChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get studioChange;
+
+  /// No description provided for @studioTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Download tools'**
+  String get studioTools;
+
+  /// No description provided for @studioChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get studioChecking;
+
+  /// No description provided for @studioReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get studioReplay;
+
+  /// No description provided for @studioDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get studioDecrease;
+
+  /// No description provided for @studioIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get studioIncrease;
+
+  /// No description provided for @studioStatsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you downloaded, from where and from whom.'**
+  String get studioStatsSubtitle;
+
+  /// No description provided for @studioStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get studioStorage;
+
+  /// No description provided for @studioChartTitle7.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · last 7 days'**
+  String get studioChartTitle7;
+
+  /// No description provided for @studioChartTitle30.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · last 30 days'**
+  String get studioChartTitle30;
+
+  /// No description provided for @studioDays7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 d'**
+  String get studioDays7;
+
+  /// No description provided for @studioDays30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 d'**
+  String get studioDays30;
+
+  /// No description provided for @studioDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d ago'**
+  String studioDaysAgo(int count);
+
+  /// No description provided for @studioToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get studioToday;
+
+  /// No description provided for @studioBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get studioBySource;
+
+  /// No description provided for @studioByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get studioByFormat;
+
+  /// No description provided for @studioTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'Top creators'**
+  String get studioTopCreators;
+
+  /// No description provided for @studioPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get studioPeriod;
+
+  /// No description provided for @studioTransferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your files to your phone over local Wi-Fi, no cable, no cloud.'**
+  String get studioTransferSubtitle;
+
+  /// No description provided for @studioScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan.'**
+  String get studioScanTitle;
+
+  /// No description provided for @studioQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get studioQrCode;
+
+  /// No description provided for @studioPin.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get studioPin;
+
+  /// No description provided for @studioAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get studioAddress;
+
+  /// No description provided for @studioFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get studioFilesToSend;
+
+  /// No description provided for @studioSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection'**
+  String get studioSelection;
+
+  /// No description provided for @studioZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress to ZIP'**
+  String get studioZip;
+
+  /// No description provided for @studioTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get studioTarget;
+
+  /// No description provided for @studioChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get studioChoose;
+
+  /// No description provided for @studioAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get studioAllOptions;
+
+  /// No description provided for @studioSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get studioSimpleView;
+
+  /// No description provided for @studioTransferIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'The transfer ran into a problem.'**
+  String get studioTransferIssue;
+
+  /// No description provided for @studioArchiveCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive · TikTok'**
+  String get studioArchiveCap;
+
+  /// No description provided for @studioArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My archive'**
+  String get studioArchiveTitle;
+
+  /// No description provided for @studioSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get studioSync;
+
+  /// No description provided for @studioDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get studioDownloadAll;
+
+  /// No description provided for @studioDownloadAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos not downloaded yet will be added to the queue.'**
+  String studioDownloadAllConfirm(int count);
+
+  /// No description provided for @studioVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get studioVideos;
+
+  /// No description provided for @studioCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get studioCollections;
+
+  /// No description provided for @studioVideosUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get studioVideosUnit;
+
+  /// No description provided for @studioCollectionsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'collections'**
+  String get studioCollectionsUnit;
+
+  /// No description provided for @studioFavoritesUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get studioFavoritesUnit;
+
+  /// No description provided for @studioDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get studioDone;
+
+  /// No description provided for @studioPurgeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection are kept.'**
+  String get studioPurgeNote;
+
+  /// No description provided for @studioAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get studioAllDownloaded;
+
+  /// No description provided for @studioPartDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'downloaded'**
+  String get studioPartDownloaded;
+
+  /// No description provided for @studioToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'To download'**
+  String get studioToDownload;
+
+  /// No description provided for @terminalCommandHint.
+  ///
+  /// In en, this message translates to:
+  /// **'paste a URL'**
+  String get terminalCommandHint;
+
+  /// No description provided for @terminalEnterKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter'**
+  String get terminalEnterKey;
+
+  /// No description provided for @terminalEnterDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'download'**
+  String get terminalEnterDownload;
+
+  /// No description provided for @terminalHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'help'**
+  String get terminalHelp;
+
+  /// No description provided for @terminalAll.
+  ///
+  /// In en, this message translates to:
+  /// **'all'**
+  String get terminalAll;
+
+  /// No description provided for @terminalActive.
+  ///
+  /// In en, this message translates to:
+  /// **'running'**
+  String get terminalActive;
+
+  /// No description provided for @terminalDone.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get terminalDone;
+
+  /// No description provided for @terminalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'failed'**
+  String get terminalFailed;
+
+  /// No description provided for @terminalDesignLine.
+  ///
+  /// In en, this message translates to:
+  /// **'design {id}'**
+  String terminalDesignLine(String id);
+
+  /// No description provided for @terminalActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String terminalActiveCount(int count);
+
+  /// No description provided for @terminalQueuedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} queued'**
+  String terminalQueuedCount(int count);
+
+  /// No description provided for @terminalDownloadsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} download} other{{count} downloads}}'**
+  String terminalDownloadsCount(int count);
+
+  /// No description provided for @terminalLocalArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'local archive'**
+  String get terminalLocalArchive;
+
+  /// No description provided for @terminalVideosCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video} other{{count} videos}}'**
+  String terminalVideosCount(int count);
+
+  /// No description provided for @terminalCollectionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} collection} other{{count} collections}}'**
+  String terminalCollectionsCount(int count);
+
+  /// No description provided for @terminalLocalWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'local Wi-Fi'**
+  String get terminalLocalWifi;
+
+  /// No description provided for @terminalSending.
+  ///
+  /// In en, this message translates to:
+  /// **'sending'**
+  String get terminalSending;
+
+  /// No description provided for @terminalKeyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'filter the library'**
+  String get terminalKeyFilters;
+
+  /// No description provided for @terminalKeyTools.
+  ///
+  /// In en, this message translates to:
+  /// **'statistics, transfer, archives'**
+  String get terminalKeyTools;
+
+  /// No description provided for @terminalKeySearch.
+  ///
+  /// In en, this message translates to:
+  /// **'search'**
+  String get terminalKeySearch;
+
+  /// No description provided for @terminalFlagLive.
+  ///
+  /// In en, this message translates to:
+  /// **'--live'**
+  String get terminalFlagLive;
+
+  /// No description provided for @terminalFlagRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'--recent'**
+  String get terminalFlagRecent;
+
+  /// No description provided for @terminalColState.
+  ///
+  /// In en, this message translates to:
+  /// **'state'**
+  String get terminalColState;
+
+  /// No description provided for @terminalColTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'title'**
+  String get terminalColTitle;
+
+  /// No description provided for @terminalColSource.
+  ///
+  /// In en, this message translates to:
+  /// **'source'**
+  String get terminalColSource;
+
+  /// No description provided for @terminalColFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'format'**
+  String get terminalColFormat;
+
+  /// No description provided for @terminalStateOk.
+  ///
+  /// In en, this message translates to:
+  /// **'ok'**
+  String get terminalStateOk;
+
+  /// No description provided for @terminalStateErr.
+  ///
+  /// In en, this message translates to:
+  /// **'err'**
+  String get terminalStateErr;
+
+  /// No description provided for @terminalStateWait.
+  ///
+  /// In en, this message translates to:
+  /// **'wait'**
+  String get terminalStateWait;
+
+  /// No description provided for @terminalStateRun.
+  ///
+  /// In en, this message translates to:
+  /// **'run'**
+  String get terminalStateRun;
+
+  /// No description provided for @terminalFlagSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'--summary'**
+  String get terminalFlagSummary;
+
+  /// No description provided for @terminalKpiDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads'**
+  String get terminalKpiDownloads;
+
+  /// No description provided for @terminalKpiStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'storage'**
+  String get terminalKpiStorage;
+
+  /// No description provided for @terminalKpiToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get terminalKpiToday;
+
+  /// No description provided for @terminalKpiFree.
+  ///
+  /// In en, this message translates to:
+  /// **'free_space'**
+  String get terminalKpiFree;
+
+  /// No description provided for @terminalPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'period'**
+  String get terminalPeriod;
+
+  /// No description provided for @terminalPeriod7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 d'**
+  String get terminalPeriod7;
+
+  /// No description provided for @terminalPeriod30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 d'**
+  String get terminalPeriod30;
+
+  /// No description provided for @terminalPeriod12.
+  ///
+  /// In en, this message translates to:
+  /// **'12 months'**
+  String get terminalPeriod12;
+
+  /// No description provided for @terminalFlagPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'--period'**
+  String get terminalFlagPeriod;
+
+  /// No description provided for @terminalPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads per day'**
+  String get terminalPerDay;
+
+  /// No description provided for @terminalPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads per month'**
+  String get terminalPerMonth;
+
+  /// No description provided for @terminalLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'last {count} days'**
+  String terminalLastDays(int count);
+
+  /// No description provided for @terminalLastMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'last {count} months'**
+  String terminalLastMonths(int count);
+
+  /// No description provided for @terminalDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'d-{count}'**
+  String terminalDaysAgo(int count);
+
+  /// No description provided for @terminalToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get terminalToday;
+
+  /// No description provided for @terminalMonthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'m-{count}'**
+  String terminalMonthsAgo(int count);
+
+  /// No description provided for @terminalThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'this month'**
+  String get terminalThisMonth;
+
+  /// No description provided for @terminalFlagBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'--by source'**
+  String get terminalFlagBySource;
+
+  /// No description provided for @terminalFlagByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'--by format'**
+  String get terminalFlagByFormat;
+
+  /// No description provided for @terminalFlagTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'--top creators'**
+  String get terminalFlagTopCreators;
+
+  /// No description provided for @terminalSections.
+  ///
+  /// In en, this message translates to:
+  /// **'sections'**
+  String get terminalSections;
+
+  /// No description provided for @terminalSection.
+  ///
+  /// In en, this message translates to:
+  /// **'section'**
+  String get terminalSection;
+
+  /// No description provided for @terminalFlagEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'--edit'**
+  String get terminalFlagEdit;
+
+  /// No description provided for @terminalChangeFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'change the folder'**
+  String get terminalChangeFolder;
+
+  /// No description provided for @terminalAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'adjust'**
+  String get terminalAdjust;
+
+  /// No description provided for @terminalCheckTools.
+  ///
+  /// In en, this message translates to:
+  /// **'check the tools'**
+  String get terminalCheckTools;
+
+  /// No description provided for @terminalToolOk.
+  ///
+  /// In en, this message translates to:
+  /// **'ok'**
+  String get terminalToolOk;
+
+  /// No description provided for @terminalToolChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'checking…'**
+  String get terminalToolChecking;
+
+  /// No description provided for @terminalToolMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'missing'**
+  String get terminalToolMissing;
+
+  /// No description provided for @terminalToolUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'not checked'**
+  String get terminalToolUnchecked;
+
+  /// No description provided for @terminalConfigComment.
+  ///
+  /// In en, this message translates to:
+  /// **'tapload configuration · edited live'**
+  String get terminalConfigComment;
+
+  /// No description provided for @terminalCfgAudioOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'audio_only'**
+  String get terminalCfgAudioOnly;
+
+  /// No description provided for @terminalCfgAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'auto_start'**
+  String get terminalCfgAutoStart;
+
+  /// No description provided for @terminalCfgQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'preferred_quality'**
+  String get terminalCfgQuality;
+
+  /// No description provided for @terminalCfgFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'folder'**
+  String get terminalCfgFolder;
+
+  /// No description provided for @terminalCfgDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'design'**
+  String get terminalCfgDesign;
+
+  /// No description provided for @terminalCfgConcurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'simultaneous_downloads'**
+  String get terminalCfgConcurrent;
+
+  /// No description provided for @terminalCfgReduceEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'reduce_effects'**
+  String get terminalCfgReduceEffects;
+
+  /// No description provided for @terminalChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get terminalChange;
+
+  /// No description provided for @terminalFlagArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'--archive'**
+  String get terminalFlagArchive;
+
+  /// No description provided for @terminalTabVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get terminalTabVideos;
+
+  /// No description provided for @terminalTabCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'collections'**
+  String get terminalTabCollections;
+
+  /// No description provided for @terminalTabFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get terminalTabFavorites;
+
+  /// No description provided for @terminalTabLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'likes'**
+  String get terminalTabLikes;
+
+  /// No description provided for @terminalFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get terminalFinish;
+
+  /// No description provided for @terminalFlagCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'--collections'**
+  String get terminalFlagCollections;
+
+  /// No description provided for @terminalFlagVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'--videos'**
+  String get terminalFlagVideos;
+
+  /// No description provided for @terminalSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} sorting suggestion} other{{count} sorting suggestions}}'**
+  String terminalSuggestions(int count);
+
+  /// No description provided for @terminalReview.
+  ///
+  /// In en, this message translates to:
+  /// **'review'**
+  String get terminalReview;
+
+  /// No description provided for @terminalPurgeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'videos shared with a kept collection are kept'**
+  String get terminalPurgeNote;
+
+  /// No description provided for @terminalSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'selection'**
+  String get terminalSelection;
+
+  /// No description provided for @terminalRightClick.
+  ///
+  /// In en, this message translates to:
+  /// **'right-click'**
+  String get terminalRightClick;
+
+  /// No description provided for @terminalActions.
+  ///
+  /// In en, this message translates to:
+  /// **'actions'**
+  String get terminalActions;
+
+  /// No description provided for @terminalDownloadedOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} videos downloaded'**
+  String terminalDownloadedOf(int done, int total);
+
+  /// No description provided for @terminalDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get terminalDownloadAll;
+
+  /// No description provided for @terminalAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'all downloaded'**
+  String get terminalAllDownloaded;
+
+  /// No description provided for @terminalDownloadedPct.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% downloaded'**
+  String terminalDownloadedPct(int percent);
+
+  /// No description provided for @terminalToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'to download'**
+  String get terminalToDownload;
+
+  /// No description provided for @terminalVidCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} vid.'**
+  String terminalVidCount(int count);
+
+  /// No description provided for @terminalAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'all collections'**
+  String get terminalAllCollections;
+
+  /// No description provided for @terminalDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection ({count})'**
+  String terminalDownloadSelection(int count);
+
+  /// No description provided for @terminalCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get terminalCopyLink;
+
+  /// No description provided for @terminalOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get terminalOpenBrowser;
+
+  /// No description provided for @terminalApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply ({count})'**
+  String terminalApply(int count);
+
+  /// No description provided for @terminalFlagWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'--wifi'**
+  String get terminalFlagWifi;
+
+  /// No description provided for @terminalFlagSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'--select'**
+  String get terminalFlagSelect;
+
+  /// No description provided for @terminalFlagStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'--status'**
+  String get terminalFlagStatus;
+
+  /// No description provided for @terminalFlagPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'--devices'**
+  String get terminalFlagPeers;
+
+  /// No description provided for @terminalPin.
+  ///
+  /// In en, this message translates to:
+  /// **'pin'**
+  String get terminalPin;
+
+  /// No description provided for @terminalAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'address'**
+  String get terminalAddress;
+
+  /// No description provided for @terminalScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan'**
+  String get terminalScanHint;
+
+  /// No description provided for @terminalDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'device'**
+  String get terminalDevice;
+
+  /// No description provided for @terminalOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'online'**
+  String get terminalOnline;
+
+  /// No description provided for @terminalBroadcast.
+  ///
+  /// In en, this message translates to:
+  /// **'announce'**
+  String get terminalBroadcast;
+
+  /// No description provided for @terminalCheckAll.
+  ///
+  /// In en, this message translates to:
+  /// **'check all'**
+  String get terminalCheckAll;
+
+  /// No description provided for @terminalAddFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'add'**
+  String get terminalAddFiles;
+
+  /// No description provided for @terminalClearPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get terminalClearPayload;
+
+  /// No description provided for @terminalZipKey.
+  ///
+  /// In en, this message translates to:
+  /// **'zip_archive'**
+  String get terminalZipKey;
+
+  /// No description provided for @terminalOnlyNewKey.
+  ///
+  /// In en, this message translates to:
+  /// **'only_new'**
+  String get terminalOnlyNewKey;
+
+  /// No description provided for @terminalTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'total'**
+  String get terminalTotal;
+
+  /// No description provided for @terminalNoTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing being sent'**
+  String get terminalNoTransfer;
+
+  /// No description provided for @pastilleGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get pastilleGreetingMorning;
+
+  /// No description provided for @pastilleGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get pastilleGreetingEvening;
+
+  /// No description provided for @pastilleHomeBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, all running.'**
+  String pastilleHomeBusy(String greeting);
+
+  /// No description provided for @pastilleHomeIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, all quiet.'**
+  String pastilleHomeIdle(String greeting);
+
+  /// No description provided for @pastilleOneOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{index} of {total}'**
+  String pastilleOneOf(int index, int total);
+
+  /// No description provided for @pastilleQuickLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick link'**
+  String get pastilleQuickLink;
+
+  /// No description provided for @pastilleClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard: {url}'**
+  String pastilleClipboard(String url);
+
+  /// No description provided for @pastilleAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added ✓'**
+  String get pastilleAdded;
+
+  /// No description provided for @pastilleSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get pastilleSpeed;
+
+  /// No description provided for @pastilleStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get pastilleStorage;
+
+  /// No description provided for @pastilleActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity · {month}'**
+  String pastilleActivity(String month);
+
+  /// No description provided for @pastilleTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} today'**
+  String pastilleTodayCount(int count);
+
+  /// No description provided for @pastilleThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'this month'**
+  String get pastilleThisMonth;
+
+  /// No description provided for @pastilleNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {title}'**
+  String pastilleNext(String title);
+
+  /// No description provided for @pastilleRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get pastilleRecent;
+
+  /// No description provided for @pastilleTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in total'**
+  String pastilleTotal(int count);
+
+  /// No description provided for @pastilleAllLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole library'**
+  String get pastilleAllLibrary;
+
+  /// No description provided for @pastilleNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing finished yet'**
+  String get pastilleNothingYet;
+
+  /// No description provided for @pastilleLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your whole library.'**
+  String get pastilleLibraryTitle;
+
+  /// No description provided for @pastilleStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your activity, in dots.'**
+  String get pastilleStatsTitle;
+
+  /// No description provided for @pastilleDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get pastilleDownloads;
+
+  /// No description provided for @pastilleSinceStart.
+  ///
+  /// In en, this message translates to:
+  /// **'since the start'**
+  String get pastilleSinceStart;
+
+  /// No description provided for @pastilleVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get pastilleVolume;
+
+  /// No description provided for @pastilleDownloadedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'downloaded in total'**
+  String get pastilleDownloadedTotal;
+
+  /// No description provided for @pastilleLast7.
+  ///
+  /// In en, this message translates to:
+  /// **'last 7 days'**
+  String get pastilleLast7;
+
+  /// No description provided for @pastilleLast30.
+  ///
+  /// In en, this message translates to:
+  /// **'last 30 days'**
+  String get pastilleLast30;
+
+  /// No description provided for @pastilleDownloadsWord.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads'**
+  String get pastilleDownloadsWord;
+
+  /// No description provided for @pastilleChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · {period}'**
+  String pastilleChartTitle(String period);
+
+  /// No description provided for @pastillePeriod7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 d'**
+  String get pastillePeriod7;
+
+  /// No description provided for @pastillePeriod30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 d'**
+  String get pastillePeriod30;
+
+  /// No description provided for @pastilleDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'d-{days}'**
+  String pastilleDaysAgo(int days);
+
+  /// No description provided for @pastilleTodayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get pastilleTodayShort;
+
+  /// No description provided for @pastilleByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get pastilleByFormat;
+
+  /// No description provided for @pastilleBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get pastilleBySource;
+
+  /// No description provided for @pastilleSettingsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'settings'**
+  String get pastilleSettingsEyebrow;
+
+  /// No description provided for @pastilleMoreSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'More settings'**
+  String get pastilleMoreSettings;
+
+  /// No description provided for @pastilleChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get pastilleChange;
+
+  /// No description provided for @pastilleAppDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'App design'**
+  String get pastilleAppDesign;
+
+  /// No description provided for @pastilleConcurrentLess.
+  ///
+  /// In en, this message translates to:
+  /// **'One fewer simultaneous download'**
+  String get pastilleConcurrentLess;
+
+  /// No description provided for @pastilleConcurrentMore.
+  ///
+  /// In en, this message translates to:
+  /// **'One more simultaneous download'**
+  String get pastilleConcurrentMore;
+
+  /// No description provided for @pastilleReduceEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce effects'**
+  String get pastilleReduceEffects;
+
+  /// No description provided for @pastilleSystemTools.
+  ///
+  /// In en, this message translates to:
+  /// **'System · tools'**
+  String get pastilleSystemTools;
+
+  /// No description provided for @pastilleToolReady.
+  ///
+  /// In en, this message translates to:
+  /// **'ready'**
+  String get pastilleToolReady;
+
+  /// No description provided for @pastilleToolChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'checking…'**
+  String get pastilleToolChecking;
+
+  /// No description provided for @pastilleToolUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'not checked'**
+  String get pastilleToolUnchecked;
+
+  /// No description provided for @pastilleRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Check and repair'**
+  String get pastilleRepair;
+
+  /// No description provided for @pastilleArchiveEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok archives'**
+  String get pastilleArchiveEyebrow;
+
+  /// No description provided for @pastilleArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your archive, sorted.'**
+  String get pastilleArchiveTitle;
+
+  /// No description provided for @pastilleSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get pastilleSync;
+
+  /// No description provided for @pastilleDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get pastilleDownloadAll;
+
+  /// No description provided for @pastilleBatchStop.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} · Stop'**
+  String pastilleBatchStop(int done, int total);
+
+  /// No description provided for @pastilleDemoDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode: download simulated.'**
+  String get pastilleDemoDownload;
+
+  /// No description provided for @pastilleArchiveVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get pastilleArchiveVideos;
+
+  /// No description provided for @pastilleArchiveCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get pastilleArchiveCollections;
+
+  /// No description provided for @pastilleArchiveFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get pastilleArchiveFavorites;
+
+  /// No description provided for @pastilleDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pastilleDone;
+
+  /// No description provided for @pastilleMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get pastilleMoreActions;
+
+  /// No description provided for @pastilleDetailedView.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed collections view'**
+  String get pastilleDetailedView;
+
+  /// No description provided for @pastilleInArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'in the archive'**
+  String get pastilleInArchive;
+
+  /// No description provided for @pastilleByTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'sorted by theme'**
+  String get pastilleByTheme;
+
+  /// No description provided for @pastilleKeptOnTikTok.
+  ///
+  /// In en, this message translates to:
+  /// **'saved on TikTok'**
+  String get pastilleKeptOnTikTok;
+
+  /// No description provided for @pastilleVideosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'videos in the archive'**
+  String get pastilleVideosLabel;
+
+  /// No description provided for @pastilleFavoritesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get pastilleFavoritesLabel;
+
+  /// No description provided for @pastilleVideosText.
+  ///
+  /// In en, this message translates to:
+  /// **'Every video of your archive, sorted by collection. Open the Collections tab to choose what to keep on this PC.'**
+  String get pastilleVideosText;
+
+  /// No description provided for @pastilleFavoritesText.
+  ///
+  /// In en, this message translates to:
+  /// **'The videos you saved as favorites on TikTok. “Download all” fetches them with the rest of the archive.'**
+  String get pastilleFavoritesText;
+
+  /// No description provided for @pastilleLocalArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive'**
+  String get pastilleLocalArchive;
+
+  /// No description provided for @pastilleLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} likes'**
+  String pastilleLikes(int count);
+
+  /// No description provided for @pastilleSharedKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection stay.'**
+  String get pastilleSharedKept;
+
+  /// No description provided for @pastilleNoCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'No collections found'**
+  String get pastilleNoCollections;
+
+  /// No description provided for @pastilleAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get pastilleAllDownloaded;
+
+  /// No description provided for @pastillePercentDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% downloaded'**
+  String pastillePercentDownloaded(int percent);
+
+  /// No description provided for @pastilleToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'To download'**
+  String get pastilleToDownload;
+
+  /// No description provided for @pastilleVideosWord.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get pastilleVideosWord;
+
+  /// No description provided for @pastilleOneDotTen.
+  ///
+  /// In en, this message translates to:
+  /// **'1 dot = 10 videos'**
+  String get pastilleOneDotTen;
+
+  /// No description provided for @pastilleSeeCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'See collections'**
+  String get pastilleSeeCollections;
+
+  /// No description provided for @pastilleArchiveSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a video or a collection…'**
+  String get pastilleArchiveSearch;
+
+  /// No description provided for @pastilleVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos'**
+  String pastilleVideoCount(int count);
+
+  /// No description provided for @pastilleSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get pastilleSelectAll;
+
+  /// No description provided for @pastilleClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected · Clear'**
+  String pastilleClearSelection(int count);
+
+  /// No description provided for @pastilleBatchProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Running ({done}/{total})'**
+  String pastilleBatchProgress(int done, int total);
+
+  /// No description provided for @pastilleDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get pastilleDownloadSelection;
+
+  /// No description provided for @pastilleQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos added to the download queue.'**
+  String get pastilleQueued;
+
+  /// No description provided for @pastilleNoVideoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No video matches the active filters'**
+  String get pastilleNoVideoMatch;
+
+  /// No description provided for @pastilleResetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get pastilleResetFilters;
+
+  /// No description provided for @pastilleTransferEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'transfer over local Wi-Fi'**
+  String get pastilleTransferEyebrow;
+
+  /// No description provided for @pastilleTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your phone.'**
+  String get pastilleTransferTitle;
+
+  /// No description provided for @pastilleConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get pastilleConnection;
+
+  /// No description provided for @pastilleQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get pastilleQrCode;
+
+  /// No description provided for @pastillePinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get pastillePinCode;
+
+  /// No description provided for @pastilleScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan.'**
+  String get pastilleScanHint;
+
+  /// No description provided for @pastilleTransferInFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer in progress'**
+  String get pastilleTransferInFlight;
+
+  /// No description provided for @pastilleTo.
+  ///
+  /// In en, this message translates to:
+  /// **'to {name}'**
+  String pastilleTo(String name);
+
+  /// No description provided for @pastilleLocalWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Wi-Fi'**
+  String get pastilleLocalWifi;
+
+  /// No description provided for @pastilleNoTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'No transfer in progress'**
+  String get pastilleNoTransfer;
+
+  /// No description provided for @pastilleConnectedDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected device'**
+  String get pastilleConnectedDevice;
+
+  /// No description provided for @pastilleConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'connected'**
+  String get pastilleConnected;
+
+  /// No description provided for @pastilleNoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'no device chosen'**
+  String get pastilleNoDevice;
+
+  /// No description provided for @pastilleFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get pastilleFilesToSend;
+
+  /// No description provided for @pastilleCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Creator'**
+  String get pastilleCreator;
+
+  /// No description provided for @pastilleFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get pastilleFolder;
+
+  /// No description provided for @pastilleFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get pastilleFile;
+
+  /// No description provided for @pastilleAddFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Add files'**
+  String get pastilleAddFiles;
+
+  /// No description provided for @pastilleAddFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a folder'**
+  String get pastilleAddFolder;
+
+  /// No description provided for @pastilleSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection'**
+  String get pastilleSelection;
+
+  /// No description provided for @pastilleZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress to ZIP'**
+  String get pastilleZip;
+
+  /// No description provided for @pastilleMoreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get pastilleMoreOptions;
+
+  /// No description provided for @porcelaineSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get porcelaineSpace;
+
+  /// No description provided for @porcelaineSettingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get porcelaineSettingsTab;
+
+  /// No description provided for @porcelaineEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get porcelaineEdit;
+
+  /// No description provided for @porcelaineDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get porcelaineDone;
+
+  /// No description provided for @porcelaineReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get porcelaineReset;
+
+  /// No description provided for @porcelaineAddWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a widget'**
+  String get porcelaineAddWidget;
+
+  /// No description provided for @porcelaineGoodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello.'**
+  String get porcelaineGoodMorning;
+
+  /// No description provided for @porcelaineGoodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening.'**
+  String get porcelaineGoodEvening;
+
+  /// No description provided for @porcelaineIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing downloading'**
+  String get porcelaineIdle;
+
+  /// No description provided for @porcelaineActiveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download running} other{{count} downloads running}}, {speed}'**
+  String porcelaineActiveNow(int count, String speed);
+
+  /// No description provided for @porcelaineEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a card to move it · pull the corner to resize it'**
+  String get porcelaineEditHint;
+
+  /// No description provided for @porcelaineQuickLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick link'**
+  String get porcelaineQuickLink;
+
+  /// No description provided for @porcelaineSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get porcelaineSpeed;
+
+  /// No description provided for @porcelaineStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get porcelaineStorage;
+
+  /// No description provided for @porcelaineRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get porcelaineRecent;
+
+  /// No description provided for @porcelaineDescActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress of what is downloading.'**
+  String get porcelaineDescActive;
+
+  /// No description provided for @porcelaineDescPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste and start in one click.'**
+  String get porcelaineDescPaste;
+
+  /// No description provided for @porcelaineDescSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Live speed and its history.'**
+  String get porcelaineDescSpeed;
+
+  /// No description provided for @porcelaineDescStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Free space and what fills it.'**
+  String get porcelaineDescStorage;
+
+  /// No description provided for @porcelaineDescRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your latest downloads.'**
+  String get porcelaineDescRecent;
+
+  /// No description provided for @porcelaineDescQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'What starts next.'**
+  String get porcelaineDescQueue;
+
+  /// No description provided for @porcelaineSizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get porcelaineSizeSmall;
+
+  /// No description provided for @porcelaineSizeMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get porcelaineSizeMedium;
+
+  /// No description provided for @porcelaineSizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get porcelaineSizeLarge;
+
+  /// No description provided for @porcelaineSizeSmallShort.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get porcelaineSizeSmallShort;
+
+  /// No description provided for @porcelaineSizeMediumShort.
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get porcelaineSizeMediumShort;
+
+  /// No description provided for @porcelaineSizeLargeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get porcelaineSizeLargeShort;
+
+  /// No description provided for @porcelaineSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size {size}'**
+  String porcelaineSizeLabel(String size);
+
+  /// No description provided for @porcelaineMoveBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Move back'**
+  String get porcelaineMoveBack;
+
+  /// No description provided for @porcelaineMoveForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Move forward'**
+  String get porcelaineMoveForward;
+
+  /// No description provided for @porcelaineRemoveWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {name} widget'**
+  String porcelaineRemoveWidget(String name);
+
+  /// No description provided for @porcelaineWidgetOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} widget options'**
+  String porcelaineWidgetOptions(String name);
+
+  /// No description provided for @porcelaineResizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull to resize'**
+  String get porcelaineResizeHint;
+
+  /// No description provided for @porcelaineRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” removed'**
+  String porcelaineRemoved(String name);
+
+  /// No description provided for @porcelaineCatalogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'It lands at the end of your space, at its suggested size.'**
+  String get porcelaineCatalogHint;
+
+  /// No description provided for @porcelaineAlreadyThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your space'**
+  String get porcelaineAlreadyThere;
+
+  /// No description provided for @porcelaineAddAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Add · {size}'**
+  String porcelaineAddAt(String size);
+
+  /// No description provided for @porcelaineEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your space is empty'**
+  String get porcelaineEmptyTitle;
+
+  /// No description provided for @porcelaineEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the widgets you need: progress, quick link, speed, storage…'**
+  String get porcelaineEmptyBody;
+
+  /// No description provided for @porcelainePaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get porcelainePaste;
+
+  /// No description provided for @porcelainePasteAndDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste and download'**
+  String get porcelainePasteAndDownload;
+
+  /// No description provided for @porcelainePasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link…'**
+  String get porcelainePasteHint;
+
+  /// No description provided for @porcelaineAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added ✓'**
+  String get porcelaineAdded;
+
+  /// No description provided for @porcelaineAddedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get porcelaineAddedShort;
+
+  /// No description provided for @porcelaineClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard: {url}'**
+  String porcelaineClipboard(String url);
+
+  /// No description provided for @porcelaineClipboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link in the clipboard'**
+  String get porcelaineClipboardTitle;
+
+  /// No description provided for @porcelaineClipboardNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No link in the clipboard'**
+  String get porcelaineClipboardNone;
+
+  /// No description provided for @porcelaineFormatAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get porcelaineFormatAuto;
+
+  /// No description provided for @porcelaineFormatAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio only'**
+  String get porcelaineFormatAudio;
+
+  /// No description provided for @porcelaineMoreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options…'**
+  String get porcelaineMoreOptions;
+
+  /// No description provided for @porcelaineSpeedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'{unit} right now'**
+  String porcelaineSpeedNow(String unit);
+
+  /// No description provided for @porcelainePeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak'**
+  String get porcelainePeak;
+
+  /// No description provided for @porcelaineAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get porcelaineAverage;
+
+  /// No description provided for @porcelaineFreeUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{unit} free'**
+  String porcelaineFreeUnit(String unit);
+
+  /// No description provided for @porcelaineHeaviest.
+  ///
+  /// In en, this message translates to:
+  /// **'Largest'**
+  String get porcelaineHeaviest;
+
+  /// No description provided for @porcelaineFreeUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Free up space'**
+  String get porcelaineFreeUp;
+
+  /// No description provided for @porcelaineWholeLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole library'**
+  String get porcelaineWholeLibrary;
+
+  /// No description provided for @porcelaineWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'waiting'**
+  String get porcelaineWaiting;
+
+  /// No description provided for @porcelaineStatsDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get porcelaineStatsDownloads;
+
+  /// No description provided for @porcelaineStatsVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded volume'**
+  String get porcelaineStatsVolume;
+
+  /// No description provided for @porcelaineStatsDownloadsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads'**
+  String get porcelaineStatsDownloadsUnit;
+
+  /// No description provided for @porcelaineStatsChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · {period}'**
+  String porcelaineStatsChartTitle(String period);
+
+  /// No description provided for @porcelaineLast30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get porcelaineLast30Days;
+
+  /// No description provided for @porcelaineDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String porcelaineDaysShort(int days);
+
+  /// No description provided for @porcelaineDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d ago'**
+  String porcelaineDaysAgo(int days);
+
+  /// No description provided for @porcelaineTodayAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get porcelaineTodayAxis;
+
+  /// No description provided for @porcelaineBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get porcelaineBySource;
+
+  /// No description provided for @porcelaineByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get porcelaineByFormat;
+
+  /// No description provided for @porcelaineTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'Top creators'**
+  String get porcelaineTopCreators;
+
+  /// No description provided for @porcelaineSettingsGeneralDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'How TapLoad behaves day to day.'**
+  String get porcelaineSettingsGeneralDesc;
+
+  /// No description provided for @porcelaineAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start automatically'**
+  String get porcelaineAutoStart;
+
+  /// No description provided for @porcelaineChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get porcelaineChange;
+
+  /// No description provided for @porcelaineParallelDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Simultaneous downloads'**
+  String get porcelaineParallelDownloads;
+
+  /// No description provided for @porcelaineOneLess.
+  ///
+  /// In en, this message translates to:
+  /// **'One less'**
+  String get porcelaineOneLess;
+
+  /// No description provided for @porcelaineOneMore.
+  ///
+  /// In en, this message translates to:
+  /// **'One more'**
+  String get porcelaineOneMore;
+
+  /// No description provided for @porcelaineReduceEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce effects'**
+  String get porcelaineReduceEffects;
+
+  /// No description provided for @porcelaineReduceEffectsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer animations, handy on a modest PC.'**
+  String get porcelaineReduceEffectsHint;
+
+  /// No description provided for @porcelaineDesignActive.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} active'**
+  String porcelaineDesignActive(String name);
+
+  /// No description provided for @porcelaineToolReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get porcelaineToolReady;
+
+  /// No description provided for @porcelaineToolChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get porcelaineToolChecking;
+
+  /// No description provided for @porcelaineToolUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked'**
+  String get porcelaineToolUnchecked;
+
+  /// No description provided for @porcelaineTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'To your phone'**
+  String get porcelaineTransferTitle;
+
+  /// No description provided for @porcelaineTransferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Over local Wi-Fi, no cable, no cloud.'**
+  String get porcelaineTransferSubtitle;
+
+  /// No description provided for @porcelaineSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get porcelaineSimpleView;
+
+  /// No description provided for @porcelaineConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get porcelaineConnection;
+
+  /// No description provided for @porcelaineScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan'**
+  String get porcelaineScanTitle;
+
+  /// No description provided for @porcelaineScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type the PIN and the address by hand.'**
+  String get porcelaineScanHint;
+
+  /// No description provided for @porcelaineQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get porcelaineQrCode;
+
+  /// No description provided for @porcelainePinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get porcelainePinCode;
+
+  /// No description provided for @porcelaineAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get porcelaineAddress;
+
+  /// No description provided for @porcelaineConnectedDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected device'**
+  String get porcelaineConnectedDevice;
+
+  /// No description provided for @porcelaineConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get porcelaineConnected;
+
+  /// No description provided for @porcelaineTransferInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer in progress'**
+  String get porcelaineTransferInProgress;
+
+  /// No description provided for @porcelaineToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'to {name}'**
+  String porcelaineToDevice(String name);
+
+  /// No description provided for @porcelaineFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get porcelaineFilesToSend;
+
+  /// No description provided for @porcelaineVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String porcelaineVideoCount(int count);
+
+  /// No description provided for @porcelaineCompressZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress as ZIP'**
+  String get porcelaineCompressZip;
+
+  /// No description provided for @porcelaineSelectedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected total'**
+  String get porcelaineSelectedTotal;
+
+  /// No description provided for @porcelaineNearbyDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby devices'**
+  String get porcelaineNearbyDevices;
+
+  /// No description provided for @porcelaineRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get porcelaineRecipient;
+
+  /// No description provided for @porcelaineSearchDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get porcelaineSearchDevices;
+
+  /// No description provided for @porcelaineAllTransferTools.
+  ///
+  /// In en, this message translates to:
+  /// **'All tools'**
+  String get porcelaineAllTransferTools;
+
+  /// No description provided for @porcelaineLocalArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive'**
+  String get porcelaineLocalArchive;
+
+  /// No description provided for @porcelaineArchiveVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get porcelaineArchiveVideos;
+
+  /// No description provided for @porcelaineArchiveCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'collections'**
+  String get porcelaineArchiveCollections;
+
+  /// No description provided for @porcelaineArchiveFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get porcelaineArchiveFavorites;
+
+  /// No description provided for @porcelaineArchiveVideosTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get porcelaineArchiveVideosTab;
+
+  /// No description provided for @porcelaineArchiveCollectionsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get porcelaineArchiveCollectionsTab;
+
+  /// No description provided for @porcelaineArchiveFavoritesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get porcelaineArchiveFavoritesTab;
+
+  /// No description provided for @porcelaineArchiveKeptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a collection you keep are kept.'**
+  String get porcelaineArchiveKeptHint;
+
+  /// No description provided for @porcelaineSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get porcelaineSync;
+
+  /// No description provided for @porcelaineDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download ({count})'**
+  String porcelaineDownloadSelection(int count);
+
+  /// No description provided for @porcelaineDownloadSelectionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get porcelaineDownloadSelectionNone;
+
+  /// No description provided for @porcelaineSelectFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick videos in the list first.'**
+  String get porcelaineSelectFirst;
+
+  /// No description provided for @signalStatsVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded volume'**
+  String get signalStatsVolume;
+
+  /// No description provided for @signalStatsLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {count} days'**
+  String signalStatsLastDays(int count);
+
+  /// No description provided for @signalStatsPeriodDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d'**
+  String signalStatsPeriodDays(int count);
+
+  /// No description provided for @signalStatsDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d ago'**
+  String signalStatsDaysAgo(int count);
+
+  /// No description provided for @signalStatsTodayAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get signalStatsTodayAxis;
+
+  /// No description provided for @signalStatsByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get signalStatsByFormat;
+
+  /// No description provided for @signalStatsInVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'video'**
+  String get signalStatsInVideo;
+
+  /// No description provided for @signalStatsTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'Top creators'**
+  String get signalStatsTopCreators;
+
+  /// No description provided for @signalStatsNoCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'No creators yet.'**
+  String get signalStatsNoCreators;
+
+  /// No description provided for @signalSettingsGeneralHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What TapLoad does by default.'**
+  String get signalSettingsGeneralHint;
+
+  /// No description provided for @signalSettingsChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get signalSettingsChange;
+
+  /// No description provided for @signalSettingsDesignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance · design'**
+  String get signalSettingsDesignTitle;
+
+  /// No description provided for @signalSettingsCurrentDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {name}'**
+  String signalSettingsCurrentDesign(String name);
+
+  /// No description provided for @signalSettingsToolsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System · tools'**
+  String get signalSettingsToolsTitle;
+
+  /// No description provided for @signalSettingsLess.
+  ///
+  /// In en, this message translates to:
+  /// **'One fewer'**
+  String get signalSettingsLess;
+
+  /// No description provided for @signalSettingsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'One more'**
+  String get signalSettingsMore;
+
+  /// No description provided for @signalArchiveLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive'**
+  String get signalArchiveLocal;
+
+  /// No description provided for @signalArchiveDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing downloaded yet} one{{count} video already downloaded} other{{count} videos already downloaded}}'**
+  String signalArchiveDownloaded(int count);
+
+  /// No description provided for @signalArchiveVideosTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get signalArchiveVideosTab;
+
+  /// No description provided for @signalArchiveCollectionsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get signalArchiveCollectionsTab;
+
+  /// No description provided for @signalArchiveSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get signalArchiveSync;
+
+  /// No description provided for @signalArchiveDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get signalArchiveDownloadAll;
+
+  /// No description provided for @signalArchiveConfirmAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Download {count} video?} other{Download {count} videos?}}'**
+  String signalArchiveConfirmAll(int count);
+
+  /// No description provided for @signalArchiveConfirmAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Those not downloaded yet join the queue.'**
+  String get signalArchiveConfirmAllBody;
+
+  /// No description provided for @signalArchiveAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get signalArchiveAllDone;
+
+  /// No description provided for @signalArchiveNotDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded'**
+  String get signalArchiveNotDownloaded;
+
+  /// No description provided for @signalArchiveSharedKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection stay.'**
+  String get signalArchiveSharedKept;
+
+  /// No description provided for @signalArchiveCardView.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to cards'**
+  String get signalArchiveCardView;
+
+  /// No description provided for @signalArchiveDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get signalArchiveDownloadSelection;
+
+  /// No description provided for @signalTransferWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'On the local Wi-Fi'**
+  String get signalTransferWifi;
+
+  /// No description provided for @signalTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your phone'**
+  String get signalTransferTitle;
+
+  /// No description provided for @signalTransferScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan.'**
+  String get signalTransferScanHint;
+
+  /// No description provided for @signalTransferCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type the code'**
+  String get signalTransferCode;
+
+  /// No description provided for @signalTransferTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get signalTransferTarget;
+
+  /// No description provided for @signalTransferReachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Reachable'**
+  String get signalTransferReachable;
+
+  /// No description provided for @signalTransferFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get signalTransferFiles;
+
+  /// No description provided for @signalTransferTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected total'**
+  String get signalTransferTotal;
+
+  /// No description provided for @signalTransferInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer in progress'**
+  String get signalTransferInProgress;
+
+  /// No description provided for @signalTransferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'to {name}'**
+  String signalTransferTo(String name);
+
+  /// No description provided for @signalTransferPickDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the device in the Devices list.'**
+  String get signalTransferPickDevice;
+
+  /// No description provided for @porcelaineSelectedCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing selected} =1{1 selected} other{{count} selected}}'**
+  String porcelaineSelectedCollections(int count);
+
+  /// No description provided for @porcelaineNotDownloadedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded yet'**
+  String get porcelaineNotDownloadedYet;
+
+  /// No description provided for @terminalEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing downloaded yet'**
+  String get terminalEmptyTitle;
+
+  /// No description provided for @terminalEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link in the command bar above, or start a new download.'**
+  String get terminalEmptyBody;
+
+  /// No description provided for @terminalNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'grep: \"{query}\": no matching line'**
+  String terminalNoMatch(String query);
+
+  /// No description provided for @terminalNoMatchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'no line matches the filters'**
+  String get terminalNoMatchFilters;
+
+  /// No description provided for @terminalLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'reading the library…'**
+  String get terminalLoading;
+
+  /// No description provided for @terminalLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'could not read the library'**
+  String get terminalLoadError;
+
+  /// No description provided for @terminalFailedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} failed download} other{{count} failed downloads}}'**
+  String terminalFailedSummary(int count);
+
+  /// No description provided for @terminalFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get terminalFinished;
+
+  /// No description provided for @terminalFinishedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} in {duration}'**
+  String terminalFinishedIn(String size, String duration);
+
+  /// No description provided for @terminalStatsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'no statistics yet'**
+  String get terminalStatsEmpty;
+
+  /// No description provided for @terminalStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers show up after your first finished download.'**
+  String get terminalStatsEmptyBody;
+
+  /// No description provided for @terminalNoPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'no device found on this network'**
+  String get terminalNoPeers;
+
+  /// No description provided for @terminalArchiveEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'no archive imported'**
+  String get terminalArchiveEmpty;
+
+  /// No description provided for @terminalArchiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your TikTok data export to browse your favorites, likes and collections.'**
+  String get terminalArchiveEmptyBody;
+
+  /// No description provided for @pastilleEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here, yet.'**
+  String get pastilleEmptyTitle;
+
+  /// No description provided for @pastilleEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram or X link: every download fills this grid, dot by dot.'**
+  String get pastilleEmptyBody;
+
+  /// No description provided for @pastilleNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for “{query}”'**
+  String pastilleNoResultsTitle(String query);
+
+  /// No description provided for @pastilleNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No download matches these filters'**
+  String get pastilleNoResultsFilters;
+
+  /// No description provided for @pastilleNoResultsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling or widen the filters.'**
+  String get pastilleNoResultsBody;
+
+  /// No description provided for @pastilleLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not load.'**
+  String get pastilleLoadErrorTitle;
+
+  /// No description provided for @pastilleLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are still on disk. Try again in a moment.'**
+  String get pastilleLoadErrorBody;
+
+  /// No description provided for @pastilleRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String pastilleRetryFailed(int count);
+
+  /// No description provided for @pastilleLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the library…'**
+  String get pastilleLoading;
+
+  /// No description provided for @pastilleFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pastilleFinished;
+
+  /// No description provided for @pastilleFailedIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{One download failed} other{{count} downloads failed}}'**
+  String pastilleFailedIdle(int count);
+
+  /// No description provided for @pastilleStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No dots yet.'**
+  String get pastilleStatsEmptyTitle;
+
+  /// No description provided for @pastilleStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every finished download adds a bar here, day after day.'**
+  String get pastilleStatsEmptyBody;
+
+  /// No description provided for @studioEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is empty.'**
+  String get studioEmptyTitle;
+
+  /// No description provided for @studioEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy a video link, then paste it here. Ctrl+N also starts a new download.'**
+  String get studioEmptyBody;
+
+  /// No description provided for @studioNoResultsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”.'**
+  String studioNoResultsFor(String query);
+
+  /// No description provided for @studioNoResultsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling or remove a filter.'**
+  String get studioNoResultsHint;
+
+  /// No description provided for @studioLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library couldn’t be loaded.'**
+  String get studioLoadErrorTitle;
+
+  /// No description provided for @studioLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are untouched. Try again in a moment.'**
+  String get studioLoadErrorBody;
+
+  /// No description provided for @studioFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String studioFailedCount(int count);
+
+  /// No description provided for @studioRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String studioRetryFailed(int count);
+
+  /// No description provided for @studioNoDevicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No device nearby'**
+  String get studioNoDevicesTitle;
+
+  /// No description provided for @studioNoStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No stats yet'**
+  String get studioNoStatsTitle;
+
+  /// No description provided for @studioNoStatsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They’ll show up here after your first download.'**
+  String get studioNoStatsBody;
+
+  /// No description provided for @nocturneEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is waiting'**
+  String get nocturneEmptyTitle;
+
+  /// No description provided for @nocturneEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram or X link: TapLoad downloads it and keeps it here.'**
+  String get nocturneEmptyBody;
+
+  /// No description provided for @nocturneNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get nocturneNoResultsTitle;
+
+  /// No description provided for @nocturneNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}” with these filters.'**
+  String nocturneNoResultsQuery(String query);
+
+  /// No description provided for @nocturneNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches the active filters.'**
+  String get nocturneNoResultsFilters;
+
+  /// No description provided for @nocturneClearSearchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search and filters'**
+  String get nocturneClearSearchFilters;
+
+  /// No description provided for @nocturneLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not be loaded'**
+  String get nocturneLoadErrorTitle;
+
+  /// No description provided for @nocturneLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are safe. Try again in a moment.'**
+  String get nocturneLoadErrorBody;
+
+  /// No description provided for @nocturneFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String nocturneFailedCount(int count);
+
+  /// No description provided for @nocturneStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No statistics yet'**
+  String get nocturneStatsEmptyTitle;
+
+  /// No description provided for @nocturneStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your numbers will show up here after your first download.'**
+  String get nocturneStatsEmptyBody;
+
+  /// No description provided for @nocturneArchiveEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No archive imported yet'**
+  String get nocturneArchiveEmptyTitle;
+
+  /// No description provided for @nocturneArchiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import the JSON export of your TikTok favorites or sync your collections through the extension. Nothing downloads without you.'**
+  String get nocturneArchiveEmptyBody;
+
+  /// No description provided for @nocturneArchiveImportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JSON file'**
+  String get nocturneArchiveImportJson;
+
+  /// No description provided for @nocturneArchiveSyncHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To sync, open TikTok in a browser with the extension installed, then come back here.'**
+  String get nocturneArchiveSyncHint;
+
+  /// No description provided for @porcelaineEmptyLibTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your space is waiting for its first link.'**
+  String get porcelaineEmptyLibTitle;
+
+  /// No description provided for @porcelaineEmptyLibBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a video, music or image link: your widgets fill up as downloads finish.'**
+  String get porcelaineEmptyLibBody;
+
+  /// No description provided for @porcelaineNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches.'**
+  String get porcelaineNoResultsTitle;
+
+  /// No description provided for @porcelaineNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'No download for “{query}”.'**
+  String porcelaineNoResultsQuery(String query);
+
+  /// No description provided for @porcelaineNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No download matches these filters.'**
+  String get porcelaineNoResultsFilters;
+
+  /// No description provided for @porcelaineLoadingLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your library…'**
+  String get porcelaineLoadingLibrary;
+
+  /// No description provided for @porcelaineLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not open.'**
+  String get porcelaineLoadErrorTitle;
+
+  /// No description provided for @porcelaineLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are safe on disk. Try again in a moment.'**
+  String get porcelaineLoadErrorBody;
+
+  /// No description provided for @porcelaineFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String porcelaineFailedCount(int count);
+
+  /// No description provided for @porcelaineRetryFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String porcelaineRetryFailedCount(int count);
+
+  /// No description provided for @porcelaineNothingActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing running'**
+  String get porcelaineNothingActiveTitle;
+
+  /// No description provided for @porcelaineUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable right now'**
+  String get porcelaineUnavailable;
+
+  /// No description provided for @signalEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first download starts here.'**
+  String get signalEmptyTitle;
+
+  /// No description provided for @signalEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy a YouTube, TikTok, Instagram or X link and paste it above: the video lands here, ready to watch.'**
+  String get signalEmptyBody;
+
+  /// No description provided for @signalEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link'**
+  String get signalEmptyAction;
+
+  /// No description provided for @signalLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not load.'**
+  String get signalLoadErrorTitle;
+
+  /// No description provided for @signalLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are still on disk. Try again to read the list.'**
+  String get signalLoadErrorBody;
+
+  /// No description provided for @signalNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get signalNoResultsTitle;
+
+  /// No description provided for @signalNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”.'**
+  String signalNoResultsQuery(String query);
+
+  /// No description provided for @signalNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches these filters.'**
+  String get signalNoResultsFilters;
+
+  /// No description provided for @signalClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search and filters'**
+  String get signalClearFilters;
+
+  /// No description provided for @signalFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} download failed} other{{count} downloads failed}}'**
+  String signalFailedCount(int count);
+
+  /// No description provided for @signalRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String signalRetryFailed(int count);
+
+  /// No description provided for @signalStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No stats yet.'**
+  String get signalStatsEmptyTitle;
+
+  /// No description provided for @signalStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your volumes, sources and creators will show here after your first download.'**
+  String get signalStatsEmptyBody;
+
+  /// No description provided for @signalTransferNoDevicesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on the phone, on the same Wi-Fi, or look for it on the network.'**
+  String get signalTransferNoDevicesHint;
+
+  /// No description provided for @signalArchiveEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No archive imported yet.'**
+  String get signalArchiveEmptyTitle;
+
+  /// No description provided for @signalArchiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import the JSON export of your TikTok favorites: your collections and liked videos show up here, ready to download.'**
+  String get signalArchiveEmptyBody;
+
+  /// No description provided for @signalArchiveImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JSON file'**
+  String get signalArchiveImport;
+
+  /// No description provided for @signalArchiveSyncHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync goes through the extension, in a browser open on TikTok.'**
+  String get signalArchiveSyncHint;
+
+  /// No description provided for @archiveDeskIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your TikTok favorites list, find a video by collection or search, then download it when you need it. This page never downloads anything on its own.'**
+  String get archiveDeskIntro;
+
+  /// No description provided for @archiveDeskImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a TikTok export'**
+  String get archiveDeskImportTitle;
+
+  /// No description provided for @archiveDeskImportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the JSON file exported from TikTok to load your favorites and likes.'**
+  String get archiveDeskImportBody;
+
+  /// No description provided for @archiveDeskPickJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JSON file'**
+  String get archiveDeskPickJson;
+
+  /// No description provided for @archiveDeskSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync collections'**
+  String get archiveDeskSyncTitle;
+
+  /// No description provided for @archiveDeskSyncConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'The extension fetches the videos of your collections from an open TikTok page.'**
+  String get archiveDeskSyncConnected;
+
+  /// No description provided for @archiveDeskSyncDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TikTok in a browser where the Modern Downloader extension is installed, then come back here.'**
+  String get archiveDeskSyncDisconnected;
+
+  /// No description provided for @archiveDeskSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get archiveDeskSyncing;
+
+  /// No description provided for @archiveDeskSyncAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync my collections'**
+  String get archiveDeskSyncAction;
+
+  /// No description provided for @archiveDeskSyncManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
+  String get archiveDeskSyncManual;
 }
 
 class _AppLocalizationsDelegate

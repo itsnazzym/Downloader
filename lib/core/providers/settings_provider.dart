@@ -47,7 +47,7 @@ class AppSettings {
   final bool wifiOnly; // Android: refuse to start downloads on metered data
   final String locale; // 'en', 'fr', 'ar'
   final String
-  themePreset; // 'midnight', 'ios', 'ocean', 'sunset', 'forest', 'neon', 'monochrome'
+  themePreset; // a ThemePresets id: 'signal' (desktop default), 'oled' (Android), ...
   final int customAccentColor; // ARGB int for custom accent
 
   /// Experimental: use bundled gobird for X feed (OFF by default).
@@ -88,8 +88,8 @@ class AppSettings {
     this.ytDlpChannel = 'nightly',
     this.wifiOnly = false,
     this.locale = 'en',
-    this.themePreset = 'midnight',
-    this.customAccentColor = 0xFF0D9488,
+    this.themePreset = 'signal',
+    this.customAccentColor = 0xFFD2F34C,
     this.experimentalXFeedGobirdEnabled = false,
     this.gobirdBrowser = 'chrome',
   });
@@ -244,6 +244,21 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   void _loadFromPrefs() {
+    // Retired recolour themes move to the design that replaced them, with
+    // that design's own accent instead of the old theme's colour.
+    final storedPreset = prefs.getString(_kThemePreset);
+    final themePreset = ThemePresets.migrateId(
+      storedPreset ?? (PlatformInfo.isAndroid ? 'oled' : 'signal'),
+    );
+    final migrated = storedPreset != null && storedPreset != themePreset;
+    final accent = migrated
+        ? ThemePresets.getById(themePreset).primary.toARGB32()
+        : prefs.getInt(_kCustomAccentColor) ??
+              ThemePresets.getById(themePreset).primary.toARGB32();
+    if (migrated) {
+      prefs.setString(_kThemePreset, themePreset);
+      prefs.setInt(_kCustomAccentColor, accent);
+    }
     state = AppSettings(
       themeMode: prefs.getString(_kThemeMode) ?? 'system',
       audioOnly: prefs.getBool(_kAudioOnly) ?? false,
@@ -278,10 +293,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           : 'nightly',
       wifiOnly: prefs.getBool(_kWifiOnly) ?? false,
       locale: prefs.getString(_kLocale) ?? _defaultLocale(),
-      themePreset:
-          prefs.getString(_kThemePreset) ??
-          (PlatformInfo.isAndroid ? 'oled' : 'midnight'),
-      customAccentColor: prefs.getInt(_kCustomAccentColor) ?? 0xFF0D9488,
+      themePreset: themePreset,
+      customAccentColor: accent,
       experimentalXFeedGobirdEnabled:
           prefs.getBool(_kExperimentalXFeedGobirdEnabled) ?? false,
       gobirdBrowser: _normalizeGobirdBrowser(

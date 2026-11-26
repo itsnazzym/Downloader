@@ -51,6 +51,12 @@ class ThemePreset {
 
   bool get isIosChrome => chrome == ThemeChrome.ios;
 
+  /// Black or white, whichever reads better on [primary]. 0.179 is the
+  /// luminance where both give the same contrast (a 0.5 cut-off put white on
+  /// light accents such as periwinkle, at 2.3:1).
+  Color get onPrimary =>
+      primary.computeLuminance() > 0.179 ? Colors.black : Colors.white;
+
   /// Create a copy with a custom accent/primary override
   ThemePreset withAccent(Color newPrimary) {
     return ThemePreset(
@@ -81,24 +87,135 @@ class ThemePreset {
 class ThemePresets {
   const ThemePresets._();
 
-  static const midnight = ThemePreset(
-    id: 'midnight',
-    name: 'Midnight',
-    primary: Color(0xFF0D9488),
-    accent: Color(0xFFCCFBF1),
-    background: Color(0xFF18181C),
-    surface: Color(0xFF1F1F23),
-    surfaceHighlight: Color(0xFF27272B),
-    textPrimary: Color(0xFFFAFAFA),
-    textSecondary: Color(0xFFA1A1AA),
-    textDisabled: Color(0xFF71717A),
-    border: Color(0x1FFFFFFF),
-    borderSubtle: Color(0x14FFFFFF),
-    success: Color(0xFF34D399),
-    error: Color(0xFFEF4444),
-    warning: Color(0xFFF59E0B),
-    info: Color(0xFF38BDF8),
-    inputBackground: Color(0xFF1C1C20),
+  /// Signal, the default desktop design: a darkroom where only what is being
+  /// captured lights up, in signal chartreuse.
+  static const signal = ThemePreset(
+    id: 'signal',
+    name: 'Signal',
+    primary: Color(0xFFD2F34C),
+    accent: Color(0xFFF2F0E6),
+    background: Color(0xFF0F0F0D),
+    surface: Color(0xFF191916),
+    surfaceHighlight: Color(0xFF22221E),
+    textPrimary: Color(0xFFF2F0E6),
+    textSecondary: Color(0xFFB8B6AB),
+    textDisabled: Color(0xFF8A887E),
+    border: Color(0x24F2F0E6),
+    borderSubtle: Color(0x14F2F0E6),
+    success: Color(0xFF9BD58A),
+    error: Color(0xFFFF6A55),
+    warning: Color(0xFFF2C14E),
+    info: Color(0xFFB8B6AB),
+    inputBackground: Color(0xFF0B0B0A),
+  );
+
+  /// Former default; kept as an alias so older call sites and saved
+  /// settings land on Signal.
+  static const midnight = signal;
+
+  /// Porcelaine: light, frosted white cards on stone, cobalt for action.
+  static const porcelaine = ThemePreset(
+    id: 'porcelaine',
+    name: 'Porcelaine',
+    primary: Color(0xFF2747F5),
+    accent: Color(0xFF16171A),
+    background: Color(0xFFECEAE5),
+    surface: Color(0xFFFFFFFF),
+    surfaceHighlight: Color(0xFFF4F3F0),
+    textPrimary: Color(0xFF16171A),
+    textSecondary: Color(0xFF55575E),
+    textDisabled: Color(0xFF62646B),
+    border: Color(0x1F16171A),
+    borderSubtle: Color(0x1016171A),
+    success: Color(0xFF1E7A45),
+    error: Color(0xFFB42D1B),
+    warning: Color(0xFF8A5F00),
+    info: Color(0xFF2747F5),
+    inputBackground: Color(0xFFF4F3F0),
+  );
+
+  /// Pastille: solid pastel tiles on espresso, data drawn as dots.
+  static const pastille = ThemePreset(
+    id: 'pastille',
+    name: 'Pastille',
+    primary: Color(0xFFF4DA7A),
+    accent: Color(0xFFB9A8F5),
+    background: Color(0xFF191715),
+    surface: Color(0xFF24211E),
+    surfaceHighlight: Color(0xFF2E2A26),
+    textPrimary: Color(0xFFF4EFE6),
+    textSecondary: Color(0xFFB5ADA3),
+    textDisabled: Color(0xFF8F877D),
+    border: Color(0x1FF4EFE6),
+    borderSubtle: Color(0x12F4EFE6),
+    success: Color(0xFFA8C686),
+    error: Color(0xFFFF8F7A),
+    warning: Color(0xFFF4DA7A),
+    info: Color(0xFF9ACDF5),
+    inputBackground: Color(0xFF1E1C1A),
+  );
+
+  /// Studio: ink on paper; the only colour is a recording red for what runs.
+  static const studio = ThemePreset(
+    id: 'studio',
+    name: 'Studio',
+    primary: Color(0xFF17171A),
+    accent: Color(0xFFE5483B),
+    background: Color(0xFFF5F4F1),
+    surface: Color(0xFFFFFFFF),
+    surfaceHighlight: Color(0xFFEBE9E4),
+    textPrimary: Color(0xFF17171A),
+    textSecondary: Color(0xFF55534E),
+    textDisabled: Color(0xFF6B6963),
+    border: Color(0xFFE2E0DB),
+    borderSubtle: Color(0xFFECEAE5),
+    success: Color(0xFF2F7D4F),
+    error: Color(0xFFC2362A),
+    warning: Color(0xFF8A6400),
+    info: Color(0xFF3A5BA0),
+    inputBackground: Color(0xFFFFFFFF),
+  );
+
+  /// Terminal: everything monospaced, phosphor green on near-black.
+  static const terminal = ThemePreset(
+    id: 'terminal',
+    name: 'Terminal',
+    primary: Color(0xFF8BE9A0),
+    accent: Color(0xFFE8C468),
+    background: Color(0xFF0A0D0B),
+    surface: Color(0xFF0F1411),
+    surfaceHighlight: Color(0xFF1C241E),
+    textPrimary: Color(0xFFE3EAE4),
+    textSecondary: Color(0xFF9AA59B),
+    textDisabled: Color(0xFF7A867B),
+    border: Color(0xFF1C241E),
+    borderSubtle: Color(0xFF151B17),
+    success: Color(0xFF8BE9A0),
+    error: Color(0xFFFF8A73),
+    warning: Color(0xFFE8C468),
+    info: Color(0xFF9AA59B),
+    inputBackground: Color(0xFF0F1411),
+  );
+
+  /// Nocturne: deep night blue, periwinkle accent, progress as rings.
+  static const nocturne = ThemePreset(
+    id: 'nocturne',
+    name: 'Nocturne',
+    primary: Color(0xFF8EA7FF),
+    accent: Color(0xFFAEB9D6),
+    background: Color(0xFF0A0F1E),
+    surface: Color(0xFF111831),
+    surfaceHighlight: Color(0xFF18213A),
+    textPrimary: Color(0xFFEEF1FA),
+    textSecondary: Color(0xFFAEB9D6),
+    textDisabled: Color(0xFF8A96B8),
+    border: Color(0x298EA7FF),
+    borderSubtle: Color(0x148EA7FF),
+    success: Color(0xFF7FE0B0),
+    error: Color(0xFFFF9C8A),
+    warning: Color(0xFFF2C66B),
+    info: Color(0xFF8EA7FF),
+    inputBackground: Color(0xFF0C1224),
   );
 
   /// Pure black for OLED screens. Ink-white primary, red reserved for live
@@ -146,118 +263,32 @@ class ThemePresets {
     useFloatingDock: true,
   );
 
-  static const ocean = ThemePreset(
-    id: 'ocean',
-    name: 'Ocean',
-    primary: Color(0xFF0EA5E9),
-    accent: Color(0xFF38BDF8),
-    background: Color(0xFF0C1222),
-    surface: Color(0xFF111B2E),
-    surfaceHighlight: Color(0xFF1A2740),
-    textPrimary: Color(0xFFE2E8F0),
-    textSecondary: Color(0xFF7B8FA8),
-    textDisabled: Color(0xFF3D4F65),
-    border: Color(0xFF1E3048),
-    borderSubtle: Color(0xFF162339),
-    success: Color(0xFF22D3EE),
-    error: Color(0xFFF87171),
-    warning: Color(0xFFFBBF24),
-    info: Color(0xFF60A5FA),
-    inputBackground: Color(0xFF0F192A),
-  );
-
-  static const sunset = ThemePreset(
-    id: 'sunset',
-    name: 'Sunset',
-    primary: Color(0xFFF97316),
-    accent: Color(0xFFFB923C),
-    background: Color(0xFF1A1010),
-    surface: Color(0xFF231515),
-    surfaceHighlight: Color(0xFF2E1D1D),
-    textPrimary: Color(0xFFFFF1E6),
-    textSecondary: Color(0xFFB0877A),
-    textDisabled: Color(0xFF5A3D35),
-    border: Color(0xFF3D2420),
-    borderSubtle: Color(0xFF2D1A17),
-    success: Color(0xFF4ADE80),
-    error: Color(0xFFFF6B6B),
-    warning: Color(0xFFFFD93D),
-    info: Color(0xFF93C5FD),
-    inputBackground: Color(0xFF1E1212),
-  );
-
-  static const forest = ThemePreset(
-    id: 'forest',
-    name: 'Forest',
-    primary: Color(0xFF22C55E),
-    accent: Color(0xFF4ADE80),
-    background: Color(0xFF0D1712),
-    surface: Color(0xFF121E16),
-    surfaceHighlight: Color(0xFF1A2B20),
-    textPrimary: Color(0xFFE8F0EC),
-    textSecondary: Color(0xFF7A9987),
-    textDisabled: Color(0xFF3D5446),
-    border: Color(0xFF1E3527),
-    borderSubtle: Color(0xFF16271C),
-    success: Color(0xFF34D399),
-    error: Color(0xFFF87171),
-    warning: Color(0xFFFDE68A),
-    info: Color(0xFF67E8F9),
-    inputBackground: Color(0xFF0F1A13),
-  );
-
-  static const neon = ThemePreset(
-    id: 'neon',
-    name: 'Neon',
-    primary: Color(0xFFC026D3),
-    accent: Color(0xFFF5D0FE),
-    background: Color(0xFF12121A),
-    surface: Color(0xFF1A1A24),
-    surfaceHighlight: Color(0xFF242432),
-    textPrimary: Color(0xFFF5F5FF),
-    textSecondary: Color(0xFF9A9AB8),
-    textDisabled: Color(0xFF5A5A78),
-    border: Color(0xFF2E2E44),
-    borderSubtle: Color(0xFF222236),
-    success: Color(0xFF34D399),
-    error: Color(0xFFF43F5E),
-    warning: Color(0xFFFBBF24),
-    info: Color(0xFF818CF8),
-    inputBackground: Color(0xFF16161E),
-  );
-
-  static const monochrome = ThemePreset(
-    id: 'monochrome',
-    name: 'Mono',
-    primary: Color(0xFFAAAAAA),
-    accent: Color(0xFFFFFFFF),
-    background: Color(0xFF0E0E0E),
-    surface: Color(0xFF161616),
-    surfaceHighlight: Color(0xFF1E1E1E),
-    textPrimary: Color(0xFFE5E5E5),
-    textSecondary: Color(0xFF808080),
-    textDisabled: Color(0xFF404040),
-    border: Color(0xFF2A2A2A),
-    borderSubtle: Color(0xFF1F1F1F),
-    success: Color(0xFFB0B0B0),
-    error: Color(0xFFD4D4D4),
-    warning: Color(0xFFC0C0C0),
-    info: Color(0xFF8F8F8F),
-    inputBackground: Color(0xFF131313),
-  );
-
+  /// The six desktop designs first, then the platform looks.
   static const List<ThemePreset> all = [
-    midnight,
+    signal,
+    porcelaine,
+    pastille,
+    studio,
+    terminal,
+    nocturne,
     oled,
     ios,
-    ocean,
-    sunset,
-    forest,
-    neon,
-    monochrome,
   ];
 
+  /// Themes that were only recolours, mapped to the design that replaced them.
+  static const Map<String, String> legacyIds = {
+    'midnight': 'signal',
+    'ocean': 'nocturne',
+    'forest': 'nocturne',
+    'sunset': 'pastille',
+    'neon': 'terminal',
+    'monochrome': 'studio',
+  };
+
+  static String migrateId(String id) => legacyIds[id] ?? id;
+
   static ThemePreset getById(String id) {
-    return all.firstWhere((t) => t.id == id, orElse: () => midnight);
+    final current = migrateId(id);
+    return all.firstWhere((t) => t.id == current, orElse: () => signal);
   }
 }

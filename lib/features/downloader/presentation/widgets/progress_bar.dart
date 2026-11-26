@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/design_system/components/design_progress_bar.dart';
 
+/// Download progress in the active design's style (see [DesignProgressBar]).
 class ProgressBar extends StatelessWidget {
   final double progress;
   final double height;
@@ -15,36 +16,6 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    final fill = color ?? colors.primary;
-    final clampedProgress = progress.clamp(0.0, 1.0);
-
-    return RepaintBoundary(
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          color: colors.surfaceHighlight,
-          borderRadius: BorderRadius.circular(height / 2),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: 0.0, end: clampedProgress),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, child) {
-            return FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: value,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: fill,
-                  borderRadius: BorderRadius.circular(height / 2),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
+    return DesignProgressBar(value: progress, height: height, color: color);
   }
 }

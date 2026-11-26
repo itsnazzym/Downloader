@@ -5,6 +5,7 @@ import '../../../../core/design_system/components/app_card.dart';
 import '../../../../core/design_system/components/status_badge.dart';
 import '../../../../core/design_system/foundation/colors.dart';
 import '../../../../core/design_system/foundation/typography.dart';
+import '../../../../core/download/download_error_reason.dart';
 import '../../../../core/download/extraction_placeholders.dart';
 import '../../domain/entities/download_item.dart';
 import '../../domain/enums/download_status.dart';
@@ -37,6 +38,9 @@ class _DownloadItemGridCardState extends State<DownloadItemGridCard> {
   @override
   Widget build(BuildContext context) {
     final bool isDownloading = widget.item.status == DownloadStatus.downloading;
+    final failedReason = widget.item.status == DownloadStatus.failed
+        ? downloadErrorReason(widget.item.error)
+        : '';
 
     // Performance: Isolate repaints for progress bars
     return RepaintBoundary(
@@ -154,21 +158,33 @@ class _DownloadItemGridCardState extends State<DownloadItemGridCard> {
                                     ),
                                   ),
                                   const Gap(2),
-                                  Text(
-                                    isDownloading &&
-                                            widget.item.speed.isNotEmpty
-                                        ? widget.item.speed
-                                        : DownloadItemDisplay.size(
-                                            context,
-                                            widget.item,
-                                          ),
-                                    style: AppTypography.mono.copyWith(
-                                      fontSize: 11,
-                                      color: AppColors.of(
-                                        context,
-                                      ).textSecondary,
+                                  if (failedReason.isNotEmpty)
+                                    // A failed item has no size: say why.
+                                    Text(
+                                      failedReason,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTypography.bodySmall.copyWith(
+                                        fontSize: 11,
+                                        color: AppColors.of(context).error,
+                                      ),
+                                    )
+                                  else
+                                    Text(
+                                      isDownloading &&
+                                              widget.item.speed.isNotEmpty
+                                          ? widget.item.speed
+                                          : DownloadItemDisplay.size(
+                                              context,
+                                              widget.item,
+                                            ),
+                                      style: AppTypography.mono.copyWith(
+                                        fontSize: 11,
+                                        color: AppColors.of(
+                                          context,
+                                        ).textSecondary,
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
