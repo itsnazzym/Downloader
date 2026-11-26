@@ -13,7 +13,14 @@ double _contrast(Color a, Color b) {
 }
 
 void main() {
-  const designs = ['signal', 'porcelaine', 'pastille', 'studio', 'terminal', 'nocturne'];
+  const designs = [
+    'signal',
+    'porcelaine',
+    'pastille',
+    'studio',
+    'terminal',
+    'nocturne',
+  ];
 
   test('every desktop design has a preset and a spec', () {
     for (final id in designs) {
@@ -26,7 +33,12 @@ void main() {
   test('text reaches 4.5:1 on background and surface in every design', () {
     for (final id in designs) {
       final p = ThemePresets.getById(id);
-      for (final text in [p.textPrimary, p.textSecondary, p.textDisabled, p.error]) {
+      for (final text in [
+        p.textPrimary,
+        p.textSecondary,
+        p.textDisabled,
+        p.error,
+      ]) {
         for (final ground in [p.background, p.surface]) {
           expect(
             _contrast(text, ground),
@@ -35,7 +47,11 @@ void main() {
           );
         }
       }
-      expect(_contrast(p.onPrimary, p.primary), greaterThanOrEqualTo(4.5), reason: '$id on primary');
+      expect(
+        _contrast(p.onPrimary, p.primary),
+        greaterThanOrEqualTo(4.5),
+        reason: '$id on primary',
+      );
     }
   });
 
@@ -68,11 +84,20 @@ void main() {
   });
 
   test('designs with a fixed brightness keep their own colours', () {
-    final light = ThemeResolver.forBrightness(ThemePresets.porcelaine, Brightness.light);
+    final light = ThemeResolver.forBrightness(
+      ThemePresets.porcelaine,
+      Brightness.light,
+    );
     expect(light.background, ThemePresets.porcelaine.background);
-    final darkAsked = ThemeResolver.forBrightness(ThemePresets.porcelaine, Brightness.dark);
+    final darkAsked = ThemeResolver.forBrightness(
+      ThemePresets.porcelaine,
+      Brightness.dark,
+    );
     expect(darkAsked.background, ThemePresets.porcelaine.background);
-    final signalLight = ThemeResolver.forBrightness(ThemePresets.signal, Brightness.light);
+    final signalLight = ThemeResolver.forBrightness(
+      ThemePresets.signal,
+      Brightness.light,
+    );
     expect(signalLight.background, ThemePresets.signal.background);
   });
 }
