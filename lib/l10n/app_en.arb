@@ -1432,5 +1432,18 @@
   "studioChecking": "Checking…",
   "studioReplay": "Replay",
   "studioDecrease": "Decrease",
-  "studioIncrease": "Increase"
+  "studioIncrease": "Increase",
+  "studioStatsSubtitle": "What you downloaded, from where and from whom.",
+  "studioStorage": "Storage",
+  "studioChartTitle7": "Downloads · last 7 days",
+  "studioChartTitle30": "Downloads · last 30 days",
+  "studioDays7": "7 d",
+  "studioDays30": "30 d",
+  "studioDaysAgo": "{count} d ago",
+  "@studioDaysAgo": {"placeholders": {"count": {"type": "int"}}},
+  "studioToday": "today",
+  "studioBySource": "By source",
+  "studioByFormat": "By format",
+  "studioTopCreators": "Top creators",
+  "studioPeriod": "Period"
 }

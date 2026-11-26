@@ -3142,4 +3142,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get studioIncrease => 'زيادة';
+
+  @override
+  String get studioStatsSubtitle => 'ما نزّلته، ومن أين، ولمن.';
+
+  @override
+  String get studioStorage => 'التخزين';
+
+  @override
+  String get studioChartTitle7 => 'التنزيلات · آخر 7 أيام';
+
+  @override
+  String get studioChartTitle30 => 'التنزيلات · آخر 30 يومًا';
+
+  @override
+  String get studioDays7 => '7 أيام';
+
+  @override
+  String get studioDays30 => '30 يومًا';
+
+  @override
+  String studioDaysAgo(int count) {
+    return 'قبل $count يومًا';
+  }
+
+  @override
+  String get studioToday => 'اليوم';
+
+  @override
+  String get studioBySource => 'حسب المصدر';
+
+  @override
+  String get studioByFormat => 'حسب الصيغة';
+
+  @override
+  String get studioTopCreators => 'أبرز صنّاع المحتوى';
+
+  @override
+  String get studioPeriod => 'الفترة';
 }

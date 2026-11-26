@@ -1201,5 +1201,17 @@
   "studioChecking": "جارٍ التحقق…",
   "studioReplay": "إعادة",
   "studioDecrease": "إنقاص",
-  "studioIncrease": "زيادة"
+  "studioIncrease": "زيادة",
+  "studioStatsSubtitle": "ما نزّلته، ومن أين، ولمن.",
+  "studioStorage": "التخزين",
+  "studioChartTitle7": "التنزيلات · آخر 7 أيام",
+  "studioChartTitle30": "التنزيلات · آخر 30 يومًا",
+  "studioDays7": "7 أيام",
+  "studioDays30": "30 يومًا",
+  "studioDaysAgo": "قبل {count} يومًا",
+  "studioToday": "اليوم",
+  "studioBySource": "حسب المصدر",
+  "studioByFormat": "حسب الصيغة",
+  "studioTopCreators": "أبرز صنّاع المحتوى",
+  "studioPeriod": "الفترة"
 }

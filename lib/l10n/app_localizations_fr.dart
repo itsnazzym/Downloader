@@ -3176,4 +3176,42 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get studioIncrease => 'Augmenter';
+
+  @override
+  String get studioStatsSubtitle => 'Ce que tu as téléchargé, d’où et de qui.';
+
+  @override
+  String get studioStorage => 'Stockage';
+
+  @override
+  String get studioChartTitle7 => 'Téléchargements · 7 derniers jours';
+
+  @override
+  String get studioChartTitle30 => 'Téléchargements · 30 derniers jours';
+
+  @override
+  String get studioDays7 => '7 j';
+
+  @override
+  String get studioDays30 => '30 j';
+
+  @override
+  String studioDaysAgo(int count) {
+    return 'il y a $count j';
+  }
+
+  @override
+  String get studioToday => 'aujourd’hui';
+
+  @override
+  String get studioBySource => 'Par source';
+
+  @override
+  String get studioByFormat => 'Par format';
+
+  @override
+  String get studioTopCreators => 'Top créateurs';
+
+  @override
+  String get studioPeriod => 'Période';
 }

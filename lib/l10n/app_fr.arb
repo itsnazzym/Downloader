@@ -1201,5 +1201,17 @@
   "studioChecking": "Vérification…",
   "studioReplay": "Relancer",
   "studioDecrease": "Diminuer",
-  "studioIncrease": "Augmenter"
+  "studioIncrease": "Augmenter",
+  "studioStatsSubtitle": "Ce que tu as téléchargé, d’où et de qui.",
+  "studioStorage": "Stockage",
+  "studioChartTitle7": "Téléchargements · 7 derniers jours",
+  "studioChartTitle30": "Téléchargements · 30 derniers jours",
+  "studioDays7": "7 j",
+  "studioDays30": "30 j",
+  "studioDaysAgo": "il y a {count} j",
+  "studioToday": "aujourd’hui",
+  "studioBySource": "Par source",
+  "studioByFormat": "Par format",
+  "studioTopCreators": "Top créateurs",
+  "studioPeriod": "Période"
 }

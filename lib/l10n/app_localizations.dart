@@ -5421,6 +5421,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Increase'**
   String get studioIncrease;
+
+  /// No description provided for @studioStatsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you downloaded, from where and from whom.'**
+  String get studioStatsSubtitle;
+
+  /// No description provided for @studioStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get studioStorage;
+
+  /// No description provided for @studioChartTitle7.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · last 7 days'**
+  String get studioChartTitle7;
+
+  /// No description provided for @studioChartTitle30.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · last 30 days'**
+  String get studioChartTitle30;
+
+  /// No description provided for @studioDays7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 d'**
+  String get studioDays7;
+
+  /// No description provided for @studioDays30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 d'**
+  String get studioDays30;
+
+  /// No description provided for @studioDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d ago'**
+  String studioDaysAgo(int count);
+
+  /// No description provided for @studioToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get studioToday;
+
+  /// No description provided for @studioBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get studioBySource;
+
+  /// No description provided for @studioByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get studioByFormat;
+
+  /// No description provided for @studioTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'Top creators'**
+  String get studioTopCreators;
+
+  /// No description provided for @studioPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get studioPeriod;
 }
 
 class _AppLocalizationsDelegate
