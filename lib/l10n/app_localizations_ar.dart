@@ -4840,4 +4840,64 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'لم تُنزَّل بعد';
+
+  @override
+  String get nocturneEmptyTitle => 'مكتبتك في انتظارك';
+
+  @override
+  String get nocturneEmptyBody =>
+      'الصق رابطًا من YouTube أو TikTok أو Instagram أو X: يقوم TapLoad بتنزيله وحفظه هنا.';
+
+  @override
+  String get nocturneNoResultsTitle => 'لا توجد نتائج';
+
+  @override
+  String nocturneNoResultsQuery(String query) {
+    return 'لا شيء يطابق «$query» مع عوامل التصفية هذه.';
+  }
+
+  @override
+  String get nocturneNoResultsFilters => 'لا شيء يطابق عوامل التصفية النشطة.';
+
+  @override
+  String get nocturneClearSearchFilters => 'مسح البحث وعوامل التصفية';
+
+  @override
+  String get nocturneLoadErrorTitle => 'تعذّر تحميل المكتبة';
+
+  @override
+  String get nocturneLoadErrorBody => 'ملفاتك سليمة. أعد المحاولة بعد لحظة.';
+
+  @override
+  String nocturneFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيل',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneStatsEmptyTitle => 'لا توجد إحصاءات بعد';
+
+  @override
+  String get nocturneStatsEmptyBody => 'ستظهر أرقامك هنا بعد أول تنزيل.';
+
+  @override
+  String get nocturneArchiveEmptyTitle => 'لم يتم استيراد أي أرشيف بعد';
+
+  @override
+  String get nocturneArchiveEmptyBody =>
+      'استورد ملف JSON لمفضلاتك على TikTok أو زامن مجموعاتك عبر الإضافة. لا يُنزَّل شيء دون موافقتك.';
+
+  @override
+  String get nocturneArchiveImportJson => 'اختر ملف JSON';
+
+  @override
+  String get nocturneArchiveSyncHint =>
+      'للمزامنة، افتح TikTok في متصفح مثبّت عليه الإضافة، ثم عد إلى هنا.';
 }

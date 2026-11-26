@@ -8337,6 +8337,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not downloaded yet'**
   String get porcelaineNotDownloadedYet;
+
+  /// No description provided for @nocturneEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is waiting'**
+  String get nocturneEmptyTitle;
+
+  /// No description provided for @nocturneEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram or X link: TapLoad downloads it and keeps it here.'**
+  String get nocturneEmptyBody;
+
+  /// No description provided for @nocturneNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get nocturneNoResultsTitle;
+
+  /// No description provided for @nocturneNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}” with these filters.'**
+  String nocturneNoResultsQuery(String query);
+
+  /// No description provided for @nocturneNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches the active filters.'**
+  String get nocturneNoResultsFilters;
+
+  /// No description provided for @nocturneClearSearchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search and filters'**
+  String get nocturneClearSearchFilters;
+
+  /// No description provided for @nocturneLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not be loaded'**
+  String get nocturneLoadErrorTitle;
+
+  /// No description provided for @nocturneLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are safe. Try again in a moment.'**
+  String get nocturneLoadErrorBody;
+
+  /// No description provided for @nocturneFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String nocturneFailedCount(int count);
+
+  /// No description provided for @nocturneStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No statistics yet'**
+  String get nocturneStatsEmptyTitle;
+
+  /// No description provided for @nocturneStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your numbers will show up here after your first download.'**
+  String get nocturneStatsEmptyBody;
+
+  /// No description provided for @nocturneArchiveEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No archive imported yet'**
+  String get nocturneArchiveEmptyTitle;
+
+  /// No description provided for @nocturneArchiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import the JSON export of your TikTok favorites or sync your collections through the extension. Nothing downloads without you.'**
+  String get nocturneArchiveEmptyBody;
+
+  /// No description provided for @nocturneArchiveImportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JSON file'**
+  String get nocturneArchiveImportJson;
+
+  /// No description provided for @nocturneArchiveSyncHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To sync, open TikTok in a browser with the extension installed, then come back here.'**
+  String get nocturneArchiveSyncHint;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/plugins/feature_activation.dart';
+import 'package:modern_downloader/core/services/local_server_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
@@ -27,6 +28,7 @@ class NocturneArchive extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(tikTokArchiveProvider);
     final catalog = state.catalog;
+    if (!state.isLoading && !state.hasCatalog) return _NoArchive(state: state);
     if (state.isLoading ||
         state.viewMode == TikTokViewMode.hub ||
         !state.hasCatalog ||
@@ -52,6 +54,108 @@ class NocturneArchive extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// No archive imported yet: the orbit, what the page is for, and today's
+/// hub actions (import a JSON export, sync through the extension).
+class _NoArchive extends ConsumerWidget {
+  const _NoArchive({required this.state});
+
+  final TikTokArchiveState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    final notifier = ref.read(tikTokArchiveProvider.notifier);
+    final showcase = ref.watch(showcaseModeProvider);
+    final connected =
+        !showcase && ref.watch(extensionConnectedClientsProvider) > 0;
+    final syncing = state.syncStatus == TikTokSyncStatus.waiting;
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l10n.nocturneArchiveEmptyTitle,
+          style: nocturneText(
+            c,
+            size: 24,
+            weight: FontWeight.w700,
+          ).copyWith(letterSpacing: -0.5, height: 1.2),
+        ),
+        const SizedBox(height: 10),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Text(
+            l10n.nocturneArchiveEmptyBody,
+            style: nocturneText(c, size: 14, color: c.textSecondary),
+          ),
+        ),
+        const SizedBox(height: 22),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            NocturneButton(
+              label: l10n.nocturneArchiveImportJson,
+              icon: Icons.file_open_outlined,
+              kind: NocturneButtonKind.primary,
+              height: 42,
+              radius: 14,
+              onTap: showcase ? null : notifier.pickAndImportFile,
+            ),
+            NocturneButton(
+              label: syncing ? l10n.nocturneSyncing : l10n.nocturneSync,
+              icon: Icons.sync_rounded,
+              height: 42,
+              radius: 14,
+              onTap: connected && !syncing ? notifier.triggerExtensionSync : null,
+            ),
+          ],
+        ),
+        if (!connected) ...[
+          const SizedBox(height: 12),
+          Text(
+            l10n.nocturneArchiveSyncHint,
+            style: nocturneText(c, size: 12.5, color: c.textDisabled),
+          ),
+        ],
+      ],
+    );
+    return SingleChildScrollView(
+      padding: nocturnePagePadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          NocturneHeader(
+            eyebrow: l10n.nocturneArchiveEyebrow,
+            title: l10n.archiveMobileTitle,
+          ),
+          const SizedBox(height: 24),
+          NocturneCard(
+            lift: false,
+            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 32),
+            child: LayoutBuilder(
+              builder: (context, box) => box.maxWidth >= 560
+                  ? Row(
+                      children: [
+                        const NocturneOrbit(
+                          size: 176,
+                          icon: Icons.inventory_2_outlined,
+                          arc: 0,
+                        ),
+                        const SizedBox(width: 36),
+                        Expanded(child: text),
+                      ],
+                    )
+                  : text,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1687,5 +1687,20 @@
   "signalTransferTo": "إلى {name}",
   "signalTransferPickDevice": "اختر الجهاز من قائمة الأجهزة.",
   "porcelaineSelectedCollections": "{count, plural, =0{لا شيء محدد} =1{مجموعة واحدة محددة} two{مجموعتان محددتان} few{{count} مجموعات محددة} other{{count} مجموعة محددة}}",
-  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد"
+  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد",
+  "nocturneEmptyTitle": "مكتبتك في انتظارك",
+  "nocturneEmptyBody": "الصق رابطًا من YouTube أو TikTok أو Instagram أو X: يقوم TapLoad بتنزيله وحفظه هنا.",
+  "nocturneNoResultsTitle": "لا توجد نتائج",
+  "nocturneNoResultsQuery": "لا شيء يطابق «{query}» مع عوامل التصفية هذه.",
+  "nocturneNoResultsFilters": "لا شيء يطابق عوامل التصفية النشطة.",
+  "nocturneClearSearchFilters": "مسح البحث وعوامل التصفية",
+  "nocturneLoadErrorTitle": "تعذّر تحميل المكتبة",
+  "nocturneLoadErrorBody": "ملفاتك سليمة. أعد المحاولة بعد لحظة.",
+  "nocturneFailedCount": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيل}}",
+  "nocturneStatsEmptyTitle": "لا توجد إحصاءات بعد",
+  "nocturneStatsEmptyBody": "ستظهر أرقامك هنا بعد أول تنزيل.",
+  "nocturneArchiveEmptyTitle": "لم يتم استيراد أي أرشيف بعد",
+  "nocturneArchiveEmptyBody": "استورد ملف JSON لمفضلاتك على TikTok أو زامن مجموعاتك عبر الإضافة. لا يُنزَّل شيء دون موافقتك.",
+  "nocturneArchiveImportJson": "اختر ملف JSON",
+  "nocturneArchiveSyncHint": "للمزامنة، افتح TikTok في متصفح مثبّت عليه الإضافة، ثم عد إلى هنا."
 }

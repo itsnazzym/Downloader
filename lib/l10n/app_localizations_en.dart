@@ -4840,4 +4840,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Not downloaded yet';
+
+  @override
+  String get nocturneEmptyTitle => 'Your library is waiting';
+
+  @override
+  String get nocturneEmptyBody =>
+      'Paste a YouTube, TikTok, Instagram or X link: TapLoad downloads it and keeps it here.';
+
+  @override
+  String get nocturneNoResultsTitle => 'No results';
+
+  @override
+  String nocturneNoResultsQuery(String query) {
+    return 'Nothing matches “$query” with these filters.';
+  }
+
+  @override
+  String get nocturneNoResultsFilters => 'Nothing matches the active filters.';
+
+  @override
+  String get nocturneClearSearchFilters => 'Clear search and filters';
+
+  @override
+  String get nocturneLoadErrorTitle => 'The library could not be loaded';
+
+  @override
+  String get nocturneLoadErrorBody =>
+      'Your files are safe. Try again in a moment.';
+
+  @override
+  String nocturneFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads failed',
+      one: '1 download failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneStatsEmptyTitle => 'No statistics yet';
+
+  @override
+  String get nocturneStatsEmptyBody =>
+      'Your numbers will show up here after your first download.';
+
+  @override
+  String get nocturneArchiveEmptyTitle => 'No archive imported yet';
+
+  @override
+  String get nocturneArchiveEmptyBody =>
+      'Import the JSON export of your TikTok favorites or sync your collections through the extension. Nothing downloads without you.';
+
+  @override
+  String get nocturneArchiveImportJson => 'Choose a JSON file';
+
+  @override
+  String get nocturneArchiveSyncHint =>
+      'To sync, open TikTok in a browser with the extension installed, then come back here.';
 }

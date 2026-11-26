@@ -4898,4 +4898,67 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Pas encore téléchargée';
+
+  @override
+  String get nocturneEmptyTitle => 'Ta bibliothèque t’attend';
+
+  @override
+  String get nocturneEmptyBody =>
+      'Colle un lien YouTube, TikTok, Instagram ou X : TapLoad le télécharge et le range ici.';
+
+  @override
+  String get nocturneNoResultsTitle => 'Aucun résultat';
+
+  @override
+  String nocturneNoResultsQuery(String query) {
+    return 'Rien ne correspond à « $query » avec ces filtres.';
+  }
+
+  @override
+  String get nocturneNoResultsFilters =>
+      'Rien ne correspond aux filtres actifs.';
+
+  @override
+  String get nocturneClearSearchFilters =>
+      'Effacer la recherche et les filtres';
+
+  @override
+  String get nocturneLoadErrorTitle =>
+      'La bibliothèque n’a pas pu être chargée';
+
+  @override
+  String get nocturneLoadErrorBody =>
+      'Tes fichiers sont intacts. Réessaie dans un instant.';
+
+  @override
+  String nocturneFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements ont échoué',
+      one: '1 téléchargement a échoué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneStatsEmptyTitle => 'Pas encore de statistiques';
+
+  @override
+  String get nocturneStatsEmptyBody =>
+      'Tes chiffres apparaîtront ici après ton premier téléchargement.';
+
+  @override
+  String get nocturneArchiveEmptyTitle => 'Aucune archive importée';
+
+  @override
+  String get nocturneArchiveEmptyBody =>
+      'Importe l’export JSON de tes favoris TikTok ou synchronise tes collections avec l’extension. Rien n’est téléchargé sans toi.';
+
+  @override
+  String get nocturneArchiveImportJson => 'Choisir un fichier JSON';
+
+  @override
+  String get nocturneArchiveSyncHint =>
+      'Pour synchroniser, ouvre TikTok dans un navigateur où l’extension est installée, puis reviens ici.';
 }
