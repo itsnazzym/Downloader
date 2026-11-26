@@ -3582,4 +3582,404 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get studioToDownload => 'À télécharger';
+
+  @override
+  String get terminalCommandHint => 'coller une URL';
+
+  @override
+  String get terminalEnterKey => 'Entrée';
+
+  @override
+  String get terminalEnterDownload => 'télécharger';
+
+  @override
+  String get terminalHelp => 'aide';
+
+  @override
+  String get terminalAll => 'tous';
+
+  @override
+  String get terminalActive => 'en_cours';
+
+  @override
+  String get terminalDone => 'terminés';
+
+  @override
+  String get terminalFailed => 'échecs';
+
+  @override
+  String terminalDesignLine(String id) {
+    return 'design $id';
+  }
+
+  @override
+  String terminalActiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count actifs',
+      one: '$count actif',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String terminalQueuedCount(int count) {
+    return '$count en file';
+  }
+
+  @override
+  String terminalDownloadsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements',
+      one: '$count téléchargement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get terminalLocalArchive => 'archive locale';
+
+  @override
+  String terminalVideosCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '$count vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String terminalCollectionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count collections',
+      one: '$count collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get terminalLocalWifi => 'Wi-Fi local';
+
+  @override
+  String get terminalSending => 'envoi en cours';
+
+  @override
+  String get terminalKeyFilters => 'filtrer la bibliothèque';
+
+  @override
+  String get terminalKeyTools => 'statistiques, transfert, archives';
+
+  @override
+  String get terminalKeySearch => 'rechercher';
+
+  @override
+  String get terminalFlagLive => '--live';
+
+  @override
+  String get terminalFlagRecent => '--recent';
+
+  @override
+  String get terminalColState => 'état';
+
+  @override
+  String get terminalColTitle => 'titre';
+
+  @override
+  String get terminalColSource => 'source';
+
+  @override
+  String get terminalColFormat => 'format';
+
+  @override
+  String get terminalStateOk => 'ok';
+
+  @override
+  String get terminalStateErr => 'err';
+
+  @override
+  String get terminalStateWait => 'wait';
+
+  @override
+  String get terminalStateRun => 'run';
+
+  @override
+  String get terminalFlagSummary => '--resume';
+
+  @override
+  String get terminalKpiDownloads => 'téléchargements';
+
+  @override
+  String get terminalKpiStorage => 'stockage';
+
+  @override
+  String get terminalKpiToday => 'aujourd\'hui';
+
+  @override
+  String get terminalKpiFree => 'espace_libre';
+
+  @override
+  String get terminalPeriod => 'période';
+
+  @override
+  String get terminalPeriod7 => '7 j';
+
+  @override
+  String get terminalPeriod30 => '30 j';
+
+  @override
+  String get terminalPeriod12 => '12 mois';
+
+  @override
+  String get terminalFlagPeriod => '--periode';
+
+  @override
+  String get terminalPerDay => 'téléchargements par jour';
+
+  @override
+  String get terminalPerMonth => 'téléchargements par mois';
+
+  @override
+  String terminalLastDays(int count) {
+    return '$count derniers jours';
+  }
+
+  @override
+  String terminalLastMonths(int count) {
+    return '$count derniers mois';
+  }
+
+  @override
+  String terminalDaysAgo(int count) {
+    return 'j-$count';
+  }
+
+  @override
+  String get terminalToday => 'auj.';
+
+  @override
+  String terminalMonthsAgo(int count) {
+    return 'm-$count';
+  }
+
+  @override
+  String get terminalThisMonth => 'ce mois';
+
+  @override
+  String get terminalFlagBySource => '--par source';
+
+  @override
+  String get terminalFlagByFormat => '--par format';
+
+  @override
+  String get terminalFlagTopCreators => '--top createurs';
+
+  @override
+  String get terminalSections => 'sections';
+
+  @override
+  String get terminalSection => 'section';
+
+  @override
+  String get terminalFlagEdit => '--edit';
+
+  @override
+  String get terminalChangeFolder => 'changer le dossier';
+
+  @override
+  String get terminalAdjust => 'ajuster';
+
+  @override
+  String get terminalCheckTools => 'vérifier les outils';
+
+  @override
+  String get terminalToolOk => 'ok';
+
+  @override
+  String get terminalToolChecking => 'vérification…';
+
+  @override
+  String get terminalToolMissing => 'absent';
+
+  @override
+  String get terminalToolUnchecked => 'non vérifié';
+
+  @override
+  String get terminalConfigComment =>
+      'configuration de tapload · modifiée en direct';
+
+  @override
+  String get terminalCfgAudioOnly => 'audio_seul';
+
+  @override
+  String get terminalCfgAutoStart => 'démarrer_auto';
+
+  @override
+  String get terminalCfgQuality => 'qualité_préférée';
+
+  @override
+  String get terminalCfgFolder => 'dossier';
+
+  @override
+  String get terminalCfgDesign => 'design';
+
+  @override
+  String get terminalCfgConcurrent => 'téléchargements_simultanés';
+
+  @override
+  String get terminalCfgReduceEffects => 'réduire_effets';
+
+  @override
+  String get terminalChange => 'Changer';
+
+  @override
+  String get terminalFlagArchive => '--archive';
+
+  @override
+  String get terminalTabVideos => 'vidéos';
+
+  @override
+  String get terminalTabCollections => 'collections';
+
+  @override
+  String get terminalTabFavorites => 'favoris';
+
+  @override
+  String get terminalTabLikes => 'likes';
+
+  @override
+  String get terminalFinish => 'terminer';
+
+  @override
+  String get terminalFlagCollections => '--collections';
+
+  @override
+  String get terminalFlagVideos => '--videos';
+
+  @override
+  String terminalSuggestions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggestions de classement',
+      one: '$count suggestion de classement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get terminalReview => 'revoir';
+
+  @override
+  String get terminalPurgeNote =>
+      'les vidéos partagées avec une collection conservée sont gardées';
+
+  @override
+  String get terminalSelection => 'sélection';
+
+  @override
+  String get terminalRightClick => 'clic droit';
+
+  @override
+  String get terminalActions => 'actions';
+
+  @override
+  String terminalDownloadedOf(int done, int total) {
+    return '$done / $total vidéos téléchargées';
+  }
+
+  @override
+  String get terminalDownloadAll => 'Tout télécharger';
+
+  @override
+  String get terminalAllDownloaded => 'tout téléchargé';
+
+  @override
+  String terminalDownloadedPct(int percent) {
+    return '$percent% téléchargé';
+  }
+
+  @override
+  String get terminalToDownload => 'à télécharger';
+
+  @override
+  String terminalVidCount(int count) {
+    return '$count vid.';
+  }
+
+  @override
+  String get terminalAllCollections => 'toutes les collections';
+
+  @override
+  String terminalDownloadSelection(int count) {
+    return 'Télécharger la sélection ($count)';
+  }
+
+  @override
+  String get terminalCopyLink => 'Copier le lien';
+
+  @override
+  String get terminalOpenBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String terminalApply(int count) {
+    return 'Appliquer ($count)';
+  }
+
+  @override
+  String get terminalFlagWifi => '--wifi';
+
+  @override
+  String get terminalFlagSelect => '--select';
+
+  @override
+  String get terminalFlagStatus => '--status';
+
+  @override
+  String get terminalFlagPeers => '--appareils';
+
+  @override
+  String get terminalPin => 'pin';
+
+  @override
+  String get terminalAddress => 'adresse';
+
+  @override
+  String get terminalScanHint => 'Ouvre TapLoad sur ton téléphone et scanne';
+
+  @override
+  String get terminalDevice => 'appareil';
+
+  @override
+  String get terminalOnline => 'en ligne';
+
+  @override
+  String get terminalBroadcast => 'annoncer';
+
+  @override
+  String get terminalCheckAll => 'tout cocher';
+
+  @override
+  String get terminalAddFiles => 'ajouter';
+
+  @override
+  String get terminalClearPayload => 'Vider';
+
+  @override
+  String get terminalZipKey => 'compresser_zip';
+
+  @override
+  String get terminalOnlyNewKey => 'seulement_nouvelles';
+
+  @override
+  String get terminalTotal => 'total';
+
+  @override
+  String get terminalNoTransfer => 'aucun envoi en cours';
 }

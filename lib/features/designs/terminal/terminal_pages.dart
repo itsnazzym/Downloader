@@ -1,15 +1,25 @@
 import 'package:flutter/widgets.dart';
 import 'package:modern_downloader/core/ui/shell/designed_page.dart';
 
-/// Terminal's pages, drawn from its mockups. Null keeps today's view until a page
-/// is drawn.
+import 'terminal_archive.dart';
+import 'terminal_home.dart';
+import 'terminal_settings.dart';
+import 'terminal_stats.dart';
+import 'terminal_transfer.dart';
+
+/// Terminal's pages (mockups Terminal, Terminal-Archives, -Stats, -Transfert,
+/// -Reglages).
 Widget? terminalPage(DesignRoute route, Widget current) {
   switch (route) {
     case DesignRoute.home:
-    case DesignRoute.archive:
+      return const TerminalHome();
     case DesignRoute.stats:
-    case DesignRoute.transfer:
+      return const TerminalStats();
+    case DesignRoute.archive:
+      return TerminalArchive(current: current);
     case DesignRoute.settings:
-      return null;
+      return TerminalSettings(current: current);
+    case DesignRoute.transfer:
+      return const TerminalTransfer();
   }
 }
