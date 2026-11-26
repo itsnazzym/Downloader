@@ -978,6 +978,7 @@ class _LastTile extends ConsumerWidget {
                 children: [
                   PThumb(
                     url: last?.thumbnailUrl,
+                    filePath: last?.filePath,
                     tone: const Color(0xFFC7D0CA),
                   ),
                   if (last != null)
@@ -1231,7 +1232,11 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
                     children: [
                       SizedBox(
                         height: 96,
-                        child: PThumb(url: item.thumbnailUrl, tone: tone),
+                        child: PThumb(
+                          url: item.thumbnailUrl,
+                          filePath: item.filePath,
+                          tone: tone,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Padding(

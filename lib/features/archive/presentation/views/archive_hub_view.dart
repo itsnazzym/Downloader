@@ -9,6 +9,7 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 /// Import and browser-sync entry point for the local TikTok library.
 class ArchiveHubView extends ConsumerWidget {
@@ -18,6 +19,7 @@ class ArchiveHubView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (PlatformInfo.isMobile) return const TikTokHubMobileView();
     final colors = AppColors.of(context);
+    final l10n = context.l10n;
     final state = ref.watch(tikTokArchiveProvider);
     final notifier = ref.read(tikTokArchiveProvider.notifier);
     final isShowcase = ref.watch(showcaseModeProvider);
@@ -39,13 +41,12 @@ class ArchiveHubView extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Archive TikTok',
+                    l10n.archiveMobileTitle,
                     style: AppTypography.h2.copyWith(color: colors.textPrimary),
                   ),
                   const Gap(AppSpacing.xs),
                   Text(
-                    'Importe la liste de tes favoris TikTok, retrouve une vidéo par collection ou recherche, puis '
-                    'lance son téléchargement quand tu en as besoin. Cette page ne télécharge rien toute seule.',
+                    l10n.archiveDeskIntro,
                     style: AppTypography.body.copyWith(
                       color: colors.textSecondary,
                       height: 1.5,
@@ -73,15 +74,14 @@ class ArchiveHubView extends ConsumerWidget {
                   _ActionSection(
                     colors: colors,
                     icon: Icons.folder_open_outlined,
-                    title: 'Importer un export TikTok',
-                    description:
-                        'Choisis le fichier JSON exporté depuis TikTok pour charger tes favoris et tes mentions J’aime.',
+                    title: l10n.archiveDeskImportTitle,
+                    description: l10n.archiveDeskImportBody,
                     child: FilledButton.icon(
                       onPressed: isShowcase
                           ? null
                           : () => notifier.pickAndImportFile(),
                       icon: const Icon(Icons.file_open_outlined),
-                      label: const Text('Choisir un fichier JSON'),
+                      label: Text(l10n.archiveDeskPickJson),
                       style: FilledButton.styleFrom(
                         backgroundColor: colors.primary,
                         minimumSize: const Size(0, 48),
@@ -92,10 +92,10 @@ class ArchiveHubView extends ConsumerWidget {
                   _ActionSection(
                     colors: colors,
                     icon: Icons.sync_rounded,
-                    title: 'Synchroniser les collections',
+                    title: l10n.archiveDeskSyncTitle,
                     description: isConnected
-                        ? 'L’extension récupère les vidéos associées à tes collections depuis une page TikTok ouverte.'
-                        : 'Ouvre TikTok dans un navigateur où l’extension Modern Downloader est installée, puis reviens ici.',
+                        ? l10n.archiveDeskSyncConnected
+                        : l10n.archiveDeskSyncDisconnected,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -114,8 +114,8 @@ class ArchiveHubView extends ConsumerWidget {
                               : const Icon(Icons.sync_rounded),
                           label: Text(
                             isSyncing
-                                ? 'Synchronisation en cours…'
-                                : 'Synchroniser mes collections',
+                                ? l10n.archiveDeskSyncing
+                                : l10n.archiveDeskSyncAction,
                           ),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(0, 48),
@@ -129,7 +129,7 @@ class ArchiveHubView extends ConsumerWidget {
                           ),
                           const Gap(AppSpacing.xs),
                           Text(
-                            'En attente de la réponse du navigateur. Garde une page TikTok ouverte.',
+                            l10n.archiveMobileSyncWaiting,
                             style: AppTypography.caption.copyWith(
                               color: colors.textSecondary,
                             ),
@@ -150,7 +150,7 @@ class ArchiveHubView extends ConsumerWidget {
                   ),
                   const Gap(AppSpacing.m),
                   Text(
-                    'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.',
+                    l10n.archiveDeskSyncManual,
                     style: AppTypography.caption.copyWith(
                       color: colors.textDisabled,
                       height: 1.5,
@@ -248,14 +248,18 @@ class _LibrarySummary extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              '$videoCount vidéos · $collectionCount collections',
+              '${context.l10n.archiveMobileVideoCount(videoCount)} · '
+              '${context.l10n.archiveHubCollections(collectionCount)}',
               style: AppTypography.body.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          TextButton(onPressed: onOpen, child: const Text('Ouvrir')),
+          TextButton(
+            onPressed: onOpen,
+            child: Text(context.l10n.archiveHubOpen),
+          ),
         ],
       ),
     );

@@ -899,6 +899,7 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
               children: [
                 SignalThumb(
                   url: item.thumbnailUrl,
+                  filePath: item.filePath,
                   width: 64,
                   height: 64,
                   radius: 14,
@@ -1115,7 +1116,10 @@ class _Toolbar extends ConsumerWidget {
         // sort and view modes, more actions. Already in the palette.
         ClipRRect(
           borderRadius: BorderRadius.circular(14),
-          child: DownloadTopBar(key: OnboardingTargets.topBar),
+          child: DownloadTopBar(
+            key: OnboardingTargets.topBar,
+            showFailedBadge: false,
+          ),
         ),
       ],
     );
@@ -1261,6 +1265,7 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
               children: [
                 SignalThumb(
                   url: item.thumbnailUrl,
+                  filePath: item.filePath,
                   width: 96,
                   height: 56,
                   radius: 12,

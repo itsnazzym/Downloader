@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import '../shared/local_thumb.dart';
 
 /// Porcelaine's building blocks, measured on Espace.dc.html and the
 /// Porcelaine-*.dc.html mockups.
@@ -29,9 +30,13 @@ class PThumb extends StatelessWidget {
     this.width,
     required this.height,
     this.radius = 12,
+    this.filePath,
   });
 
   final String? url;
+
+  /// The downloaded file, previewed when [url] is missing or fails.
+  final String? filePath;
   final String seed;
   final double? width;
   final double height;
@@ -42,10 +47,14 @@ class PThumb extends StatelessWidget {
     final colors = AppColors.of(context);
     final tone = _tones[seed.hashCode.abs() % _tones.length];
     final u = url;
-    Widget image = ColoredBox(color: tone);
-    Widget fallback(BuildContext c, Object e, StackTrace? s) =>
-        ColoredBox(color: tone);
     final decode = ((width ?? 240) * 2.5).round();
+    final local = LocalVideoThumb(
+      filePath: filePath,
+      placeholder: ColoredBox(color: tone),
+      cacheWidth: decode,
+    );
+    Widget image = local;
+    Widget fallback(BuildContext c, Object e, StackTrace? s) => local;
     if (u != null && u.isNotEmpty) {
       if (u.startsWith('assets/')) {
         image = Image.asset(u, fit: BoxFit.cover, errorBuilder: fallback);
@@ -55,7 +64,7 @@ class PThumb extends StatelessWidget {
           fit: BoxFit.cover,
           memCacheWidth: decode,
           placeholder: (c, _) => ColoredBox(color: tone),
-          errorWidget: (c, _, _) => ColoredBox(color: tone),
+          errorWidget: (c, _, _) => local,
           fadeInDuration: const Duration(milliseconds: 160),
         );
       } else {

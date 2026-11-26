@@ -8835,6 +8835,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync goes through the extension, in a browser open on TikTok.'**
   String get signalArchiveSyncHint;
+
+  /// No description provided for @archiveDeskIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your TikTok favorites list, find a video by collection or search, then download it when you need it. This page never downloads anything on its own.'**
+  String get archiveDeskIntro;
+
+  /// No description provided for @archiveDeskImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a TikTok export'**
+  String get archiveDeskImportTitle;
+
+  /// No description provided for @archiveDeskImportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the JSON file exported from TikTok to load your favorites and likes.'**
+  String get archiveDeskImportBody;
+
+  /// No description provided for @archiveDeskPickJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JSON file'**
+  String get archiveDeskPickJson;
+
+  /// No description provided for @archiveDeskSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync collections'**
+  String get archiveDeskSyncTitle;
+
+  /// No description provided for @archiveDeskSyncConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'The extension fetches the videos of your collections from an open TikTok page.'**
+  String get archiveDeskSyncConnected;
+
+  /// No description provided for @archiveDeskSyncDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TikTok in a browser where the Modern Downloader extension is installed, then come back here.'**
+  String get archiveDeskSyncDisconnected;
+
+  /// No description provided for @archiveDeskSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get archiveDeskSyncing;
+
+  /// No description provided for @archiveDeskSyncAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync my collections'**
+  String get archiveDeskSyncAction;
+
+  /// No description provided for @archiveDeskSyncManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
+  String get archiveDeskSyncManual;
 }
 
 class _AppLocalizationsDelegate

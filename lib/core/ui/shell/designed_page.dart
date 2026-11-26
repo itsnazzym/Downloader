@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/settings_app_bar.dart';
 import 'package:modern_downloader/features/designs/design_pages.dart';
 
 /// The top-level pages a design can redraw from its own mockup.
@@ -19,7 +20,14 @@ class DesignedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!PlatformInfo.isDesktop) return fallback;
-    final page = designPageFor(DesignSpec.of(context).id, route, fallback);
+    final page = designPageFor(
+      DesignSpec.of(context).id,
+      route,
+      // The design draws the section title itself.
+      route == DesignRoute.settings
+          ? SettingsFramed(child: fallback)
+          : fallback,
+    );
     return page ?? fallback;
   }
 }

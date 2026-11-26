@@ -1770,5 +1770,15 @@
   "signalArchiveEmptyTitle": "لم يتم استيراد أي أرشيف بعد.",
   "signalArchiveEmptyBody": "استورد ملف JSON لمفضلات تيك توك: تظهر مجموعاتك والفيديوهات التي أعجبتك هنا جاهزة للتنزيل.",
   "signalArchiveImport": "اختر ملف JSON",
-  "signalArchiveSyncHint": "تتم المزامنة عبر الإضافة في متصفح مفتوح على تيك توك."
+  "signalArchiveSyncHint": "تتم المزامنة عبر الإضافة في متصفح مفتوح على تيك توك.",
+  "archiveDeskIntro": "استورد قائمة مفضلاتك في TikTok، وابحث عن مقطع حسب المجموعة أو بالبحث، ثم نزّله متى احتجت إليه. هذه الصفحة لا تنزّل أي شيء بمفردها.",
+  "archiveDeskImportTitle": "استيراد تصدير TikTok",
+  "archiveDeskImportBody": "اختر ملف JSON المُصدَّر من TikTok لتحميل مفضلاتك وإعجاباتك.",
+  "archiveDeskPickJson": "اختر ملف JSON",
+  "archiveDeskSyncTitle": "مزامنة المجموعات",
+  "archiveDeskSyncConnected": "تجلب الإضافة مقاطع مجموعاتك من صفحة TikTok مفتوحة.",
+  "archiveDeskSyncDisconnected": "افتح TikTok في متصفح مثبّت فيه امتداد Modern Downloader، ثم عُد إلى هنا.",
+  "archiveDeskSyncing": "جارٍ المزامنة…",
+  "archiveDeskSyncAction": "مزامنة مجموعاتي",
+  "archiveDeskSyncManual": "المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا."
 }

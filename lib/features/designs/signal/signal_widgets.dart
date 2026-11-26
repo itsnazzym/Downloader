@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import '../shared/local_thumb.dart';
 
 /// Signal's building blocks, measured on the Main.dc.html mockup.
 
@@ -350,9 +351,13 @@ class SignalThumb extends StatelessWidget {
     required this.width,
     required this.height,
     this.radius = 10,
+    this.filePath,
   });
 
   final String? url;
+
+  /// The downloaded file, previewed when [url] is missing or fails.
+  final String? filePath;
   final double width;
   final double height;
   final double radius;
@@ -365,11 +370,15 @@ class SignalThumb extends StatelessWidget {
       colors.surface,
     );
     final decodeWidth = (width * 2.5).round();
-    Widget image = ColoredBox(color: tone);
+    final local = LocalVideoThumb(
+      filePath: filePath,
+      placeholder: ColoredBox(color: tone),
+      cacheWidth: decodeWidth,
+    );
+    Widget image = local;
     final u = url;
     if (u != null && u.isNotEmpty) {
-      Widget fallback(BuildContext c, Object e, StackTrace? s) =>
-          ColoredBox(color: tone);
+      Widget fallback(BuildContext c, Object e, StackTrace? s) => local;
       if (u.startsWith('assets/')) {
         image = Image.asset(u, fit: BoxFit.cover, errorBuilder: fallback);
       } else if (u.startsWith('http://') || u.startsWith('https://')) {
@@ -378,7 +387,7 @@ class SignalThumb extends StatelessWidget {
           fit: BoxFit.cover,
           memCacheWidth: decodeWidth,
           placeholder: (c, _) => ColoredBox(color: tone),
-          errorWidget: (c, _, _) => ColoredBox(color: tone),
+          errorWidget: (c, _, _) => local,
           fadeInDuration: const Duration(milliseconds: 160),
         );
       } else {

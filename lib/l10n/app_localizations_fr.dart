@@ -5246,4 +5246,39 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get signalArchiveSyncHint =>
       'La synchronisation passe par l’extension, dans un navigateur ouvert sur TikTok.';
+
+  @override
+  String get archiveDeskIntro =>
+      'Importe la liste de tes favoris TikTok, retrouve une vidéo par collection ou recherche, puis lance son téléchargement quand tu en as besoin. Cette page ne télécharge rien toute seule.';
+
+  @override
+  String get archiveDeskImportTitle => 'Importer un export TikTok';
+
+  @override
+  String get archiveDeskImportBody =>
+      'Choisis le fichier JSON exporté depuis TikTok pour charger tes favoris et tes mentions J’aime.';
+
+  @override
+  String get archiveDeskPickJson => 'Choisir un fichier JSON';
+
+  @override
+  String get archiveDeskSyncTitle => 'Synchroniser les collections';
+
+  @override
+  String get archiveDeskSyncConnected =>
+      'L’extension récupère les vidéos associées à tes collections depuis une page TikTok ouverte.';
+
+  @override
+  String get archiveDeskSyncDisconnected =>
+      'Ouvre TikTok dans un navigateur où l’extension Modern Downloader est installée, puis reviens ici.';
+
+  @override
+  String get archiveDeskSyncing => 'Synchronisation en cours…';
+
+  @override
+  String get archiveDeskSyncAction => 'Synchroniser mes collections';
+
+  @override
+  String get archiveDeskSyncManual =>
+      'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.';
 }

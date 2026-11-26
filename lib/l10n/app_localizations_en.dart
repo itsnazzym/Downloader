@@ -5183,4 +5183,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get signalArchiveSyncHint =>
       'Sync goes through the extension, in a browser open on TikTok.';
+
+  @override
+  String get archiveDeskIntro =>
+      'Import your TikTok favorites list, find a video by collection or search, then download it when you need it. This page never downloads anything on its own.';
+
+  @override
+  String get archiveDeskImportTitle => 'Import a TikTok export';
+
+  @override
+  String get archiveDeskImportBody =>
+      'Choose the JSON file exported from TikTok to load your favorites and likes.';
+
+  @override
+  String get archiveDeskPickJson => 'Choose a JSON file';
+
+  @override
+  String get archiveDeskSyncTitle => 'Sync collections';
+
+  @override
+  String get archiveDeskSyncConnected =>
+      'The extension fetches the videos of your collections from an open TikTok page.';
+
+  @override
+  String get archiveDeskSyncDisconnected =>
+      'Open TikTok in a browser where the Modern Downloader extension is installed, then come back here.';
+
+  @override
+  String get archiveDeskSyncing => 'Syncing…';
+
+  @override
+  String get archiveDeskSyncAction => 'Sync my collections';
+
+  @override
+  String get archiveDeskSyncManual =>
+      'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.';
 }

@@ -683,14 +683,17 @@ class _SystemTile extends ConsumerWidget {
               Icon(icon, size: 15, color: pMuted),
               const SizedBox(width: 6),
               Expanded(
+                // Two lines fit the 36 px: half-width links stay readable
+                // ("Replay t…" in a 1000 px window).
                 child: Text(
                   label,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: pBody(
                     size: 12.5,
                     weight: FontWeight.w600,
                     color: pMuted,
+                    height: 1.15,
                   ),
                 ),
               ),

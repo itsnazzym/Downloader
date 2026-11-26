@@ -5190,4 +5190,39 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get signalArchiveSyncHint =>
       'تتم المزامنة عبر الإضافة في متصفح مفتوح على تيك توك.';
+
+  @override
+  String get archiveDeskIntro =>
+      'استورد قائمة مفضلاتك في TikTok، وابحث عن مقطع حسب المجموعة أو بالبحث، ثم نزّله متى احتجت إليه. هذه الصفحة لا تنزّل أي شيء بمفردها.';
+
+  @override
+  String get archiveDeskImportTitle => 'استيراد تصدير TikTok';
+
+  @override
+  String get archiveDeskImportBody =>
+      'اختر ملف JSON المُصدَّر من TikTok لتحميل مفضلاتك وإعجاباتك.';
+
+  @override
+  String get archiveDeskPickJson => 'اختر ملف JSON';
+
+  @override
+  String get archiveDeskSyncTitle => 'مزامنة المجموعات';
+
+  @override
+  String get archiveDeskSyncConnected =>
+      'تجلب الإضافة مقاطع مجموعاتك من صفحة TikTok مفتوحة.';
+
+  @override
+  String get archiveDeskSyncDisconnected =>
+      'افتح TikTok في متصفح مثبّت فيه امتداد Modern Downloader، ثم عُد إلى هنا.';
+
+  @override
+  String get archiveDeskSyncing => 'جارٍ المزامنة…';
+
+  @override
+  String get archiveDeskSyncAction => 'مزامنة مجموعاتي';
+
+  @override
+  String get archiveDeskSyncManual =>
+      'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
 }

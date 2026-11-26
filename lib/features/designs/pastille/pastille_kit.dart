@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import '../shared/local_thumb.dart';
 
 /// Pastille's building blocks, measured on the Pastille*.dc.html mockups.
 
@@ -1403,18 +1404,31 @@ List<(int, int, int, int)> placeCells(List<(int, int)> spans, int cols) {
 
 /// `.th`: a thumbnail filling its box, a flat [tone] while there is none.
 class PThumb extends StatelessWidget {
-  const PThumb({super.key, this.url, required this.tone, this.radius = 16});
+  const PThumb({
+    super.key,
+    this.url,
+    required this.tone,
+    this.radius = 16,
+    this.filePath,
+  });
 
   final String? url;
+
+  /// The downloaded file, previewed when [url] is missing or fails.
+  final String? filePath;
   final Color tone;
   final double radius;
 
   @override
   Widget build(BuildContext context) {
-    Widget image = ColoredBox(color: tone);
+    final local = LocalVideoThumb(
+      filePath: filePath,
+      placeholder: ColoredBox(color: tone),
+      cacheWidth: 480,
+    );
+    Widget image = local;
     final u = url;
-    Widget fallback(BuildContext c, Object e, StackTrace? s) =>
-        ColoredBox(color: tone);
+    Widget fallback(BuildContext c, Object e, StackTrace? s) => local;
     if (u != null && u.isNotEmpty) {
       if (u.startsWith('http://') || u.startsWith('https://')) {
         image = CachedNetworkImage(
@@ -1422,7 +1436,7 @@ class PThumb extends StatelessWidget {
           fit: BoxFit.cover,
           memCacheWidth: 480,
           placeholder: (c, _) => ColoredBox(color: tone),
-          errorWidget: (c, _, _) => ColoredBox(color: tone),
+          errorWidget: (c, _, _) => local,
         );
       } else if (u.startsWith('assets/')) {
         image = Image.asset(u, fit: BoxFit.cover, errorBuilder: fallback);

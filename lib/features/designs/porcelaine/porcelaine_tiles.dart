@@ -535,6 +535,7 @@ class _ActiveLarge extends StatelessWidget {
           children: [
             PThumb(
               url: main.thumbnailUrl,
+              filePath: main.filePath,
               seed: main.id,
               width: 120,
               height: 68,
@@ -616,6 +617,7 @@ class _ActiveLarge extends StatelessWidget {
             children: [
               PThumb(
                 url: n.thumbnailUrl,
+                filePath: n.filePath,
                 seed: n.id,
                 width: 44,
                 height: 44,
@@ -1635,6 +1637,7 @@ class PRecentTile extends ConsumerWidget {
     }) {
       final picture = PThumb(
         url: i.thumbnailUrl,
+        filePath: i.filePath,
         seed: i.id,
         width: width,
         height: height,

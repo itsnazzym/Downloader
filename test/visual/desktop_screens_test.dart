@@ -21,6 +21,7 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
+import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
 import 'package:modern_downloader/features/designs/pastille/pastille_kit.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
@@ -315,6 +316,54 @@ void main() {
     expect(title, findsOneWidget);
     // One line of 44 px Sora at 0.9 line height, not two.
     expect(tester.getSize(title).height, lessThan(60));
+  });
+
+  // A design's settings page shows the section title once: the shared view
+  // drops its own app bar inside the design's frame.
+  for (final id in ['porcelaine', 'nocturne']) {
+    testWidgets('design $id settings show no second title bar', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.getById(id),
+      );
+      router.go('/settings/appearance');
+      await settle(tester);
+      expect(find.byType(AppBar), findsNothing);
+    });
+  }
+
+  // Terminal sets the search field to 30 px: its text must stay inside.
+  testWidgets('terminal search field keeps its text inside 30 px', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final router = container.read(routerProvider);
+    await pump(
+      tester,
+      () => const SizedBox(),
+      router: router,
+      preset: ThemePresets.terminal,
+    );
+    router.go('/');
+    await settle(tester);
+    final field = find.byType(DownloadSearchField).first;
+    final box = tester.getRect(field);
+    final text = tester.getRect(
+      find.descendant(of: field, matching: find.byType(EditableText)),
+    );
+    expect(box.height, 30);
+    // A whole line (it was squeezed to 8 px by the 40 px field's padding).
+    expect(text.height, greaterThanOrEqualTo(15));
+    expect(text.top, greaterThanOrEqualTo(box.top));
+    expect(text.bottom, lessThanOrEqualTo(box.bottom));
   });
 
   // Every design on every page, on the real routes: writes

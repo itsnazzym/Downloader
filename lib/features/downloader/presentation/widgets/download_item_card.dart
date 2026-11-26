@@ -11,6 +11,7 @@ import 'package:modern_downloader/core/design_system/foundation/typography.dart'
 import 'package:modern_downloader/core/download/download_file_resolver.dart';
 import 'package:modern_downloader/core/download/extraction_placeholders.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:modern_downloader/core/download/download_error_reason.dart';
 import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../../domain/entities/download_item.dart';
@@ -201,6 +202,27 @@ class _DownloadItemCardState extends State<DownloadItemCard> {
                             ),
                           ],
                         ),
+                        if (widget.item.status == DownloadStatus.failed &&
+                            !DownloadStatusGuard.isAgeVerificationFailure(
+                              error: widget.item.error,
+                              url: widget.item.request.url,
+                            ) &&
+                            downloadErrorReason(
+                              widget.item.error,
+                            ).isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          // Why it failed, readable; the full log stays in
+                          // the status badge's tooltip.
+                          Text(
+                            downloadErrorReason(widget.item.error),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.bodySmall.copyWith(
+                              fontSize: 11.5,
+                              color: colors.error,
+                            ),
+                          ),
+                        ],
                         if (widget.item.status == DownloadStatus.failed &&
                             DownloadStatusGuard.isAgeVerificationFailure(
                               error: widget.item.error,

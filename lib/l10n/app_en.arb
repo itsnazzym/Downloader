@@ -2091,5 +2091,15 @@
   "signalArchiveEmptyTitle": "No archive imported yet.",
   "signalArchiveEmptyBody": "Import the JSON export of your TikTok favorites: your collections and liked videos show up here, ready to download.",
   "signalArchiveImport": "Choose a JSON file",
-  "signalArchiveSyncHint": "Sync goes through the extension, in a browser open on TikTok."
+  "signalArchiveSyncHint": "Sync goes through the extension, in a browser open on TikTok.",
+  "archiveDeskIntro": "Import your TikTok favorites list, find a video by collection or search, then download it when you need it. This page never downloads anything on its own.",
+  "archiveDeskImportTitle": "Import a TikTok export",
+  "archiveDeskImportBody": "Choose the JSON file exported from TikTok to load your favorites and likes.",
+  "archiveDeskPickJson": "Choose a JSON file",
+  "archiveDeskSyncTitle": "Sync collections",
+  "archiveDeskSyncConnected": "The extension fetches the videos of your collections from an open TikTok page.",
+  "archiveDeskSyncDisconnected": "Open TikTok in a browser where the Modern Downloader extension is installed, then come back here.",
+  "archiveDeskSyncing": "Syncing…",
+  "archiveDeskSyncAction": "Sync my collections",
+  "archiveDeskSyncManual": "Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here."
 }

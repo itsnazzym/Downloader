@@ -197,7 +197,9 @@ class _DownloadSearchFieldState extends ConsumerState<DownloadSearchField> {
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  // The row centres the line: no padding, so a design can
+                  // set a shorter field (Terminal: 30 px) without clipping.
+                  contentPadding: EdgeInsets.zero,
                 ),
                 onChanged: _emit,
                 textInputAction: TextInputAction.search,
@@ -230,7 +232,7 @@ class _DownloadSearchFieldState extends ConsumerState<DownloadSearchField> {
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints.tightFor(
                     width: 32,
-                    height: 32,
+                    height: 28,
                   ),
                   icon: Icon(
                     Icons.close,

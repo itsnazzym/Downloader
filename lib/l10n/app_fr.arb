@@ -1770,5 +1770,15 @@
   "signalArchiveEmptyTitle": "Aucune archive importée.",
   "signalArchiveEmptyBody": "Importe l’export JSON de tes favoris TikTok : tes collections et vidéos aimées apparaissent ici, prêtes à télécharger.",
   "signalArchiveImport": "Choisir un fichier JSON",
-  "signalArchiveSyncHint": "La synchronisation passe par l’extension, dans un navigateur ouvert sur TikTok."
+  "signalArchiveSyncHint": "La synchronisation passe par l’extension, dans un navigateur ouvert sur TikTok.",
+  "archiveDeskIntro": "Importe la liste de tes favoris TikTok, retrouve une vidéo par collection ou recherche, puis lance son téléchargement quand tu en as besoin. Cette page ne télécharge rien toute seule.",
+  "archiveDeskImportTitle": "Importer un export TikTok",
+  "archiveDeskImportBody": "Choisis le fichier JSON exporté depuis TikTok pour charger tes favoris et tes mentions J’aime.",
+  "archiveDeskPickJson": "Choisir un fichier JSON",
+  "archiveDeskSyncTitle": "Synchroniser les collections",
+  "archiveDeskSyncConnected": "L’extension récupère les vidéos associées à tes collections depuis une page TikTok ouverte.",
+  "archiveDeskSyncDisconnected": "Ouvre TikTok dans un navigateur où l’extension Modern Downloader est installée, puis reviens ici.",
+  "archiveDeskSyncing": "Synchronisation en cours…",
+  "archiveDeskSyncAction": "Synchroniser mes collections",
+  "archiveDeskSyncManual": "La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici."
 }

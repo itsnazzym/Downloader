@@ -23,7 +23,6 @@ import 'package:modern_downloader/features/downloader/presentation/views/inspect
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_list.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/download_more_actions_menu.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/failed_downloads_badge.dart';
 import 'package:modern_downloader/features/downloader/presentation/widgets/download_item_context_menu.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -587,7 +586,6 @@ class _ListHeader extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const FailedDownloadsBadge(compact: true),
           const _SortMenu(),
           const SizedBox(width: 4),
           const DownloadMoreActionsMenu(

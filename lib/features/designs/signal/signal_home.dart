@@ -23,7 +23,6 @@ import 'package:modern_downloader/features/downloader/presentation/views/inspect
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_list.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/download_more_actions_menu.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/failed_downloads_badge.dart';
 import 'package:modern_downloader/features/downloader/presentation/widgets/download_item_context_menu.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
@@ -812,6 +811,7 @@ class _FinishedProgress extends StatelessWidget {
                   children: [
                     SignalThumb(
                       url: item.thumbnailUrl,
+                      filePath: item.filePath,
                       width: thumb.width,
                       height: thumb.height,
                     ),
@@ -1064,6 +1064,7 @@ class _MainProgress extends StatelessWidget {
           children: [
             SignalThumb(
               url: item.thumbnailUrl,
+              filePath: item.filePath,
               width: thumb.width,
               height: thumb.height,
             ),
@@ -1162,7 +1163,12 @@ class _MiniProgress extends StatelessWidget {
     final l10n = context.l10n;
     return Row(
       children: [
-        SignalThumb(url: item.thumbnailUrl, width: 56, height: 56),
+        SignalThumb(
+          url: item.thumbnailUrl,
+          filePath: item.filePath,
+          width: 56,
+          height: 56,
+        ),
         const SizedBox(width: 14),
         Expanded(
           child: Column(
@@ -1692,7 +1698,6 @@ class _LibraryHeaderState extends ConsumerState<_LibraryHeader> {
     );
     const tools = [
       SizedBox(width: 8),
-      FailedDownloadsBadge(compact: true),
       _SortMenu(),
       SizedBox(width: 4),
       DownloadMoreActionsMenu(showQueueActions: true, showRetryFailed: false),
@@ -2118,7 +2123,12 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
             ),
             child: Row(
               children: [
-                SignalThumb(url: item.thumbnailUrl, width: 88, height: 50),
+                SignalThumb(
+                  url: item.thumbnailUrl,
+                  filePath: item.filePath,
+                  width: 88,
+                  height: 50,
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
