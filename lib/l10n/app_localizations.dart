@@ -5355,6 +5355,690 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archives'**
   String get designArchivesTab;
+
+  /// No description provided for @porcelaineSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get porcelaineSpace;
+
+  /// No description provided for @porcelaineSettingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get porcelaineSettingsTab;
+
+  /// No description provided for @porcelaineEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get porcelaineEdit;
+
+  /// No description provided for @porcelaineDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get porcelaineDone;
+
+  /// No description provided for @porcelaineReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get porcelaineReset;
+
+  /// No description provided for @porcelaineAddWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a widget'**
+  String get porcelaineAddWidget;
+
+  /// No description provided for @porcelaineGoodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello.'**
+  String get porcelaineGoodMorning;
+
+  /// No description provided for @porcelaineGoodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening.'**
+  String get porcelaineGoodEvening;
+
+  /// No description provided for @porcelaineIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing downloading'**
+  String get porcelaineIdle;
+
+  /// No description provided for @porcelaineActiveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download running} other{{count} downloads running}}, {speed}'**
+  String porcelaineActiveNow(int count, String speed);
+
+  /// No description provided for @porcelaineEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a card to move it · pull the corner to resize it'**
+  String get porcelaineEditHint;
+
+  /// No description provided for @porcelaineQuickLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick link'**
+  String get porcelaineQuickLink;
+
+  /// No description provided for @porcelaineSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get porcelaineSpeed;
+
+  /// No description provided for @porcelaineStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get porcelaineStorage;
+
+  /// No description provided for @porcelaineRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get porcelaineRecent;
+
+  /// No description provided for @porcelaineDescActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress of what is downloading.'**
+  String get porcelaineDescActive;
+
+  /// No description provided for @porcelaineDescPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste and start in one click.'**
+  String get porcelaineDescPaste;
+
+  /// No description provided for @porcelaineDescSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Live speed and its history.'**
+  String get porcelaineDescSpeed;
+
+  /// No description provided for @porcelaineDescStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Free space and what fills it.'**
+  String get porcelaineDescStorage;
+
+  /// No description provided for @porcelaineDescRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your latest downloads.'**
+  String get porcelaineDescRecent;
+
+  /// No description provided for @porcelaineDescQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'What starts next.'**
+  String get porcelaineDescQueue;
+
+  /// No description provided for @porcelaineSizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get porcelaineSizeSmall;
+
+  /// No description provided for @porcelaineSizeMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get porcelaineSizeMedium;
+
+  /// No description provided for @porcelaineSizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get porcelaineSizeLarge;
+
+  /// No description provided for @porcelaineSizeSmallShort.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get porcelaineSizeSmallShort;
+
+  /// No description provided for @porcelaineSizeMediumShort.
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get porcelaineSizeMediumShort;
+
+  /// No description provided for @porcelaineSizeLargeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get porcelaineSizeLargeShort;
+
+  /// No description provided for @porcelaineSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size {size}'**
+  String porcelaineSizeLabel(String size);
+
+  /// No description provided for @porcelaineMoveBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Move back'**
+  String get porcelaineMoveBack;
+
+  /// No description provided for @porcelaineMoveForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Move forward'**
+  String get porcelaineMoveForward;
+
+  /// No description provided for @porcelaineRemoveWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {name} widget'**
+  String porcelaineRemoveWidget(String name);
+
+  /// No description provided for @porcelaineWidgetOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} widget options'**
+  String porcelaineWidgetOptions(String name);
+
+  /// No description provided for @porcelaineResizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull to resize'**
+  String get porcelaineResizeHint;
+
+  /// No description provided for @porcelaineRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” removed'**
+  String porcelaineRemoved(String name);
+
+  /// No description provided for @porcelaineCatalogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'It lands at the end of your space, at its suggested size.'**
+  String get porcelaineCatalogHint;
+
+  /// No description provided for @porcelaineAlreadyThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your space'**
+  String get porcelaineAlreadyThere;
+
+  /// No description provided for @porcelaineAddAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Add · {size}'**
+  String porcelaineAddAt(String size);
+
+  /// No description provided for @porcelaineEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your space is empty'**
+  String get porcelaineEmptyTitle;
+
+  /// No description provided for @porcelaineEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the widgets you need: progress, quick link, speed, storage…'**
+  String get porcelaineEmptyBody;
+
+  /// No description provided for @porcelainePaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get porcelainePaste;
+
+  /// No description provided for @porcelainePasteAndDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste and download'**
+  String get porcelainePasteAndDownload;
+
+  /// No description provided for @porcelainePasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link…'**
+  String get porcelainePasteHint;
+
+  /// No description provided for @porcelaineAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added ✓'**
+  String get porcelaineAdded;
+
+  /// No description provided for @porcelaineAddedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get porcelaineAddedShort;
+
+  /// No description provided for @porcelaineClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard: {url}'**
+  String porcelaineClipboard(String url);
+
+  /// No description provided for @porcelaineClipboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link in the clipboard'**
+  String get porcelaineClipboardTitle;
+
+  /// No description provided for @porcelaineClipboardNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No link in the clipboard'**
+  String get porcelaineClipboardNone;
+
+  /// No description provided for @porcelaineFormatAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get porcelaineFormatAuto;
+
+  /// No description provided for @porcelaineFormatAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio only'**
+  String get porcelaineFormatAudio;
+
+  /// No description provided for @porcelaineMoreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options…'**
+  String get porcelaineMoreOptions;
+
+  /// No description provided for @porcelaineSpeedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'{unit} right now'**
+  String porcelaineSpeedNow(String unit);
+
+  /// No description provided for @porcelainePeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak'**
+  String get porcelainePeak;
+
+  /// No description provided for @porcelaineAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get porcelaineAverage;
+
+  /// No description provided for @porcelaineFreeUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{unit} free'**
+  String porcelaineFreeUnit(String unit);
+
+  /// No description provided for @porcelaineHeaviest.
+  ///
+  /// In en, this message translates to:
+  /// **'Largest'**
+  String get porcelaineHeaviest;
+
+  /// No description provided for @porcelaineFreeUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Free up space'**
+  String get porcelaineFreeUp;
+
+  /// No description provided for @porcelaineWholeLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole library'**
+  String get porcelaineWholeLibrary;
+
+  /// No description provided for @porcelaineWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'waiting'**
+  String get porcelaineWaiting;
+
+  /// No description provided for @porcelaineStatsDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get porcelaineStatsDownloads;
+
+  /// No description provided for @porcelaineStatsVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded volume'**
+  String get porcelaineStatsVolume;
+
+  /// No description provided for @porcelaineStatsDownloadsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads'**
+  String get porcelaineStatsDownloadsUnit;
+
+  /// No description provided for @porcelaineStatsChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · {period}'**
+  String porcelaineStatsChartTitle(String period);
+
+  /// No description provided for @porcelaineLast30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get porcelaineLast30Days;
+
+  /// No description provided for @porcelaineDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String porcelaineDaysShort(int days);
+
+  /// No description provided for @porcelaineDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d ago'**
+  String porcelaineDaysAgo(int days);
+
+  /// No description provided for @porcelaineTodayAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get porcelaineTodayAxis;
+
+  /// No description provided for @porcelaineBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get porcelaineBySource;
+
+  /// No description provided for @porcelaineByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get porcelaineByFormat;
+
+  /// No description provided for @porcelaineTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'Top creators'**
+  String get porcelaineTopCreators;
+
+  /// No description provided for @porcelaineSettingsGeneralDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'How TapLoad behaves day to day.'**
+  String get porcelaineSettingsGeneralDesc;
+
+  /// No description provided for @porcelaineAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start automatically'**
+  String get porcelaineAutoStart;
+
+  /// No description provided for @porcelaineChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get porcelaineChange;
+
+  /// No description provided for @porcelaineParallelDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Simultaneous downloads'**
+  String get porcelaineParallelDownloads;
+
+  /// No description provided for @porcelaineOneLess.
+  ///
+  /// In en, this message translates to:
+  /// **'One less'**
+  String get porcelaineOneLess;
+
+  /// No description provided for @porcelaineOneMore.
+  ///
+  /// In en, this message translates to:
+  /// **'One more'**
+  String get porcelaineOneMore;
+
+  /// No description provided for @porcelaineReduceEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce effects'**
+  String get porcelaineReduceEffects;
+
+  /// No description provided for @porcelaineReduceEffectsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer animations, handy on a modest PC.'**
+  String get porcelaineReduceEffectsHint;
+
+  /// No description provided for @porcelaineDesignActive.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} active'**
+  String porcelaineDesignActive(String name);
+
+  /// No description provided for @porcelaineToolReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get porcelaineToolReady;
+
+  /// No description provided for @porcelaineToolChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get porcelaineToolChecking;
+
+  /// No description provided for @porcelaineToolUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked'**
+  String get porcelaineToolUnchecked;
+
+  /// No description provided for @porcelaineTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'To your phone'**
+  String get porcelaineTransferTitle;
+
+  /// No description provided for @porcelaineTransferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Over local Wi-Fi, no cable, no cloud.'**
+  String get porcelaineTransferSubtitle;
+
+  /// No description provided for @porcelaineSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get porcelaineSimpleView;
+
+  /// No description provided for @porcelaineConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get porcelaineConnection;
+
+  /// No description provided for @porcelaineScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan'**
+  String get porcelaineScanTitle;
+
+  /// No description provided for @porcelaineScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type the PIN and the address by hand.'**
+  String get porcelaineScanHint;
+
+  /// No description provided for @porcelaineQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get porcelaineQrCode;
+
+  /// No description provided for @porcelainePinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get porcelainePinCode;
+
+  /// No description provided for @porcelaineAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get porcelaineAddress;
+
+  /// No description provided for @porcelaineConnectedDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected device'**
+  String get porcelaineConnectedDevice;
+
+  /// No description provided for @porcelaineConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get porcelaineConnected;
+
+  /// No description provided for @porcelaineTransferInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer in progress'**
+  String get porcelaineTransferInProgress;
+
+  /// No description provided for @porcelaineToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'to {name}'**
+  String porcelaineToDevice(String name);
+
+  /// No description provided for @porcelaineFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get porcelaineFilesToSend;
+
+  /// No description provided for @porcelaineVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String porcelaineVideoCount(int count);
+
+  /// No description provided for @porcelaineCompressZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress as ZIP'**
+  String get porcelaineCompressZip;
+
+  /// No description provided for @porcelaineSelectedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected total'**
+  String get porcelaineSelectedTotal;
+
+  /// No description provided for @porcelaineNearbyDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby devices'**
+  String get porcelaineNearbyDevices;
+
+  /// No description provided for @porcelaineRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get porcelaineRecipient;
+
+  /// No description provided for @porcelaineSearchDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get porcelaineSearchDevices;
+
+  /// No description provided for @porcelaineAllTransferTools.
+  ///
+  /// In en, this message translates to:
+  /// **'All tools'**
+  String get porcelaineAllTransferTools;
+
+  /// No description provided for @porcelaineLocalArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive'**
+  String get porcelaineLocalArchive;
+
+  /// No description provided for @porcelaineArchiveVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get porcelaineArchiveVideos;
+
+  /// No description provided for @porcelaineArchiveCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'collections'**
+  String get porcelaineArchiveCollections;
+
+  /// No description provided for @porcelaineArchiveFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get porcelaineArchiveFavorites;
+
+  /// No description provided for @porcelaineArchiveVideosTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get porcelaineArchiveVideosTab;
+
+  /// No description provided for @porcelaineArchiveCollectionsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get porcelaineArchiveCollectionsTab;
+
+  /// No description provided for @porcelaineArchiveFavoritesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get porcelaineArchiveFavoritesTab;
+
+  /// No description provided for @porcelaineArchiveKeptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a collection you keep are kept.'**
+  String get porcelaineArchiveKeptHint;
+
+  /// No description provided for @porcelaineSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get porcelaineSync;
+
+  /// No description provided for @porcelaineDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download ({count})'**
+  String porcelaineDownloadSelection(int count);
+
+  /// No description provided for @porcelaineDownloadSelectionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get porcelaineDownloadSelectionNone;
+
+  /// No description provided for @porcelaineSelectFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick videos in the list first.'**
+  String get porcelaineSelectFirst;
 }
 
 class _AppLocalizationsDelegate

@@ -3083,4 +3083,396 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'Archives';
+
+  @override
+  String get porcelaineSpace => 'Space';
+
+  @override
+  String get porcelaineSettingsTab => 'Settings';
+
+  @override
+  String get porcelaineEdit => 'Edit';
+
+  @override
+  String get porcelaineDone => 'Done';
+
+  @override
+  String get porcelaineReset => 'Reset';
+
+  @override
+  String get porcelaineAddWidget => 'Add a widget';
+
+  @override
+  String get porcelaineGoodMorning => 'Hello.';
+
+  @override
+  String get porcelaineGoodEvening => 'Good evening.';
+
+  @override
+  String get porcelaineIdle => 'nothing downloading';
+
+  @override
+  String porcelaineActiveNow(int count, String speed) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads running',
+      one: '1 download running',
+    );
+    return '$_temp0, $speed';
+  }
+
+  @override
+  String get porcelaineEditHint =>
+      'Drag a card to move it · pull the corner to resize it';
+
+  @override
+  String get porcelaineQuickLink => 'Quick link';
+
+  @override
+  String get porcelaineSpeed => 'Speed';
+
+  @override
+  String get porcelaineStorage => 'Storage';
+
+  @override
+  String get porcelaineRecent => 'Recent';
+
+  @override
+  String get porcelaineDescActive => 'Progress of what is downloading.';
+
+  @override
+  String get porcelaineDescPaste => 'Paste and start in one click.';
+
+  @override
+  String get porcelaineDescSpeed => 'Live speed and its history.';
+
+  @override
+  String get porcelaineDescStorage => 'Free space and what fills it.';
+
+  @override
+  String get porcelaineDescRecent => 'Your latest downloads.';
+
+  @override
+  String get porcelaineDescQueue => 'What starts next.';
+
+  @override
+  String get porcelaineSizeSmall => 'Small';
+
+  @override
+  String get porcelaineSizeMedium => 'Medium';
+
+  @override
+  String get porcelaineSizeLarge => 'Large';
+
+  @override
+  String get porcelaineSizeSmallShort => 'S';
+
+  @override
+  String get porcelaineSizeMediumShort => 'M';
+
+  @override
+  String get porcelaineSizeLargeShort => 'L';
+
+  @override
+  String porcelaineSizeLabel(String size) {
+    return 'Size $size';
+  }
+
+  @override
+  String get porcelaineMoveBack => 'Move back';
+
+  @override
+  String get porcelaineMoveForward => 'Move forward';
+
+  @override
+  String porcelaineRemoveWidget(String name) {
+    return 'Remove the $name widget';
+  }
+
+  @override
+  String porcelaineWidgetOptions(String name) {
+    return '$name widget options';
+  }
+
+  @override
+  String get porcelaineResizeHint => 'Pull to resize';
+
+  @override
+  String porcelaineRemoved(String name) {
+    return '“$name” removed';
+  }
+
+  @override
+  String get porcelaineCatalogHint =>
+      'It lands at the end of your space, at its suggested size.';
+
+  @override
+  String get porcelaineAlreadyThere => 'Already in your space';
+
+  @override
+  String porcelaineAddAt(String size) {
+    return 'Add · $size';
+  }
+
+  @override
+  String get porcelaineEmptyTitle => 'Your space is empty';
+
+  @override
+  String get porcelaineEmptyBody =>
+      'Add the widgets you need: progress, quick link, speed, storage…';
+
+  @override
+  String get porcelainePaste => 'Paste';
+
+  @override
+  String get porcelainePasteAndDownload => 'Paste and download';
+
+  @override
+  String get porcelainePasteHint => 'Paste a link…';
+
+  @override
+  String get porcelaineAdded => 'Added ✓';
+
+  @override
+  String get porcelaineAddedShort => 'Added';
+
+  @override
+  String porcelaineClipboard(String url) {
+    return 'Clipboard: $url';
+  }
+
+  @override
+  String get porcelaineClipboardTitle => 'Link in the clipboard';
+
+  @override
+  String get porcelaineClipboardNone => 'No link in the clipboard';
+
+  @override
+  String get porcelaineFormatAuto => 'Auto';
+
+  @override
+  String get porcelaineFormatAudio => 'Audio only';
+
+  @override
+  String get porcelaineMoreOptions => 'More options…';
+
+  @override
+  String porcelaineSpeedNow(String unit) {
+    return '$unit right now';
+  }
+
+  @override
+  String get porcelainePeak => 'Peak';
+
+  @override
+  String get porcelaineAverage => 'Average';
+
+  @override
+  String porcelaineFreeUnit(String unit) {
+    return '$unit free';
+  }
+
+  @override
+  String get porcelaineHeaviest => 'Largest';
+
+  @override
+  String get porcelaineFreeUp => 'Free up space';
+
+  @override
+  String get porcelaineWholeLibrary => 'Whole library';
+
+  @override
+  String get porcelaineWaiting => 'waiting';
+
+  @override
+  String get porcelaineStatsDownloads => 'Downloads';
+
+  @override
+  String get porcelaineStatsVolume => 'Downloaded volume';
+
+  @override
+  String get porcelaineStatsDownloadsUnit => 'downloads';
+
+  @override
+  String porcelaineStatsChartTitle(String period) {
+    return 'Downloads · $period';
+  }
+
+  @override
+  String get porcelaineLast30Days => 'Last 30 days';
+
+  @override
+  String porcelaineDaysShort(int days) {
+    return '$days d';
+  }
+
+  @override
+  String porcelaineDaysAgo(int days) {
+    return '$days d ago';
+  }
+
+  @override
+  String get porcelaineTodayAxis => 'today';
+
+  @override
+  String get porcelaineBySource => 'By source';
+
+  @override
+  String get porcelaineByFormat => 'By format';
+
+  @override
+  String get porcelaineTopCreators => 'Top creators';
+
+  @override
+  String get porcelaineSettingsGeneralDesc => 'How TapLoad behaves day to day.';
+
+  @override
+  String get porcelaineAutoStart => 'Start automatically';
+
+  @override
+  String get porcelaineChange => 'Change';
+
+  @override
+  String get porcelaineParallelDownloads => 'Simultaneous downloads';
+
+  @override
+  String get porcelaineOneLess => 'One less';
+
+  @override
+  String get porcelaineOneMore => 'One more';
+
+  @override
+  String get porcelaineReduceEffects => 'Reduce effects';
+
+  @override
+  String get porcelaineReduceEffectsHint =>
+      'Fewer animations, handy on a modest PC.';
+
+  @override
+  String porcelaineDesignActive(String name) {
+    return '$name active';
+  }
+
+  @override
+  String get porcelaineToolReady => 'Ready';
+
+  @override
+  String get porcelaineToolChecking => 'Checking…';
+
+  @override
+  String get porcelaineToolUnchecked => 'Not checked';
+
+  @override
+  String get porcelaineTransferTitle => 'To your phone';
+
+  @override
+  String get porcelaineTransferSubtitle =>
+      'Over local Wi-Fi, no cable, no cloud.';
+
+  @override
+  String get porcelaineSimpleView => 'Simple view';
+
+  @override
+  String get porcelaineConnection => 'Connection';
+
+  @override
+  String get porcelaineScanTitle => 'Open TapLoad on your phone and scan';
+
+  @override
+  String get porcelaineScanHint => 'Or type the PIN and the address by hand.';
+
+  @override
+  String get porcelaineQrCode => 'QR code';
+
+  @override
+  String get porcelainePinCode => 'PIN code';
+
+  @override
+  String get porcelaineAddress => 'Address';
+
+  @override
+  String get porcelaineConnectedDevice => 'Connected device';
+
+  @override
+  String get porcelaineConnected => 'Connected';
+
+  @override
+  String get porcelaineTransferInProgress => 'Transfer in progress';
+
+  @override
+  String porcelaineToDevice(String name) {
+    return 'to $name';
+  }
+
+  @override
+  String get porcelaineFilesToSend => 'Files to send';
+
+  @override
+  String porcelaineVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '1 video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get porcelaineCompressZip => 'Compress as ZIP';
+
+  @override
+  String get porcelaineSelectedTotal => 'Selected total';
+
+  @override
+  String get porcelaineNearbyDevices => 'Nearby devices';
+
+  @override
+  String get porcelaineRecipient => 'Recipient';
+
+  @override
+  String get porcelaineSearchDevices => 'Search';
+
+  @override
+  String get porcelaineAllTransferTools => 'All tools';
+
+  @override
+  String get porcelaineLocalArchive => 'Local archive';
+
+  @override
+  String get porcelaineArchiveVideos => 'videos';
+
+  @override
+  String get porcelaineArchiveCollections => 'collections';
+
+  @override
+  String get porcelaineArchiveFavorites => 'favorites';
+
+  @override
+  String get porcelaineArchiveVideosTab => 'Videos';
+
+  @override
+  String get porcelaineArchiveCollectionsTab => 'Collections';
+
+  @override
+  String get porcelaineArchiveFavoritesTab => 'Favorites';
+
+  @override
+  String get porcelaineArchiveKeptHint =>
+      'Videos shared with a collection you keep are kept.';
+
+  @override
+  String get porcelaineSync => 'Sync';
+
+  @override
+  String porcelaineDownloadSelection(int count) {
+    return 'Download ($count)';
+  }
+
+  @override
+  String get porcelaineDownloadSelectionNone => 'Download selection';
+
+  @override
+  String get porcelaineSelectFirst => 'Tick videos in the list first.';
 }
