@@ -535,31 +535,13 @@ class _Idle extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            NocturneButton(
-              label: l10n.newDownload,
-              height: 34,
-              radius: 11,
-              padding: 14,
-              weight: FontWeight.w400,
-              onTap: () => openNewDownload(context),
-            ),
-            // Several failures: one tap relaunches them all.
-            if (failedCount > 1)
-              NocturneButton(
-                label: '${l10n.retryFailedAction} ($failedCount)',
-                kind: NocturneButtonKind.danger,
-                icon: Icons.refresh_rounded,
-                height: 34,
-                radius: 11,
-                padding: 14,
-                onTap: () =>
-                    ref.read(downloadListProvider.notifier).retryAllFailed(),
-              ),
-          ],
+        NocturneButton(
+          label: l10n.newDownload,
+          height: 34,
+          radius: 11,
+          padding: 14,
+          weight: FontWeight.w400,
+          onTap: () => openNewDownload(context),
         ),
       ],
     );
@@ -1055,6 +1037,21 @@ class _Toolbar extends ConsumerWidget {
                     '${counts.total}',
                     style: nocturneMono(c, size: 12, color: c.textDisabled),
                   ),
+                  const Spacer(),
+                  // Several failures: one tap relaunches them all, whatever
+                  // else is downloading.
+                  if (counts.failed > 1)
+                    NocturneButton(
+                      label: '${l10n.retryFailedAction} (${counts.failed})',
+                      kind: NocturneButtonKind.danger,
+                      icon: Icons.refresh_rounded,
+                      height: 32,
+                      radius: 11,
+                      padding: 13,
+                      onTap: () => ref
+                          .read(downloadListProvider.notifier)
+                          .retryAllFailed(),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1159,9 +1156,11 @@ class _LibraryGrid extends ConsumerWidget {
         if (index < 12) {
           // Staggered fade and 10px rise, all within the 380ms entrance.
           final start = index * 0.04;
-          final curve = CurvedAnimation(
-            parent: entrance,
-            curve: Interval(start, start + 0.52, curve: nocturneEase),
+          // drive(): no listener left on the controller per built row.
+          final curve = entrance.drive(
+            CurveTween(
+              curve: Interval(start, start + 0.52, curve: nocturneEase),
+            ),
           );
           row = FadeTransition(
             opacity: curve,

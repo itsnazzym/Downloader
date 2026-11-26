@@ -124,6 +124,26 @@ class _NoArchive extends ConsumerWidget {
             style: nocturneText(c, size: 12.5, color: c.textDisabled),
           ),
         ],
+        // Today's hub feedback: the last sync's outcome and import errors.
+        for (final (message, error) in [
+          if (!syncing && state.syncMessage != null)
+            (
+              state.syncMessage!,
+              state.syncStatus == TikTokSyncStatus.failed ||
+                  state.syncStatus == TikTokSyncStatus.partial,
+            ),
+          if (state.errorMessage != null) (state.errorMessage!, true),
+        ]) ...[
+          const SizedBox(height: 10),
+          Text(
+            message,
+            style: nocturneText(
+              c,
+              size: 12.5,
+              color: error ? c.error : c.textSecondary,
+            ),
+          ),
+        ],
       ],
     );
     return SingleChildScrollView(
