@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:modern_downloader/features/designs/nocturne/nocturne_widgets.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../desktop_destinations.dart';
-import '../shell_strips.dart';
 
-/// Nocturne: a slim icon rail on the left (new download on top, settings at
-/// the bottom), then the page under a faint static glow.
+/// Nocturne (mockups Nocturne*.dc.html): a slim icon rail on the left (new
+/// download on top, settings at the bottom), then the page under a faint
+/// static glow.
 class NocturneChrome extends ConsumerWidget {
   const NocturneChrome({
     super.key,
@@ -22,11 +26,58 @@ class NocturneChrome extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
+    final l10n = context.l10n;
     final destinations = desktopDestinations(context, ref, location);
-    final pages = destinations.where((d) => d.id != 'settings').toList();
     final settings = destinations.firstWhere((d) => d.id == 'settings');
-    final strip = shellStripFor(location);
     final reduce = MediaQuery.disableAnimationsOf(context);
+    // The mockup rail has "En cours" under the library: the home with the
+    // active filter (the page scrolls to its library when it changes).
+    final activeOnly =
+        ref.watch(downloadStatusFilterProvider) == DownloadStatusFilter.active;
+    void setActive(bool active) {
+      ref.read(downloadSourceFilterProvider.notifier).state = null;
+      ref.read(downloadStatusFilterProvider.notifier).state = active
+          ? DownloadStatusFilter.active
+          : DownloadStatusFilter.all;
+      context.go('/');
+    }
+
+    final pages = <DesktopDestination>[
+      for (final d in destinations)
+        if (d.id == 'library') ...[
+          DesktopDestination(
+            id: d.id,
+            label: d.label,
+            icon: d.icon,
+            selected: d.selected && !activeOnly,
+            onTap: activeOnly ? () => setActive(false) : d.onTap,
+          ),
+          DesktopDestination(
+            id: 'active',
+            label: l10n.designInProgress,
+            icon: Icons.file_download_outlined,
+            selected: d.selected && activeOnly,
+            onTap: () => setActive(true),
+          ),
+        ] else if (d.id == 'archive')
+          DesktopDestination(
+            id: d.id,
+            label: d.label,
+            icon: d.icon,
+            selected: d.selected,
+            onTap: () {
+              final archive = ref.read(tikTokArchiveProvider.notifier);
+              if (!ref.read(tikTokArchiveProvider).hasCatalog) {
+                d.onTap();
+                return;
+              }
+              archive.setViewMode(TikTokViewMode.collections);
+              context.go('/archive');
+            },
+          )
+        else if (d.id != 'settings')
+          d,
+    ];
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -34,15 +85,17 @@ class NocturneChrome extends ConsumerWidget {
           width: 76,
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
-            color: Color.lerp(colors.background, Colors.black, 0.22),
-            border: Border(right: BorderSide(color: colors.borderSubtle)),
+            color: colors.inputBackground,
+            border: Border(
+              right: BorderSide(color: colors.primary.withValues(alpha: 0.08)),
+            ),
           ),
           child: Column(
             children: [
               KeyedSubtree(
                 key: OnboardingTargets.newDownload,
                 child: _NewDownloadButton(
-                  tooltip: context.l10n.newDownload,
+                  tooltip: l10n.newDownload,
                   onTap: () => openNewDownload(context),
                 ),
               ),
@@ -83,7 +136,7 @@ class NocturneChrome extends ConsumerWidget {
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
                               colors: [
-                                colors.primary.withValues(alpha: 0.12),
+                                colors.primary.withValues(alpha: 0.22),
                                 colors.primary.withValues(alpha: 0),
                               ],
                             ),
@@ -92,20 +145,8 @@ class NocturneChrome extends ConsumerWidget {
                       ),
                     ),
                   ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (strip != null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(32, 22, 32, 0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: strip,
-                        ),
-                      ),
-                    Expanded(child: child),
-                  ],
-                ),
+                // The pages draw their own filters and settings sections.
+                child,
               ],
             ),
           ),
@@ -154,7 +195,7 @@ class _NewDownloadButtonState extends State<_NewDownloadButton> {
             ),
             boxShadow: [
               BoxShadow(
-                color: colors.primary.withValues(alpha: _hover ? 0.42 : 0.3),
+                color: colors.primary.withValues(alpha: _hover ? 0.45 : 0.35),
                 blurRadius: 22,
                 offset: const Offset(0, 8),
               ),
@@ -172,10 +213,13 @@ class _NewDownloadButtonState extends State<_NewDownloadButton> {
               child: SizedBox(
                 width: 36,
                 height: 36,
-                child: Icon(
-                  Icons.download_rounded,
-                  size: 20,
-                  color: colors.onPrimary,
+                child: Center(
+                  child: NocturneIcon(
+                    NocturneGlyph.add,
+                    size: 18,
+                    stroke: 2.6,
+                    color: colors.background,
+                  ),
                 ),
               ),
             ),
@@ -185,6 +229,15 @@ class _NewDownloadButtonState extends State<_NewDownloadButton> {
     );
   }
 }
+
+const _glyphs = {
+  'library': NocturneGlyph.inbox,
+  'active': NocturneGlyph.download,
+  'archive': NocturneGlyph.archive,
+  'stats': NocturneGlyph.stats,
+  'transfer': NocturneGlyph.transfer,
+  'settings': NocturneGlyph.settings,
+};
 
 /// One 44px rounded icon button for a destination; lifts 1px on hover.
 class _RailButton extends StatefulWidget {
@@ -255,7 +308,12 @@ class _RailButtonState extends State<_RailButton> {
               child: SizedBox(
                 width: 44,
                 height: 44,
-                child: Icon(d.icon, size: 20, color: iconColor),
+                child: Center(
+                  child: switch (_glyphs[d.id]) {
+                    final glyph? => NocturneIcon(glyph, color: iconColor),
+                    null => Icon(d.icon, size: 20, color: iconColor),
+                  },
+                ),
               ),
             ),
           ),

@@ -3083,4 +3083,279 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'Archives';
+
+  @override
+  String get nocturneGreetingMorning => 'Good morning';
+
+  @override
+  String get nocturneGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get nocturneGreetingEvening => 'Good evening';
+
+  @override
+  String nocturneActiveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads in progress',
+      one: '1 download in progress',
+      zero: 'No downloads in progress',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneNext => 'Up next';
+
+  @override
+  String get nocturneRecent => 'Latest downloads';
+
+  @override
+  String nocturneSizeOf(String done, String total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get nocturneStatsTitle => 'Your activity';
+
+  @override
+  String get nocturneStatDownloads => 'Downloads';
+
+  @override
+  String get nocturneStatVolume => 'Downloaded volume';
+
+  @override
+  String nocturneLastDays(int count) {
+    return 'Last $count days';
+  }
+
+  @override
+  String get nocturnePerDay => 'Downloads per day';
+
+  @override
+  String nocturneDaysShort(int count) {
+    return '$count d';
+  }
+
+  @override
+  String nocturneDaysAgo(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String get nocturneToday => 'today';
+
+  @override
+  String get nocturneBySource => 'By source';
+
+  @override
+  String get nocturneByFormat => 'By format';
+
+  @override
+  String get nocturneChange => 'Change';
+
+  @override
+  String get nocturneFileLayout => 'File layout';
+
+  @override
+  String get nocturneTokenSite => 'site';
+
+  @override
+  String get nocturneTokenCreator => 'creator';
+
+  @override
+  String get nocturneTokenTitle => 'title';
+
+  @override
+  String get nocturneAppearanceDesc => 'Pick TapLoad’s design.';
+
+  @override
+  String get nocturneToolsDesc => 'The tools that do the downloading.';
+
+  @override
+  String get nocturneDecrease => 'Decrease';
+
+  @override
+  String get nocturneIncrease => 'Increase';
+
+  @override
+  String get nocturneArchiveEyebrow => 'Local archive · TikTok';
+
+  @override
+  String nocturneWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'videos',
+      one: 'video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'collections',
+      one: 'collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'favourites',
+      one: 'favourite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSync => 'Sync';
+
+  @override
+  String get nocturneSyncing => 'Syncing…';
+
+  @override
+  String nocturneStopBatch(int done, int total) {
+    return 'Stop · $done/$total';
+  }
+
+  @override
+  String get nocturneDownloadAll => 'Download all';
+
+  @override
+  String get nocturneTabVideos => 'Videos';
+
+  @override
+  String get nocturneTabCollections => 'Collections';
+
+  @override
+  String get nocturneTabFavorites => 'Favourites';
+
+  @override
+  String get nocturneImport => 'Import';
+
+  @override
+  String get nocturneArchiveSearch => 'Search a video or a collection…';
+
+  @override
+  String get nocturneClear => 'Clear';
+
+  @override
+  String nocturneCountVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '1 video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSelectAll => 'Select all';
+
+  @override
+  String nocturneSelectedClear(int count) {
+    return '$count selected · Clear';
+  }
+
+  @override
+  String get nocturneDownloadSelection => 'Download selection';
+
+  @override
+  String get nocturneQueued => 'Videos added to the download queue.';
+
+  @override
+  String nocturneBatchSkipped(int done, int total, int skipped) {
+    return '$done / $total ($skipped skipped)';
+  }
+
+  @override
+  String get nocturneNoMatch => 'No video matches the active filters';
+
+  @override
+  String get nocturneResetFilters => 'Reset filters';
+
+  @override
+  String get nocturneFilters => 'Filters';
+
+  @override
+  String get nocturneTransferEyebrow => 'Local Wi-Fi';
+
+  @override
+  String get nocturneTransferTitle => 'Send to your phone';
+
+  @override
+  String get nocturneAllOptions => 'All options';
+
+  @override
+  String get nocturneSimpleView => 'Simple view';
+
+  @override
+  String get nocturneQrCaption => 'QR code';
+
+  @override
+  String get nocturneScanTitle => 'Open TapLoad on your phone and scan';
+
+  @override
+  String get nocturnePinLabel => 'PIN code';
+
+  @override
+  String get nocturneAddressLabel => 'Address';
+
+  @override
+  String get nocturneOnNetwork => 'On this Wi-Fi';
+
+  @override
+  String get nocturneNoTransfer => 'Nothing being sent';
+
+  @override
+  String get nocturneFilesToSend => 'Files to send';
+
+  @override
+  String get nocturneAddFolder => 'Folder…';
+
+  @override
+  String get nocturneAddFiles => 'Files…';
+
+  @override
+  String get nocturneTotalSelected => 'Total selected';
+
+  @override
+  String get nocturneZip => 'Compress as ZIP';
+
+  @override
+  String nocturneSendTo(String name) {
+    return 'Send to $name';
+  }
+
+  @override
+  String get nocturneRefreshDevices => 'Look for devices';
+
+  @override
+  String get nocturneClassicView => 'Classic view';
+
+  @override
+  String get nocturneCardsView => 'Card view';
+
+  @override
+  String get nocturneDone => 'Done';
+
+  @override
+  String get nocturnePurgeHint => 'Videos shared with a kept collection stay.';
+
+  @override
+  String get nocturneAllDownloaded => 'All downloaded';
+
+  @override
+  String nocturnePartDownloaded(int percent) {
+    return '$percent% downloaded';
+  }
 }

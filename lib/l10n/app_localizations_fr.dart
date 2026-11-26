@@ -3128,4 +3128,280 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'Archives';
+
+  @override
+  String get nocturneGreetingMorning => 'Bonjour';
+
+  @override
+  String get nocturneGreetingAfternoon => 'Bonjour';
+
+  @override
+  String get nocturneGreetingEvening => 'Bonsoir';
+
+  @override
+  String nocturneActiveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements en cours',
+      one: '1 téléchargement en cours',
+      zero: 'Aucun téléchargement en cours',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneNext => 'Ensuite';
+
+  @override
+  String get nocturneRecent => 'Derniers téléchargements';
+
+  @override
+  String nocturneSizeOf(String done, String total) {
+    return '$done sur $total';
+  }
+
+  @override
+  String get nocturneStatsTitle => 'Ton activité';
+
+  @override
+  String get nocturneStatDownloads => 'Téléchargements';
+
+  @override
+  String get nocturneStatVolume => 'Volume téléchargé';
+
+  @override
+  String nocturneLastDays(int count) {
+    return '$count derniers jours';
+  }
+
+  @override
+  String get nocturnePerDay => 'Téléchargements par jour';
+
+  @override
+  String nocturneDaysShort(int count) {
+    return '$count j';
+  }
+
+  @override
+  String nocturneDaysAgo(int count) {
+    return 'il y a $count jours';
+  }
+
+  @override
+  String get nocturneToday => 'aujourd’hui';
+
+  @override
+  String get nocturneBySource => 'Par source';
+
+  @override
+  String get nocturneByFormat => 'Par format';
+
+  @override
+  String get nocturneChange => 'Changer';
+
+  @override
+  String get nocturneFileLayout => 'Rangement des fichiers';
+
+  @override
+  String get nocturneTokenSite => 'site';
+
+  @override
+  String get nocturneTokenCreator => 'créateur';
+
+  @override
+  String get nocturneTokenTitle => 'titre';
+
+  @override
+  String get nocturneAppearanceDesc => 'Choisis le design de TapLoad.';
+
+  @override
+  String get nocturneToolsDesc => 'Les outils qui font les téléchargements.';
+
+  @override
+  String get nocturneDecrease => 'Diminuer';
+
+  @override
+  String get nocturneIncrease => 'Augmenter';
+
+  @override
+  String get nocturneArchiveEyebrow => 'Archive locale · TikTok';
+
+  @override
+  String nocturneWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'vidéos',
+      one: 'vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'collections',
+      one: 'collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'favoris',
+      one: 'favori',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSync => 'Synchroniser';
+
+  @override
+  String get nocturneSyncing => 'Synchronisation…';
+
+  @override
+  String nocturneStopBatch(int done, int total) {
+    return 'Arrêter · $done/$total';
+  }
+
+  @override
+  String get nocturneDownloadAll => 'Tout télécharger';
+
+  @override
+  String get nocturneTabVideos => 'Vidéos';
+
+  @override
+  String get nocturneTabCollections => 'Collections';
+
+  @override
+  String get nocturneTabFavorites => 'Favoris';
+
+  @override
+  String get nocturneImport => 'Importer';
+
+  @override
+  String get nocturneArchiveSearch => 'Rechercher une vidéo ou une collection…';
+
+  @override
+  String get nocturneClear => 'Effacer';
+
+  @override
+  String nocturneCountVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '1 vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSelectAll => 'Tout sélectionner';
+
+  @override
+  String nocturneSelectedClear(int count) {
+    return '$count sélectionnées · Effacer';
+  }
+
+  @override
+  String get nocturneDownloadSelection => 'Télécharger la sélection';
+
+  @override
+  String get nocturneQueued => 'Vidéos ajoutées à la file de téléchargement.';
+
+  @override
+  String nocturneBatchSkipped(int done, int total, int skipped) {
+    return '$done / $total ($skipped ignorées)';
+  }
+
+  @override
+  String get nocturneNoMatch => 'Aucune vidéo ne correspond aux filtres actifs';
+
+  @override
+  String get nocturneResetFilters => 'Réinitialiser les filtres';
+
+  @override
+  String get nocturneFilters => 'Filtres';
+
+  @override
+  String get nocturneTransferEyebrow => 'Wi-Fi local';
+
+  @override
+  String get nocturneTransferTitle => 'Envoyer vers ton téléphone';
+
+  @override
+  String get nocturneAllOptions => 'Toutes les options';
+
+  @override
+  String get nocturneSimpleView => 'Vue simple';
+
+  @override
+  String get nocturneQrCaption => 'QR code';
+
+  @override
+  String get nocturneScanTitle => 'Ouvre TapLoad sur ton téléphone et scanne';
+
+  @override
+  String get nocturnePinLabel => 'Code PIN';
+
+  @override
+  String get nocturneAddressLabel => 'Adresse';
+
+  @override
+  String get nocturneOnNetwork => 'Sur ce Wi-Fi';
+
+  @override
+  String get nocturneNoTransfer => 'Aucun envoi en cours';
+
+  @override
+  String get nocturneFilesToSend => 'Fichiers à envoyer';
+
+  @override
+  String get nocturneAddFolder => 'Dossier…';
+
+  @override
+  String get nocturneAddFiles => 'Fichiers…';
+
+  @override
+  String get nocturneTotalSelected => 'Total sélectionné';
+
+  @override
+  String get nocturneZip => 'Compresser en ZIP';
+
+  @override
+  String nocturneSendTo(String name) {
+    return 'Envoyer à $name';
+  }
+
+  @override
+  String get nocturneRefreshDevices => 'Chercher les appareils';
+
+  @override
+  String get nocturneClassicView => 'Vue classique';
+
+  @override
+  String get nocturneCardsView => 'Vue en cartes';
+
+  @override
+  String get nocturneDone => 'Terminer';
+
+  @override
+  String get nocturnePurgeHint =>
+      'Les vidéos partagées avec une collection conservée sont gardées.';
+
+  @override
+  String get nocturneAllDownloaded => 'Tout téléchargé';
+
+  @override
+  String nocturnePartDownloaded(int percent) {
+    return '$percent % téléchargé';
+  }
 }

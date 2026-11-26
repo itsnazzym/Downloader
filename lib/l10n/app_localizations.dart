@@ -5355,6 +5355,438 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archives'**
   String get designArchivesTab;
+
+  /// No description provided for @nocturneGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get nocturneGreetingMorning;
+
+  /// No description provided for @nocturneGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get nocturneGreetingAfternoon;
+
+  /// No description provided for @nocturneGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get nocturneGreetingEvening;
+
+  /// No description provided for @nocturneActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No downloads in progress} =1{1 download in progress} other{{count} downloads in progress}}'**
+  String nocturneActiveTitle(int count);
+
+  /// No description provided for @nocturneNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get nocturneNext;
+
+  /// No description provided for @nocturneRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest downloads'**
+  String get nocturneRecent;
+
+  /// No description provided for @nocturneSizeOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String nocturneSizeOf(String done, String total);
+
+  /// No description provided for @nocturneStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your activity'**
+  String get nocturneStatsTitle;
+
+  /// No description provided for @nocturneStatDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get nocturneStatDownloads;
+
+  /// No description provided for @nocturneStatVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded volume'**
+  String get nocturneStatVolume;
+
+  /// No description provided for @nocturneLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {count} days'**
+  String nocturneLastDays(int count);
+
+  /// No description provided for @nocturnePerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads per day'**
+  String get nocturnePerDay;
+
+  /// No description provided for @nocturneDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d'**
+  String nocturneDaysShort(int count);
+
+  /// No description provided for @nocturneDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String nocturneDaysAgo(int count);
+
+  /// No description provided for @nocturneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get nocturneToday;
+
+  /// No description provided for @nocturneBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get nocturneBySource;
+
+  /// No description provided for @nocturneByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get nocturneByFormat;
+
+  /// No description provided for @nocturneChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get nocturneChange;
+
+  /// No description provided for @nocturneFileLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'File layout'**
+  String get nocturneFileLayout;
+
+  /// No description provided for @nocturneTokenSite.
+  ///
+  /// In en, this message translates to:
+  /// **'site'**
+  String get nocturneTokenSite;
+
+  /// No description provided for @nocturneTokenCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'creator'**
+  String get nocturneTokenCreator;
+
+  /// No description provided for @nocturneTokenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'title'**
+  String get nocturneTokenTitle;
+
+  /// No description provided for @nocturneAppearanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick TapLoad’s design.'**
+  String get nocturneAppearanceDesc;
+
+  /// No description provided for @nocturneToolsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The tools that do the downloading.'**
+  String get nocturneToolsDesc;
+
+  /// No description provided for @nocturneDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get nocturneDecrease;
+
+  /// No description provided for @nocturneIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get nocturneIncrease;
+
+  /// No description provided for @nocturneArchiveEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive · TikTok'**
+  String get nocturneArchiveEyebrow;
+
+  /// No description provided for @nocturneWordVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{video} other{videos}}'**
+  String nocturneWordVideos(int count);
+
+  /// No description provided for @nocturneWordCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{collection} other{collections}}'**
+  String nocturneWordCollections(int count);
+
+  /// No description provided for @nocturneWordFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{favourite} other{favourites}}'**
+  String nocturneWordFavorites(int count);
+
+  /// No description provided for @nocturneSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get nocturneSync;
+
+  /// No description provided for @nocturneSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get nocturneSyncing;
+
+  /// No description provided for @nocturneStopBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop · {done}/{total}'**
+  String nocturneStopBatch(int done, int total);
+
+  /// No description provided for @nocturneDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get nocturneDownloadAll;
+
+  /// No description provided for @nocturneTabVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get nocturneTabVideos;
+
+  /// No description provided for @nocturneTabCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get nocturneTabCollections;
+
+  /// No description provided for @nocturneTabFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get nocturneTabFavorites;
+
+  /// No description provided for @nocturneImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get nocturneImport;
+
+  /// No description provided for @nocturneArchiveSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a video or a collection…'**
+  String get nocturneArchiveSearch;
+
+  /// No description provided for @nocturneClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get nocturneClear;
+
+  /// No description provided for @nocturneCountVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String nocturneCountVideos(int count);
+
+  /// No description provided for @nocturneSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get nocturneSelectAll;
+
+  /// No description provided for @nocturneSelectedClear.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected · Clear'**
+  String nocturneSelectedClear(int count);
+
+  /// No description provided for @nocturneDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get nocturneDownloadSelection;
+
+  /// No description provided for @nocturneQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos added to the download queue.'**
+  String get nocturneQueued;
+
+  /// No description provided for @nocturneBatchSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} ({skipped} skipped)'**
+  String nocturneBatchSkipped(int done, int total, int skipped);
+
+  /// No description provided for @nocturneNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No video matches the active filters'**
+  String get nocturneNoMatch;
+
+  /// No description provided for @nocturneResetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get nocturneResetFilters;
+
+  /// No description provided for @nocturneFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get nocturneFilters;
+
+  /// No description provided for @nocturneTransferEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Wi-Fi'**
+  String get nocturneTransferEyebrow;
+
+  /// No description provided for @nocturneTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your phone'**
+  String get nocturneTransferTitle;
+
+  /// No description provided for @nocturneAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get nocturneAllOptions;
+
+  /// No description provided for @nocturneSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get nocturneSimpleView;
+
+  /// No description provided for @nocturneQrCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get nocturneQrCaption;
+
+  /// No description provided for @nocturneScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan'**
+  String get nocturneScanTitle;
+
+  /// No description provided for @nocturnePinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get nocturnePinLabel;
+
+  /// No description provided for @nocturneAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get nocturneAddressLabel;
+
+  /// No description provided for @nocturneOnNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'On this Wi-Fi'**
+  String get nocturneOnNetwork;
+
+  /// No description provided for @nocturneNoTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing being sent'**
+  String get nocturneNoTransfer;
+
+  /// No description provided for @nocturneFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get nocturneFilesToSend;
+
+  /// No description provided for @nocturneAddFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder…'**
+  String get nocturneAddFolder;
+
+  /// No description provided for @nocturneAddFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Files…'**
+  String get nocturneAddFiles;
+
+  /// No description provided for @nocturneTotalSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Total selected'**
+  String get nocturneTotalSelected;
+
+  /// No description provided for @nocturneZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress as ZIP'**
+  String get nocturneZip;
+
+  /// No description provided for @nocturneSendTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {name}'**
+  String nocturneSendTo(String name);
+
+  /// No description provided for @nocturneRefreshDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for devices'**
+  String get nocturneRefreshDevices;
+
+  /// No description provided for @nocturneClassicView.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic view'**
+  String get nocturneClassicView;
+
+  /// No description provided for @nocturneCardsView.
+  ///
+  /// In en, this message translates to:
+  /// **'Card view'**
+  String get nocturneCardsView;
+
+  /// No description provided for @nocturneDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get nocturneDone;
+
+  /// No description provided for @nocturnePurgeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection stay.'**
+  String get nocturnePurgeHint;
+
+  /// No description provided for @nocturneAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get nocturneAllDownloaded;
+
+  /// No description provided for @nocturnePartDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% downloaded'**
+  String nocturnePartDownloaded(int percent);
 }
 
 class _AppLocalizationsDelegate

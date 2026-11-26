@@ -1,15 +1,25 @@
 import 'package:flutter/widgets.dart';
 import 'package:modern_downloader/core/ui/shell/designed_page.dart';
 
-/// Nocturne's pages, drawn from its mockups. Null keeps today's view until a page
-/// is drawn.
+import 'nocturne_archive.dart';
+import 'nocturne_home.dart';
+import 'nocturne_settings.dart';
+import 'nocturne_stats.dart';
+import 'nocturne_transfer.dart';
+
+/// Nocturne's pages (mockups Nocturne, Nocturne-Archives, -Stats,
+/// -Transfert, -Reglages). Null keeps today's view until a page is drawn.
 Widget? nocturnePage(DesignRoute route, Widget current) {
   switch (route) {
     case DesignRoute.home:
-    case DesignRoute.archive:
+      return const NocturneHome();
     case DesignRoute.stats:
-    case DesignRoute.transfer:
+      return const NocturneStats();
     case DesignRoute.settings:
-      return null;
+      return NocturneSettings(current: current);
+    case DesignRoute.archive:
+      return NocturneArchive(current: current);
+    case DesignRoute.transfer:
+      return NocturneTransfer(current: current);
   }
 }
