@@ -1687,5 +1687,18 @@
   "signalTransferTo": "إلى {name}",
   "signalTransferPickDevice": "اختر الجهاز من قائمة الأجهزة.",
   "porcelaineSelectedCollections": "{count, plural, =0{لا شيء محدد} =1{مجموعة واحدة محددة} two{مجموعتان محددتان} few{{count} مجموعات محددة} other{{count} مجموعة محددة}}",
-  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد"
+  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد",
+  "pastilleEmptyTitle": "لا شيء هنا بعد.",
+  "pastilleEmptyBody": "الصق رابطًا من YouTube أو TikTok أو Instagram أو X: كل تنزيل يملأ هذه الشبكة، نقطة بعد نقطة.",
+  "pastilleNoResultsTitle": "لا نتائج لـ «{query}»",
+  "pastilleNoResultsFilters": "لا يوجد تنزيل يطابق هذه الفلاتر",
+  "pastilleNoResultsBody": "تحقّق من الإملاء أو وسّع الفلاتر.",
+  "pastilleLoadErrorTitle": "تعذّر تحميل المكتبة.",
+  "pastilleLoadErrorBody": "ملفاتك ما زالت على القرص. حاول مجددًا بعد قليل.",
+  "pastilleRetryFailed": "إعادة المحاولة للفاشلة ({count})",
+  "pastilleLoading": "جارٍ تحميل المكتبة…",
+  "pastilleFinished": "اكتمل",
+  "pastilleFailedIdle": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيلًا}}",
+  "pastilleStatsEmptyTitle": "لا نقاط بعد.",
+  "pastilleStatsEmptyBody": "كل تنزيل مكتمل يضيف عمودًا هنا، يومًا بعد يوم."
 }

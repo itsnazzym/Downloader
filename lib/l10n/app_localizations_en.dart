@@ -4840,4 +4840,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Not downloaded yet';
+
+  @override
+  String get pastilleEmptyTitle => 'Nothing here, yet.';
+
+  @override
+  String get pastilleEmptyBody =>
+      'Paste a YouTube, TikTok, Instagram or X link: every download fills this grid, dot by dot.';
+
+  @override
+  String pastilleNoResultsTitle(String query) {
+    return 'No results for “$query”';
+  }
+
+  @override
+  String get pastilleNoResultsFilters => 'No download matches these filters';
+
+  @override
+  String get pastilleNoResultsBody =>
+      'Check the spelling or widen the filters.';
+
+  @override
+  String get pastilleLoadErrorTitle => 'The library could not load.';
+
+  @override
+  String get pastilleLoadErrorBody =>
+      'Your files are still on disk. Try again in a moment.';
+
+  @override
+  String pastilleRetryFailed(int count) {
+    return 'Retry failed ($count)';
+  }
+
+  @override
+  String get pastilleLoading => 'Loading the library…';
+
+  @override
+  String get pastilleFinished => 'Done';
+
+  @override
+  String pastilleFailedIdle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads failed',
+      one: 'One download failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pastilleStatsEmptyTitle => 'No dots yet.';
+
+  @override
+  String get pastilleStatsEmptyBody =>
+      'Every finished download adds a bar here, day after day.';
 }

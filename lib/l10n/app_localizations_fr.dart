@@ -4898,4 +4898,60 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Pas encore téléchargée';
+
+  @override
+  String get pastilleEmptyTitle => 'Rien ici, pour l’instant.';
+
+  @override
+  String get pastilleEmptyBody =>
+      'Colle un lien YouTube, TikTok, Instagram ou X : chaque téléchargement viendra remplir cette grille, pastille par pastille.';
+
+  @override
+  String pastilleNoResultsTitle(String query) {
+    return 'Aucun résultat pour « $query »';
+  }
+
+  @override
+  String get pastilleNoResultsFilters =>
+      'Aucun téléchargement ne correspond à ces filtres';
+
+  @override
+  String get pastilleNoResultsBody =>
+      'Vérifie l’orthographe ou élargis les filtres.';
+
+  @override
+  String get pastilleLoadErrorTitle => 'La bibliothèque n’a pas pu se charger.';
+
+  @override
+  String get pastilleLoadErrorBody =>
+      'Tes fichiers sont toujours sur le disque. Réessaie dans un instant.';
+
+  @override
+  String pastilleRetryFailed(int count) {
+    return 'Relancer les échecs ($count)';
+  }
+
+  @override
+  String get pastilleLoading => 'Chargement de la bibliothèque…';
+
+  @override
+  String get pastilleFinished => 'Terminé';
+
+  @override
+  String pastilleFailedIdle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements ont échoué',
+      one: 'Un téléchargement a échoué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pastilleStatsEmptyTitle => 'Pas encore de pastilles.';
+
+  @override
+  String get pastilleStatsEmptyBody =>
+      'Chaque téléchargement terminé ajoute une barre ici, jour après jour.';
 }
