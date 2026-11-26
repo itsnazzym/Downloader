@@ -320,7 +320,7 @@ void main() {
 
   // A design's settings page shows the section title once: the shared view
   // drops its own app bar inside the design's frame.
-  for (final id in ['porcelaine', 'nocturne']) {
+  for (final id in ['signal', 'porcelaine', 'nocturne']) {
     testWidgets('design $id settings show no second title bar', (
       tester,
     ) async {
@@ -336,6 +336,9 @@ void main() {
       router.go('/settings/appearance');
       await settle(tester);
       expect(find.byType(AppBar), findsNothing);
+      // ...but the section is still named: in its navigation and as title.
+      final name = lookupAppLocalizations(const Locale('fr')).settingsAppearance;
+      expect(find.text(name), findsAtLeastNWidgets(2));
     });
   }
 

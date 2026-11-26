@@ -44,12 +44,34 @@ class SignalSettings extends StatelessWidget {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 900;
         final pad = signalPagePadding(constraints.maxWidth, top: 28);
+        final l10n = context.l10n;
+        final title = sections(l10n)
+            .firstWhere((s) => s.$1 == path, orElse: () => sections(l10n)[0])
+            .$2;
         final body = general
             ? SingleChildScrollView(
                 padding: EdgeInsets.only(bottom: pad.bottom),
                 child: _General(wide: wide),
               )
-            : current;
+            // The framed view has no title bar of its own: say where we are,
+            // as « Général » does.
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SignalEyebrow(l10n.settings),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: AppTypography.display(32, weight: FontWeight.w600)
+                        .copyWith(
+                          color: AppColors.of(context).textPrimary,
+                          height: 1.1,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(child: current),
+                ],
+              );
         if (!wide) {
           return Padding(
             padding: EdgeInsets.fromLTRB(pad.left, pad.top, pad.right, 0),
