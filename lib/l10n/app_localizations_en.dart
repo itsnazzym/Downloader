@@ -3083,4 +3083,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'Archives';
+
+  @override
+  String get nocturneGreetingMorning => 'Good morning';
+
+  @override
+  String get nocturneGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get nocturneGreetingEvening => 'Good evening';
+
+  @override
+  String nocturneActiveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads in progress',
+      one: '1 download in progress',
+      zero: 'No downloads in progress',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneNext => 'Up next';
+
+  @override
+  String get nocturneRecent => 'Latest downloads';
+
+  @override
+  String nocturneSizeOf(String done, String total) {
+    return '$done of $total';
+  }
 }

@@ -5355,6 +5355,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archives'**
   String get designArchivesTab;
+
+  /// No description provided for @nocturneGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get nocturneGreetingMorning;
+
+  /// No description provided for @nocturneGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get nocturneGreetingAfternoon;
+
+  /// No description provided for @nocturneGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get nocturneGreetingEvening;
+
+  /// No description provided for @nocturneActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No downloads in progress} =1{1 download in progress} other{{count} downloads in progress}}'**
+  String nocturneActiveTitle(int count);
+
+  /// No description provided for @nocturneNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get nocturneNext;
+
+  /// No description provided for @nocturneRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest downloads'**
+  String get nocturneRecent;
+
+  /// No description provided for @nocturneSizeOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String nocturneSizeOf(String done, String total);
 }
 
 class _AppLocalizationsDelegate

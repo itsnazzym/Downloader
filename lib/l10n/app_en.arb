@@ -1419,5 +1419,14 @@
   "designNothingActive": "Nothing is downloading. Paste a link to start.",
   "designQueueEmpty": "Nothing waiting",
   "designLibraryEmpty": "Your library is empty for now.",
-  "designArchivesTab": "Archives"
+  "designArchivesTab": "Archives",
+  "nocturneGreetingMorning": "Good morning",
+  "nocturneGreetingAfternoon": "Good afternoon",
+  "nocturneGreetingEvening": "Good evening",
+  "nocturneActiveTitle": "{count, plural, =0{No downloads in progress} =1{1 download in progress} other{{count} downloads in progress}}",
+  "@nocturneActiveTitle": {"placeholders":{"count":{"type":"int"}}},
+  "nocturneNext": "Up next",
+  "nocturneRecent": "Latest downloads",
+  "nocturneSizeOf": "{done} of {total}",
+  "@nocturneSizeOf": {"placeholders":{"done":{"type":"String"},"total":{"type":"String"}}}
 }

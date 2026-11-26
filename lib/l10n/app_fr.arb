@@ -1190,5 +1190,12 @@
   "designNothingActive": "Rien ne télécharge. Colle un lien pour commencer.",
   "designQueueEmpty": "Rien en attente",
   "designLibraryEmpty": "Ta bibliothèque est vide pour l’instant.",
-  "designArchivesTab": "Archives"
+  "designArchivesTab": "Archives",
+  "nocturneGreetingMorning": "Bonjour",
+  "nocturneGreetingAfternoon": "Bonjour",
+  "nocturneGreetingEvening": "Bonsoir",
+  "nocturneActiveTitle": "{count, plural, =0{Aucun téléchargement en cours} =1{1 téléchargement en cours} other{{count} téléchargements en cours}}",
+  "nocturneNext": "Ensuite",
+  "nocturneRecent": "Derniers téléchargements",
+  "nocturneSizeOf": "{done} sur {total}"
 }

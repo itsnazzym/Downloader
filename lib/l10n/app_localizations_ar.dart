@@ -3091,4 +3091,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'الأرشيف';
+
+  @override
+  String get nocturneGreetingMorning => 'صباح الخير';
+
+  @override
+  String get nocturneGreetingAfternoon => 'طاب يومك';
+
+  @override
+  String get nocturneGreetingEvening => 'مساء الخير';
+
+  @override
+  String nocturneActiveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنزيل جارٍ',
+      many: '$count تنزيلًا جاريًا',
+      few: '$count تنزيلات جارية',
+      two: 'تنزيلان جاريان',
+      one: 'تنزيل واحد جارٍ',
+      zero: 'لا توجد تنزيلات جارية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneNext => 'التالي';
+
+  @override
+  String get nocturneRecent => 'آخر التنزيلات';
+
+  @override
+  String nocturneSizeOf(String done, String total) {
+    return '$done من $total';
+  }
 }

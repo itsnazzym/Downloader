@@ -3128,4 +3128,36 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'Archives';
+
+  @override
+  String get nocturneGreetingMorning => 'Bonjour';
+
+  @override
+  String get nocturneGreetingAfternoon => 'Bonjour';
+
+  @override
+  String get nocturneGreetingEvening => 'Bonsoir';
+
+  @override
+  String nocturneActiveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements en cours',
+      one: '1 téléchargement en cours',
+      zero: 'Aucun téléchargement en cours',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneNext => 'Ensuite';
+
+  @override
+  String get nocturneRecent => 'Derniers téléchargements';
+
+  @override
+  String nocturneSizeOf(String done, String total) {
+    return '$done sur $total';
+  }
 }
