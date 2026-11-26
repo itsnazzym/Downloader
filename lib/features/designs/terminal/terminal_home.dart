@@ -49,14 +49,15 @@ class TerminalHome extends ConsumerWidget {
     }
   }
 
-  // `c` cancels the first line of `status --live`, as the hint says.
+  // `c` cancels the first line of `status --live` (running ones first, then
+  // paused, as _LiveBlock lists them).
   static void _cancelFirst(WidgetRef ref) {
     final items = ref.read(downloadListProvider).valueOrNull ?? const [];
-    for (final i in items) {
-      if (isActiveDownload(i) || i.status == DownloadStatus.paused) {
-        ref.read(downloadListProvider.notifier).cancelDownload(i.id);
-        return;
-      }
+    final first =
+        items.where(isActiveDownload).firstOrNull ??
+        items.where((i) => i.status == DownloadStatus.paused).firstOrNull;
+    if (first != null) {
+      ref.read(downloadListProvider.notifier).cancelDownload(first.id);
     }
   }
 
@@ -203,9 +204,12 @@ class _HomeScroll extends ConsumerWidget {
           sliver: SliverToBoxAdapter(child: _ListHeader()),
         ),
         if (mode == DownloadViewMode.list) ...[
-          const SliverPadding(
+          SliverPadding(
             padding: pad,
-            sliver: SliverToBoxAdapter(child: _TableHead()),
+            sliver: SliverToBoxAdapter(
+              // The tour measures a box, so the table's head carries it.
+              child: _TableHead(key: OnboardingTargets.creatorList),
+            ),
           ),
           const SliverPadding(
             padding: EdgeInsets.fromLTRB(18, 0, 18, 24),
@@ -553,7 +557,7 @@ const _colRight = 110.0;
 const _gap = 14.0;
 
 class _TableHead extends StatelessWidget {
-  const _TableHead();
+  const _TableHead({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -645,7 +649,6 @@ class _Table extends ConsumerWidget {
         ids.length <= 50;
     if (reorder) {
       return SliverReorderableList(
-        key: OnboardingTargets.creatorList,
         itemCount: ids.length,
         onReorderItem: (a, b) =>
             ref.read(downloadListProvider.notifier).reorder(a, b),
@@ -657,7 +660,6 @@ class _Table extends ConsumerWidget {
       );
     }
     return SliverList(
-      key: OnboardingTargets.creatorList,
       delegate: SliverChildBuilderDelegate(
         (context, index) => _Line(key: ValueKey(ids[index]), id: ids[index]),
         childCount: ids.length,

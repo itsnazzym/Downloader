@@ -8,6 +8,7 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/utils/browser_launch.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_feed_view.dart';
 import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_filter_pane.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
@@ -35,9 +36,45 @@ final _downloadedIdsProvider = Provider<Set<String>>((ref) {
 
 String _keyOf(TikTokCollectionItem c) => c.id ?? c.name;
 
-bool _inCollection(TikTokArchiveItem v, TikTokCollectionItem c) =>
-    (c.id != null && v.collectionIds.contains(c.id)) ||
-    (v.collectionName?.split(' · ').contains(c.name) ?? false);
+// The two virtual folders the catalog carries next to real collections:
+// views over favourites and likes, never purged, reset or deleted.
+const _liked = 'Vidéos Likées';
+const _unsorted = 'Favoris non classés';
+
+bool _isVirtual(TikTokCollectionItem c) =>
+    c.name == _liked || c.name == _unsorted;
+
+/// Same membership rules as today's collections grid.
+bool _inCollection(TikTokArchiveItem v, TikTokCollectionItem c) {
+  if (c.name == _liked) return v.isLiked;
+  if (c.name == _unsorted) {
+    return v.isFavorite &&
+        v.collectionIds.isEmpty &&
+        (v.collectionName == null ||
+            v.collectionName == _unsorted ||
+            v.collectionName == _liked);
+  }
+  return (c.id != null && v.collectionIds.contains(c.id)) ||
+      (v.collectionName?.split(' · ').contains(c.name) ?? false);
+}
+
+/// Each collection's available videos, recomputed only when the catalog or
+/// the unavailable ids change (not on batch progress).
+final _collectionVideosProvider =
+    Provider<Map<String, List<TikTokArchiveItem>>>((ref) {
+      final catalog = ref.watch(tikTokArchiveProvider.select((s) => s.catalog));
+      if (catalog == null) return const {};
+      final unavailable =
+          ref.watch(tiktokUnavailableIdsProvider).valueOrNull ??
+          ref.watch(tiktokVideoCacheServiceProvider).unavailableIds;
+      return {
+        for (final c in catalog.collections)
+          _keyOf(c): [
+            for (final v in catalog.videos)
+              if (!unavailable.contains(v.id) && _inCollection(v, c)) v,
+          ],
+      };
+    });
 
 /// Terminal's TikTok archive (mockup Terminal-Archives.dc.html). The import
 /// and sync page (hub), loading and empty states stay today's view.
@@ -56,6 +93,13 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
   bool _selecting = false;
   final Set<String> _picked = {};
   bool _purging = false;
+  final _collSearch = TextEditingController();
+
+  @override
+  void dispose() {
+    _collSearch.dispose();
+    super.dispose();
+  }
 
   TikTokArchiveNotifier get _notifier =>
       ref.read(tikTokArchiveProvider.notifier);
@@ -214,9 +258,11 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
           _menuItem(1, l10n.archiveMobilePlayFullscreen),
         if (videos.isNotEmpty && !batch)
           _menuItem(2, l10n.archiveCollDownloadAll(videos.length)),
-        _menuItem(3, l10n.archiveCollReset),
-        _menuItem(4, l10n.archivePurgeMenu, danger: true),
-        _menuItem(5, l10n.archiveCollDelete, danger: true),
+        if (!_isVirtual(c)) ...[
+          _menuItem(3, l10n.archiveCollReset),
+          _menuItem(4, l10n.archivePurgeMenu, danger: true),
+          _menuItem(5, l10n.archiveCollDelete, danger: true),
+        ],
       ],
     );
     if (!mounted) return;
@@ -399,16 +445,37 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
     final downloaded = ref.watch(_downloadedIdsProvider);
-    final cols = catalog.collections;
+    final byKey = ref.watch(_collectionVideosProvider);
+    final query = _collSearch.text.trim().toLowerCase();
+    final cols = [
+      for (final c in catalog.collections)
+        if (query.isEmpty || c.name.toLowerCase().contains(query)) c,
+    ];
     final suggestions = catalog.suggestions;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TPrompt(
-            'tiktok ls',
-            l10n.terminalFlagCollections,
-            comment: l10n.terminalCollectionsCount(cols.length),
+          Row(
+            children: [
+              Expanded(
+                child: TPrompt(
+                  'tiktok ls',
+                  l10n.terminalFlagCollections,
+                  comment: l10n.terminalCollectionsCount(cols.length),
+                ),
+              ),
+              SizedBox(
+                width: 240,
+                height: 30,
+                child: TField(
+                  controller: _collSearch,
+                  prefix: '/',
+                  hint: l10n.archiveCollSearch,
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+            ],
           ),
           if (suggestions.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -443,10 +510,7 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
                         width: w,
                         child: Builder(
                           builder: (context) {
-                            final videos = [
-                              for (final v in catalog.videos)
-                                if (_inCollection(v, col)) v,
-                            ];
+                            final videos = byKey[_keyOf(col)] ?? const [];
                             final done = videos
                                 .where((v) => downloaded.contains(v.id))
                                 .length;
@@ -458,11 +522,13 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
                               selecting: _selecting,
                               picked: _picked.contains(key),
                               onTap: () => _selecting
-                                  ? setState(() {
-                                      if (!_picked.remove(key)) {
-                                        _picked.add(key);
-                                      }
-                                    })
+                                  ? _isVirtual(col)
+                                        ? null
+                                        : setState(() {
+                                            if (!_picked.remove(key)) {
+                                              _picked.add(key);
+                                            }
+                                          })
                                   : _openCollection(col),
                               onMenu: (at) => _collectionMenu(col, videos, at),
                             );
@@ -942,7 +1008,31 @@ class _VideosBodyState extends ConsumerState<_VideosBody> {
     );
     return LayoutBuilder(
       builder: (context, c) {
-        if (c.maxWidth < 700) return list;
+        if (c.maxWidth < 700) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TButton(
+                  label: l10n.archiveMobileFilters,
+                  onTap: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => const Dialog(
+                      child: SizedBox(
+                        width: 320,
+                        height: 520,
+                        child: TikTokFilterPane(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(child: list),
+            ],
+          );
+        }
         return Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

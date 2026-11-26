@@ -33,7 +33,17 @@ class TerminalStats extends ConsumerStatefulWidget {
 }
 
 class _TerminalStatsState extends ConsumerState<TerminalStats> {
-  int _period = 1; // 0: 7 days, 1: 30 days, 2: 12 months
+  // 0: 7 days, 1: 30 days, 2: 12 months. Desktop keeps 7 days of history
+  // today, so 30 days opens only when older days exist.
+  late int _period = _hasOlderHistory() ? 1 : 0;
+
+  bool _hasOlderHistory() {
+    final cutoff = DateTime.now().subtract(const Duration(days: 7));
+    return ref
+        .read(downloadStatsProvider)
+        .dailyHistory
+        .any((d) => (DateTime.tryParse(d.date) ?? cutoff).isBefore(cutoff));
+  }
 
   @override
   Widget build(BuildContext context) {
