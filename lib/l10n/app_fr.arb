@@ -1194,5 +1194,12 @@
   "studioItems": "{count, plural, =0{0 élément} =1{1 élément} other{{count} éléments}}",
   "studioLiveCount": "{count} en cours",
   "studioPasteLink": "Coller un lien",
-  "studioColState": "État"
+  "studioColState": "État",
+  "studioAutoStart": "Démarrer automatiquement",
+  "studioChange": "Changer",
+  "studioTools": "Outils de téléchargement",
+  "studioChecking": "Vérification…",
+  "studioReplay": "Relancer",
+  "studioDecrease": "Diminuer",
+  "studioIncrease": "Augmenter"
 }

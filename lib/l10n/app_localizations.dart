@@ -5379,6 +5379,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get studioColState;
+
+  /// No description provided for @studioAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start automatically'**
+  String get studioAutoStart;
+
+  /// No description provided for @studioChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get studioChange;
+
+  /// No description provided for @studioTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Download tools'**
+  String get studioTools;
+
+  /// No description provided for @studioChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get studioChecking;
+
+  /// No description provided for @studioReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get studioReplay;
+
+  /// No description provided for @studioDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get studioDecrease;
+
+  /// No description provided for @studioIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get studioIncrease;
 }
 
 class _AppLocalizationsDelegate

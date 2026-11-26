@@ -1425,5 +1425,12 @@
   "studioLiveCount": "{count} in progress",
   "@studioLiveCount": {"placeholders": {"count": {"type": "int"}}},
   "studioPasteLink": "Paste a link",
-  "studioColState": "Status"
+  "studioColState": "Status",
+  "studioAutoStart": "Start automatically",
+  "studioChange": "Change",
+  "studioTools": "Download tools",
+  "studioChecking": "Checking…",
+  "studioReplay": "Replay",
+  "studioDecrease": "Decrease",
+  "studioIncrease": "Increase"
 }

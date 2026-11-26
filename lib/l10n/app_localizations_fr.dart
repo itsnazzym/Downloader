@@ -3155,4 +3155,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get studioColState => 'État';
+
+  @override
+  String get studioAutoStart => 'Démarrer automatiquement';
+
+  @override
+  String get studioChange => 'Changer';
+
+  @override
+  String get studioTools => 'Outils de téléchargement';
+
+  @override
+  String get studioChecking => 'Vérification…';
+
+  @override
+  String get studioReplay => 'Relancer';
+
+  @override
+  String get studioDecrease => 'Diminuer';
+
+  @override
+  String get studioIncrease => 'Augmenter';
 }

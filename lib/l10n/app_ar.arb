@@ -1194,5 +1194,12 @@
   "studioItems": "{count, plural, =0{لا عناصر} =1{عنصر واحد} =2{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
   "studioLiveCount": "{count} قيد التنزيل",
   "studioPasteLink": "الصق رابطًا",
-  "studioColState": "الحالة"
+  "studioColState": "الحالة",
+  "studioAutoStart": "البدء تلقائيًا",
+  "studioChange": "تغيير",
+  "studioTools": "أدوات التنزيل",
+  "studioChecking": "جارٍ التحقق…",
+  "studioReplay": "إعادة",
+  "studioDecrease": "إنقاص",
+  "studioIncrease": "زيادة"
 }

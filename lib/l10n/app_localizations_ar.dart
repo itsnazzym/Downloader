@@ -3121,4 +3121,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get studioColState => 'الحالة';
+
+  @override
+  String get studioAutoStart => 'البدء تلقائيًا';
+
+  @override
+  String get studioChange => 'تغيير';
+
+  @override
+  String get studioTools => 'أدوات التنزيل';
+
+  @override
+  String get studioChecking => 'جارٍ التحقق…';
+
+  @override
+  String get studioReplay => 'إعادة';
+
+  @override
+  String get studioDecrease => 'إنقاص';
+
+  @override
+  String get studioIncrease => 'زيادة';
 }

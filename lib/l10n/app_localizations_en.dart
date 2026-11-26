@@ -3110,4 +3110,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studioColState => 'Status';
+
+  @override
+  String get studioAutoStart => 'Start automatically';
+
+  @override
+  String get studioChange => 'Change';
+
+  @override
+  String get studioTools => 'Download tools';
+
+  @override
+  String get studioChecking => 'Checking…';
+
+  @override
+  String get studioReplay => 'Replay';
+
+  @override
+  String get studioDecrease => 'Decrease';
+
+  @override
+  String get studioIncrease => 'Increase';
 }
