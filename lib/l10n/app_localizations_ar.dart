@@ -3220,4 +3220,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get studioTransferIssue => 'واجه النقل مشكلة.';
+
+  @override
+  String get studioArchiveCap => 'أرشيف محلي · TikTok';
+
+  @override
+  String get studioArchiveTitle => 'أرشيفي';
+
+  @override
+  String get studioSync => 'مزامنة';
+
+  @override
+  String get studioDownloadAll => 'تنزيل الكل';
+
+  @override
+  String studioDownloadAllConfirm(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ستُضاف $countString من مقاطع الفيديو غير المنزّلة بعد إلى قائمة الانتظار.';
+  }
+
+  @override
+  String get studioVideos => 'الفيديوهات';
+
+  @override
+  String get studioCollections => 'المجموعات';
+
+  @override
+  String get studioVideosUnit => 'فيديو';
+
+  @override
+  String get studioCollectionsUnit => 'مجموعة';
+
+  @override
+  String get studioFavoritesUnit => 'مفضلة';
 }

@@ -5571,6 +5571,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The transfer ran into a problem.'**
   String get studioTransferIssue;
+
+  /// No description provided for @studioArchiveCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive · TikTok'**
+  String get studioArchiveCap;
+
+  /// No description provided for @studioArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My archive'**
+  String get studioArchiveTitle;
+
+  /// No description provided for @studioSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get studioSync;
+
+  /// No description provided for @studioDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get studioDownloadAll;
+
+  /// No description provided for @studioDownloadAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos not downloaded yet will be added to the queue.'**
+  String studioDownloadAllConfirm(int count);
+
+  /// No description provided for @studioVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get studioVideos;
+
+  /// No description provided for @studioCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get studioCollections;
+
+  /// No description provided for @studioVideosUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get studioVideosUnit;
+
+  /// No description provided for @studioCollectionsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'collections'**
+  String get studioCollectionsUnit;
+
+  /// No description provided for @studioFavoritesUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get studioFavoritesUnit;
 }
 
 class _AppLocalizationsDelegate

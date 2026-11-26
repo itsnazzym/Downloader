@@ -1226,5 +1226,15 @@
   "studioChoose": "اختيار",
   "studioAllOptions": "كل الخيارات",
   "studioSimpleView": "العرض البسيط",
-  "studioTransferIssue": "واجه النقل مشكلة."
+  "studioTransferIssue": "واجه النقل مشكلة.",
+  "studioArchiveCap": "أرشيف محلي · TikTok",
+  "studioArchiveTitle": "أرشيفي",
+  "studioSync": "مزامنة",
+  "studioDownloadAll": "تنزيل الكل",
+  "studioDownloadAllConfirm": "ستُضاف {count} من مقاطع الفيديو غير المنزّلة بعد إلى قائمة الانتظار.",
+  "studioVideos": "الفيديوهات",
+  "studioCollections": "المجموعات",
+  "studioVideosUnit": "فيديو",
+  "studioCollectionsUnit": "مجموعة",
+  "studioFavoritesUnit": "مفضلة"
 }

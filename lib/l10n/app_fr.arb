@@ -1226,5 +1226,15 @@
   "studioChoose": "Choisir",
   "studioAllOptions": "Toutes les options",
   "studioSimpleView": "Vue simple",
-  "studioTransferIssue": "Le transfert a rencontré un problème."
+  "studioTransferIssue": "Le transfert a rencontré un problème.",
+  "studioArchiveCap": "Archive locale · TikTok",
+  "studioArchiveTitle": "Mon archive",
+  "studioSync": "Synchroniser",
+  "studioDownloadAll": "Tout télécharger",
+  "studioDownloadAllConfirm": "{count} vidéos pas encore téléchargées seront ajoutées à la file.",
+  "studioVideos": "Vidéos",
+  "studioCollections": "Collections",
+  "studioVideosUnit": "vidéos",
+  "studioCollectionsUnit": "collections",
+  "studioFavoritesUnit": "favoris"
 }

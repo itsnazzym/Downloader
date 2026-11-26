@@ -1458,5 +1458,16 @@
   "studioChoose": "Choose",
   "studioAllOptions": "All options",
   "studioSimpleView": "Simple view",
-  "studioTransferIssue": "The transfer ran into a problem."
+  "studioTransferIssue": "The transfer ran into a problem.",
+  "studioArchiveCap": "Local archive · TikTok",
+  "studioArchiveTitle": "My archive",
+  "studioSync": "Sync",
+  "studioDownloadAll": "Download all",
+  "studioDownloadAllConfirm": "{count} videos not downloaded yet will be added to the queue.",
+  "@studioDownloadAllConfirm": {"placeholders": {"count": {"type": "int", "format": "decimalPattern"}}},
+  "studioVideos": "Videos",
+  "studioCollections": "Collections",
+  "studioVideosUnit": "videos",
+  "studioCollectionsUnit": "collections",
+  "studioFavoritesUnit": "favorites"
 }

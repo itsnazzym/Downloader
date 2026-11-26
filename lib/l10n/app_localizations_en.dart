@@ -3210,4 +3210,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studioTransferIssue => 'The transfer ran into a problem.';
+
+  @override
+  String get studioArchiveCap => 'Local archive · TikTok';
+
+  @override
+  String get studioArchiveTitle => 'My archive';
+
+  @override
+  String get studioSync => 'Sync';
+
+  @override
+  String get studioDownloadAll => 'Download all';
+
+  @override
+  String studioDownloadAllConfirm(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString videos not downloaded yet will be added to the queue.';
+  }
+
+  @override
+  String get studioVideos => 'Videos';
+
+  @override
+  String get studioCollections => 'Collections';
+
+  @override
+  String get studioVideosUnit => 'videos';
+
+  @override
+  String get studioCollectionsUnit => 'collections';
+
+  @override
+  String get studioFavoritesUnit => 'favorites';
 }

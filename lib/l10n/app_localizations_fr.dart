@@ -3254,4 +3254,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get studioTransferIssue => 'Le transfert a rencontré un problème.';
+
+  @override
+  String get studioArchiveCap => 'Archive locale · TikTok';
+
+  @override
+  String get studioArchiveTitle => 'Mon archive';
+
+  @override
+  String get studioSync => 'Synchroniser';
+
+  @override
+  String get studioDownloadAll => 'Tout télécharger';
+
+  @override
+  String studioDownloadAllConfirm(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString vidéos pas encore téléchargées seront ajoutées à la file.';
+  }
+
+  @override
+  String get studioVideos => 'Vidéos';
+
+  @override
+  String get studioCollections => 'Collections';
+
+  @override
+  String get studioVideosUnit => 'vidéos';
+
+  @override
+  String get studioCollectionsUnit => 'collections';
+
+  @override
+  String get studioFavoritesUnit => 'favoris';
 }
