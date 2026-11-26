@@ -1197,5 +1197,15 @@
   "nocturneActiveTitle": "{count, plural, =0{لا توجد تنزيلات جارية} =1{تنزيل واحد جارٍ} =2{تنزيلان جاريان} few{{count} تنزيلات جارية} many{{count} تنزيلًا جاريًا} other{{count} تنزيل جارٍ}}",
   "nocturneNext": "التالي",
   "nocturneRecent": "آخر التنزيلات",
-  "nocturneSizeOf": "{done} من {total}"
+  "nocturneSizeOf": "{done} من {total}",
+  "nocturneStatsTitle": "نشاطك",
+  "nocturneStatDownloads": "التنزيلات",
+  "nocturneStatVolume": "الحجم المُنزَّل",
+  "nocturneLastDays": "آخر {count} يومًا",
+  "nocturnePerDay": "التنزيلات في اليوم",
+  "nocturneDaysShort": "{count} ي",
+  "nocturneDaysAgo": "قبل {count} يومًا",
+  "nocturneToday": "اليوم",
+  "nocturneBySource": "حسب المصدر",
+  "nocturneByFormat": "حسب الصيغة"
 }

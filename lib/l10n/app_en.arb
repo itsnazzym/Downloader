@@ -1428,5 +1428,18 @@
   "nocturneNext": "Up next",
   "nocturneRecent": "Latest downloads",
   "nocturneSizeOf": "{done} of {total}",
-  "@nocturneSizeOf": {"placeholders":{"done":{"type":"String"},"total":{"type":"String"}}}
+  "@nocturneSizeOf": {"placeholders":{"done":{"type":"String"},"total":{"type":"String"}}},
+  "nocturneStatsTitle": "Your activity",
+  "nocturneStatDownloads": "Downloads",
+  "nocturneStatVolume": "Downloaded volume",
+  "nocturneLastDays": "Last {count} days",
+  "@nocturneLastDays": {"placeholders":{"count":{"type":"int"}}},
+  "nocturnePerDay": "Downloads per day",
+  "nocturneDaysShort": "{count} d",
+  "@nocturneDaysShort": {"placeholders":{"count":{"type":"int"}}},
+  "nocturneDaysAgo": "{count} days ago",
+  "@nocturneDaysAgo": {"placeholders":{"count":{"type":"int"}}},
+  "nocturneToday": "today",
+  "nocturneBySource": "By source",
+  "nocturneByFormat": "By format"
 }

@@ -3126,4 +3126,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String nocturneSizeOf(String done, String total) {
     return '$done من $total';
   }
+
+  @override
+  String get nocturneStatsTitle => 'نشاطك';
+
+  @override
+  String get nocturneStatDownloads => 'التنزيلات';
+
+  @override
+  String get nocturneStatVolume => 'الحجم المُنزَّل';
+
+  @override
+  String nocturneLastDays(int count) {
+    return 'آخر $count يومًا';
+  }
+
+  @override
+  String get nocturnePerDay => 'التنزيلات في اليوم';
+
+  @override
+  String nocturneDaysShort(int count) {
+    return '$count ي';
+  }
+
+  @override
+  String nocturneDaysAgo(int count) {
+    return 'قبل $count يومًا';
+  }
+
+  @override
+  String get nocturneToday => 'اليوم';
+
+  @override
+  String get nocturneBySource => 'حسب المصدر';
+
+  @override
+  String get nocturneByFormat => 'حسب الصيغة';
 }

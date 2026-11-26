@@ -5397,6 +5397,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{done} of {total}'**
   String nocturneSizeOf(String done, String total);
+
+  /// No description provided for @nocturneStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your activity'**
+  String get nocturneStatsTitle;
+
+  /// No description provided for @nocturneStatDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get nocturneStatDownloads;
+
+  /// No description provided for @nocturneStatVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded volume'**
+  String get nocturneStatVolume;
+
+  /// No description provided for @nocturneLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {count} days'**
+  String nocturneLastDays(int count);
+
+  /// No description provided for @nocturnePerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads per day'**
+  String get nocturnePerDay;
+
+  /// No description provided for @nocturneDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d'**
+  String nocturneDaysShort(int count);
+
+  /// No description provided for @nocturneDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String nocturneDaysAgo(int count);
+
+  /// No description provided for @nocturneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get nocturneToday;
+
+  /// No description provided for @nocturneBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get nocturneBySource;
+
+  /// No description provided for @nocturneByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get nocturneByFormat;
 }
 
 class _AppLocalizationsDelegate

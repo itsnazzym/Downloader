@@ -3115,4 +3115,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String nocturneSizeOf(String done, String total) {
     return '$done of $total';
   }
+
+  @override
+  String get nocturneStatsTitle => 'Your activity';
+
+  @override
+  String get nocturneStatDownloads => 'Downloads';
+
+  @override
+  String get nocturneStatVolume => 'Downloaded volume';
+
+  @override
+  String nocturneLastDays(int count) {
+    return 'Last $count days';
+  }
+
+  @override
+  String get nocturnePerDay => 'Downloads per day';
+
+  @override
+  String nocturneDaysShort(int count) {
+    return '$count d';
+  }
+
+  @override
+  String nocturneDaysAgo(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String get nocturneToday => 'today';
+
+  @override
+  String get nocturneBySource => 'By source';
+
+  @override
+  String get nocturneByFormat => 'By format';
 }

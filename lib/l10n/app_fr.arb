@@ -1197,5 +1197,15 @@
   "nocturneActiveTitle": "{count, plural, =0{Aucun téléchargement en cours} =1{1 téléchargement en cours} other{{count} téléchargements en cours}}",
   "nocturneNext": "Ensuite",
   "nocturneRecent": "Derniers téléchargements",
-  "nocturneSizeOf": "{done} sur {total}"
+  "nocturneSizeOf": "{done} sur {total}",
+  "nocturneStatsTitle": "Ton activité",
+  "nocturneStatDownloads": "Téléchargements",
+  "nocturneStatVolume": "Volume téléchargé",
+  "nocturneLastDays": "{count} derniers jours",
+  "nocturnePerDay": "Téléchargements par jour",
+  "nocturneDaysShort": "{count} j",
+  "nocturneDaysAgo": "il y a {count} jours",
+  "nocturneToday": "aujourd’hui",
+  "nocturneBySource": "Par source",
+  "nocturneByFormat": "Par format"
 }

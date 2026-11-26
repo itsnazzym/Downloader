@@ -883,3 +883,52 @@ class _GlyphPainter extends CustomPainter {
   bool shouldRepaint(_GlyphPainter old) =>
       old.glyph != glyph || old.color != color || old.stroke != stroke;
 }
+
+/// CSS `grid-template-columns: repeat(auto-fill, minmax(min, 1fr))`: as many
+/// columns as fit, children left-aligned, rows of equal height.
+class NocturneAutoGrid extends StatelessWidget {
+  const NocturneAutoGrid({
+    super.key,
+    required this.minWidth,
+    required this.children,
+    this.gap = 14,
+    this.maxColumns = 12,
+  });
+
+  final double minWidth;
+  final List<Widget> children;
+  final double gap;
+  final int maxColumns;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) {
+        final cols = ((box.maxWidth + gap) / (minWidth + gap)).floor().clamp(
+          1,
+          maxColumns,
+        );
+        final w = (box.maxWidth - gap * (cols - 1)) / cols;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < children.length; i += cols) ...[
+              if (i > 0) SizedBox(height: gap),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var j = i; j < i + cols && j < children.length; j++) ...[
+                      if (j > i) SizedBox(width: gap),
+                      SizedBox(width: w, child: children[j]),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
