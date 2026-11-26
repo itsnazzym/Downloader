@@ -8895,6 +8895,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
   String get archiveDeskSyncManual;
+
+  /// No description provided for @terminalLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Initialized download {id}'**
+  String terminalLogInit(String id);
+
+  /// No description provided for @terminalLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get terminalLogStarted;
+
+  /// No description provided for @terminalLogDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get terminalLogDone;
+
+  /// No description provided for @terminalLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get terminalLogCanceled;
+
+  /// No description provided for @terminalClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'clear'**
+  String get terminalClearFilters;
+
+  /// No description provided for @terminalFeedNavigate.
+  ///
+  /// In en, this message translates to:
+  /// **'next video'**
+  String get terminalFeedNavigate;
+
+  /// No description provided for @terminalArchiveIndexing.
+  ///
+  /// In en, this message translates to:
+  /// **'reading and indexing the TikTok catalog…'**
+  String get terminalArchiveIndexing;
+
+  /// No description provided for @terminalArchiveIndexingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'runs in the background, the app stays usable'**
+  String get terminalArchiveIndexingNote;
+
+  /// No description provided for @terminalExtensionOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'extension connected'**
+  String get terminalExtensionOnline;
+
+  /// No description provided for @terminalExtensionOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'extension not connected'**
+  String get terminalExtensionOffline;
 }
 
 class _AppLocalizationsDelegate

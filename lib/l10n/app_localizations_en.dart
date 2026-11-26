@@ -5218,4 +5218,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.';
+
+  @override
+  String terminalLogInit(String id) {
+    return 'Initialized download $id';
+  }
+
+  @override
+  String get terminalLogStarted => 'Download started…';
+
+  @override
+  String get terminalLogDone => 'Download completed.';
+
+  @override
+  String get terminalLogCanceled => 'Download canceled.';
+
+  @override
+  String get terminalClearFilters => 'clear';
+
+  @override
+  String get terminalFeedNavigate => 'next video';
+
+  @override
+  String get terminalArchiveIndexing =>
+      'reading and indexing the TikTok catalog…';
+
+  @override
+  String get terminalArchiveIndexingNote =>
+      'runs in the background, the app stays usable';
+
+  @override
+  String get terminalExtensionOnline => 'extension connected';
+
+  @override
+  String get terminalExtensionOffline => 'extension not connected';
 }

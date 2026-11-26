@@ -2101,5 +2101,16 @@
   "archiveDeskSyncDisconnected": "Open TikTok in a browser where the Modern Downloader extension is installed, then come back here.",
   "archiveDeskSyncing": "Syncing…",
   "archiveDeskSyncAction": "Sync my collections",
-  "archiveDeskSyncManual": "Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here."
+  "archiveDeskSyncManual": "Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.",
+  "terminalLogInit": "Initialized download {id}",
+  "@terminalLogInit": {"placeholders": {"id": {"type": "String"}}},
+  "terminalLogStarted": "Download started…",
+  "terminalLogDone": "Download completed.",
+  "terminalLogCanceled": "Download canceled.",
+  "terminalClearFilters": "clear",
+  "terminalFeedNavigate": "next video",
+  "terminalArchiveIndexing": "reading and indexing the TikTok catalog…",
+  "terminalArchiveIndexingNote": "runs in the background, the app stays usable",
+  "terminalExtensionOnline": "extension connected",
+  "terminalExtensionOffline": "extension not connected"
 }

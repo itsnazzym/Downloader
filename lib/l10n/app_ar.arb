@@ -1780,5 +1780,15 @@
   "archiveDeskSyncDisconnected": "افتح TikTok في متصفح مثبّت فيه امتداد Modern Downloader، ثم عُد إلى هنا.",
   "archiveDeskSyncing": "جارٍ المزامنة…",
   "archiveDeskSyncAction": "مزامنة مجموعاتي",
-  "archiveDeskSyncManual": "المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا."
+  "archiveDeskSyncManual": "المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.",
+  "terminalLogInit": "تمت تهيئة التنزيل {id}",
+  "terminalLogStarted": "بدأ التنزيل…",
+  "terminalLogDone": "اكتمل التنزيل.",
+  "terminalLogCanceled": "أُلغي التنزيل.",
+  "terminalClearFilters": "مسح",
+  "terminalFeedNavigate": "الفيديو التالي",
+  "terminalArchiveIndexing": "جارٍ قراءة كتالوج TikTok وفهرسته…",
+  "terminalArchiveIndexingNote": "يعمل في الخلفية، ويبقى التطبيق قابلًا للاستخدام",
+  "terminalExtensionOnline": "الإضافة متصلة",
+  "terminalExtensionOffline": "الإضافة غير متصلة"
 }

@@ -17,16 +17,14 @@ import 'package:modern_downloader/features/downloader/presentation/providers/dow
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/inspector/collapsed_inspector_rail.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/inspector/download_inspector.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_list.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/download_more_actions_menu.dart';
 import 'package:modern_downloader/features/downloader/presentation/widgets/download_item_context_menu.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
+import 'terminal_inspector.dart';
+import 'terminal_library.dart';
 import 'terminal_states.dart';
 import 'terminal_widgets.dart';
 
@@ -120,10 +118,11 @@ class TerminalHome extends ConsumerWidget {
       showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
-        showDragHandle: true,
+        backgroundColor: AppColors.of(context).surface,
+        shape: Border(top: BorderSide(color: AppColors.of(context).primary)),
         builder: (context) => SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.86,
-          child: DownloadInspector(downloadId: next),
+          child: TerminalInspector(downloadId: next),
         ),
       ).whenComplete(() {
         if (ref.read(selectedDownloadIdProvider) == next) {
@@ -168,7 +167,7 @@ class _Inspector extends ConsumerWidget {
           pane.persist();
         },
         child: layout.inspectorCollapsed
-            ? CollapsedInspectorRail(
+            ? TerminalInspectorRail(
                 onExpand: () {
                   pane.expandInspector();
                   pane.persist();
@@ -176,7 +175,7 @@ class _Inspector extends ConsumerWidget {
               )
             : ColoredBox(
                 color: colors.surface,
-                child: DownloadInspector(downloadId: selectedId),
+                child: TerminalInspector(downloadId: selectedId),
               ),
       ),
     );
@@ -217,24 +216,19 @@ class _HomeScroll extends ConsumerWidget {
           sliver: SliverToBoxAdapter(child: _ListHeader()),
         ),
         const SliverToBoxAdapter(child: _FailedBanner()),
-        if (mode == DownloadViewMode.list) ...[
-          SliverPadding(
-            padding: pad,
-            sliver: SliverToBoxAdapter(
-              // The tour measures a box, so the table's head carries it.
-              child: _TableHead(key: OnboardingTargets.creatorList),
-            ),
+        SliverPadding(
+          padding: pad,
+          sliver: SliverToBoxAdapter(
+            // The tour measures a box, so the table's head carries it.
+            child: mode == DownloadViewMode.list
+                ? _TableHead(key: OnboardingTargets.creatorList)
+                : TerminalModeHead(key: OnboardingTargets.creatorList),
           ),
-          const SliverPadding(
-            padding: EdgeInsets.fromLTRB(18, 0, 18, 24),
-            sliver: _Table(),
-          ),
-        ] else
-          // Folders and cards: today's views, they follow the palette.
-          SliverFillRemaining(
-            hasScrollBody: true,
-            child: DownloadList(key: OnboardingTargets.creatorList),
-          ),
+        ),
+        const SliverPadding(
+          padding: EdgeInsets.fromLTRB(18, 0, 18, 24),
+          sliver: _Table(),
+        ),
       ],
     );
   }
@@ -582,18 +576,12 @@ class _ListHeader extends ConsumerWidget {
             height: 30,
             // Narrow windows leave the `$ tapload ls` prompt some room.
             width: MediaQuery.sizeOf(context).width < 900 ? 170 : 240,
-            child: DownloadSearchField(
-              onChanged: (v) =>
-                  ref.read(downloadSearchQueryProvider.notifier).state = v,
-            ),
+            child: const TSearchField(),
           ),
           const SizedBox(width: 8),
           const _SortMenu(),
           const SizedBox(width: 4),
-          const DownloadMoreActionsMenu(
-            showQueueActions: true,
-            showRetryFailed: false,
-          ),
+          const TMoreMenu(),
         ],
       ),
     );
@@ -856,6 +844,19 @@ class _TableState extends ConsumerState<_Table>
       );
     }
     _printOnce();
+    final mode = ref.watch(downloadViewModeProvider);
+    if (mode == DownloadViewMode.detailed) {
+      return TEntrance(
+        animation: _entrance,
+        child: TerminalCardGrid(ids: ids),
+      );
+    }
+    if (mode == DownloadViewMode.folders) {
+      return TEntrance(
+        animation: _entrance,
+        child: TerminalFolders(line: (id) => _Line(id: id)),
+      );
+    }
     Widget line(int index) => TPrinted(
       index: index,
       child: _Line(id: ids[index]),
@@ -1291,15 +1292,4 @@ void _clearFilters(WidgetRef ref) {
   ref.read(downloadSourceFilterProvider.notifier).state = null;
   ref.read(downloadStatusFilterProvider.notifier).state =
       DownloadStatusFilter.all;
-}
-
-/// `ls -h` sizes: 2.1G, 38M, 812K.
-String compactBytes(int bytes) {
-  const k = 1024.0;
-  String f(double v, String u) =>
-      '${v >= 10 ? v.round() : v.toStringAsFixed(1)}$u';
-  if (bytes >= k * k * k) return f(bytes / (k * k * k), 'G');
-  if (bytes >= k * k) return f(bytes / (k * k), 'M');
-  if (bytes >= k) return f(bytes / k, 'K');
-  return '${bytes}B';
 }
