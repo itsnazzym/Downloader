@@ -15,6 +15,7 @@ import 'package:modern_downloader/showcase/showcase_mode.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../shared/design_data.dart';
+import 'porcelaine_states.dart' show PEmptyRows;
 import 'porcelaine_tiles.dart' show PLiveDot, pSpeedParts;
 import 'porcelaine_widgets.dart';
 
@@ -513,10 +514,7 @@ class _DeviceCard extends ConsumerWidget {
             bottom: 16,
           ),
           if (peer == null)
-            Text(
-              l10n.transferNoDevices,
-              style: pBody(colors, color: colors.textSecondary),
-            )
+            PEmptyRows(text: l10n.transferNoDevices, rows: 1, thumb: true)
           else
             Row(
               children: [
@@ -1101,9 +1099,10 @@ class _PeersCard extends ConsumerWidget {
           if (peers.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Text(
-                l10n.transferNoDevices,
-                style: pBody(colors, color: colors.textSecondary),
+              child: PEmptyRows(
+                text: l10n.transferNoDevices,
+                rows: 2,
+                thumb: true,
               ),
             ),
           for (final (i, p) in peers.indexed)

@@ -4840,4 +4840,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Not downloaded yet';
+
+  @override
+  String get porcelaineEmptyLibTitle =>
+      'Your space is waiting for its first link.';
+
+  @override
+  String get porcelaineEmptyLibBody =>
+      'Paste a video, music or image link: your widgets fill up as downloads finish.';
+
+  @override
+  String get porcelaineNoResultsTitle => 'Nothing matches.';
+
+  @override
+  String porcelaineNoResultsQuery(String query) {
+    return 'No download for “$query”.';
+  }
+
+  @override
+  String get porcelaineNoResultsFilters => 'No download matches these filters.';
+
+  @override
+  String get porcelaineLoadingLibrary => 'Loading your library…';
+
+  @override
+  String get porcelaineLoadErrorTitle => 'The library could not open.';
+
+  @override
+  String get porcelaineLoadErrorBody =>
+      'Your files are safe on disk. Try again in a moment.';
+
+  @override
+  String porcelaineFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads failed',
+      one: '1 download failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String porcelaineRetryFailedCount(int count) {
+    return 'Retry failed ($count)';
+  }
+
+  @override
+  String get porcelaineNothingActiveTitle => 'Nothing running';
+
+  @override
+  String get porcelaineUnavailable => 'Unavailable right now';
 }

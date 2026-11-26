@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/features/designs/porcelaine/porcelaine_states.dart';
 import 'package:modern_downloader/features/designs/porcelaine/porcelaine_widgets.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/designs/porcelaine/porcelaine_workspace_model.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
@@ -24,7 +26,11 @@ class PorcelaineChrome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final destinations = desktopDestinations(context, ref, location);
-    final espace = location == '/' && !ref.watch(porcelaineLibraryOpenProvider);
+    // Same rule as PorcelaineHome: a running search shows the library.
+    final espace =
+        location == '/' &&
+        !ref.watch(porcelaineLibraryOpenProvider) &&
+        !ref.watch(downloadSearchQueryProvider.select((q) => q.isNotEmpty));
     final editing =
         espace &&
         ref.watch(porcelaineWorkspaceProvider.select((s) => s.editing));
@@ -40,69 +46,88 @@ class PorcelaineChrome extends ConsumerWidget {
         // Padding inside the scroll view so the dock's shadow is not clipped;
         // narrow windows scroll the dock instead of overflowing.
         LayoutBuilder(
-          builder: (context, box) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: box.maxWidth),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(32, 28, 32, 18),
-                child: Center(
-                  child: _Dock(
-                    children: [
-                      const _PorcelaineMark(),
-                      for (final d in destinations)
-                        _DockPill(
-                          label: label(d),
-                          selected: d.selected,
-                          onTap: () {
-                            // « Espace » also closes the full library.
-                            if (d.id == 'library') {
-                              ref
-                                      .read(
-                                        porcelaineLibraryOpenProvider.notifier,
-                                      )
-                                      .state =
-                                  false;
-                            }
-                            d.onTap();
-                          },
-                        ),
-                      if (espace) ...[
-                        const _DockDivider(),
-                        if (editing)
+          builder: (context, box) {
+            // Narrow windows: the mark and the Espace buttons keep only
+            // their icons, so the whole dock still fits.
+            final compact = box.maxWidth < 1000;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: box.maxWidth),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    compact ? 16 : 32,
+                    28,
+                    compact ? 16 : 32,
+                    18,
+                  ),
+                  child: Center(
+                    child: _Dock(
+                      children: [
+                        _PorcelaineMark(compact: compact),
+                        for (final d in destinations)
+                          _DockPill(
+                            label: label(d),
+                            selected: d.selected,
+                            compact: compact,
+                            onTap: () {
+                              // « Espace » also closes the full library.
+                              if (d.id == 'library') pCloseLibrary(ref);
+                              d.onTap();
+                            },
+                          ),
+                        if (espace) ...[
+                          const _DockDivider(),
+                          if (editing)
+                            PBtn(
+                              label: l10n.porcelaineReset,
+                              kind: PBtnKind.ghost,
+                              height: 36,
+                              onTap: workspace.reset,
+                            ),
                           PBtn(
-                            label: l10n.porcelaineReset,
-                            kind: PBtnKind.ghost,
+                            label: compact ? '' : l10n.porcelaineAddWidget,
+                            tooltip: compact ? l10n.porcelaineAddWidget : null,
+                            icon: Icons.add_rounded,
                             height: 36,
-                            onTap: workspace.reset,
+                            padding: compact ? 11 : 16,
+                            onTap: () => ref
+                                .read(porcelaineCatalogRequestProvider.notifier)
+                                .state++,
                           ),
-                        PBtn(
-                          label: l10n.porcelaineAddWidget,
-                          icon: Icons.add_rounded,
-                          height: 36,
-                          onTap: () => ref
-                              .read(porcelaineCatalogRequestProvider.notifier)
-                              .state++,
-                        ),
-                        Semantics(
-                          toggled: editing,
-                          child: PBtn(
-                            label: editing
-                                ? l10n.porcelaineDone
-                                : l10n.porcelaineEdit,
-                            kind: editing ? PBtnKind.accent : PBtnKind.line,
-                            height: 36,
-                            onTap: () => workspace.setEditing(!editing),
+                          Semantics(
+                            toggled: editing,
+                            child: PBtn(
+                              label: compact
+                                  ? ''
+                                  : (editing
+                                        ? l10n.porcelaineDone
+                                        : l10n.porcelaineEdit),
+                              tooltip: compact
+                                  ? (editing
+                                        ? l10n.porcelaineDone
+                                        : l10n.porcelaineEdit)
+                                  : null,
+                              icon: compact
+                                  ? (editing
+                                        ? Icons.check_rounded
+                                        : Icons.edit_outlined)
+                                  : null,
+                              kind: editing ? PBtnKind.accent : PBtnKind.line,
+                              height: 36,
+                              padding: compact ? 11 : 16,
+                              onTap: () => workspace.setEditing(!editing),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
         Expanded(child: child),
       ],
@@ -168,13 +193,15 @@ class _DockDivider extends StatelessWidget {
 }
 
 class _PorcelaineMark extends StatelessWidget {
-  const _PorcelaineMark();
+  const _PorcelaineMark({required this.compact});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 12, 0),
+      padding: EdgeInsetsDirectional.fromSTEB(8, 0, compact ? 6 : 12, 0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -191,8 +218,10 @@ class _PorcelaineMark extends StatelessWidget {
               color: colors.background,
             ),
           ),
-          const SizedBox(width: 8),
-          Text('TapLoad', style: pBody(colors, weight: FontWeight.w700)),
+          if (!compact) ...[
+            const SizedBox(width: 8),
+            Text('TapLoad', style: pBody(colors, weight: FontWeight.w700)),
+          ],
         ],
       ),
     );
@@ -206,11 +235,13 @@ class _DockPill extends StatefulWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.compact = false,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool compact;
 
   @override
   State<_DockPill> createState() => _DockPillState();
@@ -264,7 +295,9 @@ class _DockPillState extends State<_DockPill> {
                 child: SizedBox(
                   height: 32,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: widget.compact ? 10 : 14,
+                    ),
                     child: Center(
                       widthFactor: 1,
                       child: Text(

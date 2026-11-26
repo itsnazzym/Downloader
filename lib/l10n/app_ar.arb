@@ -1687,5 +1687,17 @@
   "signalTransferTo": "إلى {name}",
   "signalTransferPickDevice": "اختر الجهاز من قائمة الأجهزة.",
   "porcelaineSelectedCollections": "{count, plural, =0{لا شيء محدد} =1{مجموعة واحدة محددة} two{مجموعتان محددتان} few{{count} مجموعات محددة} other{{count} مجموعة محددة}}",
-  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد"
+  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد",
+  "porcelaineEmptyLibTitle": "مساحتك تنتظر أول رابط.",
+  "porcelaineEmptyLibBody": "الصق رابط فيديو أو موسيقى أو صورة: تمتلئ أدواتك مع انتهاء التنزيلات.",
+  "porcelaineNoResultsTitle": "لا شيء مطابق.",
+  "porcelaineNoResultsQuery": "لا يوجد تنزيل لـ «{query}».",
+  "porcelaineNoResultsFilters": "لا يوجد تنزيل يطابق هذه المرشحات.",
+  "porcelaineLoadingLibrary": "جارٍ تحميل مكتبتك…",
+  "porcelaineLoadErrorTitle": "تعذّر فتح المكتبة.",
+  "porcelaineLoadErrorBody": "ملفاتك سليمة على القرص. أعد المحاولة بعد قليل.",
+  "porcelaineFailedCount": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيل}}",
+  "porcelaineRetryFailedCount": "إعادة المحاولات الفاشلة ({count})",
+  "porcelaineNothingActiveTitle": "لا شيء قيد التنزيل",
+  "porcelaineUnavailable": "غير متاح حاليًا"
 }

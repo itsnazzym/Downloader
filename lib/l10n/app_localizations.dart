@@ -8337,6 +8337,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not downloaded yet'**
   String get porcelaineNotDownloadedYet;
+
+  /// No description provided for @porcelaineEmptyLibTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your space is waiting for its first link.'**
+  String get porcelaineEmptyLibTitle;
+
+  /// No description provided for @porcelaineEmptyLibBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a video, music or image link: your widgets fill up as downloads finish.'**
+  String get porcelaineEmptyLibBody;
+
+  /// No description provided for @porcelaineNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches.'**
+  String get porcelaineNoResultsTitle;
+
+  /// No description provided for @porcelaineNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'No download for “{query}”.'**
+  String porcelaineNoResultsQuery(String query);
+
+  /// No description provided for @porcelaineNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No download matches these filters.'**
+  String get porcelaineNoResultsFilters;
+
+  /// No description provided for @porcelaineLoadingLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your library…'**
+  String get porcelaineLoadingLibrary;
+
+  /// No description provided for @porcelaineLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not open.'**
+  String get porcelaineLoadErrorTitle;
+
+  /// No description provided for @porcelaineLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are safe on disk. Try again in a moment.'**
+  String get porcelaineLoadErrorBody;
+
+  /// No description provided for @porcelaineFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String porcelaineFailedCount(int count);
+
+  /// No description provided for @porcelaineRetryFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String porcelaineRetryFailedCount(int count);
+
+  /// No description provided for @porcelaineNothingActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing running'**
+  String get porcelaineNothingActiveTitle;
+
+  /// No description provided for @porcelaineUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable right now'**
+  String get porcelaineUnavailable;
 }
 
 class _AppLocalizationsDelegate

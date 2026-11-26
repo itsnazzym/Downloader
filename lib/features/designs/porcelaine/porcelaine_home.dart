@@ -15,6 +15,9 @@ import 'package:modern_downloader/features/downloader/presentation/views/widgets
 import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
+import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+
+import 'porcelaine_states.dart';
 import 'porcelaine_tiles.dart';
 import 'porcelaine_widgets.dart';
 import 'porcelaine_workspace_model.dart';
@@ -27,9 +30,11 @@ class PorcelaineHome extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(porcelaineLibraryOpenProvider)
-        ? const _Library()
-        : const _Espace();
+    // A search left running (Ctrl+F, the chrome) shows its results.
+    final open =
+        ref.watch(porcelaineLibraryOpenProvider) ||
+        ref.watch(downloadSearchQueryProvider.select((q) => q.isNotEmpty));
+    return open ? const _Library() : const _Espace();
   }
 }
 
@@ -45,11 +50,22 @@ class _Espace extends ConsumerStatefulWidget {
 }
 
 class _EspaceState extends ConsumerState<_Espace>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _wiggle = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
   );
+  // The cards' once-only entrance.
+  late final AnimationController _enter = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 760),
+  );
+  // The En cours card's « finished » glow.
+  late final AnimationController _finish = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..addStatusListener(_onFinishStatus);
+  bool _entered = false;
   String? _dragId;
   String? _removingId;
   String? _freshId;
@@ -58,6 +74,7 @@ class _EspaceState extends ConsumerState<_Espace>
   Timer? _toastTimer;
   Timer? _freshTimer;
   late final PWorkspaceNotifier _notifier;
+  late final StateController<DownloadItem?> _finished;
 
   // Resize drag: start size and the pointer travel since.
   Offset _rzDelta = Offset.zero;
@@ -67,17 +84,53 @@ class _EspaceState extends ConsumerState<_Espace>
   void initState() {
     super.initState();
     _notifier = ref.read(porcelaineWorkspaceProvider.notifier);
+    _finished = ref.read(porcelaineFinishProvider.notifier);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_entered) return;
+    _entered = true;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _enter.value = 1;
+    } else {
+      _enter.forward();
+    }
+  }
+
+  void _onFinishStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed && _finished.mounted) {
+      _finished.state = null;
+    }
+  }
+
+  void _onList(
+    AsyncValue<List<DownloadItem>>? prev,
+    AsyncValue<List<DownloadItem>> next,
+  ) {
+    final items = next.valueOrNull;
+    if (items == null || MediaQuery.disableAnimationsOf(context)) return;
+    final done = pJustFinished(prev?.valueOrNull, items);
+    if (done.isEmpty) return;
+    _finished.state = done.last;
+    _finish.forward(from: 0);
   }
 
   @override
   void dispose() {
     _wiggle.dispose();
+    _enter.dispose();
+    _finish.dispose();
     _toastTimer?.cancel();
     _freshTimer?.cancel();
     final notifier = _notifier;
-    // Leaving the page ends edit mode (the dock's buttons belong to it).
+    final finish = _finished;
+    // Leaving the page ends edit mode (the dock's buttons belong to it) and
+    // any « finished » moment.
     Future.microtask(() {
       if (notifier.mounted) notifier.setEditing(false);
+      if (finish.mounted) finish.state = null;
     });
     super.dispose();
   }
@@ -134,6 +187,21 @@ class _EspaceState extends ConsumerState<_Espace>
     final editing = state.editing;
     _syncWiggle(editing);
     ref.listen(porcelaineCatalogRequestProvider, (_, _) => _openCatalog());
+    ref.listen(downloadListProvider, _onList);
+    // -1 loading, -2 unreadable, else how many items.
+    final phase = ref.watch(
+      downloadListProvider.select(
+        (v) => v.hasValue ? v.value!.length : (v.hasError ? -2 : -1),
+      ),
+    );
+    final failed = ref.watch(
+      downloadListProvider.select(
+        (v) => _FailedIds([
+          for (final i in v.valueOrNull ?? const <DownloadItem>[])
+            if (i.status == DownloadStatus.failed) i,
+        ]),
+      ),
+    );
     // A context menu's « details » selects an item: the inspector lives with
     // the full library.
     ref.listen(selectedDownloadIdProvider, (_, next) {
@@ -189,7 +257,36 @@ class _EspaceState extends ConsumerState<_Espace>
                     const SizedBox(height: 4),
                     _Greeting(editing: editing),
                     const SizedBox(height: 30),
+                    if (phase == -2) ...[
+                      PRise(
+                        animation: _enter,
+                        index: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: pCardFill(colors),
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: pCardShadow(colors),
+                          ),
+                          child: const PLoadError(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ] else if (phase == 0 && !editing) ...[
+                      PRise(
+                        animation: _enter,
+                        index: 0,
+                        child: const PEmptyLibrary(),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    // One failure is told by the Récents widget; several get the strip.
+                    if (failed.items.length > 1 && !editing) ...[
+                      PFailureStrip(failed: failed.items),
+                      const SizedBox(height: 20),
+                    ],
                     _Grid(
+                      enter: _enter,
+                      finish: _finish,
                       widgets: state.widgets,
                       editing: editing,
                       cols: wide ? 4 : 2,
@@ -270,8 +367,13 @@ class _Greeting extends ConsumerWidget {
     final l10n = context.l10n;
     final now = DateTime.now();
     final String subtitle;
+    final loading = ref.watch(
+      downloadListProvider.select((v) => !v.hasValue && !v.hasError),
+    );
     if (editing) {
       subtitle = l10n.porcelaineEditHint;
+    } else if (loading) {
+      subtitle = l10n.porcelaineLoadingLibrary;
     } else {
       final count = ref.watch(
         downloadListProvider.select(
@@ -332,6 +434,8 @@ class _DotsPainter extends CustomPainter {
 
 class _Grid extends StatelessWidget {
   const _Grid({
+    required this.enter,
+    required this.finish,
     required this.widgets,
     required this.editing,
     required this.cols,
@@ -352,6 +456,8 @@ class _Grid extends StatelessWidget {
     required this.onResizeEnd,
   });
 
+  final Animation<double> enter;
+  final Animation<double> finish;
   final List<PWidget> widgets;
   final bool editing;
   final int cols;
@@ -415,25 +521,30 @@ class _Grid extends StatelessWidget {
                 rect: r,
                 duration: duration,
                 curve: pEase,
-                child: _Cell(
-                  widget: w,
+                child: PRise(
+                  animation: enter,
                   index: i,
-                  count: widgets.length,
-                  size: r.size,
-                  unit: unit,
-                  editing: editing,
-                  wiggle: wiggle,
-                  ghost: dragId == w.id,
-                  removing: removingId == w.id,
-                  fresh: freshId == w.id,
-                  lifting: resizingId == w.id,
-                  onDragStart: () => onDragStart(w.id),
-                  onDragEnd: onDragEnd,
-                  onHover: (dragged) => onHover(dragged, i),
-                  onRemove: () => onRemove(w.id),
-                  onResizeStart: () => onResizeStart(w),
-                  onResizeUpdate: (d) => onResizeUpdate(w, d, unit),
-                  onResizeEnd: onResizeEnd,
+                  child: _Cell(
+                    finish: w.type == PWidgetType.active ? finish : null,
+                    widget: w,
+                    index: i,
+                    count: widgets.length,
+                    size: r.size,
+                    unit: unit,
+                    editing: editing,
+                    wiggle: wiggle,
+                    ghost: dragId == w.id,
+                    removing: removingId == w.id,
+                    fresh: freshId == w.id,
+                    lifting: resizingId == w.id,
+                    onDragStart: () => onDragStart(w.id),
+                    onDragEnd: onDragEnd,
+                    onHover: (dragged) => onHover(dragged, i),
+                    onRemove: () => onRemove(w.id),
+                    onResizeStart: () => onResizeStart(w),
+                    onResizeUpdate: (d) => onResizeUpdate(w, d, unit),
+                    onResizeEnd: onResizeEnd,
+                  ),
                 ),
               );
             }(),
@@ -462,6 +573,7 @@ class _Grid extends StatelessWidget {
 
 class _Cell extends ConsumerStatefulWidget {
   const _Cell({
+    this.finish,
     required this.widget,
     required this.index,
     required this.count,
@@ -482,6 +594,8 @@ class _Cell extends ConsumerStatefulWidget {
     required this.onResizeEnd,
   });
 
+  /// The « finished » moment, on the En cours card only.
+  final Animation<double>? finish;
   final PWidget widget;
   final int index;
   final int count;
@@ -726,7 +840,18 @@ class _CellState extends ConsumerState<_Cell> {
       ),
     );
 
-    final stack = Stack(clipBehavior: Clip.none, children: [body, ...controls]);
+    final finish = widget.finish;
+    final stack = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        body,
+        if (finish != null)
+          Positioned.fill(
+            child: IgnorePointer(child: _FinishGlow(animation: finish)),
+          ),
+        ...controls,
+      ],
+    );
     final tilt = widget.index.isEven ? 1.0 : -1.0;
     final cell = RepaintBoundary(
       child: AnimatedBuilder(
@@ -1302,6 +1427,78 @@ class _EmptyBoard extends StatelessWidget {
   }
 }
 
+/// The failed items, equal when the same ids failed for the same reasons
+/// (so progress ticks do not rebuild the Espace).
+class _FailedIds {
+  const _FailedIds(this.items);
+
+  final List<DownloadItem> items;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _FailedIds || other.items.length != items.length) {
+      return false;
+    }
+    for (var i = 0; i < items.length; i++) {
+      if (other.items[i].id != items[i].id ||
+          other.items[i].error != items[i].error) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([for (final i in items) i.id]);
+}
+
+/// Porcelaine's « finished » moment: a cobalt ring rises around the card in
+/// a third of the time, then settles back into the porcelain.
+class _FinishGlow extends StatelessWidget {
+  const _FinishGlow({required this.animation});
+
+  final Animation<double> animation;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          final v = animation.value;
+          final g = v <= 0 || v >= 1
+              ? 0.0
+              : (v < 0.3
+                    ? Curves.easeOut.transform(v / 0.3)
+                    : 1 - Curves.easeInOut.transform((v - 0.3) / 0.7));
+          if (g == 0) return const SizedBox.shrink();
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: colors.primary.withValues(alpha: g),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: 0.2 * g),
+                  spreadRadius: 8 * g,
+                ),
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: 0.22 * g),
+                  blurRadius: 48,
+                  offset: const Offset(0, 16),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _Toast extends StatelessWidget {
   const _Toast({
     required this.text,
@@ -1658,8 +1855,48 @@ class _Library extends ConsumerWidget {
     final count = ref.watch(
       filteredDownloadsProvider.select((v) => v.valueOrNull?.length ?? 0),
     );
-    void back() =>
-        ref.read(porcelaineLibraryOpenProvider.notifier).state = false;
+    // -1 loading, -2 unreadable, else how many items in all.
+    final phase = ref.watch(
+      downloadListProvider.select(
+        (v) => v.hasValue ? v.value!.length : (v.hasError ? -2 : -1),
+      ),
+    );
+    final failed = ref.watch(
+      downloadListProvider.select(
+        (v) => (v.valueOrNull ?? const <DownloadItem>[])
+            .where((i) => i.status == DownloadStatus.failed)
+            .length,
+      ),
+    );
+    void back() => pCloseLibrary(ref);
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final Widget content = switch (phase) {
+      -1 => const PLibrarySkeleton(),
+      -2 => const PLoadError(),
+      0 => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: SingleChildScrollView(child: PEmptyLibrary())),
+      ),
+      // No match: the panel covers the list but not today's top bar (64 px
+      // and its hairline), so the query can be changed and keeps focus.
+      _ => Stack(
+        children: [
+          const DownloadView(),
+          Positioned.fill(
+            top: 65,
+            child: AnimatedSwitcher(
+              duration: pMotion(context, 180),
+              child: count == 0
+                  ? ColoredBox(
+                      color: pCardFill(colors),
+                      child: const PNoResults(),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
+    };
     return CallbackShortcuts(
       bindings: {
         // Esc closes the inspector first, like today's library.
@@ -1674,56 +1911,106 @@ class _Library extends ConsumerWidget {
       child: LayoutBuilder(
         builder: (context, box) {
           final side = box.maxWidth > 1284 ? (box.maxWidth - 1220) / 2 : 32.0;
-          return Padding(
-            padding: EdgeInsets.fromLTRB(side, 4, side, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    PBtn(
-                      label: l10n.porcelaineSpace,
-                      icon: Directionality.of(context) == TextDirection.rtl
-                          ? Icons.arrow_forward_rounded
-                          : Icons.arrow_back_rounded,
-                      kind: PBtnKind.line,
-                      height: 36,
-                      onTap: back,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      l10n.librarySection,
-                      style: pDisp(28, color: colors.textPrimary),
-                    ),
-                    const SizedBox(width: 12),
-                    Text('$count', style: pMono(colors, size: 14)),
-                    const Spacer(),
-                    // Today's « Nouveau téléchargement » (also Ctrl+N and the
-                    // Lien rapide widget's menu).
-                    PBtn(
-                      label: l10n.newDownload,
-                      icon: Icons.add_rounded,
-                      kind: PBtnKind.accent,
-                      height: 36,
-                      onTap: () => openNewDownload(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const LibraryFilterStrip(),
-                const SizedBox(height: 14),
-                Expanded(
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      color: pCardFill(colors),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: pCardShadow(colors),
-                    ),
-                    child: const DownloadView(),
+          final compact = box.maxWidth < 760;
+          // The sheet rises once when the library opens.
+          return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: pMotion(context, 420),
+            curve: pEase,
+            builder: (context, t, child) => Opacity(
+              opacity: t,
+              child: Transform.translate(
+                offset: Offset(0, 14 * (1 - t)),
+                child: child,
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(side, 4, side, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      PBtn(
+                        label: compact ? '' : l10n.porcelaineSpace,
+                        tooltip: compact ? l10n.porcelaineSpace : null,
+                        icon: rtl
+                            ? Icons.arrow_forward_rounded
+                            : Icons.arrow_back_rounded,
+                        kind: PBtnKind.line,
+                        height: 36,
+                        padding: compact ? 11 : 16,
+                        onTap: back,
+                      ),
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: Text(
+                          l10n.librarySection,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: pDisp(
+                            compact ? 24 : 28,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      if (phase > 0)
+                        Text('$count', style: pMono(colors, size: 14)),
+                      const Spacer(),
+                      if (failed > 1) ...[
+                        PBtn(
+                          label: compact
+                              ? '$failed'
+                              : l10n.porcelaineRetryFailedCount(failed),
+                          tooltip: compact
+                              ? l10n.porcelaineRetryFailedCount(failed)
+                              : null,
+                          icon: Icons.refresh_rounded,
+                          height: 36,
+                          onTap: ref
+                              .read(downloadListProvider.notifier)
+                              .retryAllFailed,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      // Today's « Nouveau téléchargement » (also Ctrl+N and
+                      // the Lien rapide widget's menu).
+                      PBtn(
+                        label: compact ? '' : l10n.newDownload,
+                        tooltip: compact ? l10n.newDownload : null,
+                        icon: Icons.add_rounded,
+                        kind: PBtnKind.accent,
+                        height: 36,
+                        padding: compact ? 11 : 16,
+                        onTap: () => openNewDownload(context),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  if (phase > 0) ...[
+                    const SizedBox(height: 16),
+                    const LibraryFilterStrip(),
+                  ],
+                  const SizedBox(height: 14),
+                  Expanded(
+                    child: Container(
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: pCardFill(colors),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: pCardShadow(colors),
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: pMotion(context, 220),
+                        child: KeyedSubtree(
+                          key: ValueKey(phase < 1 ? phase : 1),
+                          child: content,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
