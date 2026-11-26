@@ -5457,6 +5457,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'By format'**
   String get nocturneByFormat;
+
+  /// No description provided for @nocturneChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get nocturneChange;
+
+  /// No description provided for @nocturneFileLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'File layout'**
+  String get nocturneFileLayout;
+
+  /// No description provided for @nocturneTokenSite.
+  ///
+  /// In en, this message translates to:
+  /// **'site'**
+  String get nocturneTokenSite;
+
+  /// No description provided for @nocturneTokenCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'creator'**
+  String get nocturneTokenCreator;
+
+  /// No description provided for @nocturneTokenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'title'**
+  String get nocturneTokenTitle;
+
+  /// No description provided for @nocturneAppearanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick TapLoad’s design.'**
+  String get nocturneAppearanceDesc;
+
+  /// No description provided for @nocturneToolsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The tools that do the downloading.'**
+  String get nocturneToolsDesc;
+
+  /// No description provided for @nocturneDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get nocturneDecrease;
+
+  /// No description provided for @nocturneIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get nocturneIncrease;
 }
 
 class _AppLocalizationsDelegate

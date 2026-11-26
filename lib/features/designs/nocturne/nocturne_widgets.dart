@@ -224,7 +224,6 @@ class _NocturneButtonState extends State<NocturneButton> {
             child: Container(
               height: widget.height,
               padding: EdgeInsets.symmetric(horizontal: widget.padding),
-              alignment: Alignment.center,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -427,7 +426,6 @@ class _SegmentTabState<T> extends State<_SegmentTab<T>> {
             child: Container(
               height: widget.height,
               padding: EdgeInsets.symmetric(horizontal: widget.padding),
-              alignment: Alignment.center,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:modern_downloader/core/ui/shell/designed_page.dart';
 
 import 'nocturne_home.dart';
+import 'nocturne_settings.dart';
 import 'nocturne_stats.dart';
 
 /// Nocturne's pages (mockups Nocturne, Nocturne-Archives, -Stats,
@@ -12,9 +13,10 @@ Widget? nocturnePage(DesignRoute route, Widget current) {
       return const NocturneHome();
     case DesignRoute.stats:
       return const NocturneStats();
+    case DesignRoute.settings:
+      return NocturneSettings(current: current);
     case DesignRoute.archive:
     case DesignRoute.transfer:
-    case DesignRoute.settings:
       return null;
   }
 }

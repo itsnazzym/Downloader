@@ -1207,5 +1207,14 @@
   "nocturneDaysAgo": "قبل {count} يومًا",
   "nocturneToday": "اليوم",
   "nocturneBySource": "حسب المصدر",
-  "nocturneByFormat": "حسب الصيغة"
+  "nocturneByFormat": "حسب الصيغة",
+  "nocturneChange": "تغيير",
+  "nocturneFileLayout": "ترتيب الملفات",
+  "nocturneTokenSite": "الموقع",
+  "nocturneTokenCreator": "المنشئ",
+  "nocturneTokenTitle": "العنوان",
+  "nocturneAppearanceDesc": "اختر تصميم TapLoad.",
+  "nocturneToolsDesc": "الأدوات التي تُجري التنزيلات.",
+  "nocturneDecrease": "إنقاص",
+  "nocturneIncrease": "زيادة"
 }

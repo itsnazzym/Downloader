@@ -1207,5 +1207,14 @@
   "nocturneDaysAgo": "il y a {count} jours",
   "nocturneToday": "aujourd’hui",
   "nocturneBySource": "Par source",
-  "nocturneByFormat": "Par format"
+  "nocturneByFormat": "Par format",
+  "nocturneChange": "Changer",
+  "nocturneFileLayout": "Rangement des fichiers",
+  "nocturneTokenSite": "site",
+  "nocturneTokenCreator": "créateur",
+  "nocturneTokenTitle": "titre",
+  "nocturneAppearanceDesc": "Choisis le design de TapLoad.",
+  "nocturneToolsDesc": "Les outils qui font les téléchargements.",
+  "nocturneDecrease": "Diminuer",
+  "nocturneIncrease": "Augmenter"
 }

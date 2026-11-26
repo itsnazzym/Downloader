@@ -1441,5 +1441,14 @@
   "@nocturneDaysAgo": {"placeholders":{"count":{"type":"int"}}},
   "nocturneToday": "today",
   "nocturneBySource": "By source",
-  "nocturneByFormat": "By format"
+  "nocturneByFormat": "By format",
+  "nocturneChange": "Change",
+  "nocturneFileLayout": "File layout",
+  "nocturneTokenSite": "site",
+  "nocturneTokenCreator": "creator",
+  "nocturneTokenTitle": "title",
+  "nocturneAppearanceDesc": "Pick TapLoad’s design.",
+  "nocturneToolsDesc": "The tools that do the downloading.",
+  "nocturneDecrease": "Decrease",
+  "nocturneIncrease": "Increase"
 }

@@ -3162,4 +3162,31 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nocturneByFormat => 'حسب الصيغة';
+
+  @override
+  String get nocturneChange => 'تغيير';
+
+  @override
+  String get nocturneFileLayout => 'ترتيب الملفات';
+
+  @override
+  String get nocturneTokenSite => 'الموقع';
+
+  @override
+  String get nocturneTokenCreator => 'المنشئ';
+
+  @override
+  String get nocturneTokenTitle => 'العنوان';
+
+  @override
+  String get nocturneAppearanceDesc => 'اختر تصميم TapLoad.';
+
+  @override
+  String get nocturneToolsDesc => 'الأدوات التي تُجري التنزيلات.';
+
+  @override
+  String get nocturneDecrease => 'إنقاص';
+
+  @override
+  String get nocturneIncrease => 'زيادة';
 }

@@ -3196,4 +3196,31 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nocturneByFormat => 'Par format';
+
+  @override
+  String get nocturneChange => 'Changer';
+
+  @override
+  String get nocturneFileLayout => 'Rangement des fichiers';
+
+  @override
+  String get nocturneTokenSite => 'site';
+
+  @override
+  String get nocturneTokenCreator => 'créateur';
+
+  @override
+  String get nocturneTokenTitle => 'titre';
+
+  @override
+  String get nocturneAppearanceDesc => 'Choisis le design de TapLoad.';
+
+  @override
+  String get nocturneToolsDesc => 'Les outils qui font les téléchargements.';
+
+  @override
+  String get nocturneDecrease => 'Diminuer';
+
+  @override
+  String get nocturneIncrease => 'Augmenter';
 }
