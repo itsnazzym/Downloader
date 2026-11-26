@@ -10,7 +10,6 @@ import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/disk_space_service.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -818,7 +817,7 @@ class _FinishedProgress extends StatelessWidget {
                     const SizedBox(width: 20),
                     Expanded(
                       child: Text(
-                        TitleCleanerService.clean(item.title ?? l10n.unknown),
+                        titleOf(item),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.body.copyWith(
@@ -1074,7 +1073,7 @@ class _MainProgress extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    TitleCleanerService.clean(item.title ?? l10n.unknown),
+                    titleOf(item),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.body.copyWith(
@@ -1160,7 +1159,6 @@ class _MiniProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final l10n = context.l10n;
     return Row(
       children: [
         SignalThumb(
@@ -1175,7 +1173,7 @@ class _MiniProgress extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                TitleCleanerService.clean(item.title ?? l10n.unknown),
+                titleOf(item),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.body.copyWith(
@@ -1361,9 +1359,7 @@ class _QueueCard extends ConsumerWidget {
                   ),
                   Expanded(
                     child: Text(
-                      TitleCleanerService.clean(
-                        queued[i].title ?? queued[i].request.url,
-                      ),
+                      titleOf(queued[i]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.body.copyWith(
@@ -2136,9 +2132,7 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        TitleCleanerService.clean(
-                          item.title ?? item.request.url,
-                        ),
+                        titleOf(item),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.body.copyWith(

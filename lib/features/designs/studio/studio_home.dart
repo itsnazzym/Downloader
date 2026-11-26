@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
@@ -1085,9 +1084,7 @@ class _RowState extends ConsumerState<_Row>
                       Flexible(
                         flex: 3,
                         child: StudioUnderline(
-                          text: TitleCleanerService.clean(
-                            item.title ?? item.request.url,
-                          ),
+                          text: titleOf(item),
                           hover: _hover,
                           style: studioText(
                             c,

@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:modern_downloader/features/designs/shared/design_data.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 
 void main() {
   test('reads the ERROR line of a real yt-dlp failure, not its warning', () {
@@ -24,5 +26,16 @@ void main() {
     );
     expect(downloadErrorReason('yt-dlp exited with code 2.'), '');
     expect(downloadErrorReason('Video is age restricted'), 'Video is age restricted');
+  });
+
+  test('a row without a title shows its link', () {
+    const url = 'https://www.tiktokv.com/share/video/7670635041910754573/';
+    DownloadItem item(String? title) =>
+        DownloadItem(id: '1', request: const DownloadRequest(url: url), title: title);
+    // Failed downloads are stored with an empty title.
+    expect(titleOf(item('')), url);
+    expect(titleOf(item(null)), url);
+    expect(titleOf(item('  ')), url);
+    expect(titleOf(item('havent posted in ages')), 'havent posted in ages');
   });
 }

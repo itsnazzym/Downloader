@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/design_system/components/design_progress_bar.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -94,7 +93,7 @@ Widget? _gate(WidgetRef ref, Widget head, PWidgetType type, PWidgetSize size) {
 }
 
 String _title(AppLocalizations l10n, DownloadItem item) =>
-    TitleCleanerService.clean(item.title ?? item.request.url);
+    titleOf(item);
 
 /// yt-dlp sizes ("54.1MiB") in the app's units; empty when unknown.
 String _size(AppLocalizations l10n, String raw) {

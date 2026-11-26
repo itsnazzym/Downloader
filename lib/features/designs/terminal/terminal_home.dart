@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
@@ -299,7 +298,7 @@ class _LiveBlockState extends ConsumerState<_LiveBlock> {
         item,
         firstBytesAt: started,
         now: now,
-        title: TitleCleanerService.clean(item.title ?? item.request.url),
+        title: titleOf(item),
       );
       setState(() {
         _finished
@@ -495,9 +494,7 @@ class _LiveLine extends StatelessWidget {
                       style: tm(paused ? colors.warning : colors.primary),
                     ),
                     TextSpan(
-                      text: TitleCleanerService.clean(
-                        item.title ?? item.request.url,
-                      ),
+                      text: titleOf(item),
                     ),
                   ],
                 ),
@@ -1173,7 +1170,7 @@ class _Line extends ConsumerWidget {
         : formatLabelOf(item).toLowerCase();
     final error = downloadErrorReason(item.error);
     final title = Text(
-      TitleCleanerService.clean(item.title ?? item.request.url),
+      titleOf(item),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: tm(colors.textPrimary, weight: FontWeight.w600),

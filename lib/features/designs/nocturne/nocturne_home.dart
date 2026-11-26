@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
@@ -573,7 +572,7 @@ class _Finished extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          TitleCleanerService.clean(item.title ?? item.request.url),
+          titleOf(item),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: nocturneText(
@@ -706,7 +705,7 @@ class _Current extends ConsumerWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          TitleCleanerService.clean(item.title ?? item.request.url),
+          titleOf(item),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: nocturneText(
@@ -788,7 +787,7 @@ class _Next extends StatelessWidget {
           Text(
             next == null
                 ? l10n.designQueueEmpty
-                : TitleCleanerService.clean(next.title ?? next.request.url),
+                : titleOf(next),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: nocturneText(
@@ -910,9 +909,7 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        TitleCleanerService.clean(
-                          item.title ?? item.request.url,
-                        ),
+                        titleOf(item),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: nocturneText(c, weight: FontWeight.w600),
@@ -1277,9 +1274,7 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        TitleCleanerService.clean(
-                          item.title ?? item.request.url,
-                        ),
+                        titleOf(item),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: nocturneText(c, weight: FontWeight.w600),

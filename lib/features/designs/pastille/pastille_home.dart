@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
 import 'package:modern_downloader/core/ui/shell/shell_strips.dart';
@@ -56,7 +55,7 @@ void _play(WidgetRef ref, DownloadItem item) {
 }
 
 String _title(AppLocalizations l10n, DownloadItem item) =>
-    TitleCleanerService.clean(item.title ?? item.request.url);
+    titleOf(item);
 
 /// "54,1 Mo" from yt-dlp's "54.1MiB"; empty if none.
 String _size(AppLocalizations l10n, String raw) {

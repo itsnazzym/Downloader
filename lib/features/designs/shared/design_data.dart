@@ -1,3 +1,4 @@
+import 'package:modern_downloader/core/services/title_cleaner_service.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
@@ -61,4 +62,11 @@ String? driveOf(String folder) {
     return '${folder[0].toUpperCase()}:';
   }
   return null;
+}
+
+/// The item's cleaned title, else its link: a failed download often has an
+/// empty title, which left its row blank.
+String titleOf(DownloadItem item) {
+  final title = TitleCleanerService.clean(item.title ?? '');
+  return title.trim().isNotEmpty ? title : item.request.url;
 }
