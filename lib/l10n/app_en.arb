@@ -2055,5 +2055,20 @@
   "nocturneArchiveEmptyTitle": "No archive imported yet",
   "nocturneArchiveEmptyBody": "Import the JSON export of your TikTok favorites or sync your collections through the extension. Nothing downloads without you.",
   "nocturneArchiveImportJson": "Choose a JSON file",
-  "nocturneArchiveSyncHint": "To sync, open TikTok in a browser with the extension installed, then come back here."
+  "nocturneArchiveSyncHint": "To sync, open TikTok in a browser with the extension installed, then come back here.",
+  "porcelaineEmptyLibTitle": "Your space is waiting for its first link.",
+  "porcelaineEmptyLibBody": "Paste a video, music or image link: your widgets fill up as downloads finish.",
+  "porcelaineNoResultsTitle": "Nothing matches.",
+  "porcelaineNoResultsQuery": "No download for “{query}”.",
+  "@porcelaineNoResultsQuery": {"placeholders": {"query": {"type": "String"}}},
+  "porcelaineNoResultsFilters": "No download matches these filters.",
+  "porcelaineLoadingLibrary": "Loading your library…",
+  "porcelaineLoadErrorTitle": "The library could not open.",
+  "porcelaineLoadErrorBody": "Your files are safe on disk. Try again in a moment.",
+  "porcelaineFailedCount": "{count, plural, =1{1 download failed} other{{count} downloads failed}}",
+  "@porcelaineFailedCount": {"placeholders": {"count": {"type": "int"}}},
+  "porcelaineRetryFailedCount": "Retry failed ({count})",
+  "@porcelaineRetryFailedCount": {"placeholders": {"count": {"type": "int"}}},
+  "porcelaineNothingActiveTitle": "Nothing running",
+  "porcelaineUnavailable": "Unavailable right now"
 }

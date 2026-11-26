@@ -5064,4 +5064,56 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get nocturneArchiveSyncHint =>
       'للمزامنة، افتح TikTok في متصفح مثبّت عليه الإضافة، ثم عد إلى هنا.';
+
+  @override
+  String get porcelaineEmptyLibTitle => 'مساحتك تنتظر أول رابط.';
+
+  @override
+  String get porcelaineEmptyLibBody =>
+      'الصق رابط فيديو أو موسيقى أو صورة: تمتلئ أدواتك مع انتهاء التنزيلات.';
+
+  @override
+  String get porcelaineNoResultsTitle => 'لا شيء مطابق.';
+
+  @override
+  String porcelaineNoResultsQuery(String query) {
+    return 'لا يوجد تنزيل لـ «$query».';
+  }
+
+  @override
+  String get porcelaineNoResultsFilters => 'لا يوجد تنزيل يطابق هذه المرشحات.';
+
+  @override
+  String get porcelaineLoadingLibrary => 'جارٍ تحميل مكتبتك…';
+
+  @override
+  String get porcelaineLoadErrorTitle => 'تعذّر فتح المكتبة.';
+
+  @override
+  String get porcelaineLoadErrorBody =>
+      'ملفاتك سليمة على القرص. أعد المحاولة بعد قليل.';
+
+  @override
+  String porcelaineFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيل',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String porcelaineRetryFailedCount(int count) {
+    return 'إعادة المحاولات الفاشلة ($count)';
+  }
+
+  @override
+  String get porcelaineNothingActiveTitle => 'لا شيء قيد التنزيل';
+
+  @override
+  String get porcelaineUnavailable => 'غير متاح حاليًا';
 }

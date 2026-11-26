@@ -21,6 +21,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import '../signal/signal_home.dart' show designFreeSpaceProvider;
+import 'porcelaine_states.dart';
 import 'porcelaine_widgets.dart';
 import 'porcelaine_workspace_model.dart';
 
@@ -71,6 +72,26 @@ Widget pTileFor(PWidgetType type, PWidgetSize size, {bool keyed = true}) =>
 
 /// Room the head keeps for the « … » button.
 const _headEnd = 30.0;
+
+/// While the library loads or cannot be read: the widget's head over its
+/// skeleton or error body. Null once the list is there.
+Widget? _gate(WidgetRef ref, Widget head, PWidgetType type, PWidgetSize size) {
+  final phase = ref.watch(
+    downloadListProvider.select((v) => v.hasValue ? 0 : (v.hasError ? 2 : 1)),
+  );
+  if (phase == 0) return null;
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      head,
+      Expanded(
+        child: phase == 2
+            ? const PTileError()
+            : PTileSkeleton(type: type, size: size),
+      ),
+    ],
+  );
+}
 
 String _title(AppLocalizations l10n, DownloadItem item) =>
     TitleCleanerService.clean(item.title ?? item.request.url);
@@ -171,8 +192,8 @@ class PActiveTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
-    final items =
-        ref.watch(downloadListProvider).valueOrNull ?? const <DownloadItem>[];
+    final list = ref.watch(downloadListProvider);
+    final items = list.valueOrNull ?? const <DownloadItem>[];
     final active = liveActiveItems(
       items,
       (id) => ref.watch(downloadRuntimeItemProvider(id)),
@@ -195,27 +216,97 @@ class PActiveTile extends ConsumerWidget {
             const SizedBox(width: 8),
             PLiveDot(live: active.isNotEmpty),
             const Spacer(),
-            Text('${shown.length}', style: pMono(colors, size: 13)),
+            // No count until the list is there (it is not « 0 » yet).
+            if (list.hasValue)
+              Text('${shown.length}', style: pMono(colors, size: 13)),
           ],
         ),
       ),
     );
-    if (main == null) {
+    final gate = _gate(ref, head, PWidgetType.active, size);
+    if (gate != null) return gate;
+    final finished = ref.watch(porcelaineFinishProvider);
+    if (finished != null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           head,
           Expanded(
-            child: Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: Text(
-                l10n.designNothingActive,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: pBody(colors, size: 13, color: colors.textSecondary),
+            child: _ActiveDone(item: finished, size: size),
+          ),
+        ],
+      );
+    }
+    if (main == null) {
+      Widget ring(double d) => PDashedBox(
+        width: d,
+        height: d,
+        circle: true,
+        child: Icon(
+          Icons.download_rounded,
+          size: d * 0.36,
+          color: colors.textDisabled,
+        ),
+      );
+      final title = Text(
+        l10n.porcelaineNothingActiveTitle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: pBody(colors, size: 15, weight: FontWeight.w600),
+      );
+      final hint = Text(
+        l10n.designNothingActive,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: pBody(colors, size: 13, color: colors.textSecondary),
+      );
+      final empty = switch (size) {
+        PWidgetSize.small => Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [ring(46), const SizedBox(height: 12), title],
+        ),
+        PWidgetSize.medium => Row(
+          children: [
+            ring(64),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [title, const SizedBox(height: 2), hint],
               ),
             ),
+          ],
+        ),
+        PWidgetSize.large => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ring(96),
+              const SizedBox(height: 18),
+              Text(
+                l10n.porcelaineNothingActiveTitle,
+                style: pDisp(24, color: colors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 300),
+                child: Text(
+                  l10n.designNothingActive,
+                  textAlign: TextAlign.center,
+                  style: pBody(colors, size: 13.5, color: colors.textSecondary),
+                ),
+              ),
+            ],
           ),
+        ),
+      };
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          head,
+          Expanded(child: empty),
         ],
       );
     }
@@ -307,6 +398,101 @@ class PActiveTile extends ConsumerWidget {
         head,
         Expanded(child: body),
       ],
+    );
+  }
+}
+
+/// The « finished » moment: the bar full, a cobalt check that pops in, the
+/// title; the card around it glows (see the Espace's cell).
+class _ActiveDone extends StatelessWidget {
+  const _ActiveDone({required this.item, required this.size});
+
+  final DownloadItem item;
+  final PWidgetSize size;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    final check = TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: pMotion(context, 420),
+      curve: Curves.easeOutBack,
+      builder: (context, t, child) => Transform.scale(scale: t, child: child),
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: colors.primary.withValues(alpha: 0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Icon(Icons.check_rounded, size: 22, color: colors.onPrimary),
+      ),
+    );
+    return Semantics(
+      liveRegion: true,
+      label: '${l10n.statusCompleted}: ${_title(l10n, item)}',
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              check,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.statusCompleted,
+                      style: pBody(colors, weight: FontWeight.w600),
+                    ),
+                    Text(
+                      _title(l10n, item),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: pBody(
+                        colors,
+                        size: 12.5,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (size != PWidgetSize.small)
+                Text.rich(
+                  TextSpan(
+                    text: '100',
+                    style: pDisp(
+                      48,
+                      color: colors.textPrimary,
+                    ).copyWith(height: 0.85),
+                    children: [
+                      TextSpan(
+                        text: '%',
+                        style: pDisp(
+                          22,
+                          color: colors.primary,
+                        ).copyWith(height: 1),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const DesignProgressBar(value: 1, height: 8, live: false),
+        ],
+      ),
     );
   }
 }
@@ -923,6 +1109,8 @@ class PSpeedTile extends ConsumerWidget {
       tint: pGreen,
       end: _headEnd,
     );
+    final gate = _gate(ref, head, PWidgetType.speed, size);
+    if (gate != null) return gate;
     Widget big(double s) => Text(
       number,
       style: pDisp(s, color: colors.textPrimary).copyWith(height: 0.9),
@@ -1153,6 +1341,8 @@ class _PStorageTileState extends ConsumerState<PStorageTile> {
       tint: pPink,
       end: _headEnd,
     );
+    final gate = _gate(ref, head, PWidgetType.storage, widget.size);
+    if (gate != null) return gate;
     Widget composition(double h) => SizedBox(
       height: h,
       child: Row(
@@ -1344,7 +1534,8 @@ class PRecentTile extends ConsumerWidget {
     ]..sort((a, b) => b.sortOrder.compareTo(a.sortOrder));
     String meta(DownloadItem i) {
       if (i.status != DownloadStatus.completed) {
-        return '${l10n.designFailed} · ${l10n.retry}';
+        final reason = pFailReason(i.error);
+        return reason.isEmpty ? l10n.designFailed : reason;
       }
       final size = bytesOf(i);
       return [
@@ -1377,28 +1568,143 @@ class PRecentTile extends ConsumerWidget {
               ),
             ),
     );
+    final gate = _gate(ref, head, PWidgetType.recent, size);
+    if (gate != null) return gate;
     if (recent.isEmpty) {
+      // Empty slots where the thumbnails will land.
+      final slots = switch (size) {
+        PWidgetSize.small => const PDashedBox(height: 58),
+        PWidgetSize.medium => Row(
+          children: [
+            for (var i = 0; i < 3; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              const Expanded(child: PDashedBox(height: 54)),
+            ],
+          ],
+        ),
+        PWidgetSize.large => Column(
+          children: [
+            for (var i = 0; i < 4; i++) ...[
+              if (i > 0) const SizedBox(height: 10),
+              Row(
+                children: [
+                  const PDashedBox(width: 52, height: 32, radius: 10),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FractionallySizedBox(
+                      alignment: AlignmentDirectional.centerStart,
+                      widthFactor: const [0.7, 0.5, 0.62, 0.42][i],
+                      child: const PDashedBox(height: 10, radius: 5),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      };
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           head,
           Expanded(
-            child: Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: Text(
-                l10n.designLibraryEmpty,
-                style: pBody(colors, size: 13, color: colors.textSecondary),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ExcludeSemantics(child: slots),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.designLibraryEmpty,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: pBody(colors, size: 13, color: colors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    // A failed item's picture says how to get it back.
+    Widget thumb(
+      DownloadItem i, {
+      double? width,
+      required double height,
+      double radius = 12,
+    }) {
+      final picture = PThumb(
+        url: i.thumbnailUrl,
+        seed: i.id,
+        width: width,
+        height: height,
+        radius: radius,
+      );
+      if (i.status == DownloadStatus.completed) return picture;
+      final compact = (width ?? 999) < 80;
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          picture,
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.error.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(radius),
+                border: Border.all(color: colors.error.withValues(alpha: 0.3)),
+              ),
+            ),
+          ),
+          Tooltip(
+            message: l10n.retry,
+            child: Container(
+              height: 24,
+              padding: EdgeInsets.symmetric(horizontal: compact ? 5 : 9),
+              decoration: BoxDecoration(
+                color: colors.surface.withValues(alpha: 0.94),
+                borderRadius: BorderRadius.circular(999),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.textPrimary.withValues(alpha: 0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.refresh_rounded, size: 14, color: colors.error),
+                  if (!compact) ...[
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.retry,
+                      style: pBody(
+                        colors,
+                        size: 11.5,
+                        weight: FontWeight.w600,
+                        color: colors.error,
+                      ).copyWith(height: 1.1),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
         ],
       );
     }
+
+    // InkWell: hover wash, press, keyboard focus and Enter, like a button.
     Widget tap(DownloadItem i, Widget child) => DownloadItemContextMenu(
       item: i,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          hoverColor: colors.textPrimary.withValues(alpha: 0.04),
+          focusColor: colors.primary.withValues(alpha: 0.12),
+          splashColor: Colors.transparent,
           onTap: () => i.status == DownloadStatus.completed
               ? openLibrary(ref, select: i.id)
               : ref.read(downloadListProvider.notifier).retryDownload(i),
@@ -1418,11 +1724,7 @@ class PRecentTile extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PThumb(
-              url: recent.first.thumbnailUrl,
-              seed: recent.first.id,
-              height: 58,
-            ),
+            thumb(recent.first, height: 58),
             const SizedBox(height: 10),
             Text(
               _title(l10n, recent.first),
@@ -1447,11 +1749,7 @@ class PRecentTile extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          PThumb(
-                            url: recent[i].thumbnailUrl,
-                            seed: recent[i].id,
-                            height: 54,
-                          ),
+                          thumb(recent[i], height: 54),
                           const SizedBox(height: 8),
                           Text(
                             _title(l10n, recent[i]),
@@ -1488,13 +1786,7 @@ class PRecentTile extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Row(
                     children: [
-                      PThumb(
-                        url: i.thumbnailUrl,
-                        seed: i.id,
-                        width: 52,
-                        height: 32,
-                        radius: 10,
-                      ),
+                      thumb(i, width: 52, height: 32, radius: 10),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -1507,7 +1799,9 @@ class PRecentTile extends ConsumerWidget {
                               style: title.copyWith(fontSize: 13),
                             ),
                             Text(
-                              meta(i),
+                              i.status == DownloadStatus.completed
+                                  ? meta(i)
+                                  : '${meta(i)} · ${l10n.retry}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: pBody(
@@ -1608,6 +1902,8 @@ class PQueueTile extends ConsumerWidget {
       tint: colors.primary,
       end: _headEnd,
     );
+    final gate = _gate(ref, head, PWidgetType.queue, size);
+    if (gate != null) return gate;
     Widget row(int i, {bool line = false}) => DownloadItemContextMenu(
       item: queued[i],
       child: Container(
@@ -1663,12 +1959,36 @@ class PQueueTile extends ConsumerWidget {
         ],
       );
     } else if (queued.isEmpty) {
-      body = Align(
-        alignment: AlignmentDirectional.bottomStart,
-        child: Text(
-          l10n.designQueueEmpty,
-          style: pBody(colors, size: 13, color: colors.textSecondary),
-        ),
+      body = Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Empty numbered slots where waiting links will line up.
+          for (var i = 0; i < (size == PWidgetSize.large ? 4 : 2); i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: ExcludeSemantics(
+                child: Row(
+                  children: [
+                    Text(
+                      (i + 1).toString().padLeft(2, '0'),
+                      style: pMono(
+                        colors,
+                        size: 13,
+                        color: colors.textDisabled.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(child: PDashedBox(height: 14, radius: 7)),
+                  ],
+                ),
+              ),
+            ),
+          Text(
+            l10n.designQueueEmpty,
+            style: pBody(colors, size: 13, color: colors.textSecondary),
+          ),
+        ],
       );
     } else if (size == PWidgetSize.medium) {
       body = Column(

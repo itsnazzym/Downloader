@@ -5123,4 +5123,55 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get nocturneArchiveSyncHint =>
       'Pour synchroniser, ouvre TikTok dans un navigateur où l’extension est installée, puis reviens ici.';
+
+  @override
+  String get porcelaineEmptyLibTitle => 'Ton espace attend son premier lien.';
+
+  @override
+  String get porcelaineEmptyLibBody =>
+      'Colle un lien de vidéo, de musique ou d’image : tes widgets se rempliront au fil des téléchargements.';
+
+  @override
+  String get porcelaineNoResultsTitle => 'Rien ne correspond.';
+
+  @override
+  String porcelaineNoResultsQuery(String query) {
+    return 'Aucun téléchargement pour « $query ».';
+  }
+
+  @override
+  String get porcelaineNoResultsFilters =>
+      'Aucun téléchargement ne correspond à ces filtres.';
+
+  @override
+  String get porcelaineLoadingLibrary => 'Chargement de ta bibliothèque…';
+
+  @override
+  String get porcelaineLoadErrorTitle => 'La bibliothèque n’a pas pu s’ouvrir.';
+
+  @override
+  String get porcelaineLoadErrorBody =>
+      'Tes fichiers sont intacts sur le disque. Réessaie dans un instant.';
+
+  @override
+  String porcelaineFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements ont échoué',
+      one: '1 téléchargement a échoué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String porcelaineRetryFailedCount(int count) {
+    return 'Relancer les échecs ($count)';
+  }
+
+  @override
+  String get porcelaineNothingActiveTitle => 'Rien en cours';
+
+  @override
+  String get porcelaineUnavailable => 'Indisponible pour l’instant';
 }

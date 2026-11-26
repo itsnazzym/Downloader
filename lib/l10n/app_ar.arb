@@ -1740,5 +1740,17 @@
   "nocturneArchiveEmptyTitle": "لم يتم استيراد أي أرشيف بعد",
   "nocturneArchiveEmptyBody": "استورد ملف JSON لمفضلاتك على TikTok أو زامن مجموعاتك عبر الإضافة. لا يُنزَّل شيء دون موافقتك.",
   "nocturneArchiveImportJson": "اختر ملف JSON",
-  "nocturneArchiveSyncHint": "للمزامنة، افتح TikTok في متصفح مثبّت عليه الإضافة، ثم عد إلى هنا."
+  "nocturneArchiveSyncHint": "للمزامنة، افتح TikTok في متصفح مثبّت عليه الإضافة، ثم عد إلى هنا.",
+  "porcelaineEmptyLibTitle": "مساحتك تنتظر أول رابط.",
+  "porcelaineEmptyLibBody": "الصق رابط فيديو أو موسيقى أو صورة: تمتلئ أدواتك مع انتهاء التنزيلات.",
+  "porcelaineNoResultsTitle": "لا شيء مطابق.",
+  "porcelaineNoResultsQuery": "لا يوجد تنزيل لـ «{query}».",
+  "porcelaineNoResultsFilters": "لا يوجد تنزيل يطابق هذه المرشحات.",
+  "porcelaineLoadingLibrary": "جارٍ تحميل مكتبتك…",
+  "porcelaineLoadErrorTitle": "تعذّر فتح المكتبة.",
+  "porcelaineLoadErrorBody": "ملفاتك سليمة على القرص. أعد المحاولة بعد قليل.",
+  "porcelaineFailedCount": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيل}}",
+  "porcelaineRetryFailedCount": "إعادة المحاولات الفاشلة ({count})",
+  "porcelaineNothingActiveTitle": "لا شيء قيد التنزيل",
+  "porcelaineUnavailable": "غير متاح حاليًا"
 }

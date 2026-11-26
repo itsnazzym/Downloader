@@ -16,6 +16,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import '../signal/signal_home.dart' show designFreeSpaceProvider;
+import 'porcelaine_states.dart' show PEmptyRows;
 import 'porcelaine_widgets.dart';
 
 /// Porcelaine's statistics (Porcelaine-Stats.dc.html): four figures, the
@@ -501,11 +502,7 @@ class _Sources extends ConsumerWidget {
             label: l10n.porcelaineBySource,
             bottom: 20,
           ),
-          if (top.isEmpty)
-            Text(
-              l10n.noSourceData,
-              style: pBody(colors, color: colors.textSecondary),
-            ),
+          if (top.isEmpty) PEmptyRows(text: l10n.noSourceData),
           for (var i = 0; i < top.length && i < 4; i++) ...[
             if (i > 0) const SizedBox(height: 16),
             Row(
@@ -744,10 +741,7 @@ class _Creators extends ConsumerWidget {
             ),
           ),
           if (top.isEmpty)
-            Text(
-              l10n.noDownloadHistory,
-              style: pBody(colors, color: colors.textSecondary),
-            ),
+            PEmptyRows(text: l10n.noDownloadHistory, numbered: true),
           for (var i = 0; i < top.length; i++) ...[
             if (i > 0) const SizedBox(height: 12),
             Row(

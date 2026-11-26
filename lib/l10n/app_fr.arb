@@ -1740,5 +1740,17 @@
   "nocturneArchiveEmptyTitle": "Aucune archive importée",
   "nocturneArchiveEmptyBody": "Importe l’export JSON de tes favoris TikTok ou synchronise tes collections avec l’extension. Rien n’est téléchargé sans toi.",
   "nocturneArchiveImportJson": "Choisir un fichier JSON",
-  "nocturneArchiveSyncHint": "Pour synchroniser, ouvre TikTok dans un navigateur où l’extension est installée, puis reviens ici."
+  "nocturneArchiveSyncHint": "Pour synchroniser, ouvre TikTok dans un navigateur où l’extension est installée, puis reviens ici.",
+  "porcelaineEmptyLibTitle": "Ton espace attend son premier lien.",
+  "porcelaineEmptyLibBody": "Colle un lien de vidéo, de musique ou d’image : tes widgets se rempliront au fil des téléchargements.",
+  "porcelaineNoResultsTitle": "Rien ne correspond.",
+  "porcelaineNoResultsQuery": "Aucun téléchargement pour « {query} ».",
+  "porcelaineNoResultsFilters": "Aucun téléchargement ne correspond à ces filtres.",
+  "porcelaineLoadingLibrary": "Chargement de ta bibliothèque…",
+  "porcelaineLoadErrorTitle": "La bibliothèque n’a pas pu s’ouvrir.",
+  "porcelaineLoadErrorBody": "Tes fichiers sont intacts sur le disque. Réessaie dans un instant.",
+  "porcelaineFailedCount": "{count, plural, =1{1 téléchargement a échoué} other{{count} téléchargements ont échoué}}",
+  "porcelaineRetryFailedCount": "Relancer les échecs ({count})",
+  "porcelaineNothingActiveTitle": "Rien en cours",
+  "porcelaineUnavailable": "Indisponible pour l’instant"
 }
