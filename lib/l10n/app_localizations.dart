@@ -5355,6 +5355,678 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archives'**
   String get designArchivesTab;
+
+  /// No description provided for @terminalCommandHint.
+  ///
+  /// In en, this message translates to:
+  /// **'paste a URL'**
+  String get terminalCommandHint;
+
+  /// No description provided for @terminalEnterKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter'**
+  String get terminalEnterKey;
+
+  /// No description provided for @terminalEnterDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'download'**
+  String get terminalEnterDownload;
+
+  /// No description provided for @terminalHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'help'**
+  String get terminalHelp;
+
+  /// No description provided for @terminalAll.
+  ///
+  /// In en, this message translates to:
+  /// **'all'**
+  String get terminalAll;
+
+  /// No description provided for @terminalActive.
+  ///
+  /// In en, this message translates to:
+  /// **'running'**
+  String get terminalActive;
+
+  /// No description provided for @terminalDone.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get terminalDone;
+
+  /// No description provided for @terminalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'failed'**
+  String get terminalFailed;
+
+  /// No description provided for @terminalDesignLine.
+  ///
+  /// In en, this message translates to:
+  /// **'design {id}'**
+  String terminalDesignLine(String id);
+
+  /// No description provided for @terminalActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String terminalActiveCount(int count);
+
+  /// No description provided for @terminalQueuedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} queued'**
+  String terminalQueuedCount(int count);
+
+  /// No description provided for @terminalDownloadsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} download} other{{count} downloads}}'**
+  String terminalDownloadsCount(int count);
+
+  /// No description provided for @terminalLocalArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'local archive'**
+  String get terminalLocalArchive;
+
+  /// No description provided for @terminalVideosCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} video} other{{count} videos}}'**
+  String terminalVideosCount(int count);
+
+  /// No description provided for @terminalCollectionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} collection} other{{count} collections}}'**
+  String terminalCollectionsCount(int count);
+
+  /// No description provided for @terminalLocalWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'local Wi-Fi'**
+  String get terminalLocalWifi;
+
+  /// No description provided for @terminalSending.
+  ///
+  /// In en, this message translates to:
+  /// **'sending'**
+  String get terminalSending;
+
+  /// No description provided for @terminalKeyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'filter the library'**
+  String get terminalKeyFilters;
+
+  /// No description provided for @terminalKeyTools.
+  ///
+  /// In en, this message translates to:
+  /// **'statistics, transfer, archives'**
+  String get terminalKeyTools;
+
+  /// No description provided for @terminalKeySearch.
+  ///
+  /// In en, this message translates to:
+  /// **'search'**
+  String get terminalKeySearch;
+
+  /// No description provided for @terminalFlagLive.
+  ///
+  /// In en, this message translates to:
+  /// **'--live'**
+  String get terminalFlagLive;
+
+  /// No description provided for @terminalFlagRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'--recent'**
+  String get terminalFlagRecent;
+
+  /// No description provided for @terminalColState.
+  ///
+  /// In en, this message translates to:
+  /// **'state'**
+  String get terminalColState;
+
+  /// No description provided for @terminalColTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'title'**
+  String get terminalColTitle;
+
+  /// No description provided for @terminalColSource.
+  ///
+  /// In en, this message translates to:
+  /// **'source'**
+  String get terminalColSource;
+
+  /// No description provided for @terminalColFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'format'**
+  String get terminalColFormat;
+
+  /// No description provided for @terminalStateOk.
+  ///
+  /// In en, this message translates to:
+  /// **'ok'**
+  String get terminalStateOk;
+
+  /// No description provided for @terminalStateErr.
+  ///
+  /// In en, this message translates to:
+  /// **'err'**
+  String get terminalStateErr;
+
+  /// No description provided for @terminalStateWait.
+  ///
+  /// In en, this message translates to:
+  /// **'wait'**
+  String get terminalStateWait;
+
+  /// No description provided for @terminalStateRun.
+  ///
+  /// In en, this message translates to:
+  /// **'run'**
+  String get terminalStateRun;
+
+  /// No description provided for @terminalFlagSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'--summary'**
+  String get terminalFlagSummary;
+
+  /// No description provided for @terminalKpiDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads'**
+  String get terminalKpiDownloads;
+
+  /// No description provided for @terminalKpiStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'storage'**
+  String get terminalKpiStorage;
+
+  /// No description provided for @terminalKpiToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get terminalKpiToday;
+
+  /// No description provided for @terminalKpiFree.
+  ///
+  /// In en, this message translates to:
+  /// **'free_space'**
+  String get terminalKpiFree;
+
+  /// No description provided for @terminalPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'period'**
+  String get terminalPeriod;
+
+  /// No description provided for @terminalPeriod7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 d'**
+  String get terminalPeriod7;
+
+  /// No description provided for @terminalPeriod30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 d'**
+  String get terminalPeriod30;
+
+  /// No description provided for @terminalPeriod12.
+  ///
+  /// In en, this message translates to:
+  /// **'12 months'**
+  String get terminalPeriod12;
+
+  /// No description provided for @terminalFlagPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'--period'**
+  String get terminalFlagPeriod;
+
+  /// No description provided for @terminalPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads per day'**
+  String get terminalPerDay;
+
+  /// No description provided for @terminalPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads per month'**
+  String get terminalPerMonth;
+
+  /// No description provided for @terminalLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'last {count} days'**
+  String terminalLastDays(int count);
+
+  /// No description provided for @terminalLastMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'last {count} months'**
+  String terminalLastMonths(int count);
+
+  /// No description provided for @terminalDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'d-{count}'**
+  String terminalDaysAgo(int count);
+
+  /// No description provided for @terminalToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get terminalToday;
+
+  /// No description provided for @terminalMonthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'m-{count}'**
+  String terminalMonthsAgo(int count);
+
+  /// No description provided for @terminalThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'this month'**
+  String get terminalThisMonth;
+
+  /// No description provided for @terminalFlagBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'--by source'**
+  String get terminalFlagBySource;
+
+  /// No description provided for @terminalFlagByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'--by format'**
+  String get terminalFlagByFormat;
+
+  /// No description provided for @terminalFlagTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'--top creators'**
+  String get terminalFlagTopCreators;
+
+  /// No description provided for @terminalSections.
+  ///
+  /// In en, this message translates to:
+  /// **'sections'**
+  String get terminalSections;
+
+  /// No description provided for @terminalSection.
+  ///
+  /// In en, this message translates to:
+  /// **'section'**
+  String get terminalSection;
+
+  /// No description provided for @terminalFlagEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'--edit'**
+  String get terminalFlagEdit;
+
+  /// No description provided for @terminalChangeFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'change the folder'**
+  String get terminalChangeFolder;
+
+  /// No description provided for @terminalAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'adjust'**
+  String get terminalAdjust;
+
+  /// No description provided for @terminalCheckTools.
+  ///
+  /// In en, this message translates to:
+  /// **'check the tools'**
+  String get terminalCheckTools;
+
+  /// No description provided for @terminalToolOk.
+  ///
+  /// In en, this message translates to:
+  /// **'ok'**
+  String get terminalToolOk;
+
+  /// No description provided for @terminalToolChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'checking…'**
+  String get terminalToolChecking;
+
+  /// No description provided for @terminalToolMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'missing'**
+  String get terminalToolMissing;
+
+  /// No description provided for @terminalToolUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'not checked'**
+  String get terminalToolUnchecked;
+
+  /// No description provided for @terminalConfigComment.
+  ///
+  /// In en, this message translates to:
+  /// **'tapload configuration · edited live'**
+  String get terminalConfigComment;
+
+  /// No description provided for @terminalCfgAudioOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'audio_only'**
+  String get terminalCfgAudioOnly;
+
+  /// No description provided for @terminalCfgAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'auto_start'**
+  String get terminalCfgAutoStart;
+
+  /// No description provided for @terminalCfgQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'preferred_quality'**
+  String get terminalCfgQuality;
+
+  /// No description provided for @terminalCfgFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'folder'**
+  String get terminalCfgFolder;
+
+  /// No description provided for @terminalCfgDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'design'**
+  String get terminalCfgDesign;
+
+  /// No description provided for @terminalCfgConcurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'simultaneous_downloads'**
+  String get terminalCfgConcurrent;
+
+  /// No description provided for @terminalCfgReduceEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'reduce_effects'**
+  String get terminalCfgReduceEffects;
+
+  /// No description provided for @terminalChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get terminalChange;
+
+  /// No description provided for @terminalFlagArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'--archive'**
+  String get terminalFlagArchive;
+
+  /// No description provided for @terminalTabVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get terminalTabVideos;
+
+  /// No description provided for @terminalTabCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'collections'**
+  String get terminalTabCollections;
+
+  /// No description provided for @terminalTabFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get terminalTabFavorites;
+
+  /// No description provided for @terminalTabLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'likes'**
+  String get terminalTabLikes;
+
+  /// No description provided for @terminalFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get terminalFinish;
+
+  /// No description provided for @terminalFlagCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'--collections'**
+  String get terminalFlagCollections;
+
+  /// No description provided for @terminalFlagVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'--videos'**
+  String get terminalFlagVideos;
+
+  /// No description provided for @terminalSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} sorting suggestion} other{{count} sorting suggestions}}'**
+  String terminalSuggestions(int count);
+
+  /// No description provided for @terminalReview.
+  ///
+  /// In en, this message translates to:
+  /// **'review'**
+  String get terminalReview;
+
+  /// No description provided for @terminalPurgeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'videos shared with a kept collection are kept'**
+  String get terminalPurgeNote;
+
+  /// No description provided for @terminalSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'selection'**
+  String get terminalSelection;
+
+  /// No description provided for @terminalRightClick.
+  ///
+  /// In en, this message translates to:
+  /// **'right-click'**
+  String get terminalRightClick;
+
+  /// No description provided for @terminalActions.
+  ///
+  /// In en, this message translates to:
+  /// **'actions'**
+  String get terminalActions;
+
+  /// No description provided for @terminalDownloadedOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} videos downloaded'**
+  String terminalDownloadedOf(int done, int total);
+
+  /// No description provided for @terminalDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get terminalDownloadAll;
+
+  /// No description provided for @terminalAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'all downloaded'**
+  String get terminalAllDownloaded;
+
+  /// No description provided for @terminalDownloadedPct.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% downloaded'**
+  String terminalDownloadedPct(int percent);
+
+  /// No description provided for @terminalToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'to download'**
+  String get terminalToDownload;
+
+  /// No description provided for @terminalVidCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} vid.'**
+  String terminalVidCount(int count);
+
+  /// No description provided for @terminalAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'all collections'**
+  String get terminalAllCollections;
+
+  /// No description provided for @terminalDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection ({count})'**
+  String terminalDownloadSelection(int count);
+
+  /// No description provided for @terminalCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get terminalCopyLink;
+
+  /// No description provided for @terminalOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get terminalOpenBrowser;
+
+  /// No description provided for @terminalApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply ({count})'**
+  String terminalApply(int count);
+
+  /// No description provided for @terminalFlagWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'--wifi'**
+  String get terminalFlagWifi;
+
+  /// No description provided for @terminalFlagSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'--select'**
+  String get terminalFlagSelect;
+
+  /// No description provided for @terminalFlagStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'--status'**
+  String get terminalFlagStatus;
+
+  /// No description provided for @terminalFlagPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'--devices'**
+  String get terminalFlagPeers;
+
+  /// No description provided for @terminalPin.
+  ///
+  /// In en, this message translates to:
+  /// **'pin'**
+  String get terminalPin;
+
+  /// No description provided for @terminalAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'address'**
+  String get terminalAddress;
+
+  /// No description provided for @terminalScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan'**
+  String get terminalScanHint;
+
+  /// No description provided for @terminalDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'device'**
+  String get terminalDevice;
+
+  /// No description provided for @terminalOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'online'**
+  String get terminalOnline;
+
+  /// No description provided for @terminalBroadcast.
+  ///
+  /// In en, this message translates to:
+  /// **'announce'**
+  String get terminalBroadcast;
+
+  /// No description provided for @terminalCheckAll.
+  ///
+  /// In en, this message translates to:
+  /// **'check all'**
+  String get terminalCheckAll;
+
+  /// No description provided for @terminalAddFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'add'**
+  String get terminalAddFiles;
+
+  /// No description provided for @terminalClearPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get terminalClearPayload;
+
+  /// No description provided for @terminalZipKey.
+  ///
+  /// In en, this message translates to:
+  /// **'zip_archive'**
+  String get terminalZipKey;
+
+  /// No description provided for @terminalOnlyNewKey.
+  ///
+  /// In en, this message translates to:
+  /// **'only_new'**
+  String get terminalOnlyNewKey;
+
+  /// No description provided for @terminalTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'total'**
+  String get terminalTotal;
+
+  /// No description provided for @terminalNoTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing being sent'**
+  String get terminalNoTransfer;
 }
 
 class _AppLocalizationsDelegate

@@ -3091,4 +3091,372 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'الأرشيف';
+
+  @override
+  String get terminalCommandHint => 'الصق رابطًا';
+
+  @override
+  String get terminalEnterKey => 'Enter';
+
+  @override
+  String get terminalEnterDownload => 'تنزيل';
+
+  @override
+  String get terminalHelp => 'مساعدة';
+
+  @override
+  String get terminalAll => 'الكل';
+
+  @override
+  String get terminalActive => 'جارية';
+
+  @override
+  String get terminalDone => 'مكتملة';
+
+  @override
+  String get terminalFailed => 'فاشلة';
+
+  @override
+  String terminalDesignLine(String id) {
+    return 'التصميم $id';
+  }
+
+  @override
+  String terminalActiveCount(int count) {
+    return '$count نشطة';
+  }
+
+  @override
+  String terminalQueuedCount(int count) {
+    return '$count في الانتظار';
+  }
+
+  @override
+  String terminalDownloadsCount(int count) {
+    return '$count تنزيلات';
+  }
+
+  @override
+  String get terminalLocalArchive => 'أرشيف محلي';
+
+  @override
+  String terminalVideosCount(int count) {
+    return '$count فيديو';
+  }
+
+  @override
+  String terminalCollectionsCount(int count) {
+    return '$count مجموعات';
+  }
+
+  @override
+  String get terminalLocalWifi => 'Wi-Fi محلي';
+
+  @override
+  String get terminalSending => 'جارٍ الإرسال';
+
+  @override
+  String get terminalKeyFilters => 'تصفية المكتبة';
+
+  @override
+  String get terminalKeyTools => 'الإحصائيات، النقل، الأرشيف';
+
+  @override
+  String get terminalKeySearch => 'بحث';
+
+  @override
+  String get terminalFlagLive => '--live';
+
+  @override
+  String get terminalFlagRecent => '--recent';
+
+  @override
+  String get terminalColState => 'الحالة';
+
+  @override
+  String get terminalColTitle => 'العنوان';
+
+  @override
+  String get terminalColSource => 'المصدر';
+
+  @override
+  String get terminalColFormat => 'الصيغة';
+
+  @override
+  String get terminalStateOk => 'تم';
+
+  @override
+  String get terminalStateErr => 'خطأ';
+
+  @override
+  String get terminalStateWait => 'انتظار';
+
+  @override
+  String get terminalStateRun => 'تشغيل';
+
+  @override
+  String get terminalFlagSummary => '--summary';
+
+  @override
+  String get terminalKpiDownloads => 'التنزيلات';
+
+  @override
+  String get terminalKpiStorage => 'التخزين';
+
+  @override
+  String get terminalKpiToday => 'اليوم';
+
+  @override
+  String get terminalKpiFree => 'المساحة_الحرة';
+
+  @override
+  String get terminalPeriod => 'الفترة';
+
+  @override
+  String get terminalPeriod7 => '7 أيام';
+
+  @override
+  String get terminalPeriod30 => '30 يومًا';
+
+  @override
+  String get terminalPeriod12 => '12 شهرًا';
+
+  @override
+  String get terminalFlagPeriod => '--period';
+
+  @override
+  String get terminalPerDay => 'التنزيلات يوميًا';
+
+  @override
+  String get terminalPerMonth => 'التنزيلات شهريًا';
+
+  @override
+  String terminalLastDays(int count) {
+    return 'آخر $count يومًا';
+  }
+
+  @override
+  String terminalLastMonths(int count) {
+    return 'آخر $count شهرًا';
+  }
+
+  @override
+  String terminalDaysAgo(int count) {
+    return 'ي-$count';
+  }
+
+  @override
+  String get terminalToday => 'اليوم';
+
+  @override
+  String terminalMonthsAgo(int count) {
+    return 'ش-$count';
+  }
+
+  @override
+  String get terminalThisMonth => 'هذا الشهر';
+
+  @override
+  String get terminalFlagBySource => '--by source';
+
+  @override
+  String get terminalFlagByFormat => '--by format';
+
+  @override
+  String get terminalFlagTopCreators => '--top creators';
+
+  @override
+  String get terminalSections => 'الأقسام';
+
+  @override
+  String get terminalSection => 'قسم';
+
+  @override
+  String get terminalFlagEdit => '--edit';
+
+  @override
+  String get terminalChangeFolder => 'تغيير المجلد';
+
+  @override
+  String get terminalAdjust => 'ضبط';
+
+  @override
+  String get terminalCheckTools => 'فحص الأدوات';
+
+  @override
+  String get terminalToolOk => 'جاهز';
+
+  @override
+  String get terminalToolChecking => 'جارٍ الفحص…';
+
+  @override
+  String get terminalToolMissing => 'مفقود';
+
+  @override
+  String get terminalToolUnchecked => 'لم يُفحص';
+
+  @override
+  String get terminalConfigComment => 'إعدادات tapload · تُعدَّل مباشرة';
+
+  @override
+  String get terminalCfgAudioOnly => 'صوت_فقط';
+
+  @override
+  String get terminalCfgAutoStart => 'بدء_تلقائي';
+
+  @override
+  String get terminalCfgQuality => 'الجودة_المفضلة';
+
+  @override
+  String get terminalCfgFolder => 'المجلد';
+
+  @override
+  String get terminalCfgDesign => 'التصميم';
+
+  @override
+  String get terminalCfgConcurrent => 'تنزيلات_متزامنة';
+
+  @override
+  String get terminalCfgReduceEffects => 'تقليل_المؤثرات';
+
+  @override
+  String get terminalChange => 'تغيير';
+
+  @override
+  String get terminalFlagArchive => '--archive';
+
+  @override
+  String get terminalTabVideos => 'فيديوهات';
+
+  @override
+  String get terminalTabCollections => 'مجموعات';
+
+  @override
+  String get terminalTabFavorites => 'المفضلة';
+
+  @override
+  String get terminalTabLikes => 'الإعجابات';
+
+  @override
+  String get terminalFinish => 'إنهاء';
+
+  @override
+  String get terminalFlagCollections => '--collections';
+
+  @override
+  String get terminalFlagVideos => '--videos';
+
+  @override
+  String terminalSuggestions(int count) {
+    return '$count اقتراحات تصنيف';
+  }
+
+  @override
+  String get terminalReview => 'مراجعة';
+
+  @override
+  String get terminalPurgeNote => 'تُحفظ الفيديوهات المشتركة مع مجموعة محفوظة';
+
+  @override
+  String get terminalSelection => 'تحديد';
+
+  @override
+  String get terminalRightClick => 'نقر يمين';
+
+  @override
+  String get terminalActions => 'إجراءات';
+
+  @override
+  String terminalDownloadedOf(int done, int total) {
+    return 'تم تنزيل $done / $total فيديو';
+  }
+
+  @override
+  String get terminalDownloadAll => 'تنزيل الكل';
+
+  @override
+  String get terminalAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String terminalDownloadedPct(int percent) {
+    return 'تم تنزيل $percent%';
+  }
+
+  @override
+  String get terminalToDownload => 'للتنزيل';
+
+  @override
+  String terminalVidCount(int count) {
+    return '$count فيديو';
+  }
+
+  @override
+  String get terminalAllCollections => 'كل المجموعات';
+
+  @override
+  String terminalDownloadSelection(int count) {
+    return 'تنزيل المحدد ($count)';
+  }
+
+  @override
+  String get terminalCopyLink => 'نسخ الرابط';
+
+  @override
+  String get terminalOpenBrowser => 'فتح في المتصفح';
+
+  @override
+  String terminalApply(int count) {
+    return 'تطبيق ($count)';
+  }
+
+  @override
+  String get terminalFlagWifi => '--wifi';
+
+  @override
+  String get terminalFlagSelect => '--select';
+
+  @override
+  String get terminalFlagStatus => '--status';
+
+  @override
+  String get terminalFlagPeers => '--devices';
+
+  @override
+  String get terminalPin => 'رمز PIN';
+
+  @override
+  String get terminalAddress => 'العنوان';
+
+  @override
+  String get terminalScanHint => 'افتح TapLoad على هاتفك وامسح الرمز';
+
+  @override
+  String get terminalDevice => 'الجهاز';
+
+  @override
+  String get terminalOnline => 'متصل';
+
+  @override
+  String get terminalBroadcast => 'إعلان';
+
+  @override
+  String get terminalCheckAll => 'تحديد الكل';
+
+  @override
+  String get terminalAddFiles => 'إضافة';
+
+  @override
+  String get terminalClearPayload => 'إفراغ';
+
+  @override
+  String get terminalZipKey => 'ضغط_zip';
+
+  @override
+  String get terminalOnlyNewKey => 'الجديدة_فقط';
+
+  @override
+  String get terminalTotal => 'المجموع';
+
+  @override
+  String get terminalNoTransfer => 'لا يوجد إرسال جارٍ';
 }
