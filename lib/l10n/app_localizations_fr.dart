@@ -3404,4 +3404,182 @@ class AppLocalizationsFr extends AppLocalizations {
   String nocturnePartDownloaded(int percent) {
     return '$percent % téléchargé';
   }
+
+  @override
+  String studioItems(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString éléments',
+      one: '1 élément',
+      zero: '0 élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioLiveCount(int count) {
+    return '$count en cours';
+  }
+
+  @override
+  String get studioPasteLink => 'Coller un lien';
+
+  @override
+  String get studioColState => 'État';
+
+  @override
+  String get studioAutoStart => 'Démarrer automatiquement';
+
+  @override
+  String get studioChange => 'Changer';
+
+  @override
+  String get studioTools => 'Outils de téléchargement';
+
+  @override
+  String get studioChecking => 'Vérification…';
+
+  @override
+  String get studioReplay => 'Relancer';
+
+  @override
+  String get studioDecrease => 'Diminuer';
+
+  @override
+  String get studioIncrease => 'Augmenter';
+
+  @override
+  String get studioStatsSubtitle => 'Ce que tu as téléchargé, d’où et de qui.';
+
+  @override
+  String get studioStorage => 'Stockage';
+
+  @override
+  String get studioChartTitle7 => 'Téléchargements · 7 derniers jours';
+
+  @override
+  String get studioChartTitle30 => 'Téléchargements · 30 derniers jours';
+
+  @override
+  String get studioDays7 => '7 j';
+
+  @override
+  String get studioDays30 => '30 j';
+
+  @override
+  String studioDaysAgo(int count) {
+    return 'il y a $count j';
+  }
+
+  @override
+  String get studioToday => 'aujourd’hui';
+
+  @override
+  String get studioBySource => 'Par source';
+
+  @override
+  String get studioByFormat => 'Par format';
+
+  @override
+  String get studioTopCreators => 'Top créateurs';
+
+  @override
+  String get studioPeriod => 'Période';
+
+  @override
+  String get studioTransferSubtitle =>
+      'Envoie tes fichiers vers ton téléphone, sur le Wi-Fi local, sans câble ni cloud.';
+
+  @override
+  String get studioScanTitle => 'Ouvre TapLoad sur ton téléphone et scanne.';
+
+  @override
+  String get studioQrCode => 'QR code';
+
+  @override
+  String get studioPin => 'Code PIN';
+
+  @override
+  String get studioAddress => 'Adresse';
+
+  @override
+  String get studioFilesToSend => 'Fichiers à envoyer';
+
+  @override
+  String get studioSelection => 'Sélection';
+
+  @override
+  String get studioZip => 'Compresser en ZIP';
+
+  @override
+  String get studioTarget => 'Destinataire';
+
+  @override
+  String get studioChoose => 'Choisir';
+
+  @override
+  String get studioAllOptions => 'Toutes les options';
+
+  @override
+  String get studioSimpleView => 'Vue simple';
+
+  @override
+  String get studioTransferIssue => 'Le transfert a rencontré un problème.';
+
+  @override
+  String get studioArchiveCap => 'Archive locale · TikTok';
+
+  @override
+  String get studioArchiveTitle => 'Mon archive';
+
+  @override
+  String get studioSync => 'Synchroniser';
+
+  @override
+  String get studioDownloadAll => 'Tout télécharger';
+
+  @override
+  String studioDownloadAllConfirm(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString vidéos pas encore téléchargées seront ajoutées à la file.';
+  }
+
+  @override
+  String get studioVideos => 'Vidéos';
+
+  @override
+  String get studioCollections => 'Collections';
+
+  @override
+  String get studioVideosUnit => 'vidéos';
+
+  @override
+  String get studioCollectionsUnit => 'collections';
+
+  @override
+  String get studioFavoritesUnit => 'favoris';
+
+  @override
+  String get studioDone => 'Terminer';
+
+  @override
+  String get studioPurgeNote =>
+      'Les vidéos partagées avec une collection conservée sont gardées.';
+
+  @override
+  String get studioAllDownloaded => 'Tout téléchargé';
+
+  @override
+  String get studioPartDownloaded => 'téléchargé';
+
+  @override
+  String get studioToDownload => 'À télécharger';
 }

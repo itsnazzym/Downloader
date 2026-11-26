@@ -3370,4 +3370,185 @@ class AppLocalizationsAr extends AppLocalizations {
   String nocturnePartDownloaded(int percent) {
     return 'تم تنزيل $percent٪';
   }
+
+  @override
+  String studioItems(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString عنصر',
+      many: '$countString عنصرًا',
+      few: '$countString عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+      zero: 'لا عناصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioLiveCount(int count) {
+    return '$count قيد التنزيل';
+  }
+
+  @override
+  String get studioPasteLink => 'الصق رابطًا';
+
+  @override
+  String get studioColState => 'الحالة';
+
+  @override
+  String get studioAutoStart => 'البدء تلقائيًا';
+
+  @override
+  String get studioChange => 'تغيير';
+
+  @override
+  String get studioTools => 'أدوات التنزيل';
+
+  @override
+  String get studioChecking => 'جارٍ التحقق…';
+
+  @override
+  String get studioReplay => 'إعادة';
+
+  @override
+  String get studioDecrease => 'إنقاص';
+
+  @override
+  String get studioIncrease => 'زيادة';
+
+  @override
+  String get studioStatsSubtitle => 'ما نزّلته، ومن أين، ولمن.';
+
+  @override
+  String get studioStorage => 'التخزين';
+
+  @override
+  String get studioChartTitle7 => 'التنزيلات · آخر 7 أيام';
+
+  @override
+  String get studioChartTitle30 => 'التنزيلات · آخر 30 يومًا';
+
+  @override
+  String get studioDays7 => '7 أيام';
+
+  @override
+  String get studioDays30 => '30 يومًا';
+
+  @override
+  String studioDaysAgo(int count) {
+    return 'قبل $count يومًا';
+  }
+
+  @override
+  String get studioToday => 'اليوم';
+
+  @override
+  String get studioBySource => 'حسب المصدر';
+
+  @override
+  String get studioByFormat => 'حسب الصيغة';
+
+  @override
+  String get studioTopCreators => 'أبرز صنّاع المحتوى';
+
+  @override
+  String get studioPeriod => 'الفترة';
+
+  @override
+  String get studioTransferSubtitle =>
+      'أرسل ملفاتك إلى هاتفك عبر شبكة Wi-Fi المحلية، بلا كابل ولا سحابة.';
+
+  @override
+  String get studioScanTitle => 'افتح TapLoad على هاتفك وامسح الرمز.';
+
+  @override
+  String get studioQrCode => 'رمز QR';
+
+  @override
+  String get studioPin => 'رمز PIN';
+
+  @override
+  String get studioAddress => 'العنوان';
+
+  @override
+  String get studioFilesToSend => 'ملفات للإرسال';
+
+  @override
+  String get studioSelection => 'التحديد';
+
+  @override
+  String get studioZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String get studioTarget => 'المستلم';
+
+  @override
+  String get studioChoose => 'اختيار';
+
+  @override
+  String get studioAllOptions => 'كل الخيارات';
+
+  @override
+  String get studioSimpleView => 'العرض البسيط';
+
+  @override
+  String get studioTransferIssue => 'واجه النقل مشكلة.';
+
+  @override
+  String get studioArchiveCap => 'أرشيف محلي · TikTok';
+
+  @override
+  String get studioArchiveTitle => 'أرشيفي';
+
+  @override
+  String get studioSync => 'مزامنة';
+
+  @override
+  String get studioDownloadAll => 'تنزيل الكل';
+
+  @override
+  String studioDownloadAllConfirm(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ستُضاف $countString من مقاطع الفيديو غير المنزّلة بعد إلى قائمة الانتظار.';
+  }
+
+  @override
+  String get studioVideos => 'الفيديوهات';
+
+  @override
+  String get studioCollections => 'المجموعات';
+
+  @override
+  String get studioVideosUnit => 'فيديو';
+
+  @override
+  String get studioCollectionsUnit => 'مجموعة';
+
+  @override
+  String get studioFavoritesUnit => 'مفضلة';
+
+  @override
+  String get studioDone => 'تم';
+
+  @override
+  String get studioPurgeNote =>
+      'تُحفظ مقاطع الفيديو المشتركة مع مجموعة محفوظة.';
+
+  @override
+  String get studioAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String get studioPartDownloaded => 'تم تنزيله';
+
+  @override
+  String get studioToDownload => 'للتنزيل';
 }

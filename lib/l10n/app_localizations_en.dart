@@ -3358,4 +3358,183 @@ class AppLocalizationsEn extends AppLocalizations {
   String nocturnePartDownloaded(int percent) {
     return '$percent% downloaded';
   }
+
+  @override
+  String studioItems(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString items',
+      one: '1 item',
+      zero: '0 items',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioLiveCount(int count) {
+    return '$count in progress';
+  }
+
+  @override
+  String get studioPasteLink => 'Paste a link';
+
+  @override
+  String get studioColState => 'Status';
+
+  @override
+  String get studioAutoStart => 'Start automatically';
+
+  @override
+  String get studioChange => 'Change';
+
+  @override
+  String get studioTools => 'Download tools';
+
+  @override
+  String get studioChecking => 'Checking…';
+
+  @override
+  String get studioReplay => 'Replay';
+
+  @override
+  String get studioDecrease => 'Decrease';
+
+  @override
+  String get studioIncrease => 'Increase';
+
+  @override
+  String get studioStatsSubtitle =>
+      'What you downloaded, from where and from whom.';
+
+  @override
+  String get studioStorage => 'Storage';
+
+  @override
+  String get studioChartTitle7 => 'Downloads · last 7 days';
+
+  @override
+  String get studioChartTitle30 => 'Downloads · last 30 days';
+
+  @override
+  String get studioDays7 => '7 d';
+
+  @override
+  String get studioDays30 => '30 d';
+
+  @override
+  String studioDaysAgo(int count) {
+    return '$count d ago';
+  }
+
+  @override
+  String get studioToday => 'today';
+
+  @override
+  String get studioBySource => 'By source';
+
+  @override
+  String get studioByFormat => 'By format';
+
+  @override
+  String get studioTopCreators => 'Top creators';
+
+  @override
+  String get studioPeriod => 'Period';
+
+  @override
+  String get studioTransferSubtitle =>
+      'Send your files to your phone over local Wi-Fi, no cable, no cloud.';
+
+  @override
+  String get studioScanTitle => 'Open TapLoad on your phone and scan.';
+
+  @override
+  String get studioQrCode => 'QR code';
+
+  @override
+  String get studioPin => 'PIN code';
+
+  @override
+  String get studioAddress => 'Address';
+
+  @override
+  String get studioFilesToSend => 'Files to send';
+
+  @override
+  String get studioSelection => 'Selection';
+
+  @override
+  String get studioZip => 'Compress to ZIP';
+
+  @override
+  String get studioTarget => 'Recipient';
+
+  @override
+  String get studioChoose => 'Choose';
+
+  @override
+  String get studioAllOptions => 'All options';
+
+  @override
+  String get studioSimpleView => 'Simple view';
+
+  @override
+  String get studioTransferIssue => 'The transfer ran into a problem.';
+
+  @override
+  String get studioArchiveCap => 'Local archive · TikTok';
+
+  @override
+  String get studioArchiveTitle => 'My archive';
+
+  @override
+  String get studioSync => 'Sync';
+
+  @override
+  String get studioDownloadAll => 'Download all';
+
+  @override
+  String studioDownloadAllConfirm(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString videos not downloaded yet will be added to the queue.';
+  }
+
+  @override
+  String get studioVideos => 'Videos';
+
+  @override
+  String get studioCollections => 'Collections';
+
+  @override
+  String get studioVideosUnit => 'videos';
+
+  @override
+  String get studioCollectionsUnit => 'collections';
+
+  @override
+  String get studioFavoritesUnit => 'favorites';
+
+  @override
+  String get studioDone => 'Done';
+
+  @override
+  String get studioPurgeNote =>
+      'Videos shared with a kept collection are kept.';
+
+  @override
+  String get studioAllDownloaded => 'All downloaded';
+
+  @override
+  String get studioPartDownloaded => 'downloaded';
+
+  @override
+  String get studioToDownload => 'To download';
 }

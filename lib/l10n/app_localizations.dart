@@ -5787,6 +5787,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{percent}% downloaded'**
   String nocturnePartDownloaded(int percent);
+
+  /// No description provided for @studioItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 items} =1{1 item} other{{count} items}}'**
+  String studioItems(int count);
+
+  /// No description provided for @studioLiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in progress'**
+  String studioLiveCount(int count);
+
+  /// No description provided for @studioPasteLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link'**
+  String get studioPasteLink;
+
+  /// No description provided for @studioColState.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get studioColState;
+
+  /// No description provided for @studioAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start automatically'**
+  String get studioAutoStart;
+
+  /// No description provided for @studioChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get studioChange;
+
+  /// No description provided for @studioTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Download tools'**
+  String get studioTools;
+
+  /// No description provided for @studioChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get studioChecking;
+
+  /// No description provided for @studioReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get studioReplay;
+
+  /// No description provided for @studioDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease'**
+  String get studioDecrease;
+
+  /// No description provided for @studioIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase'**
+  String get studioIncrease;
+
+  /// No description provided for @studioStatsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you downloaded, from where and from whom.'**
+  String get studioStatsSubtitle;
+
+  /// No description provided for @studioStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get studioStorage;
+
+  /// No description provided for @studioChartTitle7.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · last 7 days'**
+  String get studioChartTitle7;
+
+  /// No description provided for @studioChartTitle30.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · last 30 days'**
+  String get studioChartTitle30;
+
+  /// No description provided for @studioDays7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 d'**
+  String get studioDays7;
+
+  /// No description provided for @studioDays30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 d'**
+  String get studioDays30;
+
+  /// No description provided for @studioDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d ago'**
+  String studioDaysAgo(int count);
+
+  /// No description provided for @studioToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get studioToday;
+
+  /// No description provided for @studioBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get studioBySource;
+
+  /// No description provided for @studioByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get studioByFormat;
+
+  /// No description provided for @studioTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'Top creators'**
+  String get studioTopCreators;
+
+  /// No description provided for @studioPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get studioPeriod;
+
+  /// No description provided for @studioTransferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your files to your phone over local Wi-Fi, no cable, no cloud.'**
+  String get studioTransferSubtitle;
+
+  /// No description provided for @studioScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan.'**
+  String get studioScanTitle;
+
+  /// No description provided for @studioQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get studioQrCode;
+
+  /// No description provided for @studioPin.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get studioPin;
+
+  /// No description provided for @studioAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get studioAddress;
+
+  /// No description provided for @studioFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get studioFilesToSend;
+
+  /// No description provided for @studioSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection'**
+  String get studioSelection;
+
+  /// No description provided for @studioZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress to ZIP'**
+  String get studioZip;
+
+  /// No description provided for @studioTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get studioTarget;
+
+  /// No description provided for @studioChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get studioChoose;
+
+  /// No description provided for @studioAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get studioAllOptions;
+
+  /// No description provided for @studioSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get studioSimpleView;
+
+  /// No description provided for @studioTransferIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'The transfer ran into a problem.'**
+  String get studioTransferIssue;
+
+  /// No description provided for @studioArchiveCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive · TikTok'**
+  String get studioArchiveCap;
+
+  /// No description provided for @studioArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My archive'**
+  String get studioArchiveTitle;
+
+  /// No description provided for @studioSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get studioSync;
+
+  /// No description provided for @studioDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get studioDownloadAll;
+
+  /// No description provided for @studioDownloadAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos not downloaded yet will be added to the queue.'**
+  String studioDownloadAllConfirm(int count);
+
+  /// No description provided for @studioVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get studioVideos;
+
+  /// No description provided for @studioCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get studioCollections;
+
+  /// No description provided for @studioVideosUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get studioVideosUnit;
+
+  /// No description provided for @studioCollectionsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'collections'**
+  String get studioCollectionsUnit;
+
+  /// No description provided for @studioFavoritesUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get studioFavoritesUnit;
+
+  /// No description provided for @studioDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get studioDone;
+
+  /// No description provided for @studioPurgeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection are kept.'**
+  String get studioPurgeNote;
+
+  /// No description provided for @studioAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get studioAllDownloaded;
+
+  /// No description provided for @studioPartDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'downloaded'**
+  String get studioPartDownloaded;
+
+  /// No description provided for @studioToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'To download'**
+  String get studioToDownload;
 }
 
 class _AppLocalizationsDelegate
