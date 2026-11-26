@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
+import 'package:modern_downloader/core/download/download_status_guard.dart';
 import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
@@ -18,8 +20,7 @@ import 'package:modern_downloader/features/downloader/presentation/providers/dow
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/inspector/collapsed_inspector_rail.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/inspector/download_inspector.dart';
+import 'package:modern_downloader/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_list.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/download_more_actions_menu.dart';
@@ -30,6 +31,7 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
+import 'studio_inspector.dart';
 import 'studio_states.dart';
 import 'studio_widgets.dart';
 
@@ -52,9 +54,10 @@ class StudioHome extends ConsumerWidget {
           context: context,
           isScrollControlled: true,
           showDragHandle: true,
+          backgroundColor: AppColors.of(context).surface,
           builder: (context) => SizedBox(
             height: MediaQuery.sizeOf(context).height * 0.86,
-            child: DownloadInspector(downloadId: next),
+            child: StudioInspector(downloadId: next),
           ),
         ).whenComplete(() {
           if (ref.read(selectedDownloadIdProvider) == next) {
@@ -458,9 +461,12 @@ class _Header extends ConsumerWidget {
         children: [
           const _SortViewMenu(),
           const SizedBox(width: 8),
-          const DownloadMoreActionsMenu(
-            showQueueActions: true,
-            showRetryFailed: true,
+          const StudioThemed(
+            child: DownloadMoreActionsMenu(
+              showQueueActions: true,
+              showRetryFailed: true,
+              child: _MenuGlyph(Icons.more_horiz_rounded),
+            ),
           ),
           const SizedBox(width: 16),
           const Flexible(child: SizedBox(width: 280, child: _SearchField())),
@@ -727,16 +733,29 @@ class _SortViewMenu extends ConsumerWidget {
         modeItem(l10n.viewDetailed, DownloadViewMode.detailed),
         modeItem(l10n.viewFolders, DownloadViewMode.folders),
       ],
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: c.border),
-        ),
-        child: Icon(Icons.sort_rounded, size: 16, color: c.textSecondary),
+      child: const _MenuGlyph(Icons.sort_rounded),
+    );
+  }
+}
+
+/// The ringed 36px square a toolbar menu opens from.
+class _MenuGlyph extends StatelessWidget {
+  const _MenuGlyph(this.icon);
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: c.border),
       ),
+      child: Icon(icon, size: 16, color: c.textSecondary),
     );
   }
 }
@@ -1411,17 +1430,243 @@ class _InspectorPane extends ConsumerWidget {
         pane.toggleInspectorCollapsed();
         pane.persist();
       },
-      child: layout.inspectorCollapsed
-          ? CollapsedInspectorRail(
-              onExpand: () {
-                pane.expandInspector();
-                pane.persist();
-              },
-            )
-          : ColoredBox(
-              color: AppColors.of(context).surface,
-              child: DownloadInspector(downloadId: selectedId),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: BorderDirectional(
+            start: BorderSide(color: AppColors.of(context).border),
+          ),
+        ),
+        child: layout.inspectorCollapsed
+            ? StudioInspectorRail(
+                onExpand: () {
+                  pane.expandInspector();
+                  pane.persist();
+                },
+              )
+            : StudioInspector(downloadId: selectedId),
+      ),
+    );
+  }
+}
+
+// ── Shared library rows (grid and folders), drawn by Studio ────────────────
+
+/// [DesignSkin.row]: the detailed grid's cards and the folders' rows, in the
+/// table's language (title with its growing underline, mono size, the same
+/// État cell, the thin ink line), with retry / delete (they ask first) and
+/// the age-check help where the shared row has them.
+Widget studioRow(BuildContext context, DesignRow row) => _SkinRow(row: row);
+
+class _SkinRow extends ConsumerStatefulWidget {
+  const _SkinRow({required this.row});
+
+  final DesignRow row;
+
+  @override
+  ConsumerState<_SkinRow> createState() => _SkinRowState();
+}
+
+class _SkinRowState extends ConsumerState<_SkinRow> {
+  bool _hover = false;
+
+  void _play(DownloadItem item) {
+    final path = item.filePath;
+    if (path != null && File(path).existsSync()) {
+      ref.read(mediaPlayerProvider.notifier).openFile(path);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final row = widget.row;
+    final item = row.item;
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    final failed =
+        item.status == DownloadStatus.failed ||
+        item.status == DownloadStatus.canceled;
+    final reason = failed ? downloadErrorReason(item.error) : '';
+    final age =
+        item.status == DownloadStatus.failed &&
+        DownloadStatusGuard.isAgeVerificationFailure(
+          error: item.error,
+          url: item.request.url,
+        );
+    final ended = failed || item.status == DownloadStatus.completed;
+    final actions = AnimatedOpacity(
+      duration: studioMotion(context, 160),
+      opacity: _hover || row.isSelected ? 1 : 0,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (age) ...[
+            StudioIconButton(
+              icon: Icons.shield_outlined,
+              tooltip: l10n.ageCheckSeeSolutions,
+              onTap: () => AgeVerificationHelpDialog.show(context, item),
             ),
+            const SizedBox(width: 6),
+          ],
+          if (ended) ...[
+            StudioIconButton(
+              icon: Icons.refresh_rounded,
+              tooltip: l10n.retryDownload,
+              onTap: row.onRetry,
+            ),
+            const SizedBox(width: 6),
+            StudioIconButton(
+              icon: Icons.delete_outline_rounded,
+              tooltip: l10n.remove,
+              onTap: row.onCancel,
+            ),
+          ],
+        ],
+      ),
+    );
+    final title = StudioUnderline(
+      text: titleOf(item),
+      hover: _hover,
+      style: studioText(c).copyWith(fontWeight: FontWeight.w500),
+    );
+    // Why it failed, else where it comes from and its format.
+    final note = Text(
+      reason.isNotEmpty
+          ? reason
+          : '${item.source.isEmpty ? '—' : item.source} · ${formatLabelOf(item)}',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: studioText(
+        c,
+        size: 12,
+        color: reason.isNotEmpty ? c.error : c.textSecondary,
+      ),
+    );
+    final state = _State(
+      item: item,
+      reason: reason,
+      done: null,
+      onRetry: row.onRetry,
+    );
+    final size = Text(
+      _sizeLabel(l10n, item),
+      maxLines: 1,
+      style: studioMono(c, size: 12),
+    );
+    final line = _hasLine(item) ? StudioLine(value: item.progress) : null;
+    final Widget body;
+    if (row.grid) {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                StudioThumb(item: item, radius: 0),
+                PositionedDirectional(top: 10, end: 10, child: actions),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: c.borderSubtle)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                title,
+                const SizedBox(height: 4),
+                note,
+                const SizedBox(height: 12),
+                if (line != null) ...[line, const SizedBox(height: 10)],
+                Row(
+                  children: [
+                    Expanded(flex: 3, child: state),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      flex: 2,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: FittedBox(fit: BoxFit.scaleDown, child: size),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    } else {
+      body = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            SizedBox(width: 64, height: 36, child: StudioThumb(item: item)),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  title,
+                  const SizedBox(height: 3),
+                  note,
+                  if (line != null) ...[const SizedBox(height: 7), line],
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            SizedBox(width: 90, child: size),
+            const SizedBox(width: 16),
+            SizedBox(width: 130, child: state),
+            const SizedBox(width: 8),
+            actions,
+          ],
+        ),
+      );
+    }
+    final radius = BorderRadius.circular(row.grid ? 12 : 10);
+    return AnimatedContainer(
+      duration: studioMotion(context, 180),
+      curve: studioEase,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: row.isSelected
+            ? Color.lerp(c.surface, c.surfaceHighlight, 0.6)
+            : (_hover ? studioHover(c) : c.surface),
+        borderRadius: radius,
+        border: Border.all(
+          color: row.isSelected
+              ? c.textPrimary
+              : (_hover ? const Color(0xFFD6D3CD) : c.border),
+          width: row.isSelected ? 1.5 : 1,
+        ),
+        boxShadow: _hover || row.isSelected
+            ? [
+                BoxShadow(
+                  color: c.primary.withValues(alpha: 0.07),
+                  blurRadius: 22,
+                  spreadRadius: -8,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : null,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: row.onTap,
+          onDoubleTap: () => _play(item),
+          onHover: (v) => setState(() => _hover = v),
+          hoverColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          focusColor: c.surfaceHighlight,
+          child: body,
+        ),
+      ),
     );
   }
 }

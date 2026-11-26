@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
@@ -36,6 +37,7 @@ class StudioSettings extends StatelessWidget {
       ('/settings/smart_organizer', l10n.smartOrganization),
     ];
     final general = path == '/settings' || path == '/settings/general';
+    final appearance = path.startsWith('/settings/appearance');
     final title = general
         ? l10n.settingsGeneral
         : sections
@@ -70,7 +72,7 @@ class StudioSettings extends StatelessWidget {
       builder: (context, constraints) {
         final side = constraints.maxWidth < 640 ? 16.0 : 40.0;
         final pad = EdgeInsets.fromLTRB(side, 30, side, 0);
-        if (general) {
+        if (general || appearance) {
           return SingleChildScrollView(
             padding: pad.copyWith(bottom: 40),
             child: Align(
@@ -81,7 +83,10 @@ class StudioSettings extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     header,
-                    _GeneralPanel(stacked: constraints.maxWidth < 640),
+                    if (general)
+                      _GeneralPanel(stacked: constraints.maxWidth < 640)
+                    else
+                      _AppearancePanel(stacked: constraints.maxWidth < 640),
                   ],
                 ),
               ),
@@ -101,7 +106,22 @@ class StudioSettings extends StatelessWidget {
                 ),
               ),
             ),
-            Expanded(child: current),
+            // Today's sub-page in Studio's components, its 700px column
+            // lined up under the header instead of centred.
+            Expanded(
+              child: StudioThemed(
+                child: Align(
+                  alignment: AlignmentDirectional.topStart,
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(start: side - 24),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 700 + 48),
+                      child: current,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -157,22 +177,22 @@ class _GeneralPanel extends ConsumerWidget {
           ]),
           block(l10n.settingsOutput, [
             _Item(
-                label: l10n.storageFolder,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (s.outputFolder.isNotEmpty)
-                      Flexible(child: _Code(s.outputFolder)),
-                    const SizedBox(width: 10),
-                    StudioButton(
-                      label: l10n.studioChange,
-                      kind: StudioButtonKind.light,
-                      height: 32,
-                      onTap: () => pickOutputFolder(context, ref),
-                    ),
-                  ],
-                ),
+              label: l10n.storageFolder,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (s.outputFolder.isNotEmpty)
+                    Flexible(child: _Code(s.outputFolder)),
+                  const SizedBox(width: 10),
+                  StudioButton(
+                    label: l10n.studioChange,
+                    kind: StudioButtonKind.light,
+                    height: 32,
+                    onTap: () => pickOutputFolder(context, ref),
+                  ),
+                ],
               ),
+            ),
             // No file-name template setting exists: the video format instead.
             _Item(
               label: l10n.formatLabel,
@@ -185,7 +205,11 @@ class _GeneralPanel extends ConsumerWidget {
             ),
           ]),
           block(l10n.settingsAppearance, [
-            _Thumbs(selected: theme, onSelect: set.setThemePreset),
+            _Thumbs(
+              ids: _designOrder,
+              selected: theme,
+              onSelect: set.setThemePreset,
+            ),
           ]),
           block(l10n.settingsPerformance, [
             _Item(
@@ -370,9 +394,7 @@ class _Item extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           children: [
-            Expanded(
-              child: labelWidget ?? Text(label!, style: studioText(c)),
-            ),
+            Expanded(child: labelWidget ?? Text(label!, style: studioText(c))),
             const SizedBox(width: 16),
             Flexible(
               child: Align(
@@ -548,24 +570,30 @@ class _Stepper extends StatelessWidget {
 
 /// The six designs as small swatches; the chosen one wears an ink ring and a
 /// tick. OLED and iOS stay in the full Appearance section.
-class _Thumbs extends StatelessWidget {
-  const _Thumbs({required this.selected, required this.onSelect});
+/// The mockup's order; OLED and iOS are platform looks, not designs.
+const _designOrder = [
+  'signal',
+  'porcelaine',
+  'studio',
+  'pastille',
+  'terminal',
+  'nocturne',
+];
 
+class _Thumbs extends StatelessWidget {
+  const _Thumbs({
+    required this.ids,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final List<String> ids;
   final String selected;
   final ValueChanged<String> onSelect;
 
   @override
   Widget build(BuildContext context) {
-    // The mockup's order; OLED and iOS are platform looks, not designs.
-    const order = [
-      'signal',
-      'porcelaine',
-      'studio',
-      'pastille',
-      'terminal',
-      'nocturne',
-    ];
-    final presets = [for (final id in order) ThemePresets.getById(id)];
+    final presets = [for (final id in ids) ThemePresets.getById(id)];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: LayoutBuilder(
@@ -705,4 +733,415 @@ class _ThumbState extends State<_Thumb> {
       ),
     );
   }
+}
+
+/// « Apparence » drawn like « Général »: every look (OLED and iOS too), the
+/// light/dark choice for the designs that follow it, the accent colour and
+/// the language, as today's Appearance section offers.
+class _AppearancePanel extends ConsumerWidget {
+  const _AppearancePanel({required this.stacked});
+
+  final bool stacked;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final s = ref.watch(settingsProvider);
+    final set = ref.read(settingsProvider.notifier);
+    final theme = ThemePresets.migrateId(s.themePreset);
+    Widget block(String label, List<Widget> rows, {bool active = false}) =>
+        _Block(label: label, active: active, stacked: stacked, rows: rows);
+    return StudioPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          block(l10n.theme, active: true, [
+            // Only the looks without a brightness of their own (iOS) follow it.
+            if (DesignSpec.forId(theme).brightness == null)
+              _Item(
+                label: l10n.theme,
+                trailing: _Select(
+                  value: s.themeMode,
+                  labels: themeModeOptionLabels(l10n),
+                  onChanged: set.setThemeMode,
+                ),
+              ),
+            _Thumbs(
+              ids: [for (final p in ThemePresets.all) p.id],
+              selected: theme,
+              onSelect: set.setThemePreset,
+            ),
+          ]),
+          if (s.themePreset != 'oled')
+            block(l10n.accentColor, [
+              _Accents(
+                current: Color(s.customAccentColor),
+                onChanged: (color) =>
+                    set.setCustomAccentColor(color.toARGB32()),
+              ),
+            ]),
+          block(l10n.language, [
+            _Item(
+              label: l10n.language,
+              trailing: _Select(
+                value: s.locale,
+                labels: languageOptionLabels(l10n),
+                onChanged: set.setLocale,
+              ),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+/// The current accent (swatch and hex) over the twelve choices, as small
+/// squares with an ink ring and tick on the chosen one.
+class _Accents extends StatelessWidget {
+  const _Accents({required this.current, required this.onChanged});
+
+  final Color current;
+  final ValueChanged<Color> onChanged;
+
+  // Today's Appearance section offers the same twelve.
+  static const _colors = [
+    Color(0xFF0D9488),
+    Color(0xFF0A84FF),
+    Color(0xFF0EA5E9),
+    Color(0xFF22C55E),
+    Color(0xFFF97316),
+    Color(0xFFEF4444),
+    Color(0xFFC026D3),
+    Color(0xFF6366F1),
+    Color(0xFFEAB308),
+    Color(0xFFF43F5E),
+    Color(0xFF06B6D4),
+    Color(0xFFEC4899),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final hex = current
+        .toARGB32()
+        .toRadixString(16)
+        .padLeft(8, '0')
+        .substring(2)
+        .toUpperCase();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: current,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: c.border),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(context.l10n.currentAccent, style: studioText(c)),
+              const SizedBox(width: 10),
+              _Code('#$hex'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final color in _colors)
+                _Swatch(
+                  color: color,
+                  on: color.toARGB32() == current.toARGB32(),
+                  onTap: () => onChanged(color),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Swatch extends StatefulWidget {
+  const _Swatch({required this.color, required this.on, required this.onTap});
+
+  final Color color;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  State<_Swatch> createState() => _SwatchState();
+}
+
+class _SwatchState extends State<_Swatch> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Semantics(
+      button: true,
+      selected: widget.on,
+      child: InkWell(
+        onTap: widget.onTap,
+        onHover: (v) => setState(() => _hover = v),
+        borderRadius: BorderRadius.circular(8),
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: AnimatedContainer(
+          duration: studioMotion(context, 160),
+          curve: studioEase,
+          transform: Matrix4.translationValues(0, _hover ? -1 : 0, 0),
+          width: 30,
+          height: 30,
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: widget.on ? c.textPrimary : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: widget.color,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: widget.on
+                ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Shared settings tiles, drawn by Studio (see studioSkin) ────────────────
+
+/// A shared tile as a Studio row on the paper: label and note on the left,
+/// the control on the right, an optional line under them, a hairline below.
+class _TileRow extends StatefulWidget {
+  const _TileRow({
+    required this.title,
+    this.subtitle = '',
+    this.subtitleMaxLines,
+    this.trailing,
+    this.onTap,
+    this.below,
+  });
+
+  final String title;
+  final String subtitle;
+  final int? subtitleMaxLines;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final Widget? below;
+
+  @override
+  State<_TileRow> createState() => _TileRowState();
+}
+
+class _TileRowState extends State<_TileRow> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final tappable = widget.onTap != null;
+    final title = studioText(c, size: 14).copyWith(fontWeight: FontWeight.w500);
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: widget.onTap,
+        onHover: tappable ? (v) => setState(() => _hover = v) : null,
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: AnimatedContainer(
+          duration: studioMotion(context, 160),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+          decoration: BoxDecoration(
+            color: _hover ? c.surface.withValues(alpha: 0.6) : null,
+            border: Border(bottom: BorderSide(color: c.border)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 36),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          tappable
+                              ? StudioUnderline(
+                                  text: widget.title,
+                                  hover: _hover,
+                                  style: title,
+                                )
+                              : Text(widget.title, style: title),
+                          if (widget.subtitle.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              widget.subtitle,
+                              maxLines: widget.subtitleMaxLines,
+                              overflow: widget.subtitleMaxLines == null
+                                  ? null
+                                  : TextOverflow.ellipsis,
+                              style: studioText(
+                                c,
+                                size: 12,
+                                color: c.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (widget.trailing != null) ...[
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: widget.trailing,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              ?widget.below,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Widget studioSectionTitle(BuildContext context, SectionTitle tile) => Padding(
+  padding: const EdgeInsetsDirectional.fromSTEB(4, 22, 4, 4),
+  child: StudioCap(tile.title),
+);
+
+Widget studioSwitchTile(BuildContext context, SwitchTile tile) => _TileRow(
+  title: tile.title,
+  subtitle: tile.subtitle,
+  onTap: () => tile.onChanged(!tile.value),
+  trailing: StudioSwitch(
+    value: tile.value,
+    label: tile.title,
+    onChanged: tile.onChanged,
+  ),
+);
+
+/// The value in the ringed − n + stepper, and a thin ink slider under it for
+/// big jumps.
+Widget studioSliderTile(BuildContext context, SliderTile tile) {
+  final c = AppColors.of(context);
+  final divisions = tile.divisions;
+  final step = divisions == null || divisions == 0
+      ? 1.0
+      : (tile.max - tile.min) / divisions;
+  double clamp(double v) => v.clamp(tile.min, tile.max).toDouble();
+  return _TileRow(
+    title: tile.title,
+    subtitle: tile.subtitle,
+    trailing: _Stepper(
+      value: tile.value.round(),
+      min: tile.min.round(),
+      max: tile.max.round(),
+      onChanged: (v) => tile.onChanged(
+        clamp(v > tile.value.round() ? tile.value + step : tile.value - step),
+      ),
+    ),
+    below: Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: SliderTheme(
+        data: studioSliderTheme(c),
+        child: Slider(
+          value: clamp(tile.value),
+          min: tile.min,
+          max: tile.max,
+          divisions: divisions,
+          onChanged: tile.onChanged,
+        ),
+      ),
+    ),
+  );
+}
+
+Widget studioDropdownTile(BuildContext context, DropdownTile tile) => _TileRow(
+  title: tile.title,
+  trailing: _Select(
+    value: tile.value,
+    labels: {for (final o in tile.options) o: tile.optionLabels?[o] ?? o},
+    onChanged: tile.onChanged,
+  ),
+);
+
+Widget studioActionTile(BuildContext context, ActionTile tile) {
+  final c = AppColors.of(context);
+  return _TileRow(
+    title: tile.title,
+    subtitle: tile.subtitle,
+    subtitleMaxLines: tile.subtitleMaxLines,
+    onTap: tile.onTap,
+    trailing:
+        tile.trailing ??
+        (tile.onTap == null
+            ? null
+            : Icon(
+                Icons.arrow_forward_rounded,
+                size: 15,
+                color: c.textSecondary,
+              )),
+  );
+}
+
+/// A tool's name, then its version in mono beside an ink tick, or « not
+/// found » in red beside a red dot.
+Widget studioStatusTile(BuildContext context, StatusTile tile) {
+  final c = AppColors.of(context);
+  final ok = tile.status.isInstalled;
+  return _TileRow(
+    title: tile.name,
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ok
+            ? Icon(Icons.check_rounded, size: 14, color: c.textPrimary)
+            : Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: c.error,
+                  shape: BoxShape.circle,
+                ),
+              ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            tile.status.version ?? context.l10n.settingsTilesNotFound,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: studioMono(c, size: 12, color: ok ? c.textPrimary : c.error),
+          ),
+        ),
+      ],
+    ),
+  );
 }

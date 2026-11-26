@@ -9,10 +9,14 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
   final bool showQueueActions;
   final bool showRetryFailed;
 
+  /// What the menu opens from; today's ringed "…" square when null.
+  final Widget? child;
+
   const DownloadMoreActionsMenu({
     super.key,
     this.showQueueActions = false,
     this.showRetryFailed = false,
+    this.child,
   });
 
   void _showClearHistoryDialog(BuildContext context, WidgetRef ref) {
@@ -153,11 +157,7 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
               value: 'retry_failed',
               child: Row(
                 children: [
-                  Icon(
-                    Icons.replay_rounded,
-                    size: 18,
-                    color: colors.warning,
-                  ),
+                  Icon(Icons.replay_rounded, size: 18, color: colors.warning),
                   const SizedBox(width: 10),
                   Text(
                     '${l10n.retryFailedAction} ($failedCount)',
@@ -208,10 +208,7 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Text(
                     l10n.startQueueAction,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colors.primary,
-                    ),
+                    style: TextStyle(fontSize: 13, color: colors.primary),
                   ),
                 ],
               ),
@@ -228,10 +225,7 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                   color: colors.textSecondary,
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  l10n.refreshLibrary,
-                  style: const TextStyle(fontSize: 13),
-                ),
+                Text(l10n.refreshLibrary, style: const TextStyle(fontSize: 13)),
               ],
             ),
           ),
@@ -298,31 +292,30 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Text(
                   l10n.clearHistory,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colors.error,
-                  ),
+                  style: TextStyle(fontSize: 13, color: colors.error),
                 ),
               ],
             ),
           ),
         ];
       },
-      child: Container(
-        height: 34,
-        width: 34,
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colors.border.withValues(alpha: 0.6)),
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          Icons.more_horiz_rounded,
-          size: 18,
-          color: colors.textSecondary,
-        ),
-      ),
+      child:
+          child ??
+          Container(
+            height: 34,
+            width: 34,
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colors.border.withValues(alpha: 0.6)),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.more_horiz_rounded,
+              size: 18,
+              color: colors.textSecondary,
+            ),
+          ),
     );
   }
 }

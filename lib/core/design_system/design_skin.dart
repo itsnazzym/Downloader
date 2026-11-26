@@ -40,6 +40,7 @@ class DesignSkin {
     this.dropdownTile,
     this.actionTile,
     this.statusTile,
+    this.toggle,
   });
 
   final Widget Function(BuildContext context, DesignRow row)? row;
@@ -49,6 +50,15 @@ class DesignSkin {
   final Widget Function(BuildContext context, DropdownTile tile)? dropdownTile;
   final Widget Function(BuildContext context, ActionTile tile)? actionTile;
   final Widget Function(BuildContext context, StatusTile tile)? statusTile;
+
+  /// An on/off switch the shared views draw with fixed colours of their own
+  /// (the Plugins list), which a design's theme cannot reach.
+  final Widget Function(
+    BuildContext context,
+    bool value,
+    ValueChanged<bool>? onChanged,
+  )?
+  toggle;
 
   static final _byId = <String, DesignSkin>{};
 
