@@ -4664,8 +4664,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get porcelaineDownloadSelectionNone => 'تنزيل المحدد';
+  String porcelaineSelectedCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجموعة محددة',
+      few: '$count مجموعات محددة',
+      two: 'مجموعتان محددتان',
+      one: 'مجموعة واحدة محددة',
+      zero: 'لا شيء محدد',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get porcelaineSelectFirst => 'حدد فيديوهات في القائمة أولًا.';
+  String get porcelaineNotDownloadedYet => 'لم تُنزَّل بعد';
 }

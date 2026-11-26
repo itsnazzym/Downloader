@@ -1644,6 +1644,6 @@
   "porcelaineArchiveKeptHint": "تُحفظ الفيديوهات المشتركة مع مجموعة محتفَظ بها.",
   "porcelaineSync": "مزامنة",
   "porcelaineDownloadSelection": "تنزيل ({count})",
-  "porcelaineDownloadSelectionNone": "تنزيل المحدد",
-  "porcelaineSelectFirst": "حدد فيديوهات في القائمة أولًا."
+  "porcelaineSelectedCollections": "{count, plural, =0{لا شيء محدد} =1{مجموعة واحدة محددة} two{مجموعتان محددتان} few{{count} مجموعات محددة} other{{count} مجموعة محددة}}",
+  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد"
 }

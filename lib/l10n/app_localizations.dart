@@ -8074,17 +8074,17 @@ abstract class AppLocalizations {
   /// **'Download ({count})'**
   String porcelaineDownloadSelection(int count);
 
-  /// No description provided for @porcelaineDownloadSelectionNone.
+  /// No description provided for @porcelaineSelectedCollections.
   ///
   /// In en, this message translates to:
-  /// **'Download selection'**
-  String get porcelaineDownloadSelectionNone;
+  /// **'{count, plural, =0{Nothing selected} =1{1 selected} other{{count} selected}}'**
+  String porcelaineSelectedCollections(int count);
 
-  /// No description provided for @porcelaineSelectFirst.
+  /// No description provided for @porcelaineNotDownloadedYet.
   ///
   /// In en, this message translates to:
-  /// **'Tick videos in the list first.'**
-  String get porcelaineSelectFirst;
+  /// **'Not downloaded yet'**
+  String get porcelaineNotDownloadedYet;
 }
 
 class _AppLocalizationsDelegate

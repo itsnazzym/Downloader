@@ -4728,8 +4728,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get porcelaineDownloadSelectionNone => 'Télécharger la sélection';
+  String porcelaineSelectedCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+      zero: 'Aucune sélection',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get porcelaineSelectFirst => 'Coche des vidéos dans la liste d’abord.';
+  String get porcelaineNotDownloadedYet => 'Pas encore téléchargée';
 }

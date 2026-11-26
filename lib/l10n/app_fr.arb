@@ -1644,6 +1644,6 @@
   "porcelaineArchiveKeptHint": "Les vidéos partagées avec une collection conservée sont gardées.",
   "porcelaineSync": "Synchroniser",
   "porcelaineDownloadSelection": "Télécharger ({count})",
-  "porcelaineDownloadSelectionNone": "Télécharger la sélection",
-  "porcelaineSelectFirst": "Coche des vidéos dans la liste d’abord."
+  "porcelaineSelectedCollections": "{count, plural, =0{Aucune sélection} =1{1 sélectionnée} other{{count} sélectionnées}}",
+  "porcelaineNotDownloadedYet": "Pas encore téléchargée"
 }
