@@ -4823,4 +4823,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signalTransferPickDevice => 'اختر الجهاز من قائمة الأجهزة.';
+
+  @override
+  String porcelaineSelectedCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مجموعة محددة',
+      few: '$count مجموعات محددة',
+      two: 'مجموعتان محددتان',
+      one: 'مجموعة واحدة محددة',
+      zero: 'لا شيء محدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get porcelaineNotDownloadedYet => 'لم تُنزَّل بعد';
 }

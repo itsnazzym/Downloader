@@ -8325,6 +8325,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick the device in the Devices list.'**
   String get signalTransferPickDevice;
+
+  /// No description provided for @porcelaineSelectedCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing selected} =1{1 selected} other{{count} selected}}'**
+  String porcelaineSelectedCollections(int count);
+
+  /// No description provided for @porcelaineNotDownloadedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded yet'**
+  String get porcelaineNotDownloadedYet;
 }
 
 class _AppLocalizationsDelegate

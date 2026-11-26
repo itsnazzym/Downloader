@@ -4883,4 +4883,19 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get signalTransferPickDevice =>
       'Choisis l’appareil dans la liste Appareils.';
+
+  @override
+  String porcelaineSelectedCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+      zero: 'Aucune sélection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get porcelaineNotDownloadedYet => 'Pas encore téléchargée';
 }
