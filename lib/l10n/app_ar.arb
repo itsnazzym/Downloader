@@ -1687,5 +1687,19 @@
   "signalTransferTo": "إلى {name}",
   "signalTransferPickDevice": "اختر الجهاز من قائمة الأجهزة.",
   "porcelaineSelectedCollections": "{count, plural, =0{لا شيء محدد} =1{مجموعة واحدة محددة} two{مجموعتان محددتان} few{{count} مجموعات محددة} other{{count} مجموعة محددة}}",
-  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد"
+  "porcelaineNotDownloadedYet": "لم تُنزَّل بعد",
+  "terminalEmptyTitle": "لم يُنزَّل شيء بعد",
+  "terminalEmptyBody": "الصق رابطًا في شريط الأوامر بالأعلى، أو ابدأ تنزيلًا جديدًا.",
+  "terminalNoMatch": "grep: «{query}»: لا يوجد سطر مطابق",
+  "terminalNoMatchFilters": "لا يوجد سطر يطابق عوامل التصفية",
+  "terminalLoading": "جارٍ قراءة المكتبة…",
+  "terminalLoadError": "تعذّرت قراءة المكتبة",
+  "terminalFailedSummary": "{count, plural, zero{لا تنزيلات فاشلة} one{تنزيل واحد فاشل} two{تنزيلان فاشلان} few{{count} تنزيلات فاشلة} many{{count} تنزيلًا فاشلًا} other{{count} تنزيل فاشل}}",
+  "terminalFinished": "اكتمل",
+  "terminalFinishedIn": "{size} في {duration}",
+  "terminalStatsEmpty": "لا توجد إحصاءات بعد",
+  "terminalStatsEmptyBody": "تظهر الأرقام بعد اكتمال أول تنزيل لك.",
+  "terminalNoPeers": "لم يُعثر على أي جهاز في هذه الشبكة",
+  "terminalArchiveEmpty": "لم تُستورد أي أرشيفات",
+  "terminalArchiveEmptyBody": "استورد ملف بيانات TikTok لتصفّح المفضلة والإعجابات والمجموعات."
 }

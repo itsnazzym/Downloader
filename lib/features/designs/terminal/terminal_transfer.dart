@@ -18,6 +18,7 @@ import 'package:path/path.dart' as p;
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../shared/design_data.dart';
+import 'terminal_states.dart';
 import 'terminal_widgets.dart';
 
 TransferController _ctl(WidgetRef ref) =>
@@ -984,11 +985,55 @@ class _PeersTable extends ConsumerWidget {
           ),
         ),
         if (s.peers.isEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 4, 12, 4),
-            child: Text(
-              '# ${l10n.transferNoDevices}',
-              style: tm(colors.textSecondary),
+          TPanel(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // A phone in hairlines, its screen an empty segment track.
+                Container(
+                  width: 46,
+                  height: 82,
+                  padding: const EdgeInsets.fromLTRB(6, 8, 6, 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colors.textDisabled),
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < 4; i++)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 4),
+                          child: TSeg(value: 0, height: 6),
+                        ),
+                      const Spacer(),
+                      Text('?', style: tm(colors.primary)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TTyped(
+                        '## ${l10n.terminalNoPeers}',
+                        style: tm(colors.primary, weight: FontWeight.w700),
+                        cursor: true,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.transferNoDevices,
+                        style: tm(colors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+                      THints([
+                        ('u', l10n.transferMobileRefresh.toLowerCase()),
+                        ('n', l10n.transferScanSubnet.toLowerCase()),
+                        ('i', l10n.transferDirectIpTitle.toLowerCase()),
+                      ]),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         for (final peer in s.peers)

@@ -4840,4 +4840,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Not downloaded yet';
+
+  @override
+  String get terminalEmptyTitle => 'nothing downloaded yet';
+
+  @override
+  String get terminalEmptyBody =>
+      'Paste a link in the command bar above, or start a new download.';
+
+  @override
+  String terminalNoMatch(String query) {
+    return 'grep: \"$query\": no matching line';
+  }
+
+  @override
+  String get terminalNoMatchFilters => 'no line matches the filters';
+
+  @override
+  String get terminalLoading => 'reading the library…';
+
+  @override
+  String get terminalLoadError => 'could not read the library';
+
+  @override
+  String terminalFailedSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count failed downloads',
+      one: '$count failed download',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get terminalFinished => 'done';
+
+  @override
+  String terminalFinishedIn(String size, String duration) {
+    return '$size in $duration';
+  }
+
+  @override
+  String get terminalStatsEmpty => 'no statistics yet';
+
+  @override
+  String get terminalStatsEmptyBody =>
+      'Numbers show up after your first finished download.';
+
+  @override
+  String get terminalNoPeers => 'no device found on this network';
+
+  @override
+  String get terminalArchiveEmpty => 'no archive imported';
+
+  @override
+  String get terminalArchiveEmptyBody =>
+      'Import your TikTok data export to browse your favorites, likes and collections.';
 }

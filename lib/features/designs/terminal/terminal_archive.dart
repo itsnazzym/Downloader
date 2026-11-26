@@ -16,6 +16,7 @@ import 'package:modern_downloader/features/downloader/presentation/providers/dow
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 
+import 'terminal_states.dart';
 import 'terminal_widgets.dart';
 
 /// TikTok ids of the library's finished downloads (the catalog's own
@@ -318,6 +319,9 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
   Widget build(BuildContext context) {
     final state = ref.watch(tikTokArchiveProvider);
     final catalog = state.catalog;
+    if (!state.isLoading && !state.hasCatalog) {
+      return _NoArchive(child: widget.current);
+    }
     if (state.isLoading ||
         catalog == null ||
         !state.hasCatalog ||
@@ -589,6 +593,67 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
           ]),
         ],
       ),
+    );
+  }
+}
+
+/// No archive imported yet: Terminal's frame (prompt, typed headline, an
+/// empty `tree`) over today's import hub, which keeps its logic.
+class _NoArchive extends StatelessWidget {
+  const _NoArchive({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TPrompt('archive', '--import'),
+              const SizedBox(height: 12),
+              TPanel(
+                accentLeft: colors.primary,
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TTyped(
+                      '## ${l10n.terminalArchiveEmpty}',
+                      style: tm(
+                        colors.primary,
+                        size: 16,
+                        weight: FontWeight.w700,
+                      ),
+                      cursor: true,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.terminalArchiveEmptyBody,
+                      style: tm(colors.textSecondary).copyWith(height: 1.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '~/tiktok\n'
+                      '├── ${l10n.terminalTabVideos}/      0\n'
+                      '├── ${l10n.terminalTabCollections}/ 0\n'
+                      '└── ${l10n.terminalTabFavorites}/     0',
+                      style: tm(colors.textDisabled).copyWith(height: 1.45),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(child: child),
+      ],
     );
   }
 }
