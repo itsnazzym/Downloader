@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/theme/app_palette.dart';
+import 'package:modern_downloader/core/theme/theme_presets.dart';
 import '../shared/local_thumb.dart';
 
 /// Porcelaine's building blocks, measured on Espace.dc.html and the
@@ -726,4 +728,565 @@ class PSwitch extends StatelessWidget {
       ),
     );
   }
+}
+
+/// `.sel` + `.menu`: a 44px stone field opening a white menu.
+class PSelect extends StatelessWidget {
+  const PSelect({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String value;
+  final Map<String, String> options;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return PopupMenuButton<String>(
+      tooltip: label,
+      color: colors.surface,
+      elevation: 12,
+      position: PopupMenuPosition.under,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      onSelected: onChanged,
+      itemBuilder: (context) => [
+        for (final e in options.entries)
+          PopupMenuItem<String>(
+            value: e.key,
+            height: 34,
+            child: Row(
+              children: [
+                Expanded(child: Text(e.value, style: pBody(colors, size: 13))),
+                if (e.key == value)
+                  Icon(Icons.circle, size: 8, color: colors.primary),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: colors.inputBackground,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: colors.textPrimary.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                options[value] ?? value,
+                style: pBody(colors, size: 13.5, weight: FontWeight.w500),
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: colors.textPrimary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The `.bar` track as a slider: 8px, cobalt fill, a white knob.
+class PSlider extends StatelessWidget {
+  const PSlider({
+    super.key,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+    this.divisions,
+  });
+
+  final double value;
+  final double min;
+  final double max;
+  final int? divisions;
+  final ValueChanged<double>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return SliderTheme(
+      data: SliderThemeData(
+        trackHeight: 8,
+        thumbShape: const RoundSliderThumbShape(
+          enabledThumbRadius: 10,
+          elevation: 2,
+          pressedElevation: 4,
+        ),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+        tickMarkShape: SliderTickMarkShape.noTickMark,
+        activeTrackColor: colors.primary,
+        inactiveTrackColor: pTrack(colors),
+        thumbColor: Colors.white,
+        overlayColor: colors.primary.withValues(alpha: 0.12),
+        showValueIndicator: ShowValueIndicator.never,
+      ),
+      child: Slider(
+        value: value.clamp(min, max),
+        min: min,
+        max: max,
+        divisions: divisions,
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+/// A Porcelaine `.menu`: white, 16px corners, 34px items.
+PopupMenuItem<T> pMenuItem<T>(
+  BuildContext context, {
+  required T value,
+  required String label,
+  IconData? icon,
+  bool enabled = true,
+  bool danger = false,
+  bool checked = false,
+  Widget? trailing,
+}) {
+  final colors = AppColors.of(context);
+  final fg = !enabled
+      ? colors.textDisabled
+      : (danger ? colors.error : colors.textPrimary);
+  return PopupMenuItem<T>(
+    value: value,
+    enabled: enabled,
+    height: 36,
+    child: Row(
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 16, color: danger ? fg : colors.textSecondary),
+          const SizedBox(width: 10),
+        ],
+        Expanded(
+          child: Text(
+            label,
+            style: pBody(
+              colors,
+              size: 13,
+              weight: checked ? FontWeight.w600 : FontWeight.w400,
+              color: fg,
+            ),
+          ),
+        ),
+        if (trailing != null) trailing,
+        if (checked) ...[
+          const SizedBox(width: 8),
+          Icon(Icons.circle, size: 8, color: colors.primary),
+        ],
+      ],
+    ),
+  );
+}
+
+/// `.more`: a round stone icon button; [danger] tints it red, [badge] puts
+/// a small count beside the glyph.
+class PIconBtn extends StatefulWidget {
+  const PIconBtn({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.size = 32,
+    this.danger = false,
+    this.color,
+    this.filled = true,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final double size;
+  final bool danger;
+  final Color? color;
+  final bool filled;
+
+  @override
+  State<PIconBtn> createState() => _PIconBtnState();
+}
+
+class _PIconBtnState extends State<PIconBtn> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final on = widget.onTap != null;
+    final fg = !on
+        ? colors.textDisabled
+        : widget.color ??
+              (widget.danger
+                  ? colors.error
+                  : (_hover ? colors.textPrimary : colors.textSecondary));
+    final base = widget.danger ? colors.error : colors.textPrimary;
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        cursor: on ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: widget.onTap,
+            customBorder: const CircleBorder(),
+            focusColor: colors.primary.withValues(alpha: 0.16),
+            child: AnimatedContainer(
+              duration: pMotion(context, 150),
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: base.withValues(
+                  alpha: !widget.filled
+                      ? (_hover && on ? 0.06 : 0)
+                      : (_hover && on ? 0.1 : 0.05),
+                ),
+              ),
+              child: Icon(widget.icon, size: widget.size * 0.5, color: fg),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Opens a Porcelaine `.menu` under the widget of [context] (a [PBtn]'s
+/// Builder), so the button keeps its own hover and press.
+Future<T?> pShowMenu<T>(BuildContext context, List<PopupMenuEntry<T>> items) {
+  final colors = AppColors.of(context);
+  final box = context.findRenderObject()! as RenderBox;
+  final overlay =
+      Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+  final rect = Rect.fromPoints(
+    box.localToGlobal(Offset(0, box.size.height + 6), ancestor: overlay),
+    box.localToGlobal(
+      box.size.bottomRight(const Offset(0, 6)),
+      ancestor: overlay,
+    ),
+  );
+  return showMenu<T>(
+    context: context,
+    position: RelativeRect.fromRect(rect, Offset.zero & overlay.size),
+    items: items,
+    color: colors.surface,
+    surfaceTintColor: Colors.transparent,
+    elevation: 12,
+    constraints: const BoxConstraints(minWidth: 220),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  );
+}
+
+/// The `.menu` section label.
+PopupMenuItem<T> pMenuLabel<T>(BuildContext context, String label) {
+  final colors = AppColors.of(context);
+  return PopupMenuItem<T>(
+    enabled: false,
+    height: 28,
+    child: Text(
+      label,
+      style: pBody(
+        colors,
+        size: 11.5,
+        weight: FontWeight.w600,
+        color: colors.textDisabled,
+      ),
+    ),
+  );
+}
+
+/// A Porcelaine confirmation: a white 28px sheet, the line « Annuler »
+/// focused, the action in [kind] (danger for what cannot be undone).
+Future<bool> pConfirm(
+  BuildContext context, {
+  required String title,
+  String? body,
+  Widget? content,
+  required String action,
+  IconData? icon,
+  PBtnKind kind = PBtnKind.danger,
+  String? cancel,
+}) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) {
+      final colors = AppColors.of(ctx);
+      return Dialog(
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 26, 24, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(title, style: pDisp(22, color: colors.textPrimary)),
+                if (body != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    body,
+                    style: pBody(colors, color: colors.textSecondary),
+                  ),
+                ],
+                if (content != null) ...[
+                  const SizedBox(height: 12),
+                  Flexible(child: content),
+                ],
+                const SizedBox(height: 22),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Focus(
+                      autofocus: true,
+                      child: PBtn(
+                        label: cancel ?? MaterialLocalizations.of(
+                          ctx,
+                        ).cancelButtonLabel,
+                        kind: PBtnKind.ghost,
+                        onTap: () => Navigator.of(ctx).pop(false),
+                      ),
+                    ),
+                    PBtn(
+                      label: action,
+                      icon: icon,
+                      kind: kind,
+                      onTap: () => Navigator.of(ctx).pop(true),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+  return ok == true;
+}
+
+/// Today's views framed on a Porcelaine sheet speak its language: the page
+/// colour becomes the sheet's, panels turn white with a hairline, and the
+/// Material controls (switches, cards, fields, buttons, sliders, menus,
+/// dialogs) take Porcelaine's shapes. The palette keeps its id, so the
+/// design's skin still applies below.
+class PSheetTheme extends StatelessWidget {
+  const PSheetTheme({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = AppColors.of(context);
+    final p = AppPalette.of(context).preset;
+    final hair = Color.alphaBlend(
+      colors.textPrimary.withValues(alpha: 0.08),
+      colors.surface,
+    );
+    final sheet = ThemePreset(
+      id: p.id,
+      name: p.name,
+      primary: p.primary,
+      accent: p.accent,
+      background: pCardFill(colors),
+      surface: p.surface,
+      surfaceHighlight: p.inputBackground,
+      textPrimary: p.textPrimary,
+      textSecondary: p.textSecondary,
+      textDisabled: p.textDisabled,
+      border: hair,
+      borderSubtle: hair,
+      success: pGreen,
+      error: p.error,
+      warning: p.warning,
+      info: p.primary,
+      inputBackground: p.inputBackground,
+      chrome: p.chrome,
+      useMeshBackground: p.useMeshBackground,
+      useFloatingDock: p.useFloatingDock,
+    );
+    final ui = pBody(colors, size: 13.5, weight: FontWeight.w600);
+    const pill = StadiumBorder();
+    final pad = WidgetStatePropertyAll(
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    );
+    final field = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: hair),
+    );
+    return Theme(
+      data: theme.copyWith(
+        scaffoldBackgroundColor: sheet.background,
+        canvasColor: colors.surface,
+        cardColor: colors.surface,
+        dividerColor: hair,
+        dividerTheme: DividerThemeData(color: hair, thickness: 1, space: 24),
+        switchTheme: SwitchThemeData(
+          thumbColor: const WidgetStatePropertyAll(Colors.white),
+          thumbIcon: const WidgetStatePropertyAll(Icon(null)),
+          trackColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected)
+                ? colors.primary
+                : const Color(0xFF8E9097),
+          ),
+          trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+          overlayColor: WidgetStatePropertyAll(
+            colors.primary.withValues(alpha: 0.1),
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: colors.surface,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(color: hair),
+          ),
+        ),
+        // Loose list tiles (a switch row) read as the skin's white cards.
+        listTileTheme: ListTileThemeData(
+          tileColor: colors.surface,
+          contentPadding: const EdgeInsetsDirectional.fromSTEB(18, 4, 14, 4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          iconColor: colors.textSecondary,
+          selectedColor: colors.primary,
+          selectedTileColor: colors.primary.withValues(alpha: 0.08),
+          titleTextStyle: pBody(colors, weight: FontWeight.w500),
+          subtitleTextStyle: pBody(
+            colors,
+            size: 12.5,
+            color: colors.textSecondary,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: colors.inputBackground,
+          isDense: true,
+          hintStyle: pBody(colors, size: 13.5, color: colors.textDisabled),
+          labelStyle: pBody(colors, size: 13, color: colors.textSecondary),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
+          border: field,
+          enabledBorder: field,
+          focusedBorder: field.copyWith(
+            borderSide: BorderSide(color: colors.primary, width: 1.5),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: WidgetStatePropertyAll(colors.primary),
+            textStyle: WidgetStatePropertyAll(ui),
+            shape: const WidgetStatePropertyAll(pill),
+            padding: pad,
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith(
+              (s) => s.contains(WidgetState.disabled)
+                  ? colors.primary.withValues(alpha: 0.4)
+                  : colors.primary,
+            ),
+            foregroundColor: WidgetStatePropertyAll(colors.onPrimary),
+            textStyle: WidgetStatePropertyAll(ui),
+            shape: const WidgetStatePropertyAll(pill),
+            padding: pad,
+            elevation: const WidgetStatePropertyAll(0),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll(colors.primary),
+            foregroundColor: WidgetStatePropertyAll(colors.onPrimary),
+            textStyle: WidgetStatePropertyAll(ui),
+            shape: const WidgetStatePropertyAll(pill),
+            padding: pad,
+            elevation: const WidgetStatePropertyAll(0),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll(colors.surface),
+            foregroundColor: WidgetStatePropertyAll(colors.textPrimary),
+            textStyle: WidgetStatePropertyAll(ui),
+            shape: const WidgetStatePropertyAll(pill),
+            side: WidgetStatePropertyAll(BorderSide(color: hair)),
+            padding: pad,
+          ),
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: WidgetStatePropertyAll(colors.textSecondary),
+            backgroundColor: WidgetStateProperty.resolveWith(
+              (s) => s.contains(WidgetState.hovered)
+                  ? colors.textPrimary.withValues(alpha: 0.06)
+                  : null,
+            ),
+            shape: const WidgetStatePropertyAll(CircleBorder()),
+          ),
+        ),
+        sliderTheme: SliderThemeData(
+          trackHeight: 8,
+          activeTrackColor: colors.primary,
+          inactiveTrackColor: pTrack(colors),
+          thumbColor: Colors.white,
+          tickMarkShape: SliderTickMarkShape.noTickMark,
+        ),
+        popupMenuTheme: PopupMenuThemeData(
+          color: colors.surface,
+          surfaceTintColor: Colors.transparent,
+          elevation: 12,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          textStyle: pBody(colors, size: 13),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: colors.surface,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          titleTextStyle: pDisp(22, color: colors.textPrimary),
+          contentTextStyle: pBody(colors, color: colors.textSecondary),
+        ),
+        progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: colors.primary,
+          linearTrackColor: pTrack(colors),
+          circularTrackColor: Colors.transparent,
+        ),
+        extensions: [AppPalette(sheet)],
+      ),
+      child: child,
+    );
+  }
+}
+
+/// A short floating note, like today's views give after an action.
+void pNotice(BuildContext context, String message) {
+  ScaffoldMessenger.maybeOf(context)
+    ?..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 }

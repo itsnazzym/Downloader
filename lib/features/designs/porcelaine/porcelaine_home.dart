@@ -5,18 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/ui/shell/shell_strips.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/download_view.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
+import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 
+import 'porcelaine_library.dart';
 import 'porcelaine_states.dart';
 import 'porcelaine_tiles.dart';
 import 'porcelaine_widgets.dart';
@@ -1888,32 +1888,14 @@ class _Library extends ConsumerWidget {
     );
     void back() => pCloseLibrary(ref);
     final rtl = Directionality.of(context) == TextDirection.rtl;
-    final Widget content = switch (phase) {
+    final Widget? content = switch (phase) {
       -1 => const PLibrarySkeleton(),
       -2 => const PLoadError(),
       0 => const Padding(
         padding: EdgeInsets.all(20),
         child: Center(child: SingleChildScrollView(child: PEmptyLibrary())),
       ),
-      // No match: the panel covers the list but not today's top bar (64 px
-      // and its hairline), so the query can be changed and keeps focus.
-      _ => Stack(
-        children: [
-          const DownloadView(),
-          Positioned.fill(
-            top: 65,
-            child: AnimatedSwitcher(
-              duration: pMotion(context, 180),
-              child: count == 0
-                  ? ColoredBox(
-                      color: pCardFill(colors),
-                      child: const PNoResults(),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ),
-        ],
-      ),
+      _ => null,
     };
     return CallbackShortcuts(
       bindings: {
@@ -1925,11 +1907,17 @@ class _Library extends ConsumerWidget {
             back();
           }
         },
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            DownloadSearchFocus.request,
+        const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
+            DownloadSearchFocus.request,
       },
-      child: LayoutBuilder(
+      child: Focus(
+        autofocus: true,
+        child: LayoutBuilder(
         builder: (context, box) {
           final side = box.maxWidth > 1284 ? (box.maxWidth - 1220) / 2 : 32.0;
-          final compact = box.maxWidth < 760;
+          final compact = box.maxWidth < 900;
           // The sheet rises once when the library opens.
           return TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: 1),
@@ -1976,19 +1964,24 @@ class _Library extends ConsumerWidget {
                       if (phase > 0)
                         Text('$count', style: pMono(colors, size: 14)),
                       const Spacer(),
-                      if (failed > 1) ...[
+                      if (failed > 0) ...[
                         PBtn(
                           label: compact
                               ? '$failed'
                               : l10n.porcelaineRetryFailedCount(failed),
                           tooltip: compact
                               ? l10n.porcelaineRetryFailedCount(failed)
-                              : null,
+                              : l10n.retryAllFailedTooltip(failed),
                           icon: Icons.refresh_rounded,
                           height: 36,
-                          onTap: ref
-                              .read(downloadListProvider.notifier)
-                              .retryAllFailed,
+                          onTap: () async {
+                            await ref
+                                .read(downloadListProvider.notifier)
+                                .retryAllFailed();
+                            if (context.mounted) {
+                              pNotice(context, l10n.retryingFailed(failed));
+                            }
+                          },
                         ),
                         const SizedBox(width: 8),
                       ],
@@ -2007,31 +2000,36 @@ class _Library extends ConsumerWidget {
                   ),
                   if (phase > 0) ...[
                     const SizedBox(height: 16),
-                    const LibraryFilterStrip(),
+                    PLibraryToolbar(key: OnboardingTargets.topBar),
+                    const SizedBox(height: 12),
+                    const PLibraryFilters(),
                   ],
                   const SizedBox(height: 14),
                   Expanded(
-                    child: Container(
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: pCardFill(colors),
-                        borderRadius: BorderRadius.circular(28),
-                        boxShadow: pCardShadow(colors),
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: pMotion(context, 220),
-                        child: KeyedSubtree(
-                          key: ValueKey(phase < 1 ? phase : 1),
-                          child: content,
-                        ),
-                      ),
-                    ),
+                    child: content == null
+                        ? PLibraryBody(noResults: count == 0)
+                        : Container(
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                              color: pCardFill(colors),
+                              borderRadius: BorderRadius.circular(28),
+                              boxShadow: pCardShadow(colors),
+                            ),
+                            child: AnimatedSwitcher(
+                              duration: pMotion(context, 220),
+                              child: KeyedSubtree(
+                                key: ValueKey(phase),
+                                child: content,
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),
             ),
           );
         },
+        ),
       ),
     );
   }
