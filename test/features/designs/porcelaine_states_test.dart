@@ -158,6 +158,10 @@ void main() {
       expect(find.text('Terminé'), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
+      // The speed tile's provider is autoDispose: its 2 s timer only stops
+      // once the container goes, which teardown does after the pending-timer
+      // check (seen on CI, Flutter 3.44).
+      container.dispose();
     });
   });
 }
