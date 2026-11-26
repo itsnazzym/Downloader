@@ -10,7 +10,6 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/theme/app_theme.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/features/designs/studio/studio_home.dart';
-import 'package:modern_downloader/features/designs/studio/studio_states.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
@@ -18,25 +17,26 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import '../../visual/visual_fakes.dart';
 import '../../visual/visual_harness.dart';
+import 'package:modern_downloader/features/designs/shared/design_data.dart';
 
 void main() {
-  test('studioErrorReason keeps the readable part of a yt-dlp error', () {
+  test('downloadErrorReason keeps the readable part of a yt-dlp error', () {
     expect(
-      studioErrorReason('ERROR: Unable to download: HTTP Error 403: Forbidden'),
+      downloadErrorReason('ERROR: Unable to download: HTTP Error 403: Forbidden'),
       'HTTP Error 403: Forbidden',
     );
     expect(
-      studioErrorReason(
+      downloadErrorReason(
         'ERROR: [twitter] 1790234567890123456: No video could be found\nmore',
       ),
       'No video could be found',
     );
     expect(
-      studioErrorReason('ERROR: [twitter] No video could be found in this tweet'),
+      downloadErrorReason('ERROR: [twitter] No video could be found in this tweet'),
       'No video could be found in this tweet',
     );
-    expect(studioErrorReason('\n  Connexion perdue\n'), 'Connexion perdue');
-    expect(studioErrorReason(null), '');
+    expect(downloadErrorReason('\n  Connexion perdue\n'), 'Connexion perdue');
+    expect(downloadErrorReason(null), '');
   });
 
   setUpAll(() async {

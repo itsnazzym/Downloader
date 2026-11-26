@@ -11,29 +11,6 @@ import 'pastille_kit.dart';
 /// The situations around Pastille's lists: nothing yet, nothing matching,
 /// still loading, could not load, and the failure reason of one item.
 
-/// The readable cause of a failed download: the first `ERROR:` line (or the
-/// first line) of [error] without yt-dlp's `ERROR:` / `[extractor] id:` /
-/// `Unable to download…:` prefixes.
-String pFailReason(String? error) {
-  final lines = [
-    for (final l in (error ?? '').split(RegExp(r'\r?\n')))
-      if (l.trim().isNotEmpty) l.trim(),
-  ];
-  if (lines.isEmpty) return '';
-  final line = lines.firstWhere(
-    (l) => l.startsWith('ERROR'),
-    orElse: () => lines.first,
-  );
-  return line
-      .replaceFirst(RegExp(r'^(ERROR|WARNING)\s*[:\-]\s*'), '')
-      .replaceFirst(RegExp(r'^\[[^\]]+\]\s*([\w-]+:\s+)?'), '')
-      .replaceFirst(
-        RegExp(r'^Unable to (download|extract)[\w ]*:\s*', caseSensitive: false),
-        '',
-      )
-      .trim();
-}
-
 /// Whether a search, a status or a source filter narrows the library.
 bool pFiltered(WidgetRef ref) =>
     ref.watch(downloadSearchQueryProvider).trim().isNotEmpty ||

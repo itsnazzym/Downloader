@@ -7,21 +7,6 @@ import 'studio_widgets.dart';
 /// Studio's situations: an empty page drawn as an unwritten ledger, the
 /// skeleton shimmer, and the short readable reason of a failed download.
 
-/// "HTTP Error 403: Forbidden" out of "ERROR: Unable to download: HTTP Error
-/// 403: Forbidden": the first line, without yt-dlp's level, extractor and
-/// "Unable to download" prefixes. Empty when there is nothing to say.
-String studioErrorReason(String? error) {
-  final line = (error ?? '')
-      .split('\n')
-      .map((l) => l.trim())
-      .firstWhere((l) => l.isNotEmpty, orElse: () => '');
-  return line
-      .replaceFirst(RegExp(r'^(ERROR|WARNING)\s*[:\-]\s*', caseSensitive: false), '')
-      .replaceFirst(RegExp(r'^\[[^\]]+\]\s*([\w.\-]+:\s+)?'), '')
-      .replaceFirst(RegExp(r'^Unable to download( \w+)?:\s*'), '')
-      .trim();
-}
-
 /// The editorial "nothing recorded yet" block: a heavy ink rule, a title bar
 /// and empty ledger lines, an unlit recording ring on the first one. Shows
 /// the Blender loop (`emptyArtAsset`) instead when it loads.

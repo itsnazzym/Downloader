@@ -14,38 +14,13 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'porcelaine_widgets.dart';
 import 'porcelaine_workspace_model.dart';
+import '../shared/design_data.dart';
 
 /// Porcelaine's situations: first launch, loading, a library that failed to
 /// open, failed downloads, a search with no match, and the « download
 /// finished » moment of the En cours widget.
 
 // ── Data ───────────────────────────────────────────────────────────────────
-
-/// The first readable line of a failed download's error, without yt-dlp's
-/// `ERROR:` and `[extractor] id:` prefixes; empty when there is none.
-String pFailReason(String? error) {
-  if (error == null) return '';
-  for (final raw in error.split(RegExp(r'\r?\n'))) {
-    var line = raw.trim();
-    if (line.isEmpty) continue;
-    line = line
-        .replaceFirst(
-          RegExp(r'^(ERROR|WARNING)\s*[:\-]\s*', caseSensitive: false),
-          '',
-        )
-        .replaceFirst(RegExp(r'^\[[^\]]+\]\s*(?:[\w-]+:\s+)?'), '')
-        .replaceFirst(
-          RegExp(
-            r'^Unable to download(?: webpage| video data)?:\s*',
-            caseSensitive: false,
-          ),
-          '',
-        )
-        .trim();
-    if (line.isNotEmpty) return line;
-  }
-  return '';
-}
 
 /// Items that were active in [prev] and are completed in [next]; none on
 /// the first load ([prev] null).
@@ -846,7 +821,7 @@ class PFailureStrip extends ConsumerWidget {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
     final notifier = ref.read(downloadListProvider.notifier);
-    final reason = pFailReason(failed.first.error);
+    final reason = downloadErrorReason(failed.first.error);
     return Semantics(
       container: true,
       liveRegion: true,

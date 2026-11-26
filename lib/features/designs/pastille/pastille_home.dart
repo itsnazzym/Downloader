@@ -369,7 +369,7 @@ class _ActiveTileState extends ConsumerState<_ActiveTile>
                           Text(
                             [
                               l10n.pastilleFailedIdle(failedItems.length),
-                              pFailReason(failedItems.first.error),
+                              downloadErrorReason(failedItems.first.error),
                             ].where((s) => s.isNotEmpty).join(' · '),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1256,9 +1256,9 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
                                     child: Tooltip(
                                       message: item.error ?? l10n.designFailed,
                                       child: Text(
-                                        pFailReason(item.error).isEmpty
+                                        downloadErrorReason(item.error).isEmpty
                                             ? l10n.designFailed
-                                            : pFailReason(item.error),
+                                            : downloadErrorReason(item.error),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: pBody(

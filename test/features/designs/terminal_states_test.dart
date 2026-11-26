@@ -21,30 +21,31 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import '../../visual/visual_fakes.dart';
 import '../../visual/visual_harness.dart';
+import 'package:modern_downloader/features/designs/shared/design_data.dart';
 
 void main() {
-  group('terminalErrorReason', () {
+  group('downloadErrorReason', () {
     test('drops the ERROR prefix and yt-dlp boilerplate', () {
       expect(
-        terminalErrorReason(
+        downloadErrorReason(
           'ERROR: Unable to download: HTTP Error 403: Forbidden',
         ),
         'HTTP Error 403: Forbidden',
       );
       expect(
-        terminalErrorReason(
+        downloadErrorReason(
           'WARNING: slow\nERROR: [youtube] dQw4w9WgXcQ: Video unavailable',
         ),
         'Video unavailable',
       );
       expect(
-        terminalErrorReason(
+        downloadErrorReason(
           'ERROR: Something broke; please report this issue on GitHub',
         ),
         'Something broke',
       );
-      expect(terminalErrorReason(null), '');
-      expect(terminalErrorReason('Disk full'), 'Disk full');
+      expect(downloadErrorReason(null), '');
+      expect(downloadErrorReason('Disk full'), 'Disk full');
     });
   });
 

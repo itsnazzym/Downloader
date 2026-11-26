@@ -8,30 +8,6 @@ import 'signal_widgets.dart';
 /// Signal's situations: empty, no results, loading and error, drawn as bento
 /// cards.
 
-/// A short, readable reason from a yt-dlp error: its first line without the
-/// `ERROR:` prefix, the `[extractor] id:` tag and the generic lead-ins.
-String signalShortError(String? raw) {
-  final line = (raw ?? '')
-      .split('\n')
-      .map((l) => l.trim())
-      .firstWhere((l) => l.isNotEmpty, orElse: () => '');
-  return line
-      .replaceFirst(RegExp(r'^ERROR:\s*', caseSensitive: false), '')
-      .replaceFirst(RegExp(r'^\[[^\]]+\]\s*([^\s:]+:\s*)?'), '')
-      .replaceFirst(
-        RegExp(
-          r'^Unable to (download|extract)( webpage| video data| [\w ]+?)?:\s*',
-          caseSensitive: false,
-        ),
-        '',
-      )
-      .replaceFirst(
-        RegExp(r'[;.]?\s*please report this issue.*$', caseSensitive: false),
-        '',
-      )
-      .trim();
-}
-
 /// The empty-state picture: a small bento of placeholder tiles, one of them
 /// the accent tile with the download arrow. Shows
 /// the Blender loop (`emptyArtAsset`) instead when it loads.

@@ -1534,7 +1534,7 @@ class PRecentTile extends ConsumerWidget {
     ]..sort((a, b) => b.sortOrder.compareTo(a.sortOrder));
     String meta(DownloadItem i) {
       if (i.status != DownloadStatus.completed) {
-        final reason = pFailReason(i.error);
+        final reason = downloadErrorReason(i.error);
         return reason.isEmpty ? l10n.designFailed : reason;
       }
       final size = bytesOf(i);

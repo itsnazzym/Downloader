@@ -9,37 +9,6 @@ import 'terminal_widgets.dart';
 /// Terminal's situations and motion: typed lines, a blinking block cursor,
 /// segment fills that step. Never a smooth fade.
 
-/// The readable part of a download error: the `ERROR:` line (else the first
-/// line), without yt-dlp's prefixes and boilerplate.
-String terminalErrorReason(String? raw) {
-  final lines = (raw ?? '')
-      .split('\n')
-      .map((l) => l.trim())
-      .where((l) => l.isNotEmpty)
-      .toList();
-  if (lines.isEmpty) return '';
-  var s = lines.firstWhere(
-    (l) => l.toUpperCase().startsWith('ERROR:'),
-    orElse: () => lines.first,
-  );
-  s = s
-      .replaceFirst(RegExp(r'^ERROR:\s*', caseSensitive: false), '')
-      .replaceFirst(RegExp(r'^\[[^\]]+\]\s*(?:[\w-]+:\s*)?'), '')
-      .replaceFirst(
-        RegExp(
-          r'^Unable to (?:download|extract)(?: webpage| video data)?:\s*',
-          caseSensitive: false,
-        ),
-        '',
-      )
-      .replaceFirst(
-        RegExp(r';\s*please report this issue.*$', caseSensitive: false),
-        '',
-      )
-      .replaceFirst(RegExp(r'\s*\(caused by .*\)$', caseSensitive: false), '');
-  return s.trim();
-}
-
 /// A line typed in once, character by character (< 0.7 s), then an optional
 /// blinking block cursor. The untyped rest is laid out transparent, so the
 /// line never reflows while it types.

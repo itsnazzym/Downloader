@@ -7,7 +7,6 @@ import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/features/designs/pastille/pastille_home.dart';
-import 'package:modern_downloader/features/designs/pastille/pastille_states.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
@@ -16,6 +15,7 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import '../../visual/visual_fakes.dart';
 import '../../visual/visual_harness.dart';
+import 'package:modern_downloader/features/designs/shared/design_data.dart';
 
 /// A library the test can change by hand.
 class _Driven extends DownloadListNotifier {
@@ -27,21 +27,21 @@ class _Driven extends DownloadListNotifier {
 }
 
 void main() {
-  group('pFailReason', () {
+  group('downloadErrorReason', () {
     test('drops the ERROR:, extractor and "Unable to" prefixes', () {
       expect(
-        pFailReason('ERROR: Unable to download: HTTP Error 403: Forbidden'),
+        downloadErrorReason('ERROR: Unable to download: HTTP Error 403: Forbidden'),
         'HTTP Error 403: Forbidden',
       );
       expect(
-        pFailReason(
+        downloadErrorReason(
           'WARNING: slow\nERROR: [youtube] abc123: Video unavailable\nmore',
         ),
         'Video unavailable',
       );
-      expect(pFailReason('  Plain reason  '), 'Plain reason');
-      expect(pFailReason(null), '');
-      expect(pFailReason('\n \n'), '');
+      expect(downloadErrorReason('  Plain reason  '), 'Plain reason');
+      expect(downloadErrorReason(null), '');
+      expect(downloadErrorReason('\n \n'), '');
     });
   });
 

@@ -152,7 +152,7 @@ class _LibraryState extends ConsumerState<_Library> {
           broken: true,
           title: l10n.studioLoadErrorTitle,
           body: l10n.studioLoadErrorBody,
-          detail: studioErrorReason('$error'),
+          detail: downloadErrorReason('$error'),
           actions: [
             StudioButton(
               label: l10n.retry,
@@ -1046,7 +1046,7 @@ class _RowState extends ConsumerState<_Row>
     final failed =
         item.status == DownloadStatus.failed ||
         item.status == DownloadStatus.canceled;
-    final reason = failed ? studioErrorReason(item.error) : '';
+    final reason = failed ? downloadErrorReason(item.error) : '';
     final c = AppColors.of(context);
     final l10n = context.l10n;
     final selected = ref.watch(

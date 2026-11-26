@@ -1214,7 +1214,7 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
         item.status == DownloadStatus.queued ||
         item.status == DownloadStatus.paused;
     final size = bytesOf(item);
-    final reason = failed ? nocturneErrorReason(item.error) : '';
+    final reason = failed ? downloadErrorReason(item.error) : '';
     final meta = failed
         ? [l10n.designFailed, reason].where((s) => s.isNotEmpty).join(' · ')
         : [

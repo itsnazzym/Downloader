@@ -898,7 +898,7 @@ class _FailedPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
-    final reason = signalShortError(failed.first.error);
+    final reason = downloadErrorReason(failed.first.error);
     final text = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -2081,7 +2081,7 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
         item.status == DownloadStatus.canceled;
     final busy = isActiveDownload(item) || item.status == DownloadStatus.queued;
     final size = bytesOf(item);
-    final reason = signalShortError(item.error);
+    final reason = downloadErrorReason(item.error);
     final failLabel = item.status == DownloadStatus.canceled
         ? l10n.statusCanceled
         : l10n.designFailed;

@@ -8,7 +8,6 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/theme/app_theme.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
-import 'package:modern_downloader/features/designs/signal/signal_states.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
@@ -16,6 +15,7 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import '../../visual/visual_fakes.dart';
 import '../../visual/visual_harness.dart';
+import 'package:modern_downloader/features/designs/shared/design_data.dart';
 
 /// A pinned list the test can replace, as a finished download would.
 class _FlipList extends PinnedDownloadList {
@@ -78,10 +78,10 @@ Future<_FlipList> _pumpHome(
 }
 
 void main() {
-  group('signalShortError', () {
+  group('downloadErrorReason', () {
     test('drops the ERROR: prefix and generic lead-in', () {
       expect(
-        signalShortError(
+        downloadErrorReason(
           'ERROR: Unable to download: HTTP Error 403: Forbidden\nmore',
         ),
         'HTTP Error 403: Forbidden',
@@ -90,7 +90,7 @@ void main() {
 
     test('drops the [extractor] id: tag and the report boilerplate', () {
       expect(
-        signalShortError(
+        downloadErrorReason(
           '\nERROR: [youtube] dQw4w9WgXcQ: Video unavailable; please report '
           'this issue on https://github.com/yt-dlp/yt-dlp',
         ),
@@ -99,8 +99,8 @@ void main() {
     });
 
     test('empty or missing error gives an empty reason', () {
-      expect(signalShortError(null), '');
-      expect(signalShortError('  \n '), '');
+      expect(downloadErrorReason(null), '');
+      expect(downloadErrorReason('  \n '), '');
     });
   });
 

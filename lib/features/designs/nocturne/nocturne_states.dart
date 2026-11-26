@@ -7,30 +7,10 @@ import 'package:modern_downloader/features/downloader/presentation/providers/fil
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'nocturne_widgets.dart';
+import '../shared/design_data.dart';
 
 /// The home's situations other than a filled library: loading skeletons,
 /// the empty library, no search results and a library that failed to load.
-
-/// First line of a yt-dlp error without its `ERROR:` and `[extractor] id:`
-/// prefixes; empty when there is nothing readable.
-String nocturneErrorReason(String? raw) {
-  final line = (raw ?? '')
-      .split('\n')
-      .map((l) => l.trim())
-      .firstWhere((l) => l.isNotEmpty, orElse: () => '');
-  return line
-      .replaceFirst(
-        RegExp(r'^(ERROR|WARNING)\s*[:\-]\s*', caseSensitive: false),
-        '',
-      )
-      .replaceFirst(RegExp(r'^\[[^\]]+\]\s*([\w\-]+:\s*)?'), '')
-      // The row already says "Échec": keep only why.
-      .replaceFirst(
-        RegExp(r'^Unable to download( webpage)?\s*:\s*', caseSensitive: false),
-        '',
-      )
-      .trim();
-}
 
 /// Lays out a state's art beside its text on wide cards, above it on narrow.
 class _StateLayout extends StatelessWidget {
@@ -216,7 +196,7 @@ class NocturneLoadError extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
     final l10n = context.l10n;
-    final reason = nocturneErrorReason(error.toString());
+    final reason = downloadErrorReason(error.toString());
     return NocturneCard(
       lift: false,
       padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 32),

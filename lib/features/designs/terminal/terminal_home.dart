@@ -922,7 +922,7 @@ class _LoadError extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
-    final reason = terminalErrorReason(error?.toString());
+    final reason = downloadErrorReason(error?.toString());
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: TPanel(
@@ -1173,7 +1173,7 @@ class _Line extends ConsumerWidget {
         : (failed || waiting)
         ? '—'
         : formatLabelOf(item).toLowerCase();
-    final error = terminalErrorReason(item.error);
+    final error = downloadErrorReason(item.error);
     final title = Text(
       TitleCleanerService.clean(item.title ?? item.request.url),
       maxLines: 1,

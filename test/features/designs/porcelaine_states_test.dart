@@ -16,6 +16,7 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 
 import '../../visual/visual_fakes.dart';
 import '../../visual/visual_harness.dart';
+import 'package:modern_downloader/features/designs/shared/design_data.dart';
 
 /// A list the test can change.
 class _Flip extends DownloadListNotifier {
@@ -29,27 +30,27 @@ class _Flip extends DownloadListNotifier {
 }
 
 void main() {
-  group('pFailReason', () {
+  group('downloadErrorReason', () {
     test('drops the ERROR: prefix and yt-dlp noise', () {
       expect(
-        pFailReason('ERROR: Unable to download: HTTP Error 403: Forbidden'),
+        downloadErrorReason('ERROR: Unable to download: HTTP Error 403: Forbidden'),
         'HTTP Error 403: Forbidden',
       );
       expect(
-        pFailReason(
+        downloadErrorReason(
           '\nERROR: [youtube] dQw4w9WgXcQ: Video unavailable\nmore noise',
         ),
         'Video unavailable',
       );
       expect(
-        pFailReason('Requested format is not available'),
+        downloadErrorReason('Requested format is not available'),
         'Requested format is not available',
       );
     });
 
     test('is empty without an error', () {
-      expect(pFailReason(null), '');
-      expect(pFailReason('  \n '), '');
+      expect(downloadErrorReason(null), '');
+      expect(downloadErrorReason('  \n '), '');
     });
   });
 
