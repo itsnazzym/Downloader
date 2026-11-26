@@ -260,7 +260,7 @@ class _PluginCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.of(context).surface,
 
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
 
         border: Border.all(
           color: entry.isEnabled
@@ -475,7 +475,7 @@ class _FeatureModuleCard extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(color: colors.border.withValues(alpha: 0.7)),
       ),
       child: Row(
@@ -600,7 +600,7 @@ class _PluginInstallRequestCard extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
         border: Border.all(color: colors.border),
       ),
       child: Column(
@@ -708,7 +708,7 @@ class _BrowserExtensionsPanel extends ConsumerWidget {
           decoration: BoxDecoration(
             color: colors.surface,
 
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.panelOf(context),
 
             border: Border.all(color: colors.border),
           ),
@@ -823,7 +823,7 @@ class _BrowserInstallCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
 
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.panelOf(context),
 
         border: Border.all(color: colors.border),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../design_system/foundation/colors.dart';
@@ -63,7 +64,7 @@ class PerformanceSettingsView extends ConsumerWidget {
                               .setConcurrentFragments(v.toInt()),
                           icon: Icons.bolt_rounded,
                         ),
-                        if (useOledSettingsStyle(context))
+                        if (_switchTiles(context))
                           SwitchTile(
                             title: l10n.maxSpeedMode,
                             subtitle: l10n.maxSpeedModeDesc,
@@ -93,7 +94,7 @@ class PerformanceSettingsView extends ConsumerWidget {
                             onChanged: settingsNotifier.setMaxSpeedMode,
                             contentPadding: EdgeInsets.zero,
                           ),
-                        if (useOledSettingsStyle(context))
+                        if (_switchTiles(context))
                           SwitchTile(
                             title: l10n.reduceEffects,
                             subtitle: l10n.reduceEffectsDesc,
@@ -134,3 +135,8 @@ class PerformanceSettingsView extends ConsumerWidget {
     );
   }
 }
+
+/// OLED, and a desktop design that draws the switch tiles, use [SwitchTile]
+/// rather than a bare Material list tile.
+bool _switchTiles(BuildContext context) =>
+    useOledSettingsStyle(context) || DesignSkin.of(context)?.switchTile != null;

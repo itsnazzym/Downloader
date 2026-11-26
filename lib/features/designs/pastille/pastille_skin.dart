@@ -59,8 +59,9 @@ String _meta(BuildContext context, DownloadItem item) {
       final s = formatSpeed(l10n, speed);
       parts.add('${s.value} ${s.unit}');
     }
-    if (item.eta.isNotEmpty)
+    if (item.eta.isNotEmpty) {
       parts.add(l10n.designRemaining(etaLabel(l10n, item.eta)));
+    }
   }
   return parts.join(' · ');
 }
@@ -329,31 +330,34 @@ class _PastilleRowState extends State<_PastilleRow> {
 
 Widget _sectionTitle(BuildContext context, SectionTitle tile) {
   final tones = PTones.of(context);
+  // One Text (dots as spans): some pages put the title in a Row that does
+  // not bound its width.
   return Padding(
     padding: const EdgeInsets.only(top: 18, bottom: 12, left: 4),
     child: Semantics(
       header: true,
-      child: Row(
-        children: [
-          for (final c in [tones.lav, tones.sage, tones.rose])
-            Container(
-              width: 8,
-              height: 8,
-              margin: const EdgeInsetsDirectional.only(end: 4),
-              decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-            ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              tile.title,
-              style: pNum(
-                22,
-                weight: FontWeight.w700,
-                color: pCream,
-              ).copyWith(letterSpacing: -0.6, height: 1.1),
-            ),
-          ),
-        ],
+      child: Text.rich(
+        TextSpan(
+          children: [
+            for (final c in [tones.lav, tones.sage, tones.rose])
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsetsDirectional.only(end: 4),
+                  decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+                ),
+              ),
+            const WidgetSpan(child: SizedBox(width: 8)),
+            TextSpan(text: tile.title),
+          ],
+        ),
+        style: pNum(
+          22,
+          weight: FontWeight.w700,
+          color: pCream,
+        ).copyWith(letterSpacing: -0.6, height: 1.1),
       ),
     ),
   );
