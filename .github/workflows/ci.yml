@@ -3,13 +3,17 @@ name: CI
 on:
   push:
     branches: [main, master]
+    # A tag pushed by hand releases that commit. Tags this workflow pushes
+    # itself (GITHUB_TOKEN) never start a run, so the main bump releases inline.
+    tags: ["v*"]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel a release run halfway (tag pushed, release not yet created).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write
@@ -26,7 +30,7 @@ jobs:
   # -------------------------------------------------------------
   quality:
     name: 🧪 Analyse & Tests
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    if: ${{ github.ref_type == 'tag' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -69,7 +73,7 @@ jobs:
   # -------------------------------------------------------------
   extensions:
     name: 🧩 Extensions Navigateur
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    if: ${{ github.ref_type == 'tag' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -116,7 +120,7 @@ jobs:
   # -------------------------------------------------------------
   version:
     name: 🔢 Resolve version
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    if: ${{ github.ref_type == 'tag' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -124,6 +128,7 @@ jobs:
       tag: ${{ steps.resolve.outputs.tag }}
       build_number: ${{ steps.resolve.outputs.build_number }}
       publish: ${{ steps.resolve.outputs.publish }}
+      bump: ${{ steps.resolve.outputs.bump }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -133,6 +138,9 @@ jobs:
       - name: Resolve version
         id: resolve
         shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           git fetch --tags --force origin || true
@@ -146,8 +154,20 @@ jobs:
           fi
           IFS=. read -r major minor patch <<< "$name"
           publish=false
-          if [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/master" ) ]]; then
+          bump=false
+          if [[ "$REF_TYPE" == "tag" ]]; then
+            # Release the tagged commit as is: the tag names the version.
+            if [[ ! "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Tag $REF_NAME is not vMAJOR.MINOR.PATCH"
+              exit 1
+            fi
             publish=true
+            semver="${REF_NAME#v}"
+          elif [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/master" ) ]] \
+            && ! git describe --tags --exact-match --match 'v*' HEAD >/dev/null 2>&1; then
+            # (A commit pushed with its own v* tag is released by that tag's run.)
+            publish=true
+            bump=true
             patch=$((patch + 1))
             build=$((build + 1))
             semver="${major}.${minor}.${patch}"
@@ -164,16 +184,18 @@ jobs:
           echo "tag=v${semver}" >> "$GITHUB_OUTPUT"
           echo "build_number=${build}" >> "$GITHUB_OUTPUT"
           echo "publish=${publish}" >> "$GITHUB_OUTPUT"
-          echo "Version: ${semver}+${build} (tag v${semver}, publish=${publish})"
+          echo "bump=${bump}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${semver}+${build} (tag v${semver}, publish=${publish}, bump=${bump})"
 
   # -------------------------------------------------------------
   # Job 4: Compilation Windows Release & Packaging (Inno Setup + Portable)
-  # Runs on push / pull_request / workflow_dispatch. Version bump +
-  # GitHub Release stay limited to push to main/master.
+  # Skipped on pull requests. Push to main bumps, tags and releases; a pushed
+  # v* tag releases that commit; manual dispatch only uploads artifacts
+  # (dispatched on a tag ref, it re-releases that tag).
   # -------------------------------------------------------------
   windows:
     name: 🪟 Build Windows Release
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    if: ${{ github.event_name != 'pull_request' && (github.ref_type == 'tag' || !startsWith(github.event.head_commit.message, 'chore(release):')) }}
     needs: [quality, extensions, version]
     runs-on: windows-latest
     timeout-minutes: 45
@@ -192,7 +214,7 @@ jobs:
           cache: true
 
       - name: Apply version bump (push to main only)
-        if: ${{ needs.version.outputs.publish == 'true' }}
+        if: ${{ needs.version.outputs.bump == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -200,6 +222,10 @@ jobs:
           sed -i "s/^version: .*/version: ${new_version}/" pubspec.yaml
           echo "Release version: ${new_version} (Tag: ${{ needs.version.outputs.tag }})"
           dart run tool/build_extension.dart --bump-patch --release-tag "${{ needs.version.outputs.tag }}"
+
+      - name: Point the Firefox update manifest at this tag (tag runs)
+        if: ${{ needs.version.outputs.publish == 'true' && needs.version.outputs.bump != 'true' }}
+        run: dart run tool/build_extension.dart --release-tag "${{ needs.version.outputs.tag }}"
 
       - name: Install dependencies
         run: flutter pub get
@@ -240,6 +266,7 @@ jobs:
         shell: pwsh
         run: |
           $zip = "ModernDownloader-Windows-Portable.zip"
+          if (-not (Test-Path "build/windows/x64/runner/Release/modern_downloader.exe")) { throw "modern_downloader.exe missing from the Release bundle" }
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath $zip -CompressionLevel Optimal
 
@@ -248,6 +275,8 @@ jobs:
         run: |
           $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           & $iscc /DAppVersion="${{ needs.version.outputs.tag }}" "installer/setup.iss"
+          # setup.iss writes to release/; the steps below expect the repo root.
+          Move-Item -Force "release/ModernDownloader-Setup-${{ needs.version.outputs.tag }}.exe" .
 
       - name: Package Chrome ZIP
         shell: pwsh
@@ -334,7 +363,7 @@ jobs:
           if-no-files-found: error
 
       - name: Commit version bump & Tag
-        if: ${{ needs.version.outputs.publish == 'true' }}
+        if: ${{ needs.version.outputs.bump == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -348,7 +377,16 @@ jobs:
             extension_version.json
           git commit -m "chore(release): ${{ needs.version.outputs.tag }}" || true
           git tag "${{ needs.version.outputs.tag }}" || true
-          git push origin "HEAD:${{ github.ref_name }}" --tags || true
+          # No "|| true": a release must not be published for a tag that never reached origin.
+          git push origin "HEAD:${{ github.ref_name }}" "refs/tags/${{ needs.version.outputs.tag }}"
+
+      - name: Write release notes
+        if: ${{ needs.version.outputs.publish == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          dart run tool/release_notes.dart > RELEASE_NOTES.md
+          cat RELEASE_NOTES.md
 
       - name: Publish GitHub Release
         if: ${{ needs.version.outputs.publish == 'true' }}
@@ -356,7 +394,8 @@ jobs:
         with:
           tag_name: ${{ needs.version.outputs.tag }}
           name: ${{ needs.version.outputs.tag }}
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
+          fail_on_unmatched_files: true
           files: |
             ModernDownloader-Windows-Portable.zip
             ModernDownloader-Setup-${{ needs.version.outputs.tag }}.exe
@@ -370,7 +409,7 @@ jobs:
   # -------------------------------------------------------------
   android:
     name: 🤖 Build Android APK
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    if: ${{ github.event_name != 'pull_request' && (github.ref_type == 'tag' || !startsWith(github.event.head_commit.message, 'chore(release):')) }}
     needs: [quality, extensions, version]
     runs-on: ubuntu-latest
     timeout-minutes: 40
