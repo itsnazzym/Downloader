@@ -8337,6 +8337,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not downloaded yet'**
   String get porcelaineNotDownloadedYet;
+
+  /// No description provided for @signalEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first download starts here.'**
+  String get signalEmptyTitle;
+
+  /// No description provided for @signalEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy a YouTube, TikTok, Instagram or X link and paste it above: the video lands here, ready to watch.'**
+  String get signalEmptyBody;
+
+  /// No description provided for @signalEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link'**
+  String get signalEmptyAction;
+
+  /// No description provided for @signalLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not load.'**
+  String get signalLoadErrorTitle;
+
+  /// No description provided for @signalLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are still on disk. Try again to read the list.'**
+  String get signalLoadErrorBody;
+
+  /// No description provided for @signalNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get signalNoResultsTitle;
+
+  /// No description provided for @signalNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”.'**
+  String signalNoResultsQuery(String query);
+
+  /// No description provided for @signalNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches these filters.'**
+  String get signalNoResultsFilters;
+
+  /// No description provided for @signalClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search and filters'**
+  String get signalClearFilters;
+
+  /// No description provided for @signalFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} download failed} other{{count} downloads failed}}'**
+  String signalFailedCount(int count);
+
+  /// No description provided for @signalRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String signalRetryFailed(int count);
+
+  /// No description provided for @signalStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No stats yet.'**
+  String get signalStatsEmptyTitle;
+
+  /// No description provided for @signalStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your volumes, sources and creators will show here after your first download.'**
+  String get signalStatsEmptyBody;
+
+  /// No description provided for @signalTransferNoDevicesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on the phone, on the same Wi-Fi, or look for it on the network.'**
+  String get signalTransferNoDevicesHint;
+
+  /// No description provided for @signalArchiveEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No archive imported yet.'**
+  String get signalArchiveEmptyTitle;
+
+  /// No description provided for @signalArchiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import the JSON export of your TikTok favorites: your collections and liked videos show up here, ready to download.'**
+  String get signalArchiveEmptyBody;
+
+  /// No description provided for @signalArchiveImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JSON file'**
+  String get signalArchiveImport;
+
+  /// No description provided for @signalArchiveSyncHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync goes through the extension, in a browser open on TikTok.'**
+  String get signalArchiveSyncHint;
 }
 
 class _AppLocalizationsDelegate

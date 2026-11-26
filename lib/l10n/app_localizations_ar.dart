@@ -4840,4 +4840,78 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'لم تُنزَّل بعد';
+
+  @override
+  String get signalEmptyTitle => 'أول تنزيل لك يبدأ من هنا.';
+
+  @override
+  String get signalEmptyBody =>
+      'انسخ رابطًا من يوتيوب أو تيك توك أو إنستغرام أو X والصقه في الأعلى: يصل الفيديو إلى هنا جاهزًا للمشاهدة.';
+
+  @override
+  String get signalEmptyAction => 'الصق رابطًا';
+
+  @override
+  String get signalLoadErrorTitle => 'تعذّر تحميل المكتبة.';
+
+  @override
+  String get signalLoadErrorBody =>
+      'ملفاتك لا تزال على القرص. أعد المحاولة لقراءة القائمة.';
+
+  @override
+  String get signalNoResultsTitle => 'لا توجد نتائج';
+
+  @override
+  String signalNoResultsQuery(String query) {
+    return 'لا شيء يطابق «$query».';
+  }
+
+  @override
+  String get signalNoResultsFilters => 'لا شيء يطابق هذه المرشحات.';
+
+  @override
+  String get signalClearFilters => 'مسح البحث والمرشحات';
+
+  @override
+  String signalFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيل',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String signalRetryFailed(int count) {
+    return 'إعادة محاولة الفاشلة ($count)';
+  }
+
+  @override
+  String get signalStatsEmptyTitle => 'لا توجد إحصائيات بعد.';
+
+  @override
+  String get signalStatsEmptyBody =>
+      'ستظهر هنا الأحجام والمصادر والمنشئون بعد أول تنزيل لك.';
+
+  @override
+  String get signalTransferNoDevicesHint =>
+      'افتح TapLoad على الهاتف على شبكة Wi-Fi نفسها، أو ابحث عنه في الشبكة.';
+
+  @override
+  String get signalArchiveEmptyTitle => 'لم يتم استيراد أي أرشيف بعد.';
+
+  @override
+  String get signalArchiveEmptyBody =>
+      'استورد ملف JSON لمفضلات تيك توك: تظهر مجموعاتك والفيديوهات التي أعجبتك هنا جاهزة للتنزيل.';
+
+  @override
+  String get signalArchiveImport => 'اختر ملف JSON';
+
+  @override
+  String get signalArchiveSyncHint =>
+      'تتم المزامنة عبر الإضافة في متصفح مفتوح على تيك توك.';
 }

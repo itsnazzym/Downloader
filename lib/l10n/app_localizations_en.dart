@@ -4840,4 +4840,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Not downloaded yet';
+
+  @override
+  String get signalEmptyTitle => 'Your first download starts here.';
+
+  @override
+  String get signalEmptyBody =>
+      'Copy a YouTube, TikTok, Instagram or X link and paste it above: the video lands here, ready to watch.';
+
+  @override
+  String get signalEmptyAction => 'Paste a link';
+
+  @override
+  String get signalLoadErrorTitle => 'The library could not load.';
+
+  @override
+  String get signalLoadErrorBody =>
+      'Your files are still on disk. Try again to read the list.';
+
+  @override
+  String get signalNoResultsTitle => 'No results';
+
+  @override
+  String signalNoResultsQuery(String query) {
+    return 'Nothing matches “$query”.';
+  }
+
+  @override
+  String get signalNoResultsFilters => 'Nothing matches these filters.';
+
+  @override
+  String get signalClearFilters => 'Clear search and filters';
+
+  @override
+  String signalFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads failed',
+      one: '$count download failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String signalRetryFailed(int count) {
+    return 'Retry failed ($count)';
+  }
+
+  @override
+  String get signalStatsEmptyTitle => 'No stats yet.';
+
+  @override
+  String get signalStatsEmptyBody =>
+      'Your volumes, sources and creators will show here after your first download.';
+
+  @override
+  String get signalTransferNoDevicesHint =>
+      'Open TapLoad on the phone, on the same Wi-Fi, or look for it on the network.';
+
+  @override
+  String get signalArchiveEmptyTitle => 'No archive imported yet.';
+
+  @override
+  String get signalArchiveEmptyBody =>
+      'Import the JSON export of your TikTok favorites: your collections and liked videos show up here, ready to download.';
+
+  @override
+  String get signalArchiveImport => 'Choose a JSON file';
+
+  @override
+  String get signalArchiveSyncHint =>
+      'Sync goes through the extension, in a browser open on TikTok.';
 }

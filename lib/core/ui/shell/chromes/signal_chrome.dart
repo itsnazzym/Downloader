@@ -51,7 +51,8 @@ class SignalChrome extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              const _SignalMark(),
+              // Narrow window: the mark alone leaves the tabs their width.
+              _SignalMark(compact: MediaQuery.sizeOf(context).width < 900),
               const SizedBox(width: 24),
               Expanded(
                 child: Align(
@@ -90,7 +91,9 @@ void _openArchive(WidgetRef ref, DesktopDestination d) {
 }
 
 class _SignalMark extends StatelessWidget {
-  const _SignalMark();
+  const _SignalMark({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -113,11 +116,15 @@ class _SignalMark extends StatelessWidget {
           ),
           child: Icon(Icons.south_rounded, size: 18, color: colors.onPrimary),
         ),
-        const SizedBox(width: 10),
-        Text(
-          'tapload',
-          style: AppTypography.display(20).copyWith(color: colors.textPrimary),
-        ),
+        if (!compact) ...[
+          const SizedBox(width: 10),
+          Text(
+            'tapload',
+            style: AppTypography.display(
+              20,
+            ).copyWith(color: colors.textPrimary),
+          ),
+        ],
       ],
     );
   }
@@ -129,10 +136,16 @@ class _SlidingTabs extends StatelessWidget {
 
   final List<DesktopDestination> tabs;
 
-  static const double _tabWidth = 116;
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(
+    // 116 px a tab as in the mockup, narrower (down to 84) before scrolling.
+    builder: (context, c) => _build(
+      context,
+      ((c.maxWidth - 10) / tabs.length).clamp(84.0, 116.0).toDouble(),
+    ),
+  );
+
+  Widget _build(BuildContext context, double tabWidth) {
     final colors = AppColors.of(context);
     final index = tabs.indexWhere((t) => t.selected);
     final reduce = MediaQuery.disableAnimationsOf(context);
@@ -153,10 +166,10 @@ class _SlidingTabs extends StatelessWidget {
                     ? Duration.zero
                     : const Duration(milliseconds: 380),
                 curve: const Cubic(0.3, 1.25, 0.4, 1),
-                left: index * _tabWidth,
+                left: index * tabWidth,
                 top: 0,
                 bottom: 0,
-                width: _tabWidth,
+                width: tabWidth,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: colors.primary,
@@ -173,7 +186,7 @@ class _SlidingTabs extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                for (final tab in tabs) _Tab(tab: tab, width: _tabWidth),
+                for (final tab in tabs) _Tab(tab: tab, width: tabWidth),
               ],
             ),
           ],

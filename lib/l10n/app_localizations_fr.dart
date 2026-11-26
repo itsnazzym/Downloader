@@ -4898,4 +4898,76 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Pas encore téléchargée';
+
+  @override
+  String get signalEmptyTitle => 'Ton premier téléchargement commence ici.';
+
+  @override
+  String get signalEmptyBody =>
+      'Copie un lien YouTube, TikTok, Instagram ou X, colle-le en haut : la vidéo arrive ici, prête à regarder.';
+
+  @override
+  String get signalEmptyAction => 'Coller un lien';
+
+  @override
+  String get signalLoadErrorTitle => 'La bibliothèque n’a pas pu se charger.';
+
+  @override
+  String get signalLoadErrorBody =>
+      'Tes fichiers restent sur le disque. Réessaie pour relire la liste.';
+
+  @override
+  String get signalNoResultsTitle => 'Aucun résultat';
+
+  @override
+  String signalNoResultsQuery(String query) {
+    return 'Rien ne correspond à « $query ».';
+  }
+
+  @override
+  String get signalNoResultsFilters => 'Rien ne correspond à ces filtres.';
+
+  @override
+  String get signalClearFilters => 'Effacer la recherche et les filtres';
+
+  @override
+  String signalFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements ont échoué',
+      one: '$count téléchargement a échoué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String signalRetryFailed(int count) {
+    return 'Relancer les échecs ($count)';
+  }
+
+  @override
+  String get signalStatsEmptyTitle => 'Pas encore de statistiques.';
+
+  @override
+  String get signalStatsEmptyBody =>
+      'Tes volumes, sources et créateurs apparaîtront ici après ton premier téléchargement.';
+
+  @override
+  String get signalTransferNoDevicesHint =>
+      'Ouvre TapLoad sur le téléphone, sur le même Wi-Fi, ou cherche-le sur le réseau.';
+
+  @override
+  String get signalArchiveEmptyTitle => 'Aucune archive importée.';
+
+  @override
+  String get signalArchiveEmptyBody =>
+      'Importe l’export JSON de tes favoris TikTok : tes collections et vidéos aimées apparaissent ici, prêtes à télécharger.';
+
+  @override
+  String get signalArchiveImport => 'Choisir un fichier JSON';
+
+  @override
+  String get signalArchiveSyncHint =>
+      'La synchronisation passe par l’extension, dans un navigateur ouvert sur TikTok.';
 }
