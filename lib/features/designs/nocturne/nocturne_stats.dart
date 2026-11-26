@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/services/disk_space_service.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart'
     show designFreeSpaceProvider;
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -92,12 +93,14 @@ class _NocturneStatsState extends ConsumerState<NocturneStats> {
           NocturneCard(
             lift: false,
             padding: const EdgeInsets.fromLTRB(24, 22, 24, 22),
-            child: _Activity(
-              stats: stats,
-              periods: _covers30(stats) ? const [7, 30] : const [7],
-              days: _covers30(stats) ? (_days ?? 30) : 7,
-              onDays: (d) => setState(() => _days = d),
-            ),
+            child: stats.totalDownloads == 0
+                ? const _NoStats()
+                : _Activity(
+                    stats: stats,
+                    periods: _covers30(stats) ? const [7, 30] : const [7],
+                    days: _covers30(stats) ? (_days ?? 30) : 7,
+                    onDays: (d) => setState(() => _days = d),
+                  ),
           ),
           const SizedBox(height: 22),
           NocturneAutoGrid(
@@ -122,6 +125,54 @@ class _NocturneStatsState extends ConsumerState<NocturneStats> {
       b.write(s[i]);
     }
     return b.toString();
+  }
+}
+
+/// No download recorded yet: the orbit with a still bar chart inside, and
+/// the way to the first download.
+class _NoStats extends StatelessWidget {
+  const _NoStats();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 18),
+      child: Wrap(
+        spacing: 32,
+        runSpacing: 18,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          const NocturneOrbit(size: 132, icon: Icons.bar_chart_rounded),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.nocturneStatsEmptyTitle,
+                  style: nocturneText(c, size: 20, weight: FontWeight.w700)
+                      .copyWith(letterSpacing: -0.4),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.nocturneStatsEmptyBody,
+                  style: nocturneText(c, size: 14, color: c.textSecondary),
+                ),
+                const SizedBox(height: 18),
+                NocturneButton(
+                  label: l10n.newDownload,
+                  kind: NocturneButtonKind.primary,
+                  onTap: () => openNewDownload(context),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -28,6 +28,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import '../signal/signal_widgets.dart' show SignalThumb;
+import 'nocturne_states.dart';
 import 'nocturne_widgets.dart';
 
 /// Nocturne's home (mockup Nocturne.dc.html): greeting, the download in
@@ -97,8 +98,62 @@ class _HomeScroll extends ConsumerStatefulWidget {
   ConsumerState<_HomeScroll> createState() => _HomeScrollState();
 }
 
-class _HomeScrollState extends ConsumerState<_HomeScroll> {
+/// What the library is: still loading, unreadable, empty or filled.
+enum _Phase { loading, error, empty, ready }
+
+_Phase _phaseOf(AsyncValue<List<DownloadItem>> s) {
+  if (s.hasValue) return s.requireValue.isEmpty ? _Phase.empty : _Phase.ready;
+  return s.hasError ? _Phase.error : _Phase.loading;
+}
+
+class _HomeScrollState extends ConsumerState<_HomeScroll>
+    with TickerProviderStateMixin {
   final _libraryKey = GlobalKey();
+
+  /// One-shot rise of the first rows, played once the library is filled.
+  late final _entrance = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+  );
+  bool _entranceStarted = false;
+
+  /// The skeletons' moonlight sweep, running only while loading.
+  late final _shimmer = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _entrance.value = 1;
+      _shimmer.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _entrance.dispose();
+    _shimmer.dispose();
+    super.dispose();
+  }
+
+  void _syncMotion(_Phase phase) {
+    final still = MediaQuery.disableAnimationsOf(context);
+    if (phase == _Phase.loading && !still) {
+      if (!_shimmer.isAnimating) _shimmer.repeat();
+    } else if (_shimmer.isAnimating) {
+      _shimmer.stop();
+    }
+    if (phase == _Phase.ready && !_entranceStarted) {
+      _entranceStarted = true;
+      if (still) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _entrance.forward();
+      });
+    }
+  }
 
   void _showLibrary() {
     final target = _libraryKey.currentContext;
@@ -128,6 +183,10 @@ class _HomeScrollState extends ConsumerState<_HomeScroll> {
       if (next == DownloadStatusFilter.active) _showLibrary();
     });
     final mode = ref.watch(downloadViewModeProvider);
+    // Phase changes only: progress ticks never rebuild the page.
+    final phase = ref.watch(downloadListProvider.select(_phaseOf));
+    _syncMotion(phase);
+    final filled = phase == _Phase.ready;
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
@@ -160,42 +219,80 @@ class _HomeScrollState extends ConsumerState<_HomeScroll> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const _ActiveTitle(),
+                          if (phase == _Phase.loading)
+                            NocturneTitleSkeleton(shimmer: _shimmer)
+                          else
+                            const _ActiveTitle(),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    NocturneButton(
-                      label: context.l10n.newDownload,
-                      kind: NocturneButtonKind.primary,
-                      height: 42,
-                      radius: 14,
-                      fontSize: 13.5,
-                      padding: 20,
-                      onTap: () => openNewDownload(context),
-                    ),
+                    // The empty state carries the one "new download" action.
+                    if (phase != _Phase.empty) ...[
+                      const SizedBox(width: 16),
+                      NocturneButton(
+                        label: context.l10n.newDownload,
+                        kind: NocturneButtonKind.primary,
+                        height: 42,
+                        radius: 14,
+                        fontSize: 13.5,
+                        padding: 20,
+                        onTap: () => openNewDownload(context),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
             SliverPadding(
               padding: pad(26, 0),
-              sliver: SliverToBoxAdapter(child: _HeroCard(wide: wide)),
+              sliver: SliverToBoxAdapter(
+                child: switch (phase) {
+                  _Phase.ready => _HeroCard(wide: wide),
+                  _Phase.loading => NocturneHeroSkeleton(shimmer: _shimmer),
+                  // Onboarding points at the list: here, the state card.
+                  _Phase.empty => KeyedSubtree(
+                    key: OnboardingTargets.creatorList,
+                    child: const NocturneEmptyLibrary(),
+                  ),
+                  _Phase.error => KeyedSubtree(
+                    key: OnboardingTargets.creatorList,
+                    child: NocturneLoadError(
+                      error: ref.read(downloadListProvider).error ?? '',
+                    ),
+                  ),
+                },
+              ),
             ),
-            SliverPadding(
-              padding: pad(26, 0),
-              sliver: SliverToBoxAdapter(child: _Recent(columns: columns)),
-            ),
+            if (filled)
+              SliverPadding(
+                padding: pad(26, 0),
+                sliver: SliverToBoxAdapter(child: _Recent(columns: columns)),
+              ),
             SliverPadding(
               padding: pad(40, 14),
               sliver: SliverToBoxAdapter(
                 child: KeyedSubtree(key: _libraryKey, child: const _Toolbar()),
               ),
             ),
-            if (mode == DownloadViewMode.list)
+            if (phase == _Phase.loading)
               SliverPadding(
                 padding: pad(0, 48),
-                sliver: _LibraryGrid(columns: wide ? 2 : 1),
+                sliver: SliverToBoxAdapter(
+                  child: NocturneRowsSkeleton(
+                    shimmer: _shimmer,
+                    columns: wide ? 2 : 1,
+                  ),
+                ),
+              )
+            else if (!filled)
+              const SliverToBoxAdapter(child: SizedBox(height: 48))
+            else if (mode == DownloadViewMode.list)
+              SliverPadding(
+                padding: pad(0, 48),
+                sliver: _LibraryGrid(
+                  columns: wide ? 2 : 1,
+                  entrance: _entrance,
+                ),
               )
             else
               // Detailed cards and creator folders: today's list, unchanged.
@@ -247,13 +344,76 @@ class _ActiveTitle extends ConsumerWidget {
 
 // ── Hero: the download in progress ──────────────────────────────────────────
 
-class _HeroCard extends ConsumerWidget {
+class _HeroCard extends ConsumerStatefulWidget {
   const _HeroCard({required this.wide});
 
   final bool wide;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HeroCard> createState() => _HeroCardState();
+}
+
+/// Key of the finish moment's bloom (tests look for it).
+const nocturneFinishBloomKey = ValueKey('nocturne-finish-bloom');
+
+class _HeroCardState extends ConsumerState<_HeroCard>
+    with SingleTickerProviderStateMixin {
+  /// The finish moment: the ring closes to 100 %, a check settles in and a
+  /// soft bloom spreads from the ring, under a second.
+  late final _finish = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
+  DownloadItem? _finished;
+  double _from = 0;
+  String? _shownId;
+  double _shownProgress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _finish.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _finished = null);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _finish.dispose();
+    super.dispose();
+  }
+
+  /// An item that was active a moment ago and is now completed.
+  void _onList(
+    AsyncValue<List<DownloadItem>>? previous,
+    AsyncValue<List<DownloadItem>> next,
+  ) {
+    final before = previous?.valueOrNull;
+    final after = next.valueOrNull;
+    if (before == null || after == null) return;
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    final wasActive = {
+      for (final i in before)
+        if (isActiveDownload(i)) i.id,
+    };
+    final done = after.where(
+      (i) => i.status == DownloadStatus.completed && wasActive.contains(i.id),
+    );
+    if (done.isEmpty) return;
+    final item = done.first;
+    setState(() {
+      _finished = item;
+      _from = item.id == _shownId ? _shownProgress : 0.9;
+    });
+    _finish.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(downloadListProvider, _onList);
+    final wide = widget.wide;
     final c = AppColors.of(context);
     final l10n = context.l10n;
     final items =
@@ -271,42 +431,55 @@ class _HeroCard extends ConsumerWidget {
       for (final i in items)
         if (i.status == DownloadStatus.queued) i,
     ];
+    final failedCount = items
+        .where((i) => i.status == DownloadStatus.failed)
+        .length;
+    final finished = _finished;
     final main = active.isNotEmpty
         ? active.first
         : (paused.isNotEmpty ? paused.first : null);
     final next = [
+      if (finished != null && main != null) main,
       ...active.skip(1),
       ...paused.where((p) => p != main),
       ...queued,
     ].firstOrNull;
+    _shownId = main?.id;
+    _shownProgress = main?.progress ?? 0;
 
-    final current = main == null
-        ? _Idle(l10n: l10n)
+    final current = finished != null
+        ? _Finished(item: finished)
+        : main == null
+        ? _Idle(l10n: l10n, failedCount: failedCount)
         : _Current(item: main);
-    final ring = NocturneRing(
-      value: main?.progress ?? 0,
-      size: 112,
-      stroke: 8,
-      radius: 46,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${((main?.progress ?? 0) * 100).clamp(0, 100).round()}%',
-            style: nocturneMono(
-              c,
-              size: 22,
-              color: c.textPrimary,
-            ).copyWith(fontWeight: FontWeight.w500),
-          ),
-          if (main != null && main.eta.isNotEmpty && isActiveDownload(main))
-            Text(
-              etaLabel(l10n, main.eta),
-              style: nocturneText(c, size: 11, color: c.textDisabled),
+    final ring = finished != null
+        ? _FinishRing(animation: _finish, from: _from)
+        : NocturneRing(
+            value: main?.progress ?? 0,
+            size: 112,
+            stroke: 8,
+            radius: 46,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${((main?.progress ?? 0) * 100).clamp(0, 100).round()}%',
+                  style: nocturneMono(
+                    c,
+                    size: 22,
+                    color: c.textPrimary,
+                  ).copyWith(fontWeight: FontWeight.w500),
+                ),
+                if (main != null &&
+                    main.eta.isNotEmpty &&
+                    isActiveDownload(main))
+                  Text(
+                    etaLabel(l10n, main.eta),
+                    style: nocturneText(c, size: 11, color: c.textDisabled),
+                  ),
+              ],
             ),
-        ],
-      ),
-    );
+          );
     final after = _Next(item: next);
     return NocturneCard(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
@@ -338,13 +511,14 @@ class _HeroCard extends ConsumerWidget {
   }
 }
 
-class _Idle extends StatelessWidget {
-  const _Idle({required this.l10n});
+class _Idle extends ConsumerWidget {
+  const _Idle({required this.l10n, required this.failedCount});
 
   final AppLocalizations l10n;
+  final int failedCount;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,6 +527,13 @@ class _Idle extends StatelessWidget {
           l10n.designNothingActive,
           style: nocturneText(c, size: 15, weight: FontWeight.w600),
         ),
+        if (failedCount > 1) ...[
+          const SizedBox(height: 4),
+          Text(
+            l10n.nocturneFailedCount(failedCount),
+            style: nocturneText(c, size: 12.5, color: c.error),
+          ),
+        ],
         const SizedBox(height: 16),
         NocturneButton(
           label: l10n.newDownload,
@@ -363,6 +544,121 @@ class _Idle extends StatelessWidget {
           onTap: () => openNewDownload(context),
         ),
       ],
+    );
+  }
+}
+
+/// The hero's text while the finish moment plays.
+class _Finished extends StatelessWidget {
+  const _Finished({required this.item});
+
+  final DownloadItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    final size = bytesOf(item);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.statusCompleted,
+          style: nocturneText(
+            c,
+            size: 12,
+            weight: FontWeight.w600,
+            color: c.primary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          TitleCleanerService.clean(item.title ?? item.request.url),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: nocturneText(
+            c,
+            size: 19,
+            weight: FontWeight.w600,
+          ).copyWith(letterSpacing: -0.3),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          [
+            item.source,
+            formatLabelOf(item),
+            if (size > 0) localBytes(l10n, size),
+          ].where((s) => s.isNotEmpty).join(' · '),
+          style: nocturneMono(c),
+        ),
+      ],
+    );
+  }
+}
+
+/// The ring closing from [from] to 100 %, the check settling in, then a
+/// soft bloom spreading and fading around it.
+class _FinishRing extends StatelessWidget {
+  const _FinishRing({required this.animation, required this.from});
+
+  final Animation<double> animation;
+  final double from;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          final t = animation.value;
+          final close = Curves.easeOutCubic.transform((t / 0.45).clamp(0, 1));
+          final check = Curves.easeOutBack.transform(
+            ((t - 0.35) / 0.3).clamp(0, 1),
+          );
+          final bloom = Curves.easeOut.transform(((t - 0.4) / 0.6).clamp(0, 1));
+          return SizedBox.square(
+            dimension: 112,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Transform.scale(
+                  key: nocturneFinishBloomKey,
+                  scale: 0.9 + bloom * 0.55,
+                  child: Container(
+                    width: 112,
+                    height: 112,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          c.primary.withValues(alpha: 0.45 * (1 - bloom)),
+                          c.primary.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                NocturneRing(
+                  value: from + (1 - from) * close,
+                  size: 112,
+                  stroke: 8,
+                  radius: 46,
+                ),
+                Transform.scale(
+                  scale: check,
+                  child: Icon(
+                    Icons.check_rounded,
+                    size: 40,
+                    color: c.primary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -563,26 +859,41 @@ class _Recent extends ConsumerWidget {
   }
 }
 
-class _RecentCard extends ConsumerWidget {
+class _RecentCard extends ConsumerStatefulWidget {
   const _RecentCard({required this.item});
 
   final DownloadItem item;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_RecentCard> createState() => _RecentCardState();
+}
+
+class _RecentCardState extends ConsumerState<_RecentCard> {
+  bool _focus = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
     final c = AppColors.of(context);
     final l10n = context.l10n;
     final failed = item.status != DownloadStatus.completed;
     final size = bytesOf(item);
     return DownloadItemContextMenu(
       item: item,
-      child: GestureDetector(
-        onTap: () =>
-            ref.read(selectedDownloadIdProvider.notifier).state = item.id,
-        onDoubleTap: () => playDownload(ref, item),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () =>
+              ref.read(selectedDownloadIdProvider.notifier).state = item.id,
+          onDoubleTap: () => playDownload(ref, item),
+          onFocusChange: (v) => setState(() => _focus = v),
+          borderRadius: BorderRadius.circular(18),
+          hoverColor: Colors.transparent,
+          focusColor: Colors.transparent,
+          highlightColor: c.primary.withValues(alpha: 0.04),
+          splashColor: c.primary.withValues(alpha: 0.06),
           child: NocturneCard(
+            highlight: _focus,
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
@@ -726,6 +1037,21 @@ class _Toolbar extends ConsumerWidget {
                     '${counts.total}',
                     style: nocturneMono(c, size: 12, color: c.textDisabled),
                   ),
+                  const Spacer(),
+                  // Several failures: one tap relaunches them all, whatever
+                  // else is downloading.
+                  if (counts.failed > 1)
+                    NocturneButton(
+                      label: '${l10n.retryFailedAction} (${counts.failed})',
+                      kind: NocturneButtonKind.danger,
+                      icon: Icons.refresh_rounded,
+                      height: 32,
+                      radius: 11,
+                      padding: 13,
+                      onTap: () => ref
+                          .read(downloadListProvider.notifier)
+                          .retryAllFailed(),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -797,26 +1123,24 @@ class _Toolbar extends ConsumerWidget {
 }
 
 class _LibraryGrid extends ConsumerWidget {
-  const _LibraryGrid({required this.columns});
+  const _LibraryGrid({required this.columns, required this.entrance});
 
   final int columns;
 
+  /// The page's one-shot entrance; only the first rows read it.
+  final Animation<double> entrance;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = AppColors.of(context);
-    final l10n = context.l10n;
     final items =
         ref.watch(filteredDownloadsProvider).valueOrNull ??
         const <DownloadItem>[];
+    // Only shown once the library is filled: nothing here means no match.
     if (items.isEmpty) {
       return SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Text(
-            key: OnboardingTargets.creatorList,
-            l10n.designLibraryEmpty,
-            style: nocturneText(c, color: c.textSecondary),
-          ),
+          padding: const EdgeInsets.only(top: 10),
+          child: NocturneNoResults(key: OnboardingTargets.creatorList),
         ),
       );
     }
@@ -828,7 +1152,27 @@ class _LibraryGrid extends ConsumerWidget {
         mainAxisSpacing: 4,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
-        final row = _LibraryRow(itemId: items[index].id, base: items[index]);
+        Widget row = _LibraryRow(itemId: items[index].id, base: items[index]);
+        if (index < 12) {
+          // Staggered fade and 10px rise, all within the 380ms entrance.
+          final start = index * 0.04;
+          // drive(): no listener left on the controller per built row.
+          final curve = entrance.drive(
+            CurveTween(
+              curve: Interval(start, start + 0.52, curve: nocturneEase),
+            ),
+          );
+          row = FadeTransition(
+            opacity: curve,
+            child: SlideTransition(
+              position: Tween(
+                begin: const Offset(0, 0.14),
+                end: Offset.zero,
+              ).animate(curve),
+              child: row,
+            ),
+          );
+        }
         // The onboarding points at the list through its first row.
         return index == 0
             ? KeyedSubtree(key: OnboardingTargets.creatorList, child: row)
@@ -850,6 +1194,8 @@ class _LibraryRow extends ConsumerStatefulWidget {
 
 class _LibraryRowState extends ConsumerState<_LibraryRow> {
   bool _hover = false;
+  bool _focus = false;
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -868,8 +1214,9 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
         item.status == DownloadStatus.queued ||
         item.status == DownloadStatus.paused;
     final size = bytesOf(item);
+    final reason = failed ? nocturneErrorReason(item.error) : '';
     final meta = failed
-        ? '${l10n.designFailed} · ${(item.error ?? '').split('\n').first}'
+        ? [l10n.designFailed, reason].where((s) => s.isNotEmpty).join(' · ')
         : [
             item.source,
             formatLabelOf(item),
@@ -877,23 +1224,36 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
           ].where((s) => s.isNotEmpty).join(' · ');
     return DownloadItemContextMenu(
       item: item,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = false),
-        child: GestureDetector(
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
           onTap: () => ref.read(selectedDownloadIdProvider.notifier).state =
               selected ? null : item.id,
           onDoubleTap: () => playDownload(ref, item),
+          onHover: (v) => setState(() => _hover = v),
+          onFocusChange: (v) => setState(() => _focus = v),
+          onHighlightChanged: (v) => setState(() => _pressed = v),
+          borderRadius: BorderRadius.circular(14),
+          hoverColor: Colors.transparent,
+          focusColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          splashColor: c.primary.withValues(alpha: 0.06),
           child: AnimatedContainer(
             duration: nocturneMotion(context, 180),
+            curve: nocturneEase,
+            transform: Matrix4.diagonal3Values(
+              _pressed ? 0.99 : 1,
+              _pressed ? 0.99 : 1,
+              1,
+            ),
+            transformAlignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: selected || _hover ? c.surface : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: selected
-                    ? c.primary.withValues(alpha: 0.55)
+                color: selected || _focus
+                    ? c.primary.withValues(alpha: _focus ? 0.9 : 0.55)
                     : Colors.transparent,
               ),
             ),
@@ -942,22 +1302,28 @@ class _LibraryRowState extends ConsumerState<_LibraryRow> {
                     radius: 14,
                   ),
                 ],
+                // A failed row always shows how to recover.
+                if (failed) ...[
+                  const SizedBox(width: 10),
+                  NocturneButton(
+                    label: l10n.retry,
+                    icon: Icons.refresh_rounded,
+                    height: 32,
+                    radius: 10,
+                    padding: 12,
+                    fontSize: 12.5,
+                    onTap: () => ref
+                        .read(downloadListProvider.notifier)
+                        .retryDownload(item),
+                  ),
+                ],
                 AnimatedOpacity(
-                  opacity: _hover ? 1 : 0,
+                  opacity: _hover || _focus ? 1 : 0,
                   duration: nocturneMotion(context, 180),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (failed)
-                        NocturneIconButton(
-                          icon: Icons.refresh_rounded,
-                          tooltip: l10n.retry,
-                          ghost: true,
-                          onTap: () => ref
-                              .read(downloadListProvider.notifier)
-                              .retryDownload(item),
-                        )
-                      else if (item.status == DownloadStatus.completed) ...[
+                      if (item.status == DownloadStatus.completed) ...[
                         NocturneIconButton(
                           icon: Icons.play_arrow_rounded,
                           tooltip: l10n.detailsPlayVideo,

@@ -884,6 +884,193 @@ class _GlyphPainter extends CustomPainter {
       old.glyph != glyph || old.color != color || old.stroke != stroke;
 }
 
+/// The empty states' visual: a night orbit. A soft glow, a thin outer orbit
+/// with one star, the progress ring waiting with a short arc, [icon] inside.
+class NocturneOrbit extends StatelessWidget {
+  const NocturneOrbit({
+    super.key,
+    required this.size,
+    required this.icon,
+    this.color,
+    this.arc = 0.12,
+  });
+
+  final double size;
+  final IconData icon;
+
+  /// Accent of the arc, star and icon; the theme's primary by default.
+  final Color? color;
+  final double arc;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final accent = color ?? c.primary;
+    return SizedBox.square(
+      dimension: size,
+      child: CustomPaint(
+        painter: _OrbitPainter(
+          accent: accent,
+          track: nocturneTrack(c),
+          core: c.surfaceHighlight,
+          arc: arc,
+        ),
+        child: Center(child: Icon(icon, size: size * 0.16, color: accent)),
+      ),
+    );
+  }
+}
+
+class _OrbitPainter extends CustomPainter {
+  _OrbitPainter({
+    required this.accent,
+    required this.track,
+    required this.core,
+    required this.arc,
+  });
+
+  final Color accent;
+  final Color track;
+  final Color core;
+  final double arc;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.shortestSide;
+    final o = size.center(Offset.zero);
+    canvas.drawCircle(
+      o,
+      s * 0.5,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [accent.withValues(alpha: 0.18), accent.withValues(alpha: 0)],
+        ).createShader(Rect.fromCircle(center: o, radius: s * 0.5)),
+    );
+    final line = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = track;
+    canvas.drawCircle(o, s * 0.46, line);
+    final star = o + Offset.fromDirection(-math.pi / 5, s * 0.46);
+    canvas.drawCircle(star, s * 0.022, Paint()..color = accent);
+    canvas.drawCircle(
+      o + Offset.fromDirection(math.pi * 0.8, s * 0.46),
+      s * 0.012,
+      Paint()..color = accent.withValues(alpha: 0.5),
+    );
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = s * 0.05
+      ..color = track;
+    canvas.drawCircle(o, s * 0.33, ring);
+    if (arc > 0) {
+      ring
+        ..color = accent
+        ..strokeCap = StrokeCap.round;
+      canvas.drawArc(
+        Rect.fromCircle(center: o, radius: s * 0.33),
+        -math.pi / 2,
+        2 * math.pi * arc,
+        false,
+        ring,
+      );
+    }
+    canvas.drawCircle(o, s * 0.2, Paint()..color = core);
+  }
+
+  @override
+  bool shouldRepaint(_OrbitPainter old) =>
+      old.accent != accent ||
+      old.track != track ||
+      old.core != core ||
+      old.arc != arc;
+}
+
+/// The empty library's illustration: `assets/designs/nocturne/empty.png`
+/// when it ships, else the [NocturneOrbit] drawn in code.
+class NocturneEmptyArt extends StatelessWidget {
+  const NocturneEmptyArt({super.key, required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: size,
+      child: Image.asset(
+        'assets/designs/nocturne/empty.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stack) =>
+            NocturneOrbit(size: size, icon: Icons.nightlight_round),
+      ),
+    );
+  }
+}
+
+/// A skeleton block in the ring track's colour.
+class NocturneBone extends StatelessWidget {
+  const NocturneBone({
+    super.key,
+    this.width,
+    required this.height,
+    this.radius = 8,
+  });
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: nocturneTrack(AppColors.of(context)),
+      borderRadius: BorderRadius.circular(radius),
+    ),
+  );
+}
+
+/// Sweeps a faint moonlight band across [child]'s bones, driven by the
+/// page's single [animation] (still when animations are off).
+class NocturneShimmer extends StatelessWidget {
+  const NocturneShimmer({
+    super.key,
+    required this.animation,
+    required this.child,
+  });
+
+  final Animation<double> animation;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final base = nocturneTrack(c);
+    final light = Color.lerp(base, c.primary, 0.12)!;
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: animation,
+        child: child,
+        builder: (context, child) {
+          final t = animation.value * 3 - 1;
+          return ShaderMask(
+            blendMode: BlendMode.srcATop,
+            shaderCallback: (rect) => LinearGradient(
+              begin: Alignment(t - 1, 0),
+              end: Alignment(t + 1, 0),
+              colors: [base, light, base],
+            ).createShader(rect),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+}
+
 /// CSS `grid-template-columns: repeat(auto-fill, minmax(min, 1fr))`: as many
 /// columns as fit, children left-aligned, rows of equal height.
 class NocturneAutoGrid extends StatelessWidget {

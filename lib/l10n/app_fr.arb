@@ -1725,5 +1725,20 @@
   "studioRetryFailed": "Relancer les échecs ({count})",
   "studioNoDevicesTitle": "Aucun appareil à portée",
   "studioNoStatsTitle": "Pas encore de statistiques",
-  "studioNoStatsBody": "Elles apparaîtront ici après ton premier téléchargement."
+  "studioNoStatsBody": "Elles apparaîtront ici après ton premier téléchargement.",
+  "nocturneEmptyTitle": "Ta bibliothèque t’attend",
+  "nocturneEmptyBody": "Colle un lien YouTube, TikTok, Instagram ou X : TapLoad le télécharge et le range ici.",
+  "nocturneNoResultsTitle": "Aucun résultat",
+  "nocturneNoResultsQuery": "Rien ne correspond à « {query} » avec ces filtres.",
+  "nocturneNoResultsFilters": "Rien ne correspond aux filtres actifs.",
+  "nocturneClearSearchFilters": "Effacer la recherche et les filtres",
+  "nocturneLoadErrorTitle": "La bibliothèque n’a pas pu être chargée",
+  "nocturneLoadErrorBody": "Tes fichiers sont intacts. Réessaie dans un instant.",
+  "nocturneFailedCount": "{count, plural, =1{1 téléchargement a échoué} other{{count} téléchargements ont échoué}}",
+  "nocturneStatsEmptyTitle": "Pas encore de statistiques",
+  "nocturneStatsEmptyBody": "Tes chiffres apparaîtront ici après ton premier téléchargement.",
+  "nocturneArchiveEmptyTitle": "Aucune archive importée",
+  "nocturneArchiveEmptyBody": "Importe l’export JSON de tes favoris TikTok ou synchronise tes collections avec l’extension. Rien n’est téléchargé sans toi.",
+  "nocturneArchiveImportJson": "Choisir un fichier JSON",
+  "nocturneArchiveSyncHint": "Pour synchroniser, ouvre TikTok dans un navigateur où l’extension est installée, puis reviens ici."
 }

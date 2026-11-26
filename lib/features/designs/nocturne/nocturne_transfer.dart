@@ -770,9 +770,28 @@ class _DevicesCard extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           if (peers.isEmpty)
-            Text(
-              l10n.transferNoDevices,
-              style: nocturneText(c, size: 12.5, color: c.textSecondary),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6, right: 8),
+              child: Row(
+                children: [
+                  NocturneOrbit(
+                    size: 56,
+                    icon: Icons.smartphone_rounded,
+                    arc: scanning ? 0.25 : 0,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      l10n.transferNoDevices,
+                      style: nocturneText(
+                        c,
+                        size: 12.5,
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           for (final p in peers)
             Padding(
