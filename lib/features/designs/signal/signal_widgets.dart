@@ -138,6 +138,7 @@ class SignalButton extends StatefulWidget {
 class _SignalButtonState extends State<SignalButton> {
   bool _hover = false;
   bool _down = false;
+  bool _focus = false;
 
   @override
   Widget build(BuildContext context) {
@@ -145,10 +146,20 @@ class _SignalButtonState extends State<SignalButton> {
     final accent = widget.accent;
     final fg = accent ? colors.onPrimary : colors.textPrimary;
     final enabled = widget.onTap != null;
-    return MouseRegion(
-      cursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
+    // Keyboard: focusable, Enter/Space activate, a ring shows the focus.
+    return FocusableActionDetector(
+      enabled: enabled,
+      mouseCursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      onShowHoverHighlight: (h) => setState(() => _hover = h),
+      onShowFocusHighlight: (f) => setState(() => _focus = f),
+      actions: {
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            widget.onTap?.call();
+            return null;
+          },
+        ),
+      },
       child: GestureDetector(
         onTapDown: enabled ? (_) => setState(() => _down = true) : null,
         onTapUp: enabled ? (_) => setState(() => _down = false) : null,
@@ -172,7 +183,9 @@ class _SignalButtonState extends State<SignalButton> {
                   ? colors.primary
                   : (_hover ? colors.surfaceHighlight : Colors.transparent),
               borderRadius: BorderRadius.circular(999),
-              border: accent
+              border: _focus
+                  ? Border.all(color: colors.textPrimary, width: 2)
+                  : accent
                   ? null
                   : Border.all(
                       color: colors.textPrimary.withValues(alpha: 0.16),
@@ -256,6 +269,7 @@ class SignalChip extends StatefulWidget {
 
 class _SignalChipState extends State<SignalChip> {
   bool _hover = false;
+  bool _focus = false;
 
   @override
   Widget build(BuildContext context) {
@@ -267,10 +281,18 @@ class _SignalChipState extends State<SignalChip> {
     return Semantics(
       selected: on,
       button: true,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = false),
+      child: FocusableActionDetector(
+        mouseCursor: SystemMouseCursors.click,
+        onShowHoverHighlight: (h) => setState(() => _hover = h),
+        onShowFocusHighlight: (f) => setState(() => _focus = f),
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onTap();
+              return null;
+            },
+          ),
+        },
         child: GestureDetector(
           onTap: widget.onTap,
           child: AnimatedContainer(
@@ -281,9 +303,12 @@ class _SignalChipState extends State<SignalChip> {
               color: on ? colors.textPrimary : Colors.transparent,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: on
+                color: _focus
+                    ? colors.primary
+                    : on
                     ? Colors.transparent
                     : colors.textPrimary.withValues(alpha: _hover ? 0.22 : 0.1),
+                width: _focus ? 2 : 1,
               ),
             ),
             // Centred, but as wide as the label (not the parent) in a Wrap.

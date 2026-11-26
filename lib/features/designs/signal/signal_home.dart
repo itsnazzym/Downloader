@@ -118,18 +118,22 @@ class _HomeScrollState extends ConsumerState<_HomeScroll> {
             ],
           )
         : empty
-        ? SignalStateCard(
-            eyebrow: context.l10n.librarySection,
-            title: context.l10n.signalEmptyTitle,
-            body: context.l10n.signalEmptyBody,
-            art: const SignalEmptyArt(),
-            actions: [
-              SignalButton(
-                label: context.l10n.signalEmptyAction,
-                icon: Icons.content_paste_rounded,
-                onTap: _pasteLink,
-              ),
-            ],
+        // The onboarding's library step points here on a first launch.
+        ? KeyedSubtree(
+            key: OnboardingTargets.library,
+            child: SignalStateCard(
+              eyebrow: context.l10n.librarySection,
+              title: context.l10n.signalEmptyTitle,
+              body: context.l10n.signalEmptyBody,
+              art: const SignalEmptyArt(),
+              actions: [
+                SignalButton(
+                  label: context.l10n.signalEmptyAction,
+                  icon: Icons.content_paste_rounded,
+                  onTap: _pasteLink,
+                ),
+              ],
+            ),
           )
         : null;
     return LayoutBuilder(
@@ -1614,9 +1618,6 @@ class _LibraryHeaderState extends ConsumerState<_LibraryHeader> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<bool>(_signalFilteringProvider, (was, now) {
-      if (now && !(was ?? false)) _reveal();
-    });
     final colors = AppColors.of(context);
     final l10n = context.l10n;
     final kind = ref.watch(signalKindFilterProvider);
@@ -1657,7 +1658,7 @@ class _LibraryHeaderState extends ConsumerState<_LibraryHeader> {
           ]) ...[
             SignalChip(
               label: label,
-              count: n,
+              count: loading ? null : n,
               selected: status == s,
               onTap: () {
                 ref.read(downloadSourceFilterProvider.notifier).state = null;

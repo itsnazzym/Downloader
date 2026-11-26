@@ -22,6 +22,59 @@ class _FlipList extends PinnedDownloadList {
   _FlipList(super.repository, super.ref, super.items);
 
   void flip(List<DownloadItem> items) => state = AsyncValue.data(items);
+
+  void fail() => state = AsyncValue.error('disk', StackTrace.empty);
+}
+
+/// Signal's home over [items]; returns the list to drive.
+Future<_FlipList> _pumpHome(
+  WidgetTester tester,
+  List<DownloadItem> items,
+) async {
+  tester.view.physicalSize = const Size(1280, 1100);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  PlatformInfo.debugForceMobile = false;
+  late _FlipList list;
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...baseOverrides(),
+        dependencyBootstrapProvider.overrideWith(
+          (ref) => DependencyBootstrapNotifier.ready(),
+        ),
+        downloaderRepositoryProvider.overrideWith(
+          (ref) => FakeDownloaderRepository(items),
+        ),
+        persistenceServiceProvider.overrideWith((ref) => FakePersistence()),
+        downloadListProvider.overrideWith(
+          (ref) => list = _FlipList(
+            ref.read(downloaderRepositoryProvider),
+            ref,
+            items,
+          ),
+        ),
+        downloadStatsProvider.overrideWith((ref) => FakeStatsNotifier()),
+        designFreeSpaceProvider.overrideWith((ref) async => 1 << 30),
+      ],
+      child: MaterialApp(
+        locale: const Locale('fr'),
+        theme: AppTheme.fromPalette(ThemePresets.signal, Brightness.dark),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(body: SignalHome()),
+      ),
+    ),
+  );
+  await tester.pump(const Duration(milliseconds: 100));
+  await tester.pump(const Duration(milliseconds: 600));
+  return list;
 }
 
 void main() {
@@ -61,52 +114,10 @@ void main() {
   testWidgets('a download that finishes flashes its check, then leaves', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(1280, 1100);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    PlatformInfo.debugForceMobile = false;
     final running = sampleDownloads().firstWhere(
       (i) => i.status == DownloadStatus.downloading,
     );
-    late _FlipList list;
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          ...baseOverrides(),
-          dependencyBootstrapProvider.overrideWith(
-            (ref) => DependencyBootstrapNotifier.ready(),
-          ),
-          downloaderRepositoryProvider.overrideWith(
-            (ref) => FakeDownloaderRepository([running]),
-          ),
-          persistenceServiceProvider.overrideWith((ref) => FakePersistence()),
-          downloadListProvider.overrideWith(
-            (ref) => list = _FlipList(
-              ref.read(downloaderRepositoryProvider),
-              ref,
-              [running],
-            ),
-          ),
-          downloadStatsProvider.overrideWith((ref) => FakeStatsNotifier()),
-          designFreeSpaceProvider.overrideWith((ref) async => 1 << 30),
-        ],
-        child: MaterialApp(
-          locale: const Locale('fr'),
-          theme: AppTheme.fromPalette(ThemePresets.signal, Brightness.dark),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: SignalHome()),
-        ),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 600));
+    final list = await _pumpHome(tester, [running]);
     final finish = find.byKey(const ValueKey('signal-finish'));
     expect(finish, findsNothing);
 
@@ -131,5 +142,24 @@ void main() {
     // Under a second, then the card is back to « nothing in progress ».
     await tester.pump(const Duration(milliseconds: 500));
     expect(finish, findsNothing);
+  });
+
+  testWidgets('a library that fails to load recovers with « Réessayer »', (
+    tester,
+  ) async {
+    final running = sampleDownloads().firstWhere(
+      (i) => i.status == DownloadStatus.downloading,
+    );
+    final list = await _pumpHome(tester, [running]);
+    list.fail();
+    await tester.pump();
+    final title = find.text('La bibliothèque n’a pas pu se charger.');
+    expect(title, findsOneWidget);
+
+    await tester.tap(find.text('Réessayer'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(title, findsNothing);
+    expect(find.textContaining('derniers glaciers'), findsWidgets);
   });
 }

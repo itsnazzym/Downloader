@@ -33,9 +33,10 @@ class SignalArchive extends ConsumerWidget {
       tikTokArchiveProvider.select(
         (s) => (
           s.isLoading || s.viewMode == TikTokViewMode.hub || !s.hasCatalog,
+          // A sync in flight or its result stays today's hub.
           !s.isLoading &&
               !s.hasCatalog &&
-              s.syncStatus != TikTokSyncStatus.waiting,
+              s.syncStatus == TikTokSyncStatus.idle,
         ),
       ),
     );
