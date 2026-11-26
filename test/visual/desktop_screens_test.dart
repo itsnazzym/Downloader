@@ -438,6 +438,49 @@ void main() {
     }
   }
 
+  // The pieces every design used to borrow from today's views (settings
+  // sub-pages, the archive, the inspector): writes
+  // build/visual/surface_<id>_<name>.png to check they are drawn in the design.
+  const surfaces = {
+    'output': '/settings/output',
+    'appearance': '/settings/appearance',
+    'performance': '/settings/performance',
+    'advanced': '/settings/advanced',
+    'system': '/settings/system',
+    'plugins': '/settings/plugins',
+    'smart_organizer': '/settings/smart_organizer',
+    'archive': '/archive',
+    'inspector': '/',
+  };
+  for (final id in designs) {
+    for (final surface in surfaces.entries) {
+      testWidgets('surface $id ${surface.key}', (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final router = container.read(routerProvider);
+        final items = sampleDownloads();
+        final key = await pump(
+          tester,
+          () => const SizedBox(),
+          router: router,
+          preset: ThemePresets.getById(id),
+          items: items,
+          extra: [
+            ...archive(),
+            transferControllerProvider.overrideWith(
+              (ref) => FakeTransferController(ref),
+            ),
+            // The inspector shows the first item.
+            selectedDownloadIdProvider.overrideWith((ref) => items.first.id),
+          ],
+        );
+        router.go(surface.value);
+        await settle(tester);
+        await shot(tester, key, 'surface_${id}_${surface.key}');
+      });
+    }
+  }
+
   // The designs' own pages at their mockup's size, for side-by-sides with
   // build/visual/ref/<mockup>.png.
   const mockups = {
