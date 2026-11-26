@@ -17,7 +17,7 @@ import 'porcelaine_widgets.dart';
 /// tabs, then the video list (filters, search, selection) or the collection
 /// cards (« Sélectionner », purge). An opened collection and « Plus
 /// d'options… » show today's collections view. Loading, the import hub, an
-/// empty archive and narrow windows keep today's view.
+/// empty archive and windows under 900 px keep today's view.
 class PorcelaineArchive extends ConsumerWidget {
   const PorcelaineArchive({super.key, required this.current});
 
@@ -46,8 +46,9 @@ class PorcelaineArchive extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, box) {
         final side = box.maxWidth > 1284 ? (box.maxWidth - 1220) / 2 : 32.0;
-        // Today's view switches to its phone layout below 800: keep it whole.
-        final native = browsing && box.maxWidth >= 800;
+        // Below 900 the filters and video cards no longer fit side by side:
+        // today's view (its own desktop or phone layout) is kept whole.
+        final native = browsing && box.maxWidth >= 900;
         final Widget body;
         if (!native) {
           body = _Sheet(child: current);
@@ -63,7 +64,7 @@ class PorcelaineArchive extends ConsumerWidget {
           body = const _CollectionsGrid();
         }
         // The grid's cards draw their ring and shadow past their box: its
-        // scroll view gets [_bleed] of room on each side.
+        // scroll view gets [_bleed] of room on its sides, [_top] above.
         final grid = body is _CollectionsGrid;
         return Padding(
           padding: EdgeInsets.fromLTRB(side - _bleed, 0, side - _bleed, 24),
@@ -81,7 +82,7 @@ class PorcelaineArchive extends ConsumerWidget {
                       const _ArchiveCard(),
                       const SizedBox(height: 20),
                       const _Tabs(),
-                      SizedBox(height: grid ? 20 - _bleed : 20),
+                      SizedBox(height: grid ? 20 - _top : 20),
                     ],
                   ],
                 ),
@@ -90,9 +91,7 @@ class PorcelaineArchive extends ConsumerWidget {
                 child: grid
                     ? body
                     : Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: _bleed,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: _bleed),
                         child: body,
                       ),
               ),
@@ -104,7 +103,8 @@ class PorcelaineArchive extends ConsumerWidget {
   }
 }
 
-const double _bleed = 12;
+const double _bleed = 24;
+const double _top = 12;
 
 /// « Plus d'options… »: today's collections view in place of the cards.
 final _fullProvider = StateProvider.autoDispose<bool>((ref) => false);
@@ -669,10 +669,7 @@ class _VideoBrowserState extends ConsumerState<_VideoBrowser> {
                           children: [
                             Text(
                               l10n.archiveMobileNoVideos,
-                              style: pBody(
-                                colors,
-                                color: colors.textSecondary,
-                              ),
+                              style: pBody(colors, color: colors.textSecondary),
                             ),
                             const SizedBox(height: 14),
                             PBtn(
@@ -760,6 +757,11 @@ class _CollectionsGrid extends ConsumerStatefulWidget {
 
 class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
   bool _purging = false;
+  TikTokArchiveCatalog? _catalog;
+  List<
+    ({String key, TikTokCollectionItem item, double fraction, bool purgeable})
+  >
+  _cards = const [];
 
   /// Same confirmation and purge as today's collections view.
   Future<void> _confirmPurge(Set<String> keys) async {
@@ -828,23 +830,28 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
     final selecting = ref.watch(_selectingProvider);
     final selected = ref.watch(_selectedProvider);
     final notifier = ref.read(tikTokArchiveProvider.notifier);
-    final cards = [
-      for (final c in catalog.collections)
-        () {
-          var done = 0, total = 0;
-          for (final v in catalog.videos) {
-            if (!_inCollection(v, c)) continue;
-            total++;
-            if (v.isDownloaded) done++;
-          }
-          return (
-            key: c.id ?? c.name,
-            item: c,
-            fraction: total == 0 ? 0.0 : done / total,
-            purgeable: c.name != _liked && c.name != _unsorted,
-          );
-        }(),
-    ];
+    // Downloaded share per collection, once per catalog (not per toggle).
+    if (!identical(catalog, _catalog)) {
+      _catalog = catalog;
+      _cards = [
+        for (final c in catalog.collections)
+          () {
+            var done = 0, total = 0;
+            for (final v in catalog.videos) {
+              if (!_inCollection(v, c)) continue;
+              total++;
+              if (v.isDownloaded) done++;
+            }
+            return (
+              key: c.id ?? c.name,
+              item: c,
+              fraction: total == 0 ? 0.0 : done / total,
+              purgeable: c.name != _liked && c.name != _unsorted,
+            );
+          }(),
+      ];
+    }
+    final cards = _cards;
     // `.abar` is sticky: right under a short grid, pinned to the bottom
     // once the grid scrolls (the loose Flexible gives exactly that).
     return Column(
@@ -853,7 +860,13 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
       children: [
         Flexible(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(_bleed),
+            // Room below for the cards' shadow; the bar sits 22 under them.
+            padding: EdgeInsets.fromLTRB(
+              _bleed,
+              _top,
+              _bleed,
+              selecting ? 22 : 48,
+            ),
             child: LayoutBuilder(
               builder: (context, box) {
                 // `repeat(auto-fill, minmax(250px, 1fr))`, gap 16.
@@ -861,7 +874,8 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
                   1,
                   8,
                 );
-                final width = (box.maxWidth - 16 * (perRow - 1)) / perRow;
+                final width = ((box.maxWidth - 16 * (perRow - 1)) / perRow)
+                    .floorToDouble();
                 return Wrap(
                   spacing: 16,
                   runSpacing: 16,
@@ -893,7 +907,6 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
           ),
         ),
         if (selecting) ...[
-          const SizedBox(height: 22 - _bleed),
           Center(
             child: _SelectionBar(
               count: selected.length,
@@ -1010,7 +1023,11 @@ class _CollectionCardState extends State<_CollectionCard> {
               color: pGreen,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: const Icon(Icons.check_rounded, size: 13, color: Colors.white),
+            child: const Icon(
+              Icons.check_rounded,
+              size: 13,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(width: 8),
           Text(
