@@ -4273,4 +4273,399 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pastilleMoreOptions => 'خيارات أخرى';
+
+  @override
+  String get porcelaineSpace => 'المساحة';
+
+  @override
+  String get porcelaineSettingsTab => 'الإعدادات';
+
+  @override
+  String get porcelaineEdit => 'تعديل';
+
+  @override
+  String get porcelaineDone => 'تم';
+
+  @override
+  String get porcelaineReset => 'إعادة التعيين';
+
+  @override
+  String get porcelaineAddWidget => 'إضافة أداة';
+
+  @override
+  String get porcelaineGoodMorning => 'مرحبًا.';
+
+  @override
+  String get porcelaineGoodEvening => 'مساء الخير.';
+
+  @override
+  String get porcelaineIdle => 'لا شيء قيد التنزيل';
+
+  @override
+  String porcelaineActiveNow(int count, String speed) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنزيل جارٍ',
+      few: '$count تنزيلات جارية',
+      two: 'تنزيلان جاريان',
+      one: 'تنزيل واحد جارٍ',
+    );
+    return '$_temp0، $speed';
+  }
+
+  @override
+  String get porcelaineEditHint =>
+      'اسحب بطاقة لنقلها · اسحب الزاوية لتغيير حجمها';
+
+  @override
+  String get porcelaineQuickLink => 'رابط سريع';
+
+  @override
+  String get porcelaineSpeed => 'السرعة';
+
+  @override
+  String get porcelaineStorage => 'التخزين';
+
+  @override
+  String get porcelaineRecent => 'الأحدث';
+
+  @override
+  String get porcelaineDescActive => 'تقدّم ما يجري تنزيله.';
+
+  @override
+  String get porcelaineDescPaste => 'الصق وابدأ بنقرة واحدة.';
+
+  @override
+  String get porcelaineDescSpeed => 'السرعة المباشرة وسجلّها.';
+
+  @override
+  String get porcelaineDescStorage => 'المساحة الحرة وما يملؤها.';
+
+  @override
+  String get porcelaineDescRecent => 'أحدث تنزيلاتك.';
+
+  @override
+  String get porcelaineDescQueue => 'ما سيبدأ بعد ذلك.';
+
+  @override
+  String get porcelaineSizeSmall => 'صغير';
+
+  @override
+  String get porcelaineSizeMedium => 'متوسط';
+
+  @override
+  String get porcelaineSizeLarge => 'كبير';
+
+  @override
+  String get porcelaineSizeSmallShort => 'ص';
+
+  @override
+  String get porcelaineSizeMediumShort => 'م';
+
+  @override
+  String get porcelaineSizeLargeShort => 'ك';
+
+  @override
+  String porcelaineSizeLabel(String size) {
+    return 'الحجم $size';
+  }
+
+  @override
+  String get porcelaineMoveBack => 'نقل إلى الخلف';
+
+  @override
+  String get porcelaineMoveForward => 'نقل إلى الأمام';
+
+  @override
+  String porcelaineRemoveWidget(String name) {
+    return 'إزالة أداة $name';
+  }
+
+  @override
+  String porcelaineWidgetOptions(String name) {
+    return 'خيارات أداة $name';
+  }
+
+  @override
+  String get porcelaineResizeHint => 'اسحب لتغيير الحجم';
+
+  @override
+  String porcelaineRemoved(String name) {
+    return 'تمت إزالة «$name»';
+  }
+
+  @override
+  String get porcelaineCatalogHint => 'تُضاف في نهاية مساحتك بحجمها المقترح.';
+
+  @override
+  String get porcelaineAlreadyThere => 'موجودة في مساحتك';
+
+  @override
+  String porcelaineAddAt(String size) {
+    return 'إضافة · $size';
+  }
+
+  @override
+  String get porcelaineEmptyTitle => 'مساحتك فارغة';
+
+  @override
+  String get porcelaineEmptyBody =>
+      'أضف الأدوات التي تحتاجها: التقدّم، الرابط السريع، السرعة، التخزين…';
+
+  @override
+  String get porcelainePaste => 'لصق';
+
+  @override
+  String get porcelainePasteAndDownload => 'لصق وتنزيل';
+
+  @override
+  String get porcelainePasteHint => 'الصق رابطًا…';
+
+  @override
+  String get porcelaineAdded => 'تمت الإضافة ✓';
+
+  @override
+  String get porcelaineAddedShort => 'أُضيف';
+
+  @override
+  String porcelaineClipboard(String url) {
+    return 'الحافظة: $url';
+  }
+
+  @override
+  String get porcelaineClipboardTitle => 'رابط في الحافظة';
+
+  @override
+  String get porcelaineClipboardNone => 'لا يوجد رابط في الحافظة';
+
+  @override
+  String get porcelaineFormatAuto => 'تلقائي';
+
+  @override
+  String get porcelaineFormatAudio => 'صوت فقط';
+
+  @override
+  String get porcelaineMoreOptions => 'خيارات أخرى…';
+
+  @override
+  String porcelaineSpeedNow(String unit) {
+    return '$unit الآن';
+  }
+
+  @override
+  String get porcelainePeak => 'الذروة';
+
+  @override
+  String get porcelaineAverage => 'المتوسط';
+
+  @override
+  String porcelaineFreeUnit(String unit) {
+    return '$unit متاحة';
+  }
+
+  @override
+  String get porcelaineHeaviest => 'الأكبر حجمًا';
+
+  @override
+  String get porcelaineFreeUp => 'تحرير مساحة';
+
+  @override
+  String get porcelaineWholeLibrary => 'المكتبة كاملة';
+
+  @override
+  String get porcelaineWaiting => 'في الانتظار';
+
+  @override
+  String get porcelaineStatsDownloads => 'التنزيلات';
+
+  @override
+  String get porcelaineStatsVolume => 'الحجم المُنزَّل';
+
+  @override
+  String get porcelaineStatsDownloadsUnit => 'تنزيلات';
+
+  @override
+  String porcelaineStatsChartTitle(String period) {
+    return 'التنزيلات · $period';
+  }
+
+  @override
+  String get porcelaineLast30Days => 'آخر 30 يومًا';
+
+  @override
+  String porcelaineDaysShort(int days) {
+    return '$days ي';
+  }
+
+  @override
+  String porcelaineDaysAgo(int days) {
+    return 'قبل $days ي';
+  }
+
+  @override
+  String get porcelaineTodayAxis => 'اليوم';
+
+  @override
+  String get porcelaineBySource => 'حسب المصدر';
+
+  @override
+  String get porcelaineByFormat => 'حسب الصيغة';
+
+  @override
+  String get porcelaineTopCreators => 'أبرز المبدعين';
+
+  @override
+  String get porcelaineSettingsGeneralDesc => 'سلوك TapLoad اليومي.';
+
+  @override
+  String get porcelaineAutoStart => 'البدء تلقائيًا';
+
+  @override
+  String get porcelaineChange => 'تغيير';
+
+  @override
+  String get porcelaineParallelDownloads => 'التنزيلات المتزامنة';
+
+  @override
+  String get porcelaineOneLess => 'واحد أقل';
+
+  @override
+  String get porcelaineOneMore => 'واحد أكثر';
+
+  @override
+  String get porcelaineReduceEffects => 'تقليل المؤثرات';
+
+  @override
+  String get porcelaineReduceEffectsHint =>
+      'رسوم متحركة أقل، مفيد على حاسوب متواضع.';
+
+  @override
+  String porcelaineDesignActive(String name) {
+    return '$name مُفعَّل';
+  }
+
+  @override
+  String get porcelaineToolReady => 'جاهز';
+
+  @override
+  String get porcelaineToolChecking => 'جارٍ التحقق…';
+
+  @override
+  String get porcelaineToolUnchecked => 'لم يُتحقق منه';
+
+  @override
+  String get porcelaineTransferTitle => 'إلى هاتفك';
+
+  @override
+  String get porcelaineTransferSubtitle =>
+      'عبر شبكة Wi-Fi المحلية، بلا كابل ولا سحابة.';
+
+  @override
+  String get porcelaineSimpleView => 'العرض البسيط';
+
+  @override
+  String get porcelaineConnection => 'الاتصال';
+
+  @override
+  String get porcelaineScanTitle => 'افتح TapLoad على هاتفك وامسح الرمز';
+
+  @override
+  String get porcelaineScanHint => 'أو أدخل الرمز والعنوان يدويًا.';
+
+  @override
+  String get porcelaineQrCode => 'رمز QR';
+
+  @override
+  String get porcelainePinCode => 'رمز PIN';
+
+  @override
+  String get porcelaineAddress => 'العنوان';
+
+  @override
+  String get porcelaineConnectedDevice => 'الجهاز المتصل';
+
+  @override
+  String get porcelaineConnected => 'متصل';
+
+  @override
+  String get porcelaineTransferInProgress => 'نقل جارٍ';
+
+  @override
+  String porcelaineToDevice(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String get porcelaineFilesToSend => 'الملفات المراد إرسالها';
+
+  @override
+  String porcelaineVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو',
+      few: '$count فيديوهات',
+      two: 'فيديوهان',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get porcelaineCompressZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String get porcelaineSelectedTotal => 'إجمالي المحدد';
+
+  @override
+  String get porcelaineNearbyDevices => 'الأجهزة القريبة';
+
+  @override
+  String get porcelaineRecipient => 'المستلم';
+
+  @override
+  String get porcelaineSearchDevices => 'بحث';
+
+  @override
+  String get porcelaineAllTransferTools => 'كل الأدوات';
+
+  @override
+  String get porcelaineLocalArchive => 'أرشيف محلي';
+
+  @override
+  String get porcelaineArchiveVideos => 'فيديو';
+
+  @override
+  String get porcelaineArchiveCollections => 'مجموعة';
+
+  @override
+  String get porcelaineArchiveFavorites => 'مفضلة';
+
+  @override
+  String get porcelaineArchiveVideosTab => 'الفيديوهات';
+
+  @override
+  String get porcelaineArchiveCollectionsTab => 'المجموعات';
+
+  @override
+  String get porcelaineArchiveFavoritesTab => 'المفضلة';
+
+  @override
+  String get porcelaineArchiveKeptHint =>
+      'تُحفظ الفيديوهات المشتركة مع مجموعة محتفَظ بها.';
+
+  @override
+  String get porcelaineSync => 'مزامنة';
+
+  @override
+  String porcelaineDownloadSelection(int count) {
+    return 'تنزيل ($count)';
+  }
+
+  @override
+  String get porcelaineDownloadSelectionNone => 'تنزيل المحدد';
+
+  @override
+  String get porcelaineSelectFirst => 'حدد فيديوهات في القائمة أولًا.';
 }
