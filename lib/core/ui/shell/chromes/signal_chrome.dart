@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../desktop_destinations.dart';
-import '../shell_strips.dart';
 
 /// Signal: a top bar with a pill that slides under the active tab, then the
-/// page on the full width (no sidebar).
+/// page on the full width (no sidebar). Settings draw their own section rail.
 class SignalChrome extends ConsumerWidget {
   const SignalChrome({super.key, required this.location, required this.child});
 
@@ -37,13 +37,10 @@ class SignalChrome extends ConsumerWidget {
                 : d.label,
             icon: d.icon,
             selected: d.selected,
-            onTap: d.onTap,
+            onTap: d.id == 'archive' ? () => _openArchive(ref, d) : d.onTap,
           ),
     ];
     final settings = destinations.firstWhere((d) => d.id == 'settings');
-    final strip = location.startsWith('/settings')
-        ? SettingsSectionStrip(location: location)
-        : null;
     return Column(
       children: [
         Container(
@@ -74,14 +71,21 @@ class SignalChrome extends ConsumerWidget {
             ],
           ),
         ),
-        if (strip != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(32, 14, 32, 0),
-            child: Align(alignment: Alignment.centerLeft, child: strip),
-          ),
         Expanded(child: child),
       ],
     );
+  }
+}
+
+/// Signal's Archives page is the collections overview of its mockup; the
+/// import hub stays one click away (« Synchroniser »), or shows when there
+/// is nothing imported yet.
+void _openArchive(WidgetRef ref, DesktopDestination d) {
+  d.onTap();
+  if (ref.read(tikTokArchiveProvider).hasCatalog) {
+    ref
+        .read(tikTokArchiveProvider.notifier)
+        .setViewMode(TikTokViewMode.collections);
   }
 }
 

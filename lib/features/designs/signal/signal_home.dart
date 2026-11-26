@@ -120,7 +120,8 @@ class _Bento extends StatelessWidget {
         children: [
           _HeroCard(),
           SizedBox(height: 16),
-          _TodayCard(),
+          // The card spaces its figure with a Spacer: give it a height.
+          SizedBox(height: 260, child: _TodayCard()),
           SizedBox(height: 16),
           _ActiveCard(),
           SizedBox(height: 16),

@@ -22,11 +22,19 @@ class SignalCard extends StatefulWidget {
     required this.child,
     this.padding = const EdgeInsets.all(28),
     this.lift = false,
+    this.focus = false,
+    this.ring,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final bool lift;
+
+  /// Brighter hairline: the card the current section is about.
+  final bool focus;
+
+  /// Solid 1.5px outline (a selected card).
+  final Color? ring;
 
   @override
   State<SignalCard> createState() => _SignalCardState();
@@ -51,7 +59,12 @@ class _SignalCardState extends State<SignalCard> {
           color: colors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: colors.textPrimary.withValues(alpha: up ? 0.14 : 0.08),
+            color:
+                widget.ring ??
+                colors.textPrimary.withValues(
+                  alpha: widget.focus ? 0.3 : (up ? 0.14 : 0.08),
+                ),
+            width: widget.ring != null ? 1.5 : 1,
           ),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -194,23 +207,26 @@ class _SignalButtonState extends State<SignalButton> {
                     ]
                   : null,
             ),
-            alignment: Alignment.center,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, size: widget.fontSize + 2, color: fg),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  widget.label,
-                  style: AppTypography.body.copyWith(
-                    fontSize: widget.fontSize,
-                    fontWeight: FontWeight.w600,
-                    color: fg,
+            // Centred, but as wide as the label (not the parent) in a Wrap.
+            child: Center(
+              widthFactor: 1,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.icon != null) ...[
+                    Icon(widget.icon, size: widget.fontSize + 2, color: fg),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    widget.label,
+                    style: AppTypography.body.copyWith(
+                      fontSize: widget.fontSize,
+                      fontWeight: FontWeight.w600,
+                      color: fg,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -270,25 +286,28 @@ class _SignalChipState extends State<SignalChip> {
                     : colors.textPrimary.withValues(alpha: _hover ? 0.22 : 0.1),
               ),
             ),
-            alignment: Alignment.center,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.label,
-                  style: AppTypography.body.copyWith(fontSize: 13, color: fg),
-                ),
-                if (widget.count != null) ...[
-                  const SizedBox(width: 6),
+            // Centred, but as wide as the label (not the parent) in a Wrap.
+            child: Center(
+              widthFactor: 1,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Text(
-                    '${widget.count}',
-                    style: AppTypography.mono.copyWith(
-                      fontSize: 11,
-                      color: fg.withValues(alpha: 0.75),
-                    ),
+                    widget.label,
+                    style: AppTypography.body.copyWith(fontSize: 13, color: fg),
                   ),
+                  if (widget.count != null) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      '${widget.count}',
+                      style: AppTypography.mono.copyWith(
+                        fontSize: 11,
+                        color: fg.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -378,6 +397,168 @@ class SignalThumb extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Page padding of the mockups: 32px sides, content capped at 1240px.
+EdgeInsets signalPagePadding(double width, {double top = 32}) {
+  final side = width > 1304 ? (width - 1240) / 2 : 32.0;
+  return EdgeInsets.fromLTRB(side, top, side, 40);
+}
+
+/// Cards side by side with the mockup's flex ratios and equal heights, or
+/// stacked below 900px.
+Widget signalRow({
+  required bool wide,
+  required List<int> flexes,
+  required List<Widget> children,
+}) {
+  if (!wide) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(height: 16),
+          children[i],
+        ],
+      ],
+    );
+  }
+  return IntrinsicHeight(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(width: 16),
+          Expanded(flex: flexes[i], child: children[i]),
+        ],
+      ],
+    ),
+  );
+}
+
+/// A big display number with a smaller grey unit ("418 Go", "71%").
+class SignalFigure extends StatelessWidget {
+  const SignalFigure({
+    super.key,
+    required this.value,
+    this.unit = '',
+    this.size = 44,
+    this.gap = 4,
+  });
+
+  final String value;
+  final String unit;
+  final double size;
+  final double gap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Text.rich(
+      TextSpan(
+        text: value,
+        style: AppTypography.display(
+          size,
+          weight: FontWeight.w600,
+        ).copyWith(color: colors.textPrimary),
+        children: [
+          if (unit.isNotEmpty)
+            TextSpan(
+              text: gap > 0 ? ' $unit' : unit,
+              style: AppTypography.display(
+                size / 2,
+                weight: FontWeight.w600,
+              ).copyWith(color: colors.textDisabled),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 6px sunken track with a cream fill ([value] 0..1).
+class SignalMeter extends StatelessWidget {
+  const SignalMeter({super.key, required this.value, this.color});
+
+  final double value;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Container(
+      height: 6,
+      decoration: BoxDecoration(
+        color: colors.inputBackground,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      alignment: Alignment.centerLeft,
+      child: FractionallySizedBox(
+        widthFactor: value.clamp(0.0, 1.0),
+        heightFactor: 1,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: color ?? colors.textPrimary,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Round initials badge on a faintly tinted surface.
+class SignalAvatar extends StatelessWidget {
+  const SignalAvatar({
+    super.key,
+    required this.name,
+    this.size = 32,
+    this.tint,
+  });
+
+  final String name;
+  final double size;
+  final Color? tint;
+
+  static String initials(String name) {
+    final words = name
+        .replaceAll(RegExp(r'[@_.\-]+'), ' ')
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (words.isEmpty) return '?';
+    if (words.length == 1) {
+      return words.first.characters.take(2).toString().toUpperCase();
+    }
+    return (words[0].characters.first + words[1].characters.first)
+        .toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color.alphaBlend(
+          (tint ?? colors.textPrimary).withValues(alpha: 0.12),
+          colors.surfaceHighlight,
+        ),
+        border: Border.all(color: colors.textPrimary.withValues(alpha: 0.1)),
+      ),
+      child: Text(
+        initials(name),
+        style: AppTypography.display(
+          size * 0.375,
+          weight: FontWeight.w600,
+        ).copyWith(color: colors.textPrimary, letterSpacing: 0),
       ),
     );
   }
