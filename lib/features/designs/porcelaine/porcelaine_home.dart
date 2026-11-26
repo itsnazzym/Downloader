@@ -844,6 +844,13 @@ class _CellState extends ConsumerState<_Cell> {
     final stack = Stack(
       clipBehavior: Clip.none,
       children: [
+        // The halo behind the card, the ring over it.
+        if (finish != null)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: _FinishGlow(animation: finish, halo: true),
+            ),
+          ),
         body,
         if (finish != null)
           Positioned.fill(
@@ -1455,9 +1462,13 @@ class _FailedIds {
 /// Porcelaine's « finished » moment: a cobalt ring rises around the card in
 /// a third of the time, then settles back into the porcelain.
 class _FinishGlow extends StatelessWidget {
-  const _FinishGlow({required this.animation});
+  const _FinishGlow({required this.animation, this.halo = false});
 
   final Animation<double> animation;
+
+  /// The soft cobalt light around the card (painted under it); otherwise
+  /// the 2px ring on its edge.
+  final bool halo;
 
   @override
   Widget build(BuildContext context) {
@@ -1476,21 +1487,25 @@ class _FinishGlow extends StatelessWidget {
           return DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: g),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.2 * g),
-                  spreadRadius: 8 * g,
-                ),
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.22 * g),
-                  blurRadius: 48,
-                  offset: const Offset(0, 16),
-                ),
-              ],
+              border: halo
+                  ? null
+                  : Border.all(
+                      color: colors.primary.withValues(alpha: g),
+                      width: 2,
+                    ),
+              boxShadow: !halo
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: colors.primary.withValues(alpha: 0.2 * g),
+                        spreadRadius: 8 * g,
+                      ),
+                      BoxShadow(
+                        color: colors.primary.withValues(alpha: 0.22 * g),
+                        blurRadius: 48,
+                        offset: const Offset(0, 16),
+                      ),
+                    ],
             ),
           );
         },

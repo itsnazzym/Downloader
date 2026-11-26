@@ -1695,11 +1695,16 @@ class PRecentTile extends ConsumerWidget {
       );
     }
 
+    // InkWell: hover wash, press, keyboard focus and Enter, like a button.
     Widget tap(DownloadItem i, Widget child) => DownloadItemContextMenu(
       item: i,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          hoverColor: colors.textPrimary.withValues(alpha: 0.04),
+          focusColor: colors.primary.withValues(alpha: 0.12),
+          splashColor: Colors.transparent,
           onTap: () => i.status == DownloadStatus.completed
               ? openLibrary(ref, select: i.id)
               : ref.read(downloadListProvider.notifier).retryDownload(i),
@@ -1794,7 +1799,9 @@ class PRecentTile extends ConsumerWidget {
                               style: title.copyWith(fontSize: 13),
                             ),
                             Text(
-                              meta(i),
+                              i.status == DownloadStatus.completed
+                                  ? meta(i)
+                                  : '${meta(i)} · ${l10n.retry}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: pBody(
