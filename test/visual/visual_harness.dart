@@ -18,6 +18,7 @@ import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/mobile/mobile_app_shell.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:modern_downloader/features/designs/design_skins.dart';
 
 /// Where the PNGs and the report land.
 const String kVisualOutDir =
@@ -37,6 +38,7 @@ late FeatureCatalog visualCatalog;
 /// default (Roboto) family, which `flutter test` otherwise renders as boxes.
 Future<void> setUpVisualEnvironment() async {
   HttpOverrides.global = null;
+  registerDesignSkins();
   Directory(kVisualOutDir).createSync(recursive: true);
 
   final cacheDir = Directory('$kVisualOutDir/.font_cache')

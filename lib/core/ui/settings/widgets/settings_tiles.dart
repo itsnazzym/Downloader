@@ -8,6 +8,7 @@ import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
 import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
 
 /// True when the settings building blocks render in the OLED language
 /// (hairline outlines, ink-filled selection, no glass): on phones, and when
@@ -45,6 +46,8 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = DesignSkin.of(context)?.sectionTitle;
+    if (skin != null) return skin(context, this);
     if (useOledSettingsStyle(context)) {
       return Padding(
         padding: const EdgeInsets.only(
@@ -152,6 +155,8 @@ class SliderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = DesignSkin.of(context)?.sliderTile;
+    if (skin != null) return skin(context, this);
     if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
@@ -280,6 +285,8 @@ class SwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = DesignSkin.of(context)?.switchTile;
+    if (skin != null) return skin(context, this);
     if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
@@ -386,6 +393,8 @@ class DropdownTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = DesignSkin.of(context)?.dropdownTile;
+    if (skin != null) return skin(context, this);
     if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
@@ -494,6 +503,8 @@ class ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = DesignSkin.of(context)?.actionTile;
+    if (skin != null) return skin(context, this);
     if (useOledSettingsStyle(context)) return _buildOled(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.m),
@@ -612,6 +623,8 @@ class StatusTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = DesignSkin.of(context)?.statusTile;
+    if (skin != null) return skin(context, this);
     if (useOledSettingsStyle(context)) return _buildOled(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.m),
