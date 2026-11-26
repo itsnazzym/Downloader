@@ -3383,4 +3383,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nocturneRefreshDevices => 'Chercher les appareils';
+
+  @override
+  String get nocturneClassicView => 'Vue classique';
+
+  @override
+  String get nocturneCardsView => 'Vue en cartes';
+
+  @override
+  String get nocturneDone => 'Terminer';
+
+  @override
+  String get nocturnePurgeHint =>
+      'Les vidéos partagées avec une collection conservée sont gardées.';
+
+  @override
+  String get nocturneAllDownloaded => 'Tout téléchargé';
+
+  @override
+  String nocturnePartDownloaded(int percent) {
+    return '$percent % téléchargé';
+  }
 }

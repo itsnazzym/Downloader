@@ -1256,5 +1256,11 @@
   "nocturneTotalSelected": "Total sélectionné",
   "nocturneZip": "Compresser en ZIP",
   "nocturneSendTo": "Envoyer à {name}",
-  "nocturneRefreshDevices": "Chercher les appareils"
+  "nocturneRefreshDevices": "Chercher les appareils",
+  "nocturneClassicView": "Vue classique",
+  "nocturneCardsView": "Vue en cartes",
+  "nocturneDone": "Terminer",
+  "nocturnePurgeHint": "Les vidéos partagées avec une collection conservée sont gardées.",
+  "nocturneAllDownloaded": "Tout téléchargé",
+  "nocturnePartDownloaded": "{percent} % téléchargé"
 }

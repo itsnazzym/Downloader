@@ -1256,5 +1256,11 @@
   "nocturneTotalSelected": "إجمالي المحدد",
   "nocturneZip": "ضغط بصيغة ZIP",
   "nocturneSendTo": "إرسال إلى {name}",
-  "nocturneRefreshDevices": "البحث عن الأجهزة"
+  "nocturneRefreshDevices": "البحث عن الأجهزة",
+  "nocturneClassicView": "العرض الكلاسيكي",
+  "nocturneCardsView": "عرض البطاقات",
+  "nocturneDone": "إنهاء",
+  "nocturnePurgeHint": "تُحفظ الفيديوهات المشتركة مع مجموعة محتفَظ بها.",
+  "nocturneAllDownloaded": "تم تنزيل الكل",
+  "nocturnePartDownloaded": "تم تنزيل {percent}٪"
 }

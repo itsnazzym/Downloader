@@ -3349,4 +3349,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nocturneRefreshDevices => 'البحث عن الأجهزة';
+
+  @override
+  String get nocturneClassicView => 'العرض الكلاسيكي';
+
+  @override
+  String get nocturneCardsView => 'عرض البطاقات';
+
+  @override
+  String get nocturneDone => 'إنهاء';
+
+  @override
+  String get nocturnePurgeHint =>
+      'تُحفظ الفيديوهات المشتركة مع مجموعة محتفَظ بها.';
+
+  @override
+  String get nocturneAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String nocturnePartDownloaded(int percent) {
+    return 'تم تنزيل $percent٪';
+  }
 }

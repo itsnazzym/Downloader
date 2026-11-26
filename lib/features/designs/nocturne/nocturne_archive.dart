@@ -47,14 +47,7 @@ class NocturneArchive extends ConsumerWidget {
             const SizedBox(height: 18),
             Expanded(
               child: state.viewMode == TikTokViewMode.collections
-                  ? NocturneCard(
-                      lift: false,
-                      padding: EdgeInsets.zero,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(17),
-                        child: TikTokCollectionsView(catalog: catalog),
-                      ),
-                    )
+                  ? _Collections(state: state, catalog: catalog)
                   : _VideoList(state: state, wide: wide),
             ),
           ],
@@ -535,6 +528,434 @@ class _VideoListState extends ConsumerState<_VideoList> {
         const SizedBox(width: 18),
         Expanded(child: list),
       ],
+    );
+  }
+}
+
+/// Collections as in the mockup: tinted cards, how much is downloaded,
+/// select-and-purge with its bar. Opening a collection, and « Vue
+/// classique » (search, posters, suggestions, reset, delete), show today's
+/// collections view.
+class _Collections extends ConsumerStatefulWidget {
+  const _Collections({required this.state, required this.catalog});
+
+  final TikTokArchiveState state;
+  final TikTokArchiveCatalog catalog;
+
+  @override
+  ConsumerState<_Collections> createState() => _CollectionsState();
+}
+
+class _CollectionsState extends ConsumerState<_Collections> {
+  bool _selecting = false;
+  bool _classic = false;
+  bool _purging = false;
+  final Set<String> _selected = {};
+
+  // Same virtual folders as today's view: views, not collections.
+  static const _liked = 'Vidéos Likées';
+  static const _unsorted = 'Favoris non classés';
+
+  static bool _contains(TikTokCollectionItem col, TikTokArchiveItem v) {
+    if (col.name == _liked) return v.isLiked;
+    if (col.name == _unsorted) {
+      return v.isFavorite &&
+          v.collectionIds.isEmpty &&
+          (v.collectionName == null ||
+              v.collectionName == _unsorted ||
+              v.collectionName == _liked);
+    }
+    return (col.id != null && v.collectionIds.contains(col.id)) ||
+        (v.collectionName?.split(' · ').contains(col.name) ?? false);
+  }
+
+  void _notice(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  /// Confirms, then deletes the collections' own videos and their files
+  /// (permanently); videos shared with a kept collection stay.
+  Future<void> _purge() async {
+    if (_selected.isEmpty || _purging) return;
+    final l10n = context.l10n;
+    final c = AppColors.of(context);
+    final notifier = ref.read(tikTokArchiveProvider.notifier);
+    final keys = Set<String>.of(_selected);
+    final preview = notifier.purgePreview(keys);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface,
+        title: Text(l10n.archivePurgeTitle(keys.length)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.archivePurgeBody(preview.videos, preview.files)),
+            if (preview.keptShared > 0) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.archivePurgeKept(preview.keptShared),
+                style: nocturneText(c, size: 12.5, color: c.textSecondary),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            autofocus: true,
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          NocturneButton(
+            label: l10n.delete,
+            icon: Icons.delete_forever_rounded,
+            kind: NocturneButtonKind.danger,
+            onTap: () => Navigator.of(ctx).pop(true),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _purging = true);
+    try {
+      final r = await notifier.purgeCollections(keys);
+      if (!mounted) return;
+      setState(() {
+        _selecting = false;
+        _selected.clear();
+      });
+      _notice(l10n.archivePurgeDone(r.filesDeleted, r.videosRemoved));
+    } finally {
+      if (mounted) setState(() => _purging = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    final catalog = widget.catalog;
+    final notifier = ref.read(tikTokArchiveProvider.notifier);
+    if (_classic || widget.state.filter.selectedCollection != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_classic) ...[
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: NocturneButton(
+                label: l10n.nocturneCardsView,
+                icon: Icons.grid_view_rounded,
+                kind: NocturneButtonKind.ghost,
+                onTap: () => setState(() => _classic = false),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+          Expanded(
+            child: NocturneCard(
+              lift: false,
+              padding: EdgeInsets.zero,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(17),
+                child: TikTokCollectionsView(catalog: catalog),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    final cards = <Widget>[];
+    for (final col in catalog.collections) {
+      final videos = [
+        for (final v in catalog.videos)
+          if (_contains(col, v)) v,
+      ];
+      final missing = [
+        for (final v in videos)
+          if (!v.isDownloaded) v,
+      ];
+      final key = col.id ?? col.name;
+      final special = col.name == _liked || col.name == _unsorted;
+      cards.add(
+        _CollectionCard(
+          collection: col,
+          count: videos.length,
+          downloaded: videos.length - missing.length,
+          selecting: _selecting && !special,
+          selected: _selected.contains(key),
+          onTap: () {
+            if (!_selecting) {
+              notifier.selectCollection(key);
+            } else if (!special) {
+              setState(() {
+                if (!_selected.remove(key)) _selected.add(key);
+              });
+            }
+          },
+          onDownload: missing.isEmpty
+              ? null
+              : () => notifier.downloadBatch(missing, limit: missing.length),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            NocturneButton(
+              label: l10n.nocturneClassicView,
+              icon: Icons.view_list_rounded,
+              kind: NocturneButtonKind.ghost,
+              onTap: () => setState(() => _classic = true),
+            ),
+            const SizedBox(width: 8),
+            NocturneButton(
+              label: _selecting ? l10n.nocturneDone : l10n.archivePurgeSelect,
+              icon: Icons.check_box_outlined,
+              kind: _selecting
+                  ? NocturneButtonKind.plain
+                  : NocturneButtonKind.ghost,
+              tooltip: l10n.archivePurgeSelectTooltip,
+              onTap: () => setState(() {
+                _selecting = !_selecting;
+                _selected.clear();
+              }),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                NocturneAutoGrid(minWidth: 220, children: cards),
+                if (_selecting) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+                    decoration: BoxDecoration(
+                      color: c.surfaceHighlight,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: c.primary.withValues(alpha: 0.14),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.archivePurgeSelectedCount(
+                                  _selected.length,
+                                ),
+                                style: nocturneText(
+                                  c,
+                                  size: 14,
+                                  weight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                l10n.nocturnePurgeHint,
+                                style: nocturneText(
+                                  c,
+                                  size: 12.5,
+                                  color: c.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        NocturneButton(
+                          label: l10n.archivePurgeAction,
+                          icon: Icons.delete_outline_rounded,
+                          kind: NocturneButtonKind.danger,
+                          onTap: _selected.isEmpty || _purging ? null : _purge,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CollectionCard extends StatelessWidget {
+  const _CollectionCard({
+    required this.collection,
+    required this.count,
+    required this.downloaded,
+    required this.selecting,
+    required this.selected,
+    required this.onTap,
+    required this.onDownload,
+  });
+
+  final TikTokCollectionItem collection;
+  final int count;
+  final int downloaded;
+  final bool selecting;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback? onDownload;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    final share = count == 0 ? 0.0 : downloaded / count;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: collection.name,
+      child: GestureDetector(
+        onTap: onTap,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: NocturneCard(
+            padding: const EdgeInsets.all(12),
+            strongHighlight: selecting && selected,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  height: 88,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: nocturneTint(collection.name.hashCode),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Stack(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          for (var i = 0; i < 3; i++) ...[
+                            if (i > 0) const SizedBox(width: 6),
+                            Expanded(
+                              child: FractionallySizedBox(
+                                heightFactor: const [0.62, 0.82, 0.48][i],
+                                alignment: Alignment.bottomCenter,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(
+                                      alpha: 0.06,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (selecting)
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: c.background.withValues(alpha: 0.55),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: NocturneCheck(checked: selected),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 2),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              collection.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: nocturneText(
+                                c,
+                                size: 14.5,
+                                weight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              l10n.nocturneCountVideos(count),
+                              style: nocturneMono(c, color: c.textDisabled),
+                            ),
+                            if (downloaded > 0) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                downloaded == count
+                                    ? l10n.nocturneAllDownloaded
+                                    : l10n.nocturnePartDownloaded(
+                                        (share * 100).round(),
+                                      ),
+                                style: nocturneText(
+                                  c,
+                                  size: 12,
+                                  weight: FontWeight.w600,
+                                  color: c.primary,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      if (downloaded > 0)
+                        NocturneRing(
+                          value: share,
+                          size: 36,
+                          stroke: 4,
+                          radius: 14,
+                        )
+                      else if (!selecting)
+                        NocturneButton(
+                          label: l10n.designDownload,
+                          kind: NocturneButtonKind.ghost,
+                          height: 30,
+                          padding: 10,
+                          fontSize: 12.5,
+                          onTap: onDownload,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

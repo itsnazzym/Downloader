@@ -5751,6 +5751,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Look for devices'**
   String get nocturneRefreshDevices;
+
+  /// No description provided for @nocturneClassicView.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic view'**
+  String get nocturneClassicView;
+
+  /// No description provided for @nocturneCardsView.
+  ///
+  /// In en, this message translates to:
+  /// **'Card view'**
+  String get nocturneCardsView;
+
+  /// No description provided for @nocturneDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get nocturneDone;
+
+  /// No description provided for @nocturnePurgeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection stay.'**
+  String get nocturnePurgeHint;
+
+  /// No description provided for @nocturneAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get nocturneAllDownloaded;
+
+  /// No description provided for @nocturnePartDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% downloaded'**
+  String nocturnePartDownloaded(int percent);
 }
 
 class _AppLocalizationsDelegate

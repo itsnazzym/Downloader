@@ -1498,5 +1498,12 @@
   "nocturneZip": "Compress as ZIP",
   "nocturneSendTo": "Send to {name}",
   "@nocturneSendTo": {"placeholders":{"name":{"type":"String"}}},
-  "nocturneRefreshDevices": "Look for devices"
+  "nocturneRefreshDevices": "Look for devices",
+  "nocturneClassicView": "Classic view",
+  "nocturneCardsView": "Card view",
+  "nocturneDone": "Done",
+  "nocturnePurgeHint": "Videos shared with a kept collection stay.",
+  "nocturneAllDownloaded": "All downloaded",
+  "nocturnePartDownloaded": "{percent}% downloaded",
+  "@nocturnePartDownloaded": {"placeholders":{"percent":{"type":"int"}}}
 }
