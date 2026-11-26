@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
 import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
 import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -65,7 +66,8 @@ class _NocturneTransferState extends State<NocturneTransfer> {
                 ),
                 child: _Board(wide: wide),
               ),
-              widget.current,
+              // Mounted for its listeners; no animation while hidden.
+              TickerMode(enabled: _detailed, child: widget.current),
             ],
           ),
         ),
@@ -371,6 +373,7 @@ class _ProgressCard extends ConsumerWidget {
         progress.phase != TransferPhase.done &&
         progress.phase != TransferPhase.failed;
     final fraction = progress?.fraction ?? 0;
+    final speed = formatSpeed(l10n, progress?.bytesPerSecond);
     final status = switch (progress?.phase) {
       null || TransferPhase.idle => l10n.nocturneNoTransfer,
       TransferPhase.done => l10n.transferDone,
@@ -427,7 +430,7 @@ class _ProgressCard extends ConsumerWidget {
                   Text(
                     '${localBytes(l10n, progress.bytesDone)} / '
                     '${localBytes(l10n, progress.bytesTotal)} · '
-                    '${localBytes(l10n, progress.bytesPerSecond.round())}/s',
+                    '${speed.value} ${speed.unit}',
                     style: nocturneMono(c),
                   ),
                 ],

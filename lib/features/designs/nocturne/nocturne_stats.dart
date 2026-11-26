@@ -24,7 +24,16 @@ class NocturneStats extends ConsumerStatefulWidget {
 }
 
 class _NocturneStatsState extends ConsumerState<NocturneStats> {
-  int _days = 30;
+  int? _days;
+
+  /// The desktop library rebuild keeps 7 days of history: 30 only when the
+  /// history holds an older day.
+  static bool _covers30(DownloadStats stats) {
+    final limit = DateTime.now().subtract(const Duration(days: 7));
+    return stats.dailyHistory.any(
+      (d) => DateTime.tryParse(d.date)?.isBefore(limit) ?? false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +94,8 @@ class _NocturneStatsState extends ConsumerState<NocturneStats> {
             padding: const EdgeInsets.fromLTRB(24, 22, 24, 22),
             child: _Activity(
               stats: stats,
-              days: _days,
+              periods: _covers30(stats) ? const [7, 30] : const [7],
+              days: _covers30(stats) ? (_days ?? 30) : 7,
               onDays: (d) => setState(() => _days = d),
             ),
           ),
@@ -177,11 +187,13 @@ class _Kpi extends StatelessWidget {
 class _Activity extends StatelessWidget {
   const _Activity({
     required this.stats,
+    required this.periods,
     required this.days,
     required this.onDays,
   });
 
   final DownloadStats stats;
+  final List<int> periods;
   final int days;
   final ValueChanged<int> onDays;
 
@@ -220,8 +232,8 @@ class _Activity extends StatelessWidget {
               value: days,
               onChanged: onDays,
               segments: [
-                NocturneSegment(7, l10n.nocturneDaysShort(7)),
-                NocturneSegment(30, l10n.nocturneDaysShort(30)),
+                for (final p in periods)
+                  NocturneSegment(p, l10n.nocturneDaysShort(p)),
               ],
             ),
           ],

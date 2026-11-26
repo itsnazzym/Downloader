@@ -702,7 +702,7 @@ class _CollectionsState extends ConsumerState<_Collections> {
               });
             }
           },
-          onDownload: missing.isEmpty
+          onDownload: missing.isEmpty || widget.state.isBatchDownloading
               ? null
               : () => notifier.downloadBatch(missing, limit: missing.length),
         ),

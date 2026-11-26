@@ -40,6 +40,24 @@ class NocturneHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedDownloadIdProvider);
     final colors = AppColors.of(context);
+    // Narrow windows: the inspector opens as a sheet, like today's library.
+    final narrow = MediaQuery.sizeOf(context).width < 1000;
+    ref.listen<String?>(selectedDownloadIdProvider, (previous, next) {
+      if (!narrow || next == null || next == previous) return;
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (context) => SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.86,
+          child: DownloadInspector(downloadId: next),
+        ),
+      ).whenComplete(() {
+        if (ref.read(selectedDownloadIdProvider) == next) {
+          ref.read(selectedDownloadIdProvider.notifier).state = null;
+        }
+      });
+    });
     return Focus(
       autofocus: true,
       child: CallbackShortcuts(
@@ -52,7 +70,7 @@ class NocturneHome extends ConsumerWidget {
         child: Row(
           children: [
             const Expanded(child: _HomeScroll()),
-            if (selected != null)
+            if (selected != null && !narrow)
               Container(
                 width: 380,
                 decoration: BoxDecoration(
@@ -82,18 +100,32 @@ class _HomeScroll extends ConsumerStatefulWidget {
 class _HomeScrollState extends ConsumerState<_HomeScroll> {
   final _libraryKey = GlobalKey();
 
+  void _showLibrary() {
+    final target = _libraryKey.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: nocturneMotion(context, 350),
+      curve: nocturneEase,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // "En cours" clicked from another page: the filter is already set.
+    if (ref.read(downloadStatusFilterProvider) == DownloadStatusFilter.active) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showLibrary();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // The rail's "En cours" sets the active filter: bring the library in view.
     ref.listen<DownloadStatusFilter>(downloadStatusFilterProvider, (prev, next) {
-      if (next != DownloadStatusFilter.active) return;
-      final target = _libraryKey.currentContext;
-      if (target == null) return;
-      Scrollable.ensureVisible(
-        target,
-        duration: nocturneMotion(context, 350),
-        curve: nocturneEase,
-      );
+      if (next == DownloadStatusFilter.active) _showLibrary();
     });
     final mode = ref.watch(downloadViewModeProvider);
     return LayoutBuilder(

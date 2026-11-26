@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/designs/nocturne/nocturne_widgets.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
@@ -58,7 +59,23 @@ class NocturneChrome extends ConsumerWidget {
             selected: d.selected && activeOnly,
             onTap: () => setActive(true),
           ),
-        ] else if (d.id != 'settings')
+        ] else if (d.id == 'archive')
+          DesktopDestination(
+            id: d.id,
+            label: d.label,
+            icon: d.icon,
+            selected: d.selected,
+            onTap: () {
+              final archive = ref.read(tikTokArchiveProvider.notifier);
+              if (!ref.read(tikTokArchiveProvider).hasCatalog) {
+                d.onTap();
+                return;
+              }
+              archive.setViewMode(TikTokViewMode.collections);
+              context.go('/archive');
+            },
+          )
+        else if (d.id != 'settings')
           d,
     ];
     return Row(
