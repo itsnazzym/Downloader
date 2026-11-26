@@ -3285,4 +3285,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nocturneFilters => 'Filters';
+
+  @override
+  String get nocturneTransferEyebrow => 'Local Wi-Fi';
+
+  @override
+  String get nocturneTransferTitle => 'Send to your phone';
+
+  @override
+  String get nocturneAllOptions => 'All options';
+
+  @override
+  String get nocturneSimpleView => 'Simple view';
+
+  @override
+  String get nocturneQrCaption => 'QR code';
+
+  @override
+  String get nocturneScanTitle => 'Open TapLoad on your phone and scan';
+
+  @override
+  String get nocturnePinLabel => 'PIN code';
+
+  @override
+  String get nocturneAddressLabel => 'Address';
+
+  @override
+  String get nocturneOnNetwork => 'On this Wi-Fi';
+
+  @override
+  String get nocturneNoTransfer => 'Nothing being sent';
+
+  @override
+  String get nocturneFilesToSend => 'Files to send';
+
+  @override
+  String get nocturneAddFolder => 'Folder…';
+
+  @override
+  String get nocturneAddFiles => 'Files…';
+
+  @override
+  String get nocturneTotalSelected => 'Total selected';
+
+  @override
+  String get nocturneZip => 'Compress as ZIP';
+
+  @override
+  String nocturneSendTo(String name) {
+    return 'Send to $name';
+  }
+
+  @override
+  String get nocturneRefreshDevices => 'Look for devices';
 }

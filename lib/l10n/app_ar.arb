@@ -1239,5 +1239,22 @@
   "nocturneBatchSkipped": "{done} / {total} ({skipped} متجاهلة)",
   "nocturneNoMatch": "لا يوجد فيديو يطابق عوامل التصفية",
   "nocturneResetFilters": "إعادة ضبط عوامل التصفية",
-  "nocturneFilters": "عوامل التصفية"
+  "nocturneFilters": "عوامل التصفية",
+  "nocturneTransferEyebrow": "شبكة Wi-Fi محلية",
+  "nocturneTransferTitle": "أرسل إلى هاتفك",
+  "nocturneAllOptions": "كل الخيارات",
+  "nocturneSimpleView": "عرض مبسّط",
+  "nocturneQrCaption": "رمز QR",
+  "nocturneScanTitle": "افتح TapLoad على هاتفك وامسح الرمز",
+  "nocturnePinLabel": "رمز PIN",
+  "nocturneAddressLabel": "العنوان",
+  "nocturneOnNetwork": "على شبكة Wi-Fi هذه",
+  "nocturneNoTransfer": "لا يوجد إرسال جارٍ",
+  "nocturneFilesToSend": "الملفات المراد إرسالها",
+  "nocturneAddFolder": "مجلد…",
+  "nocturneAddFiles": "ملفات…",
+  "nocturneTotalSelected": "إجمالي المحدد",
+  "nocturneZip": "ضغط بصيغة ZIP",
+  "nocturneSendTo": "إرسال إلى {name}",
+  "nocturneRefreshDevices": "البحث عن الأجهزة"
 }

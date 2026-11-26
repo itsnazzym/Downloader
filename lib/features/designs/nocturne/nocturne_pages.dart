@@ -5,6 +5,7 @@ import 'nocturne_archive.dart';
 import 'nocturne_home.dart';
 import 'nocturne_settings.dart';
 import 'nocturne_stats.dart';
+import 'nocturne_transfer.dart';
 
 /// Nocturne's pages (mockups Nocturne, Nocturne-Archives, -Stats,
 /// -Transfert, -Reglages). Null keeps today's view until a page is drawn.
@@ -19,6 +20,6 @@ Widget? nocturnePage(DesignRoute route, Widget current) {
     case DesignRoute.archive:
       return NocturneArchive(current: current);
     case DesignRoute.transfer:
-      return null;
+      return NocturneTransfer(current: current);
   }
 }

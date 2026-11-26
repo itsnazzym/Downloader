@@ -1239,5 +1239,22 @@
   "nocturneBatchSkipped": "{done} / {total} ({skipped} ignorées)",
   "nocturneNoMatch": "Aucune vidéo ne correspond aux filtres actifs",
   "nocturneResetFilters": "Réinitialiser les filtres",
-  "nocturneFilters": "Filtres"
+  "nocturneFilters": "Filtres",
+  "nocturneTransferEyebrow": "Wi-Fi local",
+  "nocturneTransferTitle": "Envoyer vers ton téléphone",
+  "nocturneAllOptions": "Toutes les options",
+  "nocturneSimpleView": "Vue simple",
+  "nocturneQrCaption": "QR code",
+  "nocturneScanTitle": "Ouvre TapLoad sur ton téléphone et scanne",
+  "nocturnePinLabel": "Code PIN",
+  "nocturneAddressLabel": "Adresse",
+  "nocturneOnNetwork": "Sur ce Wi-Fi",
+  "nocturneNoTransfer": "Aucun envoi en cours",
+  "nocturneFilesToSend": "Fichiers à envoyer",
+  "nocturneAddFolder": "Dossier…",
+  "nocturneAddFiles": "Fichiers…",
+  "nocturneTotalSelected": "Total sélectionné",
+  "nocturneZip": "Compresser en ZIP",
+  "nocturneSendTo": "Envoyer à {name}",
+  "nocturneRefreshDevices": "Chercher les appareils"
 }

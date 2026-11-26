@@ -3296,4 +3296,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nocturneFilters => 'عوامل التصفية';
+
+  @override
+  String get nocturneTransferEyebrow => 'شبكة Wi-Fi محلية';
+
+  @override
+  String get nocturneTransferTitle => 'أرسل إلى هاتفك';
+
+  @override
+  String get nocturneAllOptions => 'كل الخيارات';
+
+  @override
+  String get nocturneSimpleView => 'عرض مبسّط';
+
+  @override
+  String get nocturneQrCaption => 'رمز QR';
+
+  @override
+  String get nocturneScanTitle => 'افتح TapLoad على هاتفك وامسح الرمز';
+
+  @override
+  String get nocturnePinLabel => 'رمز PIN';
+
+  @override
+  String get nocturneAddressLabel => 'العنوان';
+
+  @override
+  String get nocturneOnNetwork => 'على شبكة Wi-Fi هذه';
+
+  @override
+  String get nocturneNoTransfer => 'لا يوجد إرسال جارٍ';
+
+  @override
+  String get nocturneFilesToSend => 'الملفات المراد إرسالها';
+
+  @override
+  String get nocturneAddFolder => 'مجلد…';
+
+  @override
+  String get nocturneAddFiles => 'ملفات…';
+
+  @override
+  String get nocturneTotalSelected => 'إجمالي المحدد';
+
+  @override
+  String get nocturneZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String nocturneSendTo(String name) {
+    return 'إرسال إلى $name';
+  }
+
+  @override
+  String get nocturneRefreshDevices => 'البحث عن الأجهزة';
 }

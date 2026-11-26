@@ -3330,4 +3330,57 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nocturneFilters => 'Filtres';
+
+  @override
+  String get nocturneTransferEyebrow => 'Wi-Fi local';
+
+  @override
+  String get nocturneTransferTitle => 'Envoyer vers ton téléphone';
+
+  @override
+  String get nocturneAllOptions => 'Toutes les options';
+
+  @override
+  String get nocturneSimpleView => 'Vue simple';
+
+  @override
+  String get nocturneQrCaption => 'QR code';
+
+  @override
+  String get nocturneScanTitle => 'Ouvre TapLoad sur ton téléphone et scanne';
+
+  @override
+  String get nocturnePinLabel => 'Code PIN';
+
+  @override
+  String get nocturneAddressLabel => 'Adresse';
+
+  @override
+  String get nocturneOnNetwork => 'Sur ce Wi-Fi';
+
+  @override
+  String get nocturneNoTransfer => 'Aucun envoi en cours';
+
+  @override
+  String get nocturneFilesToSend => 'Fichiers à envoyer';
+
+  @override
+  String get nocturneAddFolder => 'Dossier…';
+
+  @override
+  String get nocturneAddFiles => 'Fichiers…';
+
+  @override
+  String get nocturneTotalSelected => 'Total sélectionné';
+
+  @override
+  String get nocturneZip => 'Compresser en ZIP';
+
+  @override
+  String nocturneSendTo(String name) {
+    return 'Envoyer à $name';
+  }
+
+  @override
+  String get nocturneRefreshDevices => 'Chercher les appareils';
 }

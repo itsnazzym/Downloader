@@ -232,15 +232,17 @@ class _NocturneButtonState extends State<NocturneButton> {
                     if (widget.label.isNotEmpty) const SizedBox(width: 8),
                   ],
                   if (widget.label.isNotEmpty)
-                    Text(
-                      widget.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: nocturneText(
-                        c,
-                        size: widget.fontSize,
-                        weight: widget.weight ?? w,
-                        color: fg,
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: nocturneText(
+                          c,
+                          size: widget.fontSize,
+                          weight: widget.weight ?? w,
+                          color: fg,
+                        ),
                       ),
                     ),
                 ],

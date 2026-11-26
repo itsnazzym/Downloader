@@ -5649,6 +5649,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filters'**
   String get nocturneFilters;
+
+  /// No description provided for @nocturneTransferEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Wi-Fi'**
+  String get nocturneTransferEyebrow;
+
+  /// No description provided for @nocturneTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your phone'**
+  String get nocturneTransferTitle;
+
+  /// No description provided for @nocturneAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get nocturneAllOptions;
+
+  /// No description provided for @nocturneSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get nocturneSimpleView;
+
+  /// No description provided for @nocturneQrCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get nocturneQrCaption;
+
+  /// No description provided for @nocturneScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan'**
+  String get nocturneScanTitle;
+
+  /// No description provided for @nocturnePinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get nocturnePinLabel;
+
+  /// No description provided for @nocturneAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get nocturneAddressLabel;
+
+  /// No description provided for @nocturneOnNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'On this Wi-Fi'**
+  String get nocturneOnNetwork;
+
+  /// No description provided for @nocturneNoTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing being sent'**
+  String get nocturneNoTransfer;
+
+  /// No description provided for @nocturneFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get nocturneFilesToSend;
+
+  /// No description provided for @nocturneAddFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder…'**
+  String get nocturneAddFolder;
+
+  /// No description provided for @nocturneAddFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Files…'**
+  String get nocturneAddFiles;
+
+  /// No description provided for @nocturneTotalSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Total selected'**
+  String get nocturneTotalSelected;
+
+  /// No description provided for @nocturneZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress as ZIP'**
+  String get nocturneZip;
+
+  /// No description provided for @nocturneSendTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {name}'**
+  String nocturneSendTo(String name);
+
+  /// No description provided for @nocturneRefreshDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for devices'**
+  String get nocturneRefreshDevices;
 }
 
 class _AppLocalizationsDelegate
