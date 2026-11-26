@@ -3919,4 +3919,358 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get terminalNoTransfer => 'لا يوجد إرسال جارٍ';
+
+  @override
+  String get pastilleGreetingMorning => 'صباح الخير';
+
+  @override
+  String get pastilleGreetingEvening => 'مساء الخير';
+
+  @override
+  String pastilleHomeBusy(String greeting) {
+    return '$greeting، كل شيء يعمل.';
+  }
+
+  @override
+  String pastilleHomeIdle(String greeting) {
+    return '$greeting، كل شيء هادئ.';
+  }
+
+  @override
+  String pastilleOneOf(int index, int total) {
+    return '$index من $total';
+  }
+
+  @override
+  String get pastilleQuickLink => 'رابط سريع';
+
+  @override
+  String pastilleClipboard(String url) {
+    return 'الحافظة: $url';
+  }
+
+  @override
+  String get pastilleAdded => 'أُضيف ✓';
+
+  @override
+  String get pastilleSpeed => 'السرعة';
+
+  @override
+  String get pastilleStorage => 'التخزين';
+
+  @override
+  String pastilleActivity(String month) {
+    return 'النشاط · $month';
+  }
+
+  @override
+  String pastilleTodayCount(int count) {
+    return '$count اليوم';
+  }
+
+  @override
+  String get pastilleThisMonth => 'هذا الشهر';
+
+  @override
+  String pastilleNext(String title) {
+    return 'التالي: $title';
+  }
+
+  @override
+  String get pastilleRecent => 'الأحدث';
+
+  @override
+  String pastilleTotal(int count) {
+    return '$count إجمالاً';
+  }
+
+  @override
+  String get pastilleAllLibrary => 'المكتبة كاملة';
+
+  @override
+  String get pastilleNothingYet => 'لا شيء مكتمل بعد';
+
+  @override
+  String get pastilleLibraryTitle => 'مكتبتك كاملة.';
+
+  @override
+  String get pastilleStatsTitle => 'نشاطك، في نقاط.';
+
+  @override
+  String get pastilleDownloads => 'التنزيلات';
+
+  @override
+  String get pastilleSinceStart => 'منذ البداية';
+
+  @override
+  String get pastilleVolume => 'الحجم';
+
+  @override
+  String get pastilleDownloadedTotal => 'تم تنزيلها إجمالاً';
+
+  @override
+  String get pastilleLast7 => 'آخر 7 أيام';
+
+  @override
+  String get pastilleLast30 => 'آخر 30 يومًا';
+
+  @override
+  String get pastilleDownloadsWord => 'تنزيلات';
+
+  @override
+  String pastilleChartTitle(String period) {
+    return 'التنزيلات · $period';
+  }
+
+  @override
+  String get pastillePeriod7 => '7 أيام';
+
+  @override
+  String get pastillePeriod30 => '30 يومًا';
+
+  @override
+  String pastilleDaysAgo(int days) {
+    return 'ي-$days';
+  }
+
+  @override
+  String get pastilleTodayShort => 'اليوم';
+
+  @override
+  String get pastilleByFormat => 'حسب الصيغة';
+
+  @override
+  String get pastilleBySource => 'حسب المصدر';
+
+  @override
+  String get pastilleSettingsEyebrow => 'الإعدادات';
+
+  @override
+  String get pastilleMoreSettings => 'إعدادات أخرى';
+
+  @override
+  String get pastilleChange => 'تغيير';
+
+  @override
+  String get pastilleAppDesign => 'تصميم التطبيق';
+
+  @override
+  String get pastilleConcurrentLess => 'تنزيل متزامن أقل';
+
+  @override
+  String get pastilleConcurrentMore => 'تنزيل متزامن إضافي';
+
+  @override
+  String get pastilleReduceEffects => 'تقليل التأثيرات';
+
+  @override
+  String get pastilleSystemTools => 'النظام · الأدوات';
+
+  @override
+  String get pastilleToolReady => 'جاهز';
+
+  @override
+  String get pastilleToolChecking => 'جارٍ التحقق…';
+
+  @override
+  String get pastilleToolUnchecked => 'لم يتم التحقق';
+
+  @override
+  String get pastilleRepair => 'تحقق وأصلح';
+
+  @override
+  String get pastilleArchiveEyebrow => 'أرشيف TikTok';
+
+  @override
+  String get pastilleArchiveTitle => 'أرشيفك، مرتب.';
+
+  @override
+  String get pastilleSync => 'مزامنة';
+
+  @override
+  String get pastilleDownloadAll => 'تنزيل الكل';
+
+  @override
+  String pastilleBatchStop(int done, int total) {
+    return '$done / $total · إيقاف';
+  }
+
+  @override
+  String get pastilleDemoDownload => 'وضع العرض: تنزيل محاكى.';
+
+  @override
+  String get pastilleArchiveVideos => 'الفيديوهات';
+
+  @override
+  String get pastilleArchiveCollections => 'المجموعات';
+
+  @override
+  String get pastilleArchiveFavorites => 'المفضلة';
+
+  @override
+  String get pastilleDone => 'إنهاء';
+
+  @override
+  String get pastilleMoreActions => 'إجراءات أخرى';
+
+  @override
+  String get pastilleDetailedView => 'عرض مفصل للمجموعات';
+
+  @override
+  String get pastilleInArchive => 'في الأرشيف';
+
+  @override
+  String get pastilleByTheme => 'مرتبة حسب الموضوع';
+
+  @override
+  String get pastilleKeptOnTikTok => 'محفوظة على TikTok';
+
+  @override
+  String get pastilleVideosLabel => 'فيديو في الأرشيف';
+
+  @override
+  String get pastilleFavoritesLabel => 'مفضلة';
+
+  @override
+  String get pastilleVideosText =>
+      'كل فيديوهات أرشيفك مرتبة حسب المجموعة. افتح تبويب المجموعات لتختار ما تحتفظ به على هذا الحاسوب.';
+
+  @override
+  String get pastilleFavoritesText =>
+      'الفيديوهات التي أضفتها إلى المفضلة على TikTok. «تنزيل الكل» يجلبها مع بقية الأرشيف.';
+
+  @override
+  String get pastilleLocalArchive => 'الأرشيف المحلي';
+
+  @override
+  String pastilleLikes(int count) {
+    return '$count إعجاب';
+  }
+
+  @override
+  String get pastilleSharedKept => 'الفيديوهات المشتركة مع مجموعة محفوظة تبقى.';
+
+  @override
+  String get pastilleNoCollections => 'لم يتم العثور على مجموعات';
+
+  @override
+  String get pastilleAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String pastillePercentDownloaded(int percent) {
+    return 'تم تنزيل $percent٪';
+  }
+
+  @override
+  String get pastilleToDownload => 'للتنزيل';
+
+  @override
+  String get pastilleVideosWord => 'فيديو';
+
+  @override
+  String get pastilleOneDotTen => 'نقطة = 10 فيديوهات';
+
+  @override
+  String get pastilleSeeCollections => 'عرض المجموعات';
+
+  @override
+  String get pastilleArchiveSearch => 'ابحث عن فيديو أو مجموعة…';
+
+  @override
+  String pastilleVideoCount(int count) {
+    return '$count فيديو';
+  }
+
+  @override
+  String get pastilleSelectAll => 'تحديد الكل';
+
+  @override
+  String pastilleClearSelection(int count) {
+    return '$count محدد · مسح';
+  }
+
+  @override
+  String pastilleBatchProgress(int done, int total) {
+    return 'قيد التنفيذ ($done/$total)';
+  }
+
+  @override
+  String get pastilleDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get pastilleQueued => 'أُضيفت الفيديوهات إلى قائمة التنزيل.';
+
+  @override
+  String get pastilleNoVideoMatch => 'لا يوجد فيديو يطابق عوامل التصفية';
+
+  @override
+  String get pastilleResetFilters => 'إعادة ضبط عوامل التصفية';
+
+  @override
+  String get pastilleTransferEyebrow => 'النقل عبر شبكة Wi-Fi المحلية';
+
+  @override
+  String get pastilleTransferTitle => 'أرسل إلى هاتفك.';
+
+  @override
+  String get pastilleConnection => 'الاتصال';
+
+  @override
+  String get pastilleQrCode => 'رمز QR';
+
+  @override
+  String get pastillePinCode => 'رمز PIN';
+
+  @override
+  String get pastilleScanHint => 'افتح TapLoad على هاتفك وامسح الرمز.';
+
+  @override
+  String get pastilleTransferInFlight => 'نقل جارٍ';
+
+  @override
+  String pastilleTo(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String get pastilleLocalWifi => 'Wi-Fi محلي';
+
+  @override
+  String get pastilleNoTransfer => 'لا يوجد نقل جارٍ';
+
+  @override
+  String get pastilleConnectedDevice => 'الجهاز المتصل';
+
+  @override
+  String get pastilleConnected => 'متصل';
+
+  @override
+  String get pastilleNoDevice => 'لم يتم اختيار جهاز';
+
+  @override
+  String get pastilleFilesToSend => 'ملفات للإرسال';
+
+  @override
+  String get pastilleCreator => 'منشئ';
+
+  @override
+  String get pastilleFolder => 'مجلد';
+
+  @override
+  String get pastilleFile => 'ملف';
+
+  @override
+  String get pastilleAddFiles => 'إضافة ملفات';
+
+  @override
+  String get pastilleAddFolder => 'إضافة مجلد';
+
+  @override
+  String get pastilleSelection => 'التحديد';
+
+  @override
+  String get pastilleZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String get pastilleMoreOptions => 'خيارات أخرى';
 }
