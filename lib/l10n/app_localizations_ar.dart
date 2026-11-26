@@ -4668,4 +4668,159 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get porcelaineSelectFirst => 'حدد فيديوهات في القائمة أولًا.';
+
+  @override
+  String get signalStatsVolume => 'الحجم المُنزَّل';
+
+  @override
+  String signalStatsLastDays(int count) {
+    return 'آخر $count يومًا';
+  }
+
+  @override
+  String signalStatsPeriodDays(int count) {
+    return '$count ي';
+  }
+
+  @override
+  String signalStatsDaysAgo(int count) {
+    return 'قبل $count يومًا';
+  }
+
+  @override
+  String get signalStatsTodayAxis => 'اليوم';
+
+  @override
+  String get signalStatsByFormat => 'حسب الصيغة';
+
+  @override
+  String get signalStatsInVideo => 'فيديو';
+
+  @override
+  String get signalStatsTopCreators => 'أبرز صنّاع المحتوى';
+
+  @override
+  String get signalStatsNoCreators => 'لا يوجد صنّاع محتوى بعد.';
+
+  @override
+  String get signalSettingsGeneralHint => 'ما يفعله TapLoad افتراضيًا.';
+
+  @override
+  String get signalSettingsChange => 'تغيير';
+
+  @override
+  String get signalSettingsDesignTitle => 'المظهر · التصميم';
+
+  @override
+  String signalSettingsCurrentDesign(String name) {
+    return 'الحالي: $name';
+  }
+
+  @override
+  String get signalSettingsToolsTitle => 'النظام · الأدوات';
+
+  @override
+  String get signalSettingsLess => 'واحد أقل';
+
+  @override
+  String get signalSettingsMore => 'واحد أكثر';
+
+  @override
+  String get signalArchiveLocal => 'أرشيف محلي';
+
+  @override
+  String signalArchiveDownloaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تنزيل $count فيديو',
+      many: 'تم تنزيل $count فيديو',
+      few: 'تم تنزيل $count فيديوهات',
+      two: 'تم تنزيل فيديوين',
+      one: 'تم تنزيل فيديو واحد',
+      zero: 'لم يُنزَّل شيء بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get signalArchiveVideosTab => 'الفيديوهات';
+
+  @override
+  String get signalArchiveCollectionsTab => 'المجموعات';
+
+  @override
+  String get signalArchiveSync => 'مزامنة';
+
+  @override
+  String get signalArchiveDownloadAll => 'تنزيل الكل';
+
+  @override
+  String signalArchiveConfirmAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيل $count فيديو؟',
+      many: 'تنزيل $count فيديو؟',
+      few: 'تنزيل $count فيديوهات؟',
+      two: 'تنزيل فيديوين؟',
+      one: 'تنزيل فيديو واحد؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get signalArchiveConfirmAllBody =>
+      'تنضم الفيديوهات غير المُنزَّلة بعد إلى قائمة الانتظار.';
+
+  @override
+  String get signalArchiveAllDone => 'تم تنزيل الكل';
+
+  @override
+  String get signalArchiveNotDownloaded => 'غير مُنزَّلة';
+
+  @override
+  String get signalArchiveSharedKept =>
+      'تبقى الفيديوهات المشتركة مع مجموعة محفوظة.';
+
+  @override
+  String get signalArchiveCardView => 'العودة إلى البطاقات';
+
+  @override
+  String get signalArchiveDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get signalTransferWifi => 'على شبكة Wi-Fi المحلية';
+
+  @override
+  String get signalTransferTitle => 'الإرسال إلى الهاتف';
+
+  @override
+  String get signalTransferScanHint => 'افتح TapLoad على هاتفك وامسح الرمز.';
+
+  @override
+  String get signalTransferCode => 'أو أدخل الرمز';
+
+  @override
+  String get signalTransferTarget => 'الوجهة';
+
+  @override
+  String get signalTransferReachable => 'متاح';
+
+  @override
+  String get signalTransferFiles => 'الملفات المراد إرسالها';
+
+  @override
+  String get signalTransferTotal => 'إجمالي المحدد';
+
+  @override
+  String get signalTransferInProgress => 'نقل جارٍ';
+
+  @override
+  String signalTransferTo(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String get signalTransferPickDevice => 'اختر الجهاز من قائمة الأجهزة.';
 }

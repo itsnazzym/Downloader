@@ -4676,4 +4676,153 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get porcelaineSelectFirst => 'Tick videos in the list first.';
+
+  @override
+  String get signalStatsVolume => 'Downloaded volume';
+
+  @override
+  String signalStatsLastDays(int count) {
+    return 'Last $count days';
+  }
+
+  @override
+  String signalStatsPeriodDays(int count) {
+    return '$count d';
+  }
+
+  @override
+  String signalStatsDaysAgo(int count) {
+    return '$count d ago';
+  }
+
+  @override
+  String get signalStatsTodayAxis => 'today';
+
+  @override
+  String get signalStatsByFormat => 'By format';
+
+  @override
+  String get signalStatsInVideo => 'video';
+
+  @override
+  String get signalStatsTopCreators => 'Top creators';
+
+  @override
+  String get signalStatsNoCreators => 'No creators yet.';
+
+  @override
+  String get signalSettingsGeneralHint => 'What TapLoad does by default.';
+
+  @override
+  String get signalSettingsChange => 'Change';
+
+  @override
+  String get signalSettingsDesignTitle => 'Appearance · design';
+
+  @override
+  String signalSettingsCurrentDesign(String name) {
+    return 'Current: $name';
+  }
+
+  @override
+  String get signalSettingsToolsTitle => 'System · tools';
+
+  @override
+  String get signalSettingsLess => 'One fewer';
+
+  @override
+  String get signalSettingsMore => 'One more';
+
+  @override
+  String get signalArchiveLocal => 'Local archive';
+
+  @override
+  String signalArchiveDownloaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos already downloaded',
+      one: '$count video already downloaded',
+      zero: 'Nothing downloaded yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get signalArchiveVideosTab => 'Videos';
+
+  @override
+  String get signalArchiveCollectionsTab => 'Collections';
+
+  @override
+  String get signalArchiveSync => 'Sync';
+
+  @override
+  String get signalArchiveDownloadAll => 'Download all';
+
+  @override
+  String signalArchiveConfirmAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Download $count videos?',
+      one: 'Download $count video?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get signalArchiveConfirmAllBody =>
+      'Those not downloaded yet join the queue.';
+
+  @override
+  String get signalArchiveAllDone => 'All downloaded';
+
+  @override
+  String get signalArchiveNotDownloaded => 'Not downloaded';
+
+  @override
+  String get signalArchiveSharedKept =>
+      'Videos shared with a kept collection stay.';
+
+  @override
+  String get signalArchiveCardView => 'Back to cards';
+
+  @override
+  String get signalArchiveDownloadSelection => 'Download selection';
+
+  @override
+  String get signalTransferWifi => 'On the local Wi-Fi';
+
+  @override
+  String get signalTransferTitle => 'Send to your phone';
+
+  @override
+  String get signalTransferScanHint => 'Open TapLoad on your phone and scan.';
+
+  @override
+  String get signalTransferCode => 'Or type the code';
+
+  @override
+  String get signalTransferTarget => 'Destination';
+
+  @override
+  String get signalTransferReachable => 'Reachable';
+
+  @override
+  String get signalTransferFiles => 'Files to send';
+
+  @override
+  String get signalTransferTotal => 'Selected total';
+
+  @override
+  String get signalTransferInProgress => 'Transfer in progress';
+
+  @override
+  String signalTransferTo(String name) {
+    return 'to $name';
+  }
+
+  @override
+  String get signalTransferPickDevice => 'Pick the device in the Devices list.';
 }

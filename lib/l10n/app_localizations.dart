@@ -8085,6 +8085,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tick videos in the list first.'**
   String get porcelaineSelectFirst;
+
+  /// No description provided for @signalStatsVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded volume'**
+  String get signalStatsVolume;
+
+  /// No description provided for @signalStatsLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {count} days'**
+  String signalStatsLastDays(int count);
+
+  /// No description provided for @signalStatsPeriodDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d'**
+  String signalStatsPeriodDays(int count);
+
+  /// No description provided for @signalStatsDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d ago'**
+  String signalStatsDaysAgo(int count);
+
+  /// No description provided for @signalStatsTodayAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get signalStatsTodayAxis;
+
+  /// No description provided for @signalStatsByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get signalStatsByFormat;
+
+  /// No description provided for @signalStatsInVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'video'**
+  String get signalStatsInVideo;
+
+  /// No description provided for @signalStatsTopCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'Top creators'**
+  String get signalStatsTopCreators;
+
+  /// No description provided for @signalStatsNoCreators.
+  ///
+  /// In en, this message translates to:
+  /// **'No creators yet.'**
+  String get signalStatsNoCreators;
+
+  /// No description provided for @signalSettingsGeneralHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What TapLoad does by default.'**
+  String get signalSettingsGeneralHint;
+
+  /// No description provided for @signalSettingsChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get signalSettingsChange;
+
+  /// No description provided for @signalSettingsDesignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance · design'**
+  String get signalSettingsDesignTitle;
+
+  /// No description provided for @signalSettingsCurrentDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {name}'**
+  String signalSettingsCurrentDesign(String name);
+
+  /// No description provided for @signalSettingsToolsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System · tools'**
+  String get signalSettingsToolsTitle;
+
+  /// No description provided for @signalSettingsLess.
+  ///
+  /// In en, this message translates to:
+  /// **'One fewer'**
+  String get signalSettingsLess;
+
+  /// No description provided for @signalSettingsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'One more'**
+  String get signalSettingsMore;
+
+  /// No description provided for @signalArchiveLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive'**
+  String get signalArchiveLocal;
+
+  /// No description provided for @signalArchiveDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing downloaded yet} one{{count} video already downloaded} other{{count} videos already downloaded}}'**
+  String signalArchiveDownloaded(int count);
+
+  /// No description provided for @signalArchiveVideosTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get signalArchiveVideosTab;
+
+  /// No description provided for @signalArchiveCollectionsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get signalArchiveCollectionsTab;
+
+  /// No description provided for @signalArchiveSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get signalArchiveSync;
+
+  /// No description provided for @signalArchiveDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get signalArchiveDownloadAll;
+
+  /// No description provided for @signalArchiveConfirmAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Download {count} video?} other{Download {count} videos?}}'**
+  String signalArchiveConfirmAll(int count);
+
+  /// No description provided for @signalArchiveConfirmAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Those not downloaded yet join the queue.'**
+  String get signalArchiveConfirmAllBody;
+
+  /// No description provided for @signalArchiveAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get signalArchiveAllDone;
+
+  /// No description provided for @signalArchiveNotDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded'**
+  String get signalArchiveNotDownloaded;
+
+  /// No description provided for @signalArchiveSharedKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection stay.'**
+  String get signalArchiveSharedKept;
+
+  /// No description provided for @signalArchiveCardView.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to cards'**
+  String get signalArchiveCardView;
+
+  /// No description provided for @signalArchiveDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get signalArchiveDownloadSelection;
+
+  /// No description provided for @signalTransferWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'On the local Wi-Fi'**
+  String get signalTransferWifi;
+
+  /// No description provided for @signalTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your phone'**
+  String get signalTransferTitle;
+
+  /// No description provided for @signalTransferScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan.'**
+  String get signalTransferScanHint;
+
+  /// No description provided for @signalTransferCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type the code'**
+  String get signalTransferCode;
+
+  /// No description provided for @signalTransferTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get signalTransferTarget;
+
+  /// No description provided for @signalTransferReachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Reachable'**
+  String get signalTransferReachable;
+
+  /// No description provided for @signalTransferFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get signalTransferFiles;
+
+  /// No description provided for @signalTransferTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected total'**
+  String get signalTransferTotal;
+
+  /// No description provided for @signalTransferInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer in progress'**
+  String get signalTransferInProgress;
+
+  /// No description provided for @signalTransferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'to {name}'**
+  String signalTransferTo(String name);
+
+  /// No description provided for @signalTransferPickDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the device in the Devices list.'**
+  String get signalTransferPickDevice;
 }
 
 class _AppLocalizationsDelegate
