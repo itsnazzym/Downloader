@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../shared/empty_art.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 
 import 'studio_widgets.dart';
@@ -23,7 +24,7 @@ String studioErrorReason(String? error) {
 
 /// The editorial "nothing recorded yet" block: a heavy ink rule, a title bar
 /// and empty ledger lines, an unlit recording ring on the first one. Shows
-/// assets/designs/studio/empty.png instead once that render exists.
+/// the Blender loop (`emptyArtAsset`) instead when it loads.
 class StudioEmptyArt extends StatelessWidget {
   const StudioEmptyArt({super.key, this.broken = false});
 
@@ -45,9 +46,9 @@ class StudioEmptyArt extends StatelessWidget {
     );
     if (broken) return code;
     return Image.asset(
-      'assets/designs/studio/empty.png',
+      emptyArtAsset(context, 'studio'),
       width: 280,
-      height: 120,
+      height: 160,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stack) => code,
     );

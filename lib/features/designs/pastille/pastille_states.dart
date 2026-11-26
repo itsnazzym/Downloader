@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../shared/empty_art.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
@@ -89,7 +90,7 @@ const _arrow = [
 ];
 
 /// The empty library: a lavender tile, the big Sora line, one sentence, the
-/// new-download pill and the dot-grid arrow (or `empty.png` once rendered).
+/// new-download pill and the dot-grid arrow (or the Blender loop, `emptyArtAsset`).
 class PastilleEmpty extends StatelessWidget {
   const PastilleEmpty({super.key, required this.onNew});
 
@@ -106,7 +107,7 @@ class PastilleEmpty extends StatelessWidget {
           final art = SizedBox(
             width: 168,
             child: Image.asset(
-              'assets/designs/pastille/empty.png',
+              emptyArtAsset(context, 'pastille'),
               fit: BoxFit.contain,
               errorBuilder: (context, error, stack) => PDots(
                 count: 63,

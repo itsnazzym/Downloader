@@ -1,6 +1,7 @@
 import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
+import '../shared/empty_art.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -586,7 +587,7 @@ class _SlotsPainter extends CustomPainter {
 }
 
 /// First launch: nothing downloaded yet. The picture is
-/// `assets/designs/porcelaine/empty.png` when it exists, else drawn here.
+/// the Blender loop (`emptyArtAsset`) when it loads, else drawn here.
 class PEmptyLibrary extends StatelessWidget {
   const PEmptyLibrary({super.key});
 
@@ -599,7 +600,7 @@ class PEmptyLibrary extends StatelessWidget {
         width: 300,
         height: 172,
         child: Image.asset(
-          'assets/designs/porcelaine/empty.png',
+          emptyArtAsset(context, 'porcelaine'),
           fit: BoxFit.contain,
           errorBuilder: (context, _, _) => CustomPaint(
             painter: _SlotsPainter(

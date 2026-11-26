@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../shared/empty_art.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 
@@ -33,7 +34,7 @@ String signalShortError(String? raw) {
 
 /// The empty-state picture: a small bento of placeholder tiles, one of them
 /// the accent tile with the download arrow. Shows
-/// `assets/designs/signal/empty.png` instead when the asset exists.
+/// the Blender loop (`emptyArtAsset`) instead when it loads.
 class SignalEmptyArt extends StatelessWidget {
   const SignalEmptyArt({super.key, this.width = 260, this.height = 176});
 
@@ -45,7 +46,7 @@ class SignalEmptyArt extends StatelessWidget {
     width: width,
     height: height,
     child: Image.asset(
-      'assets/designs/signal/empty.png',
+      emptyArtAsset(context, 'signal'),
       fit: BoxFit.contain,
       errorBuilder: (context, _, _) => const _BentoArt(),
     ),

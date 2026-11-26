@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../shared/empty_art.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 
@@ -986,7 +987,7 @@ class _OrbitPainter extends CustomPainter {
       old.arc != arc;
 }
 
-/// The empty library's illustration: `assets/designs/nocturne/empty.png`
+/// The empty library's illustration: the Blender loop (`emptyArtAsset`)
 /// when it ships, else the [NocturneOrbit] drawn in code.
 class NocturneEmptyArt extends StatelessWidget {
   const NocturneEmptyArt({super.key, required this.size});
@@ -998,7 +999,7 @@ class NocturneEmptyArt extends StatelessWidget {
     return SizedBox.square(
       dimension: size,
       child: Image.asset(
-        'assets/designs/nocturne/empty.png',
+        emptyArtAsset(context, 'nocturne'),
         width: size,
         height: size,
         fit: BoxFit.contain,

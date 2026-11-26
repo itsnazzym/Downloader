@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../shared/empty_art.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 
 import 'terminal_widgets.dart';
@@ -225,7 +226,7 @@ class TPrinted extends StatelessWidget {
 }
 
 /// The empty library's visual: an unformatted drive in ASCII blocks. Shown
-/// unless `assets/designs/terminal/empty.png` exists.
+/// unless the Blender loop (`emptyArtAsset`) loads.
 class TEmptyVisual extends StatelessWidget {
   const TEmptyVisual({super.key});
 
@@ -235,7 +236,7 @@ class TEmptyVisual extends StatelessWidget {
       width: 210,
       height: 132,
       child: Image.asset(
-        'assets/designs/terminal/empty.png',
+        emptyArtAsset(context, 'terminal'),
         fit: BoxFit.contain,
         errorBuilder: (context, error, stack) => const _AsciiDrive(),
       ),
