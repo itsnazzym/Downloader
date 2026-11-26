@@ -42,6 +42,27 @@ class StudioHome extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Like today's view: under 620px beside the 220px sidebar, the inspector
+    // opens as a bottom sheet instead of a side pane.
+    final narrow = MediaQuery.sizeOf(context).width - 220 < 620;
+    if (narrow) {
+      ref.listen<String?>(selectedDownloadIdProvider, (previous, next) {
+        if (next == null || next == previous) return;
+        showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          showDragHandle: true,
+          builder: (context) => SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.86,
+            child: DownloadInspector(downloadId: next),
+          ),
+        ).whenComplete(() {
+          if (ref.read(selectedDownloadIdProvider) == next) {
+            ref.read(selectedDownloadIdProvider.notifier).state = null;
+          }
+        });
+      });
+    }
     return Focus(
       autofocus: true,
       child: CallbackShortcuts(
@@ -51,10 +72,10 @@ class StudioHome extends ConsumerWidget {
           const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
               DownloadSearchFocus.request,
         },
-        child: const Row(
+        child: Row(
           children: [
-            Expanded(child: _Library()),
-            _InspectorPane(),
+            const Expanded(child: _Library()),
+            if (!narrow) const _InspectorPane(),
           ],
         ),
       ),
@@ -460,6 +481,17 @@ class _Table extends ConsumerWidget {
         return _Rows([for (final i in items) (i.id, _hasLine(i))]);
       }),
     );
+    // Drag indices map onto the stored order only when the table shows the
+    // whole library in that order (oldest first, no filter), like today's list.
+    final reorder =
+        ref.watch(downloadSearchQueryProvider).isEmpty &&
+        ref.watch(downloadStatusFilterProvider) == DownloadStatusFilter.all &&
+        ref.watch(downloadSourceFilterProvider) == null &&
+        ref.watch(downloadSortProvider) == DownloadSort.dateAsc &&
+        rows.list.length <= 50;
+    double? extent(int i, _) => i < rows.list.length
+        ? (rows.list[i].$2 ? _lineRowHeight : _rowHeight)
+        : _rowHeight;
     final height =
         _headerHeight +
         rows.list.fold<double>(
@@ -479,17 +511,34 @@ class _Table extends ConsumerWidget {
               children: [
                 _HeaderRow(compact: compact),
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: rows.list.length,
-                    itemExtentBuilder: (i, _) => i < rows.list.length
-                        ? (rows.list[i].$2 ? _lineRowHeight : _rowHeight)
-                        : _rowHeight,
-                    itemBuilder: (context, i) => _Row(
-                      key: ValueKey(rows.list[i].$1),
-                      id: rows.list[i].$1,
-                      compact: compact,
-                    ),
-                  ),
+                  child: reorder
+                      // Long-press a row to move it, as today's list allows.
+                      ? ReorderableListView.builder(
+                          buildDefaultDragHandles: false,
+                          itemCount: rows.list.length,
+                          itemExtentBuilder: extent,
+                          onReorderItem: ref
+                              .read(downloadListProvider.notifier)
+                              .reorder,
+                          itemBuilder: (context, i) =>
+                              ReorderableDelayedDragStartListener(
+                                key: ValueKey(rows.list[i].$1),
+                                index: i,
+                                child: _Row(
+                                  id: rows.list[i].$1,
+                                  compact: compact,
+                                ),
+                              ),
+                        )
+                      : ListView.builder(
+                          itemCount: rows.list.length,
+                          itemExtentBuilder: extent,
+                          itemBuilder: (context, i) => _Row(
+                            key: ValueKey(rows.list[i].$1),
+                            id: rows.list[i].$1,
+                            compact: compact,
+                          ),
+                        ),
                 ),
               ],
             ),

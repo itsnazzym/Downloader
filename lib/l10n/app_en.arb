@@ -1469,5 +1469,10 @@
   "studioCollections": "Collections",
   "studioVideosUnit": "videos",
   "studioCollectionsUnit": "collections",
-  "studioFavoritesUnit": "favorites"
+  "studioFavoritesUnit": "favorites",
+  "studioDone": "Done",
+  "studioPurgeNote": "Videos shared with a kept collection are kept.",
+  "studioAllDownloaded": "All downloaded",
+  "studioPartDownloaded": "downloaded",
+  "studioToDownload": "To download"
 }

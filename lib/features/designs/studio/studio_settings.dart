@@ -8,7 +8,6 @@ import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'studio_widgets.dart';
@@ -157,9 +156,7 @@ class _GeneralPanel extends ConsumerWidget {
             ),
           ]),
           block(l10n.settingsOutput, [
-            KeyedSubtree(
-              key: OnboardingTargets.outputFolder,
-              child: _Item(
+            _Item(
                 label: l10n.storageFolder,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -176,7 +173,6 @@ class _GeneralPanel extends ConsumerWidget {
                   ],
                 ),
               ),
-            ),
             // No file-name template setting exists: the video format instead.
             _Item(
               label: l10n.formatLabel,

@@ -3256,4 +3256,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get studioFavoritesUnit => 'مفضلة';
+
+  @override
+  String get studioDone => 'تم';
+
+  @override
+  String get studioPurgeNote =>
+      'تُحفظ مقاطع الفيديو المشتركة مع مجموعة محفوظة.';
+
+  @override
+  String get studioAllDownloaded => 'تم تنزيل الكل';
+
+  @override
+  String get studioPartDownloaded => 'تم تنزيله';
+
+  @override
+  String get studioToDownload => 'للتنزيل';
 }

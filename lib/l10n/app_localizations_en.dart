@@ -3246,4 +3246,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studioFavoritesUnit => 'favorites';
+
+  @override
+  String get studioDone => 'Done';
+
+  @override
+  String get studioPurgeNote =>
+      'Videos shared with a kept collection are kept.';
+
+  @override
+  String get studioAllDownloaded => 'All downloaded';
+
+  @override
+  String get studioPartDownloaded => 'downloaded';
+
+  @override
+  String get studioToDownload => 'To download';
 }

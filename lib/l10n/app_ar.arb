@@ -1236,5 +1236,10 @@
   "studioCollections": "المجموعات",
   "studioVideosUnit": "فيديو",
   "studioCollectionsUnit": "مجموعة",
-  "studioFavoritesUnit": "مفضلة"
+  "studioFavoritesUnit": "مفضلة",
+  "studioDone": "تم",
+  "studioPurgeNote": "تُحفظ مقاطع الفيديو المشتركة مع مجموعة محفوظة.",
+  "studioAllDownloaded": "تم تنزيل الكل",
+  "studioPartDownloaded": "تم تنزيله",
+  "studioToDownload": "للتنزيل"
 }

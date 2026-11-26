@@ -1236,5 +1236,10 @@
   "studioCollections": "Collections",
   "studioVideosUnit": "vidéos",
   "studioCollectionsUnit": "collections",
-  "studioFavoritesUnit": "favoris"
+  "studioFavoritesUnit": "favoris",
+  "studioDone": "Terminer",
+  "studioPurgeNote": "Les vidéos partagées avec une collection conservée sont gardées.",
+  "studioAllDownloaded": "Tout téléchargé",
+  "studioPartDownloaded": "téléchargé",
+  "studioToDownload": "À télécharger"
 }

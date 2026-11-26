@@ -3290,4 +3290,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get studioFavoritesUnit => 'favoris';
+
+  @override
+  String get studioDone => 'Terminer';
+
+  @override
+  String get studioPurgeNote =>
+      'Les vidéos partagées avec une collection conservée sont gardées.';
+
+  @override
+  String get studioAllDownloaded => 'Tout téléchargé';
+
+  @override
+  String get studioPartDownloaded => 'téléchargé';
+
+  @override
+  String get studioToDownload => 'À télécharger';
 }

@@ -350,13 +350,16 @@ class _StudioButtonState extends State<StudioButton> {
                     Icon(widget.icon, size: 14, color: fg),
                     const SizedBox(width: 7),
                   ],
-                  Text(
+                  Flexible(
+                    child: Text(
                     widget.label,
                     maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTypography.bodySmall.copyWith(
                       color: fg,
                       fontWeight: light ? FontWeight.w500 : FontWeight.w600,
                     ),
+                  ),
                   ),
                 ],
               ),
@@ -371,10 +374,9 @@ class _StudioButtonState extends State<StudioButton> {
 /// Underlined tabs (`.tabs`): 36px high, 24px apart, a 1.5px ink line under
 /// the selected one, an optional mono count.
 class StudioTabs extends StatelessWidget {
-  const StudioTabs({super.key, required this.tabs, this.trailing});
+  const StudioTabs({super.key, required this.tabs});
 
   final List<StudioTab> tabs;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {

@@ -9,6 +9,7 @@ import 'package:modern_downloader/features/downloader/presentation/providers/liv
 import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
 import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:modern_downloader/showcase/showcase_mode.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../shared/design_data.dart';
@@ -448,7 +449,7 @@ class _Files extends ConsumerWidget {
           s.compressZip,
           s.peers,
           s.activeTargetFingerprint,
-          s.progress != null,
+          _inFlight(s.progress),
         ),
       ),
     );
@@ -569,7 +570,20 @@ class _Files extends ConsumerWidget {
                 StudioButton(
                   label: l10n.transferSend,
                   onTap: peer != null && hasPayload && !busy
-                      ? () => controller.sendTo(peer)
+                      ? () {
+                          // Same guard as today's view: the demo sends nothing.
+                          if (ref.read(showcaseModeProvider)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  l10n.transferMobileDemoSendSimulated,
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          controller.sendTo(peer);
+                        }
                       : null,
                 ),
               ],
@@ -658,12 +672,20 @@ class _Progress extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
     final l10n = context.l10n;
-    final progress = ref.watch(
-      transferControllerProvider.select((s) => s.progress),
+    final (progress, lastError) = ref.watch(
+      transferControllerProvider.select((s) => (s.progress, s.lastError)),
     );
     if (progress == null) return const SizedBox.shrink();
     final controller = ref.read(transferControllerProvider.notifier);
     final failed = progress.phase == TransferPhase.failed;
+    final live = _inFlight(progress);
+    final phaseLabel = switch (progress.phase) {
+      TransferPhase.preparing => l10n.transferPreparing,
+      TransferPhase.compressing => l10n.transferCompressing,
+      TransferPhase.waitingPeer => l10n.transferWaitingPeer,
+      TransferPhase.done => l10n.transferDone,
+      _ => null,
+    };
     final percent = (progress.fraction * 100).clamp(0, 100).round();
     final rate = formatSpeed(l10n, progress.bytesPerSecond);
     return Padding(
@@ -698,9 +720,13 @@ class _Progress extends ConsumerWidget {
                 ),
                 const SizedBox(width: 16),
                 if (failed) ...[
-                  Text(
-                    progress.error ?? l10n.studioTransferIssue,
-                    style: studioText(c, size: 12, color: c.error),
+                  Flexible(
+                    child: Text(
+                      lastError == 'empty'
+                          ? l10n.transferNeedPayload
+                          : l10n.studioTransferIssue,
+                      style: studioText(c, size: 12, color: c.error),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   StudioButton(
@@ -710,13 +736,18 @@ class _Progress extends ConsumerWidget {
                     onTap: controller.retryLastTransfer,
                   ),
                 ] else ...[
-                  const StudioRecDot(),
-                  const SizedBox(width: 6),
+                  if (live) ...[
+                    const StudioRecDot(),
+                    const SizedBox(width: 6),
+                  ],
                   Text(
-                    progress.bytesPerSecond > 0
-                        ? '$percent % · ${rate.value} ${rate.unit}'
-                        : '$percent %',
-                    style: studioMono(c, size: 12),
+                    phaseLabel ??
+                        (progress.bytesPerSecond > 0
+                            ? '$percent % · ${rate.value} ${rate.unit}'
+                            : '$percent %'),
+                    style: phaseLabel != null
+                        ? studioText(c, size: 12, color: c.textSecondary)
+                        : studioMono(c, size: 12),
                   ),
                 ],
                 const SizedBox(width: 4),
@@ -734,3 +765,11 @@ class _Progress extends ConsumerWidget {
     );
   }
 }
+
+/// Bytes are being prepared or sent: a done or failed transfer stays shown
+/// but no longer blocks « Envoyer ».
+bool _inFlight(TransferProgress? p) =>
+    p != null &&
+    p.phase != TransferPhase.done &&
+    p.phase != TransferPhase.failed &&
+    p.phase != TransferPhase.idle;

@@ -5631,6 +5631,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'favorites'**
   String get studioFavoritesUnit;
+
+  /// No description provided for @studioDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get studioDone;
+
+  /// No description provided for @studioPurgeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection are kept.'**
+  String get studioPurgeNote;
+
+  /// No description provided for @studioAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get studioAllDownloaded;
+
+  /// No description provided for @studioPartDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'downloaded'**
+  String get studioPartDownloaded;
+
+  /// No description provided for @studioToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'To download'**
+  String get studioToDownload;
 }
 
 class _AppLocalizationsDelegate
