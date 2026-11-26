@@ -3083,4 +3083,358 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designArchivesTab => 'Archives';
+
+  @override
+  String get pastilleGreetingMorning => 'Good morning';
+
+  @override
+  String get pastilleGreetingEvening => 'Good evening';
+
+  @override
+  String pastilleHomeBusy(String greeting) {
+    return '$greeting, all running.';
+  }
+
+  @override
+  String pastilleHomeIdle(String greeting) {
+    return '$greeting, all quiet.';
+  }
+
+  @override
+  String pastilleOneOf(int index, int total) {
+    return '$index of $total';
+  }
+
+  @override
+  String get pastilleQuickLink => 'Quick link';
+
+  @override
+  String pastilleClipboard(String url) {
+    return 'Clipboard: $url';
+  }
+
+  @override
+  String get pastilleAdded => 'Added ✓';
+
+  @override
+  String get pastilleSpeed => 'Speed';
+
+  @override
+  String get pastilleStorage => 'Storage';
+
+  @override
+  String pastilleActivity(String month) {
+    return 'Activity · $month';
+  }
+
+  @override
+  String pastilleTodayCount(int count) {
+    return '$count today';
+  }
+
+  @override
+  String get pastilleThisMonth => 'this month';
+
+  @override
+  String pastilleNext(String title) {
+    return 'Next: $title';
+  }
+
+  @override
+  String get pastilleRecent => 'Recent';
+
+  @override
+  String pastilleTotal(int count) {
+    return '$count in total';
+  }
+
+  @override
+  String get pastilleAllLibrary => 'Whole library';
+
+  @override
+  String get pastilleNothingYet => 'Nothing finished yet';
+
+  @override
+  String get pastilleLibraryTitle => 'Your whole library.';
+
+  @override
+  String get pastilleStatsTitle => 'Your activity, in dots.';
+
+  @override
+  String get pastilleDownloads => 'Downloads';
+
+  @override
+  String get pastilleSinceStart => 'since the start';
+
+  @override
+  String get pastilleVolume => 'Volume';
+
+  @override
+  String get pastilleDownloadedTotal => 'downloaded in total';
+
+  @override
+  String get pastilleLast7 => 'last 7 days';
+
+  @override
+  String get pastilleLast30 => 'last 30 days';
+
+  @override
+  String get pastilleDownloadsWord => 'downloads';
+
+  @override
+  String pastilleChartTitle(String period) {
+    return 'Downloads · $period';
+  }
+
+  @override
+  String get pastillePeriod7 => '7 d';
+
+  @override
+  String get pastillePeriod30 => '30 d';
+
+  @override
+  String pastilleDaysAgo(int days) {
+    return 'd-$days';
+  }
+
+  @override
+  String get pastilleTodayShort => 'today';
+
+  @override
+  String get pastilleByFormat => 'By format';
+
+  @override
+  String get pastilleBySource => 'By source';
+
+  @override
+  String get pastilleSettingsEyebrow => 'settings';
+
+  @override
+  String get pastilleMoreSettings => 'More settings';
+
+  @override
+  String get pastilleChange => 'Change';
+
+  @override
+  String get pastilleAppDesign => 'App design';
+
+  @override
+  String get pastilleConcurrentLess => 'One fewer simultaneous download';
+
+  @override
+  String get pastilleConcurrentMore => 'One more simultaneous download';
+
+  @override
+  String get pastilleReduceEffects => 'Reduce effects';
+
+  @override
+  String get pastilleSystemTools => 'System · tools';
+
+  @override
+  String get pastilleToolReady => 'ready';
+
+  @override
+  String get pastilleToolChecking => 'checking…';
+
+  @override
+  String get pastilleToolUnchecked => 'not checked';
+
+  @override
+  String get pastilleRepair => 'Check and repair';
+
+  @override
+  String get pastilleArchiveEyebrow => 'TikTok archives';
+
+  @override
+  String get pastilleArchiveTitle => 'Your archive, sorted.';
+
+  @override
+  String get pastilleSync => 'Sync';
+
+  @override
+  String get pastilleDownloadAll => 'Download all';
+
+  @override
+  String pastilleBatchStop(int done, int total) {
+    return '$done / $total · Stop';
+  }
+
+  @override
+  String get pastilleDemoDownload => 'Demo mode: download simulated.';
+
+  @override
+  String get pastilleArchiveVideos => 'Videos';
+
+  @override
+  String get pastilleArchiveCollections => 'Collections';
+
+  @override
+  String get pastilleArchiveFavorites => 'Favorites';
+
+  @override
+  String get pastilleDone => 'Done';
+
+  @override
+  String get pastilleMoreActions => 'More actions';
+
+  @override
+  String get pastilleDetailedView => 'Detailed collections view';
+
+  @override
+  String get pastilleInArchive => 'in the archive';
+
+  @override
+  String get pastilleByTheme => 'sorted by theme';
+
+  @override
+  String get pastilleKeptOnTikTok => 'saved on TikTok';
+
+  @override
+  String get pastilleVideosLabel => 'videos in the archive';
+
+  @override
+  String get pastilleFavoritesLabel => 'favorites';
+
+  @override
+  String get pastilleVideosText =>
+      'Every video of your archive, sorted by collection. Open the Collections tab to choose what to keep on this PC.';
+
+  @override
+  String get pastilleFavoritesText =>
+      'The videos you saved as favorites on TikTok. “Download all” fetches them with the rest of the archive.';
+
+  @override
+  String get pastilleLocalArchive => 'Local archive';
+
+  @override
+  String pastilleLikes(int count) {
+    return '$count likes';
+  }
+
+  @override
+  String get pastilleSharedKept => 'Videos shared with a kept collection stay.';
+
+  @override
+  String get pastilleNoCollections => 'No collections found';
+
+  @override
+  String get pastilleAllDownloaded => 'All downloaded';
+
+  @override
+  String pastillePercentDownloaded(int percent) {
+    return '$percent% downloaded';
+  }
+
+  @override
+  String get pastilleToDownload => 'To download';
+
+  @override
+  String get pastilleVideosWord => 'videos';
+
+  @override
+  String get pastilleOneDotTen => '1 dot = 10 videos';
+
+  @override
+  String get pastilleSeeCollections => 'See collections';
+
+  @override
+  String get pastilleArchiveSearch => 'Search a video or a collection…';
+
+  @override
+  String pastilleVideoCount(int count) {
+    return '$count videos';
+  }
+
+  @override
+  String get pastilleSelectAll => 'Select all';
+
+  @override
+  String pastilleClearSelection(int count) {
+    return '$count selected · Clear';
+  }
+
+  @override
+  String pastilleBatchProgress(int done, int total) {
+    return 'Running ($done/$total)';
+  }
+
+  @override
+  String get pastilleDownloadSelection => 'Download selection';
+
+  @override
+  String get pastilleQueued => 'Videos added to the download queue.';
+
+  @override
+  String get pastilleNoVideoMatch => 'No video matches the active filters';
+
+  @override
+  String get pastilleResetFilters => 'Reset filters';
+
+  @override
+  String get pastilleTransferEyebrow => 'transfer over local Wi-Fi';
+
+  @override
+  String get pastilleTransferTitle => 'Send to your phone.';
+
+  @override
+  String get pastilleConnection => 'Connection';
+
+  @override
+  String get pastilleQrCode => 'QR code';
+
+  @override
+  String get pastillePinCode => 'PIN code';
+
+  @override
+  String get pastilleScanHint => 'Open TapLoad on your phone and scan.';
+
+  @override
+  String get pastilleTransferInFlight => 'Transfer in progress';
+
+  @override
+  String pastilleTo(String name) {
+    return 'to $name';
+  }
+
+  @override
+  String get pastilleLocalWifi => 'Local Wi-Fi';
+
+  @override
+  String get pastilleNoTransfer => 'No transfer in progress';
+
+  @override
+  String get pastilleConnectedDevice => 'Connected device';
+
+  @override
+  String get pastilleConnected => 'connected';
+
+  @override
+  String get pastilleNoDevice => 'no device chosen';
+
+  @override
+  String get pastilleFilesToSend => 'Files to send';
+
+  @override
+  String get pastilleCreator => 'Creator';
+
+  @override
+  String get pastilleFolder => 'Folder';
+
+  @override
+  String get pastilleFile => 'File';
+
+  @override
+  String get pastilleAddFiles => 'Add files';
+
+  @override
+  String get pastilleAddFolder => 'Add a folder';
+
+  @override
+  String get pastilleSelection => 'Selection';
+
+  @override
+  String get pastilleZip => 'Compress to ZIP';
+
+  @override
+  String get pastilleMoreOptions => 'More options';
 }

@@ -5355,6 +5355,642 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archives'**
   String get designArchivesTab;
+
+  /// No description provided for @pastilleGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get pastilleGreetingMorning;
+
+  /// No description provided for @pastilleGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get pastilleGreetingEvening;
+
+  /// No description provided for @pastilleHomeBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, all running.'**
+  String pastilleHomeBusy(String greeting);
+
+  /// No description provided for @pastilleHomeIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, all quiet.'**
+  String pastilleHomeIdle(String greeting);
+
+  /// No description provided for @pastilleOneOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{index} of {total}'**
+  String pastilleOneOf(int index, int total);
+
+  /// No description provided for @pastilleQuickLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick link'**
+  String get pastilleQuickLink;
+
+  /// No description provided for @pastilleClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard: {url}'**
+  String pastilleClipboard(String url);
+
+  /// No description provided for @pastilleAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added ✓'**
+  String get pastilleAdded;
+
+  /// No description provided for @pastilleSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get pastilleSpeed;
+
+  /// No description provided for @pastilleStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get pastilleStorage;
+
+  /// No description provided for @pastilleActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity · {month}'**
+  String pastilleActivity(String month);
+
+  /// No description provided for @pastilleTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} today'**
+  String pastilleTodayCount(int count);
+
+  /// No description provided for @pastilleThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'this month'**
+  String get pastilleThisMonth;
+
+  /// No description provided for @pastilleNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {title}'**
+  String pastilleNext(String title);
+
+  /// No description provided for @pastilleRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get pastilleRecent;
+
+  /// No description provided for @pastilleTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in total'**
+  String pastilleTotal(int count);
+
+  /// No description provided for @pastilleAllLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole library'**
+  String get pastilleAllLibrary;
+
+  /// No description provided for @pastilleNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing finished yet'**
+  String get pastilleNothingYet;
+
+  /// No description provided for @pastilleLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your whole library.'**
+  String get pastilleLibraryTitle;
+
+  /// No description provided for @pastilleStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your activity, in dots.'**
+  String get pastilleStatsTitle;
+
+  /// No description provided for @pastilleDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get pastilleDownloads;
+
+  /// No description provided for @pastilleSinceStart.
+  ///
+  /// In en, this message translates to:
+  /// **'since the start'**
+  String get pastilleSinceStart;
+
+  /// No description provided for @pastilleVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get pastilleVolume;
+
+  /// No description provided for @pastilleDownloadedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'downloaded in total'**
+  String get pastilleDownloadedTotal;
+
+  /// No description provided for @pastilleLast7.
+  ///
+  /// In en, this message translates to:
+  /// **'last 7 days'**
+  String get pastilleLast7;
+
+  /// No description provided for @pastilleLast30.
+  ///
+  /// In en, this message translates to:
+  /// **'last 30 days'**
+  String get pastilleLast30;
+
+  /// No description provided for @pastilleDownloadsWord.
+  ///
+  /// In en, this message translates to:
+  /// **'downloads'**
+  String get pastilleDownloadsWord;
+
+  /// No description provided for @pastilleChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads · {period}'**
+  String pastilleChartTitle(String period);
+
+  /// No description provided for @pastillePeriod7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 d'**
+  String get pastillePeriod7;
+
+  /// No description provided for @pastillePeriod30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 d'**
+  String get pastillePeriod30;
+
+  /// No description provided for @pastilleDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'d-{days}'**
+  String pastilleDaysAgo(int days);
+
+  /// No description provided for @pastilleTodayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get pastilleTodayShort;
+
+  /// No description provided for @pastilleByFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'By format'**
+  String get pastilleByFormat;
+
+  /// No description provided for @pastilleBySource.
+  ///
+  /// In en, this message translates to:
+  /// **'By source'**
+  String get pastilleBySource;
+
+  /// No description provided for @pastilleSettingsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'settings'**
+  String get pastilleSettingsEyebrow;
+
+  /// No description provided for @pastilleMoreSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'More settings'**
+  String get pastilleMoreSettings;
+
+  /// No description provided for @pastilleChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get pastilleChange;
+
+  /// No description provided for @pastilleAppDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'App design'**
+  String get pastilleAppDesign;
+
+  /// No description provided for @pastilleConcurrentLess.
+  ///
+  /// In en, this message translates to:
+  /// **'One fewer simultaneous download'**
+  String get pastilleConcurrentLess;
+
+  /// No description provided for @pastilleConcurrentMore.
+  ///
+  /// In en, this message translates to:
+  /// **'One more simultaneous download'**
+  String get pastilleConcurrentMore;
+
+  /// No description provided for @pastilleReduceEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce effects'**
+  String get pastilleReduceEffects;
+
+  /// No description provided for @pastilleSystemTools.
+  ///
+  /// In en, this message translates to:
+  /// **'System · tools'**
+  String get pastilleSystemTools;
+
+  /// No description provided for @pastilleToolReady.
+  ///
+  /// In en, this message translates to:
+  /// **'ready'**
+  String get pastilleToolReady;
+
+  /// No description provided for @pastilleToolChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'checking…'**
+  String get pastilleToolChecking;
+
+  /// No description provided for @pastilleToolUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'not checked'**
+  String get pastilleToolUnchecked;
+
+  /// No description provided for @pastilleRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Check and repair'**
+  String get pastilleRepair;
+
+  /// No description provided for @pastilleArchiveEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'TikTok archives'**
+  String get pastilleArchiveEyebrow;
+
+  /// No description provided for @pastilleArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your archive, sorted.'**
+  String get pastilleArchiveTitle;
+
+  /// No description provided for @pastilleSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get pastilleSync;
+
+  /// No description provided for @pastilleDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all'**
+  String get pastilleDownloadAll;
+
+  /// No description provided for @pastilleBatchStop.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} · Stop'**
+  String pastilleBatchStop(int done, int total);
+
+  /// No description provided for @pastilleDemoDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode: download simulated.'**
+  String get pastilleDemoDownload;
+
+  /// No description provided for @pastilleArchiveVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get pastilleArchiveVideos;
+
+  /// No description provided for @pastilleArchiveCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get pastilleArchiveCollections;
+
+  /// No description provided for @pastilleArchiveFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get pastilleArchiveFavorites;
+
+  /// No description provided for @pastilleDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pastilleDone;
+
+  /// No description provided for @pastilleMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get pastilleMoreActions;
+
+  /// No description provided for @pastilleDetailedView.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed collections view'**
+  String get pastilleDetailedView;
+
+  /// No description provided for @pastilleInArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'in the archive'**
+  String get pastilleInArchive;
+
+  /// No description provided for @pastilleByTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'sorted by theme'**
+  String get pastilleByTheme;
+
+  /// No description provided for @pastilleKeptOnTikTok.
+  ///
+  /// In en, this message translates to:
+  /// **'saved on TikTok'**
+  String get pastilleKeptOnTikTok;
+
+  /// No description provided for @pastilleVideosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'videos in the archive'**
+  String get pastilleVideosLabel;
+
+  /// No description provided for @pastilleFavoritesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get pastilleFavoritesLabel;
+
+  /// No description provided for @pastilleVideosText.
+  ///
+  /// In en, this message translates to:
+  /// **'Every video of your archive, sorted by collection. Open the Collections tab to choose what to keep on this PC.'**
+  String get pastilleVideosText;
+
+  /// No description provided for @pastilleFavoritesText.
+  ///
+  /// In en, this message translates to:
+  /// **'The videos you saved as favorites on TikTok. “Download all” fetches them with the rest of the archive.'**
+  String get pastilleFavoritesText;
+
+  /// No description provided for @pastilleLocalArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Local archive'**
+  String get pastilleLocalArchive;
+
+  /// No description provided for @pastilleLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} likes'**
+  String pastilleLikes(int count);
+
+  /// No description provided for @pastilleSharedKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos shared with a kept collection stay.'**
+  String get pastilleSharedKept;
+
+  /// No description provided for @pastilleNoCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'No collections found'**
+  String get pastilleNoCollections;
+
+  /// No description provided for @pastilleAllDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'All downloaded'**
+  String get pastilleAllDownloaded;
+
+  /// No description provided for @pastillePercentDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% downloaded'**
+  String pastillePercentDownloaded(int percent);
+
+  /// No description provided for @pastilleToDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'To download'**
+  String get pastilleToDownload;
+
+  /// No description provided for @pastilleVideosWord.
+  ///
+  /// In en, this message translates to:
+  /// **'videos'**
+  String get pastilleVideosWord;
+
+  /// No description provided for @pastilleOneDotTen.
+  ///
+  /// In en, this message translates to:
+  /// **'1 dot = 10 videos'**
+  String get pastilleOneDotTen;
+
+  /// No description provided for @pastilleSeeCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'See collections'**
+  String get pastilleSeeCollections;
+
+  /// No description provided for @pastilleArchiveSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a video or a collection…'**
+  String get pastilleArchiveSearch;
+
+  /// No description provided for @pastilleVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos'**
+  String pastilleVideoCount(int count);
+
+  /// No description provided for @pastilleSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get pastilleSelectAll;
+
+  /// No description provided for @pastilleClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected · Clear'**
+  String pastilleClearSelection(int count);
+
+  /// No description provided for @pastilleBatchProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Running ({done}/{total})'**
+  String pastilleBatchProgress(int done, int total);
+
+  /// No description provided for @pastilleDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get pastilleDownloadSelection;
+
+  /// No description provided for @pastilleQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos added to the download queue.'**
+  String get pastilleQueued;
+
+  /// No description provided for @pastilleNoVideoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No video matches the active filters'**
+  String get pastilleNoVideoMatch;
+
+  /// No description provided for @pastilleResetFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get pastilleResetFilters;
+
+  /// No description provided for @pastilleTransferEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'transfer over local Wi-Fi'**
+  String get pastilleTransferEyebrow;
+
+  /// No description provided for @pastilleTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your phone.'**
+  String get pastilleTransferTitle;
+
+  /// No description provided for @pastilleConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get pastilleConnection;
+
+  /// No description provided for @pastilleQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get pastilleQrCode;
+
+  /// No description provided for @pastillePinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get pastillePinCode;
+
+  /// No description provided for @pastilleScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan.'**
+  String get pastilleScanHint;
+
+  /// No description provided for @pastilleTransferInFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer in progress'**
+  String get pastilleTransferInFlight;
+
+  /// No description provided for @pastilleTo.
+  ///
+  /// In en, this message translates to:
+  /// **'to {name}'**
+  String pastilleTo(String name);
+
+  /// No description provided for @pastilleLocalWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Wi-Fi'**
+  String get pastilleLocalWifi;
+
+  /// No description provided for @pastilleNoTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'No transfer in progress'**
+  String get pastilleNoTransfer;
+
+  /// No description provided for @pastilleConnectedDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected device'**
+  String get pastilleConnectedDevice;
+
+  /// No description provided for @pastilleConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'connected'**
+  String get pastilleConnected;
+
+  /// No description provided for @pastilleNoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'no device chosen'**
+  String get pastilleNoDevice;
+
+  /// No description provided for @pastilleFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get pastilleFilesToSend;
+
+  /// No description provided for @pastilleCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Creator'**
+  String get pastilleCreator;
+
+  /// No description provided for @pastilleFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get pastilleFolder;
+
+  /// No description provided for @pastilleFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get pastilleFile;
+
+  /// No description provided for @pastilleAddFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Add files'**
+  String get pastilleAddFiles;
+
+  /// No description provided for @pastilleAddFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a folder'**
+  String get pastilleAddFolder;
+
+  /// No description provided for @pastilleSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection'**
+  String get pastilleSelection;
+
+  /// No description provided for @pastilleZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress to ZIP'**
+  String get pastilleZip;
+
+  /// No description provided for @pastilleMoreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get pastilleMoreOptions;
 }
 
 class _AppLocalizationsDelegate
