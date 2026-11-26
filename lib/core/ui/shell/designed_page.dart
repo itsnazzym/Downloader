@@ -19,7 +19,7 @@ class DesignedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!PlatformInfo.isDesktop) return fallback;
-    final page = designPageFor(DesignSpec.of(context).id, route);
+    final page = designPageFor(DesignSpec.of(context).id, route, fallback);
     return page ?? fallback;
   }
 }

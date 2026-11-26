@@ -97,33 +97,54 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/settings/output',
-            builder: (context, state) => const OutputSettingsView(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: OutputSettingsView(),
+            ),
           ),
           GoRoute(
             path: '/settings/advanced',
-            builder: (context, state) => const AdvancedSettingsView(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: AdvancedSettingsView(),
+            ),
           ),
           GoRoute(
             path: '/settings/performance',
-            builder: (context, state) => const PerformanceSettingsView(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: PerformanceSettingsView(),
+            ),
           ),
           GoRoute(
             path: '/settings/system',
-            builder: (context, state) => const SystemSettingsView(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: SystemSettingsView(),
+            ),
           ),
           GoRoute(
             path: '/settings/appearance',
-            builder: (context, state) => const AppearanceSettingsView(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: AppearanceSettingsView(),
+            ),
           ),
           GoRoute(
             path: '/settings/plugins',
-            builder: (context, state) => PluginsSettingsView(
-              pluginId: state.uri.queryParameters['plugin'],
+            builder: (context, state) => DesignedPage(
+              route: DesignRoute.settings,
+              fallback: PluginsSettingsView(
+                pluginId: state.uri.queryParameters['plugin'],
+              ),
             ),
           ),
           GoRoute(
             path: '/settings/smart_organizer',
-            builder: (context, state) => const SmartOrganizerSettingsView(),
+            builder: (context, state) => const DesignedPage(
+              route: DesignRoute.settings,
+              fallback: SmartOrganizerSettingsView(),
+            ),
           ),
         ],
       ),

@@ -5,7 +5,7 @@ import 'signal_home.dart';
 
 /// Signal's pages (mockups: Main, Signal-Archives, -Stats, -Transfert,
 /// -Reglages). Null keeps today's view until a page is drawn.
-Widget? signalPage(DesignRoute route) {
+Widget? signalPage(DesignRoute route, Widget current) {
   switch (route) {
     case DesignRoute.home:
       return const SignalHome();
