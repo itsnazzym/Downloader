@@ -576,15 +576,21 @@ class _ActiveCardState extends ConsumerState<_ActiveCard>
   DownloadItem? _done;
   double _doneFrom = 0;
   final _lastProgress = <String, double>{};
-  late final AnimationController _finish =
-      AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 900),
-      )..addStatusListener((s) {
-        if (s == AnimationStatus.completed && mounted) {
-          setState(() => _done = null);
-        }
-      });
+  late final AnimationController _finish;
+
+  @override
+  void initState() {
+    super.initState();
+    _finish =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 900),
+        )..addStatusListener((s) {
+          if (s == AnimationStatus.completed && mounted) {
+            setState(() => _done = null);
+          }
+        });
+  }
 
   @override
   void dispose() {
@@ -1214,10 +1220,13 @@ class _LiveDot extends StatefulWidget {
 
 class _LiveDotState extends State<_LiveDot>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 2),
-  );
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+  }
 
   void _sync() {
     final run = widget.live && !MediaQuery.disableAnimationsOf(context);
@@ -1834,10 +1843,17 @@ class _LibraryGridState extends ConsumerState<_LibraryGrid>
     with SingleTickerProviderStateMixin {
   // The first rows rise in once, when the library first shows.
   static const _staggered = 12;
-  late final AnimationController _entrance = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 480),
-  );
+  late final AnimationController _entrance;
+
+  @override
+  void initState() {
+    super.initState();
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 480),
+    );
+  }
+
   late final List<CurvedAnimation> _rows = [
     for (var i = 0; i < _staggered; i++)
       CurvedAnimation(

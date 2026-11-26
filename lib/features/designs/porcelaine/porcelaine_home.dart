@@ -51,20 +51,11 @@ class _Espace extends ConsumerStatefulWidget {
 
 class _EspaceState extends ConsumerState<_Espace>
     with TickerProviderStateMixin {
-  late final AnimationController _wiggle = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  );
+  late final AnimationController _wiggle;
   // The cards' once-only entrance.
-  late final AnimationController _enter = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 760),
-  );
+  late final AnimationController _enter;
   // The En cours card's « finished » glow.
-  late final AnimationController _finish = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  )..addStatusListener(_onFinishStatus);
+  late final AnimationController _finish;
   bool _entered = false;
   String? _dragId;
   String? _removingId;
@@ -83,6 +74,18 @@ class _EspaceState extends ConsumerState<_Espace>
   @override
   void initState() {
     super.initState();
+    _finish = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..addStatusListener(_onFinishStatus);
+    _enter = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 760),
+    );
+    _wiggle = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
     _notifier = ref.read(porcelaineWorkspaceProvider.notifier);
     _finished = ref.read(porcelaineFinishProvider.notifier);
   }

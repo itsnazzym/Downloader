@@ -102,10 +102,7 @@ class PastilleEmpty extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              PLabel(
-                icon: Icons.inbox_rounded,
-                text: l10n.librarySection,
-              ),
+              PLabel(icon: Icons.inbox_rounded, text: l10n.librarySection),
               const Spacer(),
               Semantics(
                 header: true,
@@ -304,10 +301,16 @@ class PShimmer extends StatefulWidget {
 
 class _PShimmerState extends State<PShimmer>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1500),
-  );
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+  }
 
   @override
   void didChangeDependencies() {

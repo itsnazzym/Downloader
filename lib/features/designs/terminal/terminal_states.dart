@@ -29,10 +29,19 @@ class TTyped extends StatefulWidget {
 }
 
 class _TTypedState extends State<TTyped> with SingleTickerProviderStateMixin {
-  late final AnimationController _ctl = AnimationController(
-    vsync: this,
-    duration: Duration(milliseconds: (widget.text.length * 18).clamp(120, 700)),
-  );
+  late final AnimationController _ctl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl = AnimationController(
+      vsync: this,
+      duration: Duration(
+        milliseconds: (widget.text.length * 18).clamp(120, 700),
+      ),
+    );
+  }
+
   bool _started = false;
 
   @override
@@ -290,10 +299,16 @@ class TSkeletonLines extends StatefulWidget {
 
 class _TSkeletonLinesState extends State<TSkeletonLines>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _ctl = AnimationController(
-    vsync: this,
-    duration: Duration(milliseconds: 140 * widget.lines),
-  );
+  late final AnimationController _ctl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 140 * widget.lines),
+    );
+  }
 
   @override
   void didChangeDependencies() {

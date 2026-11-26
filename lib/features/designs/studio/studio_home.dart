@@ -423,25 +423,25 @@ class _Header extends ConsumerWidget {
             ),
           )
         : Text.rich(
-      TextSpan(
-        style: studioText(c, color: c.textSecondary),
-        children: [
-          TextSpan(text: l10n.studioItems(total)),
-          if (bytes > 0) TextSpan(text: ' · ${localBytes(l10n, bytes)}'),
-          if (active > 0) ...[
-            const TextSpan(text: ' · '),
-            const WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: StudioRecDot(),
-            ),
             TextSpan(
-              text: '  ${l10n.studioLiveCount(active)}',
-              style: studioText(c, size: 12, color: c.textSecondary),
+              style: studioText(c, color: c.textSecondary),
+              children: [
+                TextSpan(text: l10n.studioItems(total)),
+                if (bytes > 0) TextSpan(text: ' · ${localBytes(l10n, bytes)}'),
+                if (active > 0) ...[
+                  const TextSpan(text: ' · '),
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: StudioRecDot(),
+                  ),
+                  TextSpan(
+                    text: '  ${l10n.studioLiveCount(active)}',
+                    style: studioText(c, size: 12, color: c.textSecondary),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ],
-      ),
-    );
+          );
     final title = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -686,11 +686,8 @@ class _SortViewMenu extends ConsumerWidget {
       );
     }
 
-    PopupMenuItem<VoidCallback> caption(String label) => PopupMenuItem(
-      enabled: false,
-      height: 30,
-      child: StudioCap(label),
-    );
+    PopupMenuItem<VoidCallback> caption(String label) =>
+        PopupMenuItem(enabled: false, height: 30, child: StudioCap(label));
 
     return PopupMenuButton<VoidCallback>(
       tooltip: l10n.sortAndView,
@@ -703,9 +700,21 @@ class _SortViewMenu extends ConsumerWidget {
       onSelected: (action) => action(),
       itemBuilder: (context) => [
         caption(l10n.sortBy),
-        sortItem(l10n.sortFieldDate, DownloadSort.dateDesc, DownloadSort.dateAsc),
-        sortItem(l10n.sortFieldName, DownloadSort.nameAsc, DownloadSort.nameDesc),
-        sortItem(l10n.sortFieldSize, DownloadSort.sizeDesc, DownloadSort.sizeAsc),
+        sortItem(
+          l10n.sortFieldDate,
+          DownloadSort.dateDesc,
+          DownloadSort.dateAsc,
+        ),
+        sortItem(
+          l10n.sortFieldName,
+          DownloadSort.nameAsc,
+          DownloadSort.nameDesc,
+        ),
+        sortItem(
+          l10n.sortFieldSize,
+          DownloadSort.sizeDesc,
+          DownloadSort.sizeAsc,
+        ),
         if (mode == DownloadViewMode.folders)
           sortItem(
             l10n.sortVideoCount,
@@ -761,12 +770,19 @@ class _TableState extends ConsumerState<_Table>
     with SingleTickerProviderStateMixin {
   // Played once per opening: rows scrolled in or refiltered later find it
   // finished.
-  late final AnimationController _entrance = AnimationController(
-    vsync: this,
-    duration: const Duration(
-      milliseconds: _entranceStepMs * (_entranceRows - 1) + _entranceRowMs,
-    ),
-  );
+  late final AnimationController _entrance;
+
+  @override
+  void initState() {
+    super.initState();
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(
+        milliseconds: _entranceStepMs * (_entranceRows - 1) + _entranceRowMs,
+      ),
+    );
+  }
+
   bool _started = false;
 
   @override
@@ -794,7 +810,11 @@ class _TableState extends ConsumerState<_Table>
     final start = i * _entranceStepMs / total;
     return _entrance.drive(
       CurveTween(
-        curve: Interval(start, start + _entranceRowMs / total, curve: studioEase),
+        curve: Interval(
+          start,
+          start + _entranceRowMs / total,
+          curve: studioEase,
+        ),
       ),
     );
   }
@@ -1325,9 +1345,7 @@ class _DoneMark extends StatelessWidget {
                           widthFactor: sweep,
                           child: Container(
                             height: 1,
-                            color: c.textPrimary.withValues(
-                              alpha: 1 - settle,
-                            ),
+                            color: c.textPrimary.withValues(alpha: 1 - settle),
                           ),
                         ),
                       ),

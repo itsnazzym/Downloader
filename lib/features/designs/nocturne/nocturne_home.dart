@@ -110,17 +110,11 @@ class _HomeScrollState extends ConsumerState<_HomeScroll>
   final _libraryKey = GlobalKey();
 
   /// One-shot rise of the first rows, played once the library is filled.
-  late final _entrance = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 380),
-  );
+  late final AnimationController _entrance;
   bool _entranceStarted = false;
 
   /// The skeletons' moonlight sweep, running only while loading.
-  late final _shimmer = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1500),
-  );
+  late final AnimationController _shimmer;
 
   @override
   void didChangeDependencies() {
@@ -167,6 +161,14 @@ class _HomeScrollState extends ConsumerState<_HomeScroll>
   @override
   void initState() {
     super.initState();
+    _shimmer = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    );
     // "En cours" clicked from another page: the filter is already set.
     if (ref.read(downloadStatusFilterProvider) == DownloadStatusFilter.active) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -178,7 +180,10 @@ class _HomeScrollState extends ConsumerState<_HomeScroll>
   @override
   Widget build(BuildContext context) {
     // The rail's "En cours" sets the active filter: bring the library in view.
-    ref.listen<DownloadStatusFilter>(downloadStatusFilterProvider, (prev, next) {
+    ref.listen<DownloadStatusFilter>(downloadStatusFilterProvider, (
+      prev,
+      next,
+    ) {
       if (next == DownloadStatusFilter.active) _showLibrary();
     });
     final mode = ref.watch(downloadViewModeProvider);
@@ -359,10 +364,7 @@ class _HeroCardState extends ConsumerState<_HeroCard>
     with SingleTickerProviderStateMixin {
   /// The finish moment: the ring closes to 100 %, a check settles in and a
   /// soft bloom spreads from the ring, under a second.
-  late final _finish = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  );
+  late final AnimationController _finish;
   DownloadItem? _finished;
   double _from = 0;
   String? _shownId;
@@ -371,6 +373,10 @@ class _HeroCardState extends ConsumerState<_HeroCard>
   @override
   void initState() {
     super.initState();
+    _finish = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
     _finish.addStatusListener((s) {
       if (s == AnimationStatus.completed && mounted) {
         setState(() => _finished = null);
@@ -647,11 +653,7 @@ class _FinishRing extends StatelessWidget {
                 ),
                 Transform.scale(
                   scale: check,
-                  child: Icon(
-                    Icons.check_rounded,
-                    size: 40,
-                    color: c.primary,
-                  ),
+                  child: Icon(Icons.check_rounded, size: 40, color: c.primary),
                 ),
               ],
             ),
@@ -785,9 +787,7 @@ class _Next extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            next == null
-                ? l10n.designQueueEmpty
-                : titleOf(next),
+            next == null ? l10n.designQueueEmpty : titleOf(next),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: nocturneText(
@@ -822,14 +822,13 @@ class _Recent extends ConsumerWidget {
     final items =
         ref.watch(downloadListProvider).valueOrNull ?? const <DownloadItem>[];
     // No dates on downloads: the newest finished (or failed) by sort order.
-    final done =
-        [
-          for (final i in items)
-            if (i.status == DownloadStatus.completed ||
-                i.status == DownloadStatus.failed ||
-                i.status == DownloadStatus.canceled)
-              i,
-        ]..sort((a, b) => b.sortOrder.compareTo(a.sortOrder));
+    final done = [
+      for (final i in items)
+        if (i.status == DownloadStatus.completed ||
+            i.status == DownloadStatus.failed ||
+            i.status == DownloadStatus.canceled)
+          i,
+    ]..sort((a, b) => b.sortOrder.compareTo(a.sortOrder));
     final shown = done.take(columns >= 4 ? 4 : columns * 2).toList();
     if (shown.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -848,7 +847,10 @@ class _Recent extends ConsumerWidget {
               runSpacing: 14,
               children: [
                 for (final item in shown)
-                  SizedBox(width: w, child: _RecentCard(item: item)),
+                  SizedBox(
+                    width: w,
+                    child: _RecentCard(item: item),
+                  ),
               ],
             );
           },
@@ -920,11 +922,7 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
                           children: [
                             Text(
                               '${l10n.designFailed} · ',
-                              style: nocturneText(
-                                c,
-                                size: 12,
-                                color: c.error,
-                              ),
+                              style: nocturneText(c, size: 12, color: c.error),
                             ),
                             _Link(
                               label: l10n.retry,
@@ -1001,7 +999,9 @@ class _Toolbar extends ConsumerWidget {
     final counts = ref.watch(downloadLibraryCountsProvider);
     final status = ref.watch(downloadStatusFilterProvider);
     final source = ref.watch(downloadSourceFilterProvider);
-    final adult = ref.watch(settingsProvider.select((s) => s.adultSitesEnabled));
+    final adult = ref.watch(
+      settingsProvider.select((s) => s.adultSitesEnabled),
+    );
     final sources = libraryFilterSources(counts.sourceCounts, adult);
     void setStatus(DownloadStatusFilter s) {
       ref.read(downloadSourceFilterProvider.notifier).state = null;

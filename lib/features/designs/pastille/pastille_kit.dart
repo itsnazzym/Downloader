@@ -148,10 +148,17 @@ class PTile extends StatefulWidget {
 }
 
 class _PTileState extends State<PTile> with SingleTickerProviderStateMixin {
-  late final AnimationController _pop = AnimationController(
-    vsync: this,
-    duration: Duration(milliseconds: widget.delay + 550),
-  );
+  late final AnimationController _pop;
+
+  @override
+  void initState() {
+    super.initState();
+    _pop = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: widget.delay + 550),
+    );
+  }
+
   bool _started = false;
   bool _hover = false;
   bool _down = false;
@@ -601,14 +608,22 @@ class PDots extends StatefulWidget {
 }
 
 class _PDotsState extends State<PDots> with TickerProviderStateMixin {
-  late final AnimationController _cascade = AnimationController(
-    vsync: this,
-    duration: Duration(milliseconds: widget.count * widget.step + 400),
-  );
-  late final AnimationController _blink = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  );
+  late final AnimationController _cascade;
+
+  @override
+  void initState() {
+    super.initState();
+    _blink = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    _cascade = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: widget.count * widget.step + 400),
+    );
+  }
+
+  late final AnimationController _blink;
   bool _started = false;
 
   void _syncBlink() {
@@ -759,14 +774,22 @@ class PLiquid extends StatefulWidget {
 }
 
 class _PLiquidState extends State<PLiquid> with TickerProviderStateMixin {
-  late final AnimationController _wave = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2600),
-  );
-  late final AnimationController _fill = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1200),
-  );
+  late final AnimationController _wave;
+
+  @override
+  void initState() {
+    super.initState();
+    _fill = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _wave = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    );
+  }
+
+  late final AnimationController _fill;
   bool _started = false;
 
   @override

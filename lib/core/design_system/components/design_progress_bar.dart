@@ -154,10 +154,16 @@ class _SheenBar extends StatefulWidget {
 
 class _SheenBarState extends State<_SheenBar>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _sheen = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2000),
-  );
+  late final AnimationController _sheen;
+
+  @override
+  void initState() {
+    super.initState();
+    _sheen = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+  }
 
   @override
   void didChangeDependencies() {

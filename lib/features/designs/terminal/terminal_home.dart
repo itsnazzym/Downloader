@@ -423,10 +423,17 @@ class _FillingSeg extends StatefulWidget {
 
 class _FillingSegState extends State<_FillingSeg>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _ctl = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 320),
-  );
+  late final AnimationController _ctl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+  }
+
   bool _started = false;
 
   @override
@@ -493,9 +500,7 @@ class _LiveLine extends StatelessWidget {
                       text: paused ? '‖ ' : '▶ ',
                       style: tm(paused ? colors.warning : colors.primary),
                     ),
-                    TextSpan(
-                      text: titleOf(item),
-                    ),
+                    TextSpan(text: titleOf(item)),
                   ],
                 ),
                 maxLines: 1,
@@ -794,10 +799,17 @@ class _Table extends ConsumerStatefulWidget {
 
 class _TableState extends ConsumerState<_Table>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _entrance = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 34 * (TEntrance.lines + 1)),
-  );
+  late final AnimationController _entrance;
+
+  @override
+  void initState() {
+    super.initState();
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 34 * (TEntrance.lines + 1)),
+    );
+  }
+
   bool _printed = false;
 
   @override

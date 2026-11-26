@@ -271,10 +271,16 @@ class SignalShimmer extends StatefulWidget {
 
 class _SignalShimmerState extends State<SignalShimmer>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1600),
-  );
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
+  }
 
   @override
   void didChangeDependencies() {

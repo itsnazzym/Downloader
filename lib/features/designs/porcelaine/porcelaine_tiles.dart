@@ -92,8 +92,7 @@ Widget? _gate(WidgetRef ref, Widget head, PWidgetType type, PWidgetSize size) {
   );
 }
 
-String _title(AppLocalizations l10n, DownloadItem item) =>
-    titleOf(item);
+String _title(AppLocalizations l10n, DownloadItem item) => titleOf(item);
 
 /// yt-dlp sizes ("54.1MiB") in the app's units; empty when unknown.
 String _size(AppLocalizations l10n, String raw) {
@@ -674,10 +673,13 @@ class PLiveDot extends StatefulWidget {
 
 class _PLiveDotState extends State<PLiveDot>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 2),
-  );
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+  }
 
   void _sync() {
     final run = widget.live && !MediaQuery.disableAnimationsOf(context);

@@ -349,10 +349,16 @@ class _TargetTile extends ConsumerStatefulWidget {
 
 class _TargetTileState extends ConsumerState<_TargetTile>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _blink = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1600),
-  );
+  late final AnimationController _blink;
+
+  @override
+  void initState() {
+    super.initState();
+    _blink = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
+  }
 
   @override
   void didChangeDependencies() {

@@ -125,10 +125,17 @@ class StudioRecDot extends StatefulWidget {
 
 class _StudioRecDotState extends State<StudioRecDot>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 800),
-  );
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+  }
+
   late final Animation<double> _opacity = Tween<double>(
     begin: 1,
     end: 0.25,
@@ -223,12 +230,7 @@ class StudioUnderline extends StatelessWidget {
     final c = AppColors.of(context);
     return Stack(
       children: [
-        Text(
-          text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: style,
-        ),
+        Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
         PositionedDirectional(
           start: 0,
           end: 0,
@@ -352,14 +354,14 @@ class _StudioButtonState extends State<StudioButton> {
                   ],
                   Flexible(
                     child: Text(
-                    widget.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: fg,
-                      fontWeight: light ? FontWeight.w500 : FontWeight.w600,
+                      widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: fg,
+                        fontWeight: light ? FontWeight.w500 : FontWeight.w600,
+                      ),
                     ),
-                  ),
                   ),
                 ],
               ),
@@ -455,14 +457,17 @@ class _StudioTabButtonState extends State<_StudioTabButton> {
             children: [
               Text(
                 tab.label,
-                style: studioText(
-                  c,
-                  color: tab.selected || _hover
-                      ? c.textPrimary
-                      : c.textSecondary,
-                ).copyWith(
-                  fontWeight: tab.selected ? FontWeight.w500 : FontWeight.w400,
-                ),
+                style:
+                    studioText(
+                      c,
+                      color: tab.selected || _hover
+                          ? c.textPrimary
+                          : c.textSecondary,
+                    ).copyWith(
+                      fontWeight: tab.selected
+                          ? FontWeight.w500
+                          : FontWeight.w400,
+                    ),
               ),
               if (tab.count != null) ...[
                 const SizedBox(width: 8),

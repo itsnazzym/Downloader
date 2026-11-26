@@ -54,8 +54,7 @@ void _play(WidgetRef ref, DownloadItem item) {
   }
 }
 
-String _title(AppLocalizations l10n, DownloadItem item) =>
-    titleOf(item);
+String _title(AppLocalizations l10n, DownloadItem item) => titleOf(item);
 
 /// "54,1 Mo" from yt-dlp's "54.1MiB"; empty if none.
 String _size(AppLocalizations l10n, String raw) {
@@ -216,10 +215,7 @@ class _ActiveTile extends ConsumerStatefulWidget {
 class _ActiveTileState extends ConsumerState<_ActiveTile>
     with SingleTickerProviderStateMixin {
   /// The moment runs in its first ~800 ms, then holds « Terminé » a beat.
-  late final AnimationController _finish = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1400),
-  );
+  late final AnimationController _finish;
 
   /// The download that just finished, shown at 100 % during the moment.
   DownloadItem? _finished;
@@ -227,6 +223,10 @@ class _ActiveTileState extends ConsumerState<_ActiveTile>
   @override
   void initState() {
     super.initState();
+    _finish = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
     ref.listenManual(downloadListProvider, _onList);
   }
 
@@ -1280,14 +1280,16 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
                                     borderRadius: BorderRadius.circular(6),
                                     child: Text(
                                       l10n.retry,
-                                      style: pBody(
-                                        size: 12,
-                                        weight: FontWeight.w700,
-                                        color: tones.rose,
-                                      ).copyWith(
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: tones.rose,
-                                      ),
+                                      style:
+                                          pBody(
+                                            size: 12,
+                                            weight: FontWeight.w700,
+                                            color: tones.rose,
+                                          ).copyWith(
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor: tones.rose,
+                                          ),
                                     ),
                                   ),
                                 ],

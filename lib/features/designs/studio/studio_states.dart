@@ -152,7 +152,10 @@ class StudioSituation extends StatelessWidget {
               const SizedBox(height: 28),
               Text(title, style: studioTitle(c, 24)),
               const SizedBox(height: 8),
-              Text(body, style: studioText(c, size: 14, color: c.textSecondary)),
+              Text(
+                body,
+                style: studioText(c, size: 14, color: c.textSecondary),
+              ),
               if (detail != null && detail!.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Text(
@@ -185,10 +188,16 @@ class StudioShimmer extends StatefulWidget {
 
 class _StudioShimmerState extends State<StudioShimmer>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1400),
-  );
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+  }
 
   @override
   void didChangeDependencies() {
