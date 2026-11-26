@@ -86,11 +86,20 @@ class StudioHome extends ConsumerWidget {
 
 // ── Page ────────────────────────────────────────────────────────────────────
 
-class _Library extends ConsumerWidget {
+class _Library extends ConsumerStatefulWidget {
   const _Library();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Library> createState() => _LibraryState();
+}
+
+class _LibraryState extends ConsumerState<_Library> {
+  // The table's rows rise in once per page opening, not each time a filter
+  // or a view switch brings the table back.
+  bool _entrancePlayed = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final listMode =
         ref.watch(downloadViewModeProvider) == DownloadViewMode.list;
@@ -111,7 +120,13 @@ class _Library extends ConsumerWidget {
     final (String kind, Widget body) = switch (phase) {
       AsyncValue(hasValue: true, :final value) when value! > 0 =>
         listMode
-            ? ('table', const _Table())
+            ? (
+                'table',
+                _Table(
+                  animate: !_entrancePlayed,
+                  onPlayed: () => _entrancePlayed = true,
+                ),
+              )
             : ('list', const DownloadList()),
       AsyncValue(hasValue: true) when filtered => (
         'noresults',
@@ -396,7 +411,9 @@ class _Header extends ConsumerWidget {
         return sum;
       }),
     );
-    final loaded = ref.watch(downloadListProvider.select((v) => v.hasValue));
+    final loaded = ref.watch(
+      downloadListProvider.select((v) => v.hasValue || v.hasError),
+    );
     // While the library loads, a bar instead of a false « 0 élément ».
     final summary = !loaded
         ? const SizedBox(
@@ -727,7 +744,10 @@ bool _hasLine(DownloadItem item) =>
     isActiveDownload(item) || item.status == DownloadStatus.paused;
 
 class _Table extends ConsumerStatefulWidget {
-  const _Table();
+  const _Table({required this.animate, required this.onPlayed});
+
+  final bool animate;
+  final VoidCallback onPlayed;
 
   @override
   ConsumerState<_Table> createState() => _TableState();
@@ -755,10 +775,11 @@ class _TableState extends ConsumerState<_Table>
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (!widget.animate || MediaQuery.disableAnimationsOf(context)) {
       _entrance.value = 1;
     } else {
       _entrance.forward();
+      widget.onPlayed();
     }
   }
 
