@@ -546,3 +546,90 @@ class StudioNote extends StatelessWidget {
     );
   }
 }
+
+/// `.sw`: 34×20, ink when on with a white knob, a ringed grey track when off.
+class StudioSwitch extends StatelessWidget {
+  const StudioSwitch({
+    super.key,
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final String label;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final motion = studioMotion(context, 200);
+    return Semantics(
+      toggled: value,
+      label: label,
+      child: InkWell(
+        onTap: () => onChanged(!value),
+        borderRadius: BorderRadius.circular(10),
+        // A 36px target around the 20px track.
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 1),
+          child: AnimatedContainer(
+            duration: motion,
+            width: 34,
+            height: 20,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: value ? c.primary : c.borderSubtle,
+              borderRadius: BorderRadius.circular(10),
+              border: value
+                  ? null
+                  : Border.all(color: const Color(0xFF8F8C86), width: 1.5),
+            ),
+            child: AnimatedAlign(
+              duration: motion,
+              curve: studioEase,
+              alignment: value
+                  ? AlignmentDirectional.centerEnd
+                  : AlignmentDirectional.centerStart,
+              child: Container(
+                width: value ? 14 : 11,
+                height: value ? 14 : 11,
+                decoration: BoxDecoration(
+                  color: value ? c.surface : c.textDisabled,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// `.cb`: a 16px box, ink with a white tick when checked, ringed when not.
+class StudioCheckbox extends StatelessWidget {
+  const StudioCheckbox({super.key, required this.value});
+
+  final bool value;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return AnimatedContainer(
+      duration: studioMotion(context, 160),
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: value ? c.primary : c.surface,
+        borderRadius: BorderRadius.circular(4),
+        border: value
+            ? null
+            : Border.all(color: const Color(0xFF8F8C86), width: 1.5),
+      ),
+      child: value
+          ? Icon(Icons.check_rounded, size: 12, color: c.surface)
+          : null,
+    );
+  }
+}

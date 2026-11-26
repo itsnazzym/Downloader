@@ -3180,4 +3180,44 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get studioPeriod => 'الفترة';
+
+  @override
+  String get studioTransferSubtitle =>
+      'أرسل ملفاتك إلى هاتفك عبر شبكة Wi-Fi المحلية، بلا كابل ولا سحابة.';
+
+  @override
+  String get studioScanTitle => 'افتح TapLoad على هاتفك وامسح الرمز.';
+
+  @override
+  String get studioQrCode => 'رمز QR';
+
+  @override
+  String get studioPin => 'رمز PIN';
+
+  @override
+  String get studioAddress => 'العنوان';
+
+  @override
+  String get studioFilesToSend => 'ملفات للإرسال';
+
+  @override
+  String get studioSelection => 'التحديد';
+
+  @override
+  String get studioZip => 'ضغط بصيغة ZIP';
+
+  @override
+  String get studioTarget => 'المستلم';
+
+  @override
+  String get studioChoose => 'اختيار';
+
+  @override
+  String get studioAllOptions => 'كل الخيارات';
+
+  @override
+  String get studioSimpleView => 'العرض البسيط';
+
+  @override
+  String get studioTransferIssue => 'واجه النقل مشكلة.';
 }

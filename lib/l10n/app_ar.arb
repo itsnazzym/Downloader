@@ -1213,5 +1213,18 @@
   "studioBySource": "حسب المصدر",
   "studioByFormat": "حسب الصيغة",
   "studioTopCreators": "أبرز صنّاع المحتوى",
-  "studioPeriod": "الفترة"
+  "studioPeriod": "الفترة",
+  "studioTransferSubtitle": "أرسل ملفاتك إلى هاتفك عبر شبكة Wi-Fi المحلية، بلا كابل ولا سحابة.",
+  "studioScanTitle": "افتح TapLoad على هاتفك وامسح الرمز.",
+  "studioQrCode": "رمز QR",
+  "studioPin": "رمز PIN",
+  "studioAddress": "العنوان",
+  "studioFilesToSend": "ملفات للإرسال",
+  "studioSelection": "التحديد",
+  "studioZip": "ضغط بصيغة ZIP",
+  "studioTarget": "المستلم",
+  "studioChoose": "اختيار",
+  "studioAllOptions": "كل الخيارات",
+  "studioSimpleView": "العرض البسيط",
+  "studioTransferIssue": "واجه النقل مشكلة."
 }

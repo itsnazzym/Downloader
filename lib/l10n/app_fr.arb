@@ -1213,5 +1213,18 @@
   "studioBySource": "Par source",
   "studioByFormat": "Par format",
   "studioTopCreators": "Top créateurs",
-  "studioPeriod": "Période"
+  "studioPeriod": "Période",
+  "studioTransferSubtitle": "Envoie tes fichiers vers ton téléphone, sur le Wi-Fi local, sans câble ni cloud.",
+  "studioScanTitle": "Ouvre TapLoad sur ton téléphone et scanne.",
+  "studioQrCode": "QR code",
+  "studioPin": "Code PIN",
+  "studioAddress": "Adresse",
+  "studioFilesToSend": "Fichiers à envoyer",
+  "studioSelection": "Sélection",
+  "studioZip": "Compresser en ZIP",
+  "studioTarget": "Destinataire",
+  "studioChoose": "Choisir",
+  "studioAllOptions": "Toutes les options",
+  "studioSimpleView": "Vue simple",
+  "studioTransferIssue": "Le transfert a rencontré un problème."
 }

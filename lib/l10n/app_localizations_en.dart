@@ -3170,4 +3170,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studioPeriod => 'Period';
+
+  @override
+  String get studioTransferSubtitle =>
+      'Send your files to your phone over local Wi-Fi, no cable, no cloud.';
+
+  @override
+  String get studioScanTitle => 'Open TapLoad on your phone and scan.';
+
+  @override
+  String get studioQrCode => 'QR code';
+
+  @override
+  String get studioPin => 'PIN code';
+
+  @override
+  String get studioAddress => 'Address';
+
+  @override
+  String get studioFilesToSend => 'Files to send';
+
+  @override
+  String get studioSelection => 'Selection';
+
+  @override
+  String get studioZip => 'Compress to ZIP';
+
+  @override
+  String get studioTarget => 'Recipient';
+
+  @override
+  String get studioChoose => 'Choose';
+
+  @override
+  String get studioAllOptions => 'All options';
+
+  @override
+  String get studioSimpleView => 'Simple view';
+
+  @override
+  String get studioTransferIssue => 'The transfer ran into a problem.';
 }

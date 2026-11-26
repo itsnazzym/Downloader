@@ -5493,6 +5493,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Period'**
   String get studioPeriod;
+
+  /// No description provided for @studioTransferSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your files to your phone over local Wi-Fi, no cable, no cloud.'**
+  String get studioTransferSubtitle;
+
+  /// No description provided for @studioScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open TapLoad on your phone and scan.'**
+  String get studioScanTitle;
+
+  /// No description provided for @studioQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get studioQrCode;
+
+  /// No description provided for @studioPin.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get studioPin;
+
+  /// No description provided for @studioAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get studioAddress;
+
+  /// No description provided for @studioFilesToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Files to send'**
+  String get studioFilesToSend;
+
+  /// No description provided for @studioSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection'**
+  String get studioSelection;
+
+  /// No description provided for @studioZip.
+  ///
+  /// In en, this message translates to:
+  /// **'Compress to ZIP'**
+  String get studioZip;
+
+  /// No description provided for @studioTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get studioTarget;
+
+  /// No description provided for @studioChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get studioChoose;
+
+  /// No description provided for @studioAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get studioAllOptions;
+
+  /// No description provided for @studioSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get studioSimpleView;
+
+  /// No description provided for @studioTransferIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'The transfer ran into a problem.'**
+  String get studioTransferIssue;
 }
 
 class _AppLocalizationsDelegate

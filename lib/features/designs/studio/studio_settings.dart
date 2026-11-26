@@ -133,7 +133,7 @@ class _GeneralPanel extends ConsumerWidget {
           block(l10n.settingsGeneral, active: true, [
             _Item(
               label: l10n.addSheetModeAudioOnly,
-              trailing: _Switch(
+              trailing: StudioSwitch(
                 value: s.audioOnly,
                 label: l10n.addSheetModeAudioOnly,
                 onChanged: set.setAudioOnly,
@@ -141,7 +141,7 @@ class _GeneralPanel extends ConsumerWidget {
             ),
             _Item(
               label: l10n.studioAutoStart,
-              trailing: _Switch(
+              trailing: StudioSwitch(
                 value: s.autoStart,
                 label: l10n.studioAutoStart,
                 onChanged: set.setAutoStart,
@@ -203,7 +203,7 @@ class _GeneralPanel extends ConsumerWidget {
             ),
             _Item(
               label: l10n.reduceEffects,
-              trailing: _Switch(
+              trailing: StudioSwitch(
                 value: s.reduceEffects,
                 label: l10n.reduceEffects,
                 onChanged: set.setReduceEffects,
@@ -385,65 +385,6 @@ class _Item extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// `.sw`: 34×20, ink when on with a white knob, a ringed grey track when off.
-class _Switch extends StatelessWidget {
-  const _Switch({
-    required this.value,
-    required this.label,
-    required this.onChanged,
-  });
-
-  final bool value;
-  final String label;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    final motion = studioMotion(context, 200);
-    return Semantics(
-      toggled: value,
-      label: label,
-      child: InkWell(
-        onTap: () => onChanged(!value),
-        borderRadius: BorderRadius.circular(10),
-        // A 36px target around the 20px track.
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 1),
-          child: AnimatedContainer(
-            duration: motion,
-            width: 34,
-            height: 20,
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: value ? c.primary : c.borderSubtle,
-              borderRadius: BorderRadius.circular(10),
-              border: value
-                  ? null
-                  : Border.all(color: const Color(0xFF8F8C86), width: 1.5),
-            ),
-            child: AnimatedAlign(
-              duration: motion,
-              curve: studioEase,
-              alignment: value
-                  ? AlignmentDirectional.centerEnd
-                  : AlignmentDirectional.centerStart,
-              child: Container(
-                width: value ? 14 : 11,
-                height: value ? 14 : 11,
-                decoration: BoxDecoration(
-                  color: value ? c.surface : c.textDisabled,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );
