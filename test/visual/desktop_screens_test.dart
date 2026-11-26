@@ -318,6 +318,33 @@ void main() {
     expect(tester.getSize(title).height, lessThan(60));
   });
 
+  // Seen in the real app: "Smart org / anization" in the narrow System tile.
+  testWidgets('pastille system tile keeps its labels whole at 1000 px', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final router = container.read(routerProvider);
+    final key = await pump(
+      tester,
+      () => const SizedBox(),
+      router: router,
+      locale: 'en',
+      preset: ThemePresets.pastille,
+      size: const Size(984, 680),
+    );
+    router.go('/settings/general');
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+    final en = lookupAppLocalizations(const Locale('en'));
+    // One line of 12.5 px text, not a word broken over two.
+    expect(
+      tester.getSize(find.text(en.smartOrganization).first).height,
+      lessThan(20),
+    );
+    await shot(tester, key, 'pastille_settings_984');
+  });
+
   // A design's settings page shows the section title once: the shared view
   // drops its own app bar inside the design's frame.
   for (final id in ['signal', 'porcelaine', 'nocturne']) {

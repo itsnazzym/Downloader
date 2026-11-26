@@ -426,7 +426,9 @@ class _AppearanceTile extends ConsumerWidget {
             const Spacer(),
             LayoutBuilder(
               builder: (context, c) {
-                final cols = c.maxWidth < 420 ? 2 : 3;
+                // Two rows of three fit the tile; three rows of two overflowed
+                // it in a 1000 px window.
+                final cols = c.maxWidth < 300 ? 2 : 3;
                 final w = (c.maxWidth - 10 * (cols - 1)) / cols;
                 return Wrap(
                   spacing: 10,
@@ -707,95 +709,110 @@ class _SystemTile extends ConsumerWidget {
       color: pInkDeep,
       delay: 240,
       semanticLabel: l10n.settingsSystem,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          PLabel(
-            icon: Icons.build_outlined,
-            iconColor: tones.butter,
-            text: l10n.pastilleSystemTools,
-          ),
-          const SizedBox(height: 14),
-          Text(
-            l10n.previewSetup,
-            style: pBody(
-              size: 15,
-              weight: FontWeight.w700,
-              color: pCream,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 14),
-          for (final tool in const ['yt-dlp', 'ffmpeg', 'aria2c']) ...[
-            if (tool != 'yt-dlp') const SizedBox(height: 8),
-            SizedBox(
-              height: 24,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(tool, style: pMono(size: 13, color: pCream)),
-                  ),
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: state(tool) == l10n.pastilleToolReady
-                          ? tones.sage
-                          : pFaint,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    state(tool),
-                    style: pBody(
-                      size: 12.5,
-                      color: state(tool) == l10n.pastilleToolReady
-                          ? pCream
-                          : pMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const Spacer(),
-          // Today's « Outils » actions of the General page.
-          Row(
+      // A narrow tile (1000 px window) drops the heading, which the button
+      // repeats, to stack its links instead of cutting their words.
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final narrow = c.maxWidth < 240;
+          final replay = link(Icons.replay_rounded, l10n.onboardingReplay, () {
+            context.go('/');
+            ref.read(onboardingControllerProvider.notifier).replay();
+          });
+          final organize = link(
+            Icons.auto_awesome_motion_rounded,
+            l10n.smartOrganization,
+            () => context.push('/settings/smart_organizer'),
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: link(Icons.replay_rounded, l10n.onboardingReplay, () {
-                  context.go('/');
-                  ref.read(onboardingControllerProvider.notifier).replay();
-                }),
+              PLabel(
+                icon: Icons.build_outlined,
+                iconColor: tones.butter,
+                text: l10n.pastilleSystemTools,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: link(
-                  Icons.auto_awesome_motion_rounded,
-                  l10n.smartOrganization,
-                  () => context.push('/settings/smart_organizer'),
+              const SizedBox(height: 14),
+              if (!narrow) ...[
+                Text(
+                  l10n.previewSetup,
+                  style: pBody(
+                    size: 15,
+                    weight: FontWeight.w700,
+                    color: pCream,
+                    height: 1.3,
+                  ),
                 ),
+                const SizedBox(height: 14),
+              ],
+              for (final tool in const ['yt-dlp', 'ffmpeg', 'aria2c']) ...[
+                if (tool != 'yt-dlp') const SizedBox(height: 8),
+                SizedBox(
+                  height: 24,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          tool,
+                          style: pMono(size: 13, color: pCream),
+                        ),
+                      ),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: state(tool) == l10n.pastilleToolReady
+                              ? tones.sage
+                              : pFaint,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        state(tool),
+                        style: pBody(
+                          size: 12.5,
+                          color: state(tool) == l10n.pastilleToolReady
+                              ? pCream
+                              : pMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const Spacer(),
+              // Today's « Outils » actions of the General page.
+              if (narrow) ...[
+                replay,
+                organize,
+              ] else
+                Row(
+                  children: [
+                    Expanded(child: replay),
+                    const SizedBox(width: 8),
+                    Expanded(child: organize),
+                  ],
+                ),
+              const SizedBox(height: 8),
+              PButton(
+                label: boot.isBusy
+                    ? l10n.pastilleToolChecking
+                    : l10n.pastilleRepair,
+                icon: Icons.sync_rounded,
+                iconSize: 15,
+                kind: PButtonKind.butter,
+                height: 44,
+                padH: narrow ? 12 : 18,
+                expand: true,
+                onTap: boot.isBusy
+                    ? null
+                    : () => ref
+                          .read(dependencyBootstrapProvider.notifier)
+                          .ensureReady(),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          PButton(
-            label: boot.isBusy
-                ? l10n.pastilleToolChecking
-                : l10n.pastilleRepair,
-            icon: Icons.sync_rounded,
-            iconSize: 15,
-            kind: PButtonKind.butter,
-            height: 44,
-            expand: true,
-            onTap: boot.isBusy
-                ? null
-                : () => ref
-                      .read(dependencyBootstrapProvider.notifier)
-                      .ensureReady(),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
