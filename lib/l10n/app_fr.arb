@@ -1701,5 +1701,18 @@
   "terminalStatsEmptyBody": "Les chiffres apparaissent après ton premier téléchargement terminé.",
   "terminalNoPeers": "aucun appareil trouvé sur ce réseau",
   "terminalArchiveEmpty": "aucune archive importée",
-  "terminalArchiveEmptyBody": "Importe l’export de données TikTok pour parcourir tes favoris, tes likes et tes collections."
+  "terminalArchiveEmptyBody": "Importe l’export de données TikTok pour parcourir tes favoris, tes likes et tes collections.",
+  "pastilleEmptyTitle": "Rien ici, pour l’instant.",
+  "pastilleEmptyBody": "Colle un lien YouTube, TikTok, Instagram ou X : chaque téléchargement viendra remplir cette grille, pastille par pastille.",
+  "pastilleNoResultsTitle": "Aucun résultat pour « {query} »",
+  "pastilleNoResultsFilters": "Aucun téléchargement ne correspond à ces filtres",
+  "pastilleNoResultsBody": "Vérifie l’orthographe ou élargis les filtres.",
+  "pastilleLoadErrorTitle": "La bibliothèque n’a pas pu se charger.",
+  "pastilleLoadErrorBody": "Tes fichiers sont toujours sur le disque. Réessaie dans un instant.",
+  "pastilleRetryFailed": "Relancer les échecs ({count})",
+  "pastilleLoading": "Chargement de la bibliothèque…",
+  "pastilleFinished": "Terminé",
+  "pastilleFailedIdle": "{count, plural, one{Un téléchargement a échoué} other{{count} téléchargements ont échoué}}",
+  "pastilleStatsEmptyTitle": "Pas encore de pastilles.",
+  "pastilleStatsEmptyBody": "Chaque téléchargement terminé ajoute une barre ici, jour après jour."
 }

@@ -28,6 +28,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../shared/design_data.dart';
 import '../signal/signal_home.dart' show designFreeSpaceProvider;
 import 'pastille_kit.dart';
+import 'pastille_states.dart';
 
 /// Pastille's `/` route: the bento home (mockup Pastille.dc.html), or the
 /// whole library at `/?view=library` (the dock's Bibliothèque stop and
@@ -63,6 +64,14 @@ String _size(AppLocalizations l10n, String raw) {
   return bytes > 0 ? localBytes(l10n, bytes) : '';
 }
 
+enum _Phase { loading, error, empty, ready }
+
+/// A refresh keeps the last list on screen; only a first load or a load
+/// that never produced a list shows the skeleton or the error.
+_Phase _phaseOf(AsyncValue<List<DownloadItem>> v) => v.hasValue
+    ? (v.requireValue.isEmpty ? _Phase.empty : _Phase.ready)
+    : (v.hasError ? _Phase.error : _Phase.loading);
+
 class _Home extends ConsumerWidget {
   const _Home();
 
@@ -74,6 +83,13 @@ class _Home extends ConsumerWidget {
         (v) => v.valueOrNull?.any(isActiveDownload) ?? false,
       ),
     );
+    final phase = ref.watch(downloadListProvider.select(_phaseOf));
+    final noMatch =
+        phase == _Phase.ready &&
+        pFiltered(ref) &&
+        ref.watch(
+          filteredDownloadListPhaseProvider.select((v) => v.valueOrNull == 0),
+        );
     final now = DateTime.now();
     final locale = Localizations.localeOf(context).toString();
     final greeting = now.hour >= 5 && now.hour < 18
@@ -103,6 +119,7 @@ class _Home extends ConsumerWidget {
                   ? l10n.pastilleHomeBusy(greeting)
                   : l10n.pastilleHomeIdle(greeting),
               actions: [
+                if (pFailedCount(ref) > 1) const PRetryFailedButton(),
                 KeyedSubtree(
                   key: OnboardingTargets.newDownload,
                   child: PButton(
@@ -118,18 +135,49 @@ class _Home extends ConsumerWidget {
                 ),
               ],
             ),
-            const PGrid(
-              cells: [
-                PCell(_ActiveTile(), w: 2, h: 2),
-                PCell(_QuickLinkTile(), w: 2),
-                PCell(_SpeedTile()),
-                PCell(_StorageTile()),
-                PCell(_ActivityTile(), w: 2),
-                PCell(_QueueTile()),
-                PCell(_LastTile()),
-              ],
+            if (noMatch) const PastilleNoResults(),
+            AnimatedSwitcher(
+              duration: pMotion(context, 250),
+              child: switch (phase) {
+                _Phase.loading => const PastilleHomeSkeleton(
+                  key: ValueKey(_Phase.loading),
+                ),
+                _Phase.error => const SizedBox(
+                  key: ValueKey(_Phase.error),
+                  height: 360,
+                  child: PastilleLoadError(),
+                ),
+                _Phase.empty || _Phase.ready => Column(
+                  key: const ValueKey(_Phase.ready),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PGrid(
+                      cells: [
+                        phase == _Phase.empty
+                            ? PCell(
+                                PastilleEmpty(
+                                  onNew: () => openNewDownload(context),
+                                ),
+                                w: 2,
+                                h: 2,
+                              )
+                            : const PCell(_ActiveTile(), w: 2, h: 2),
+                        const PCell(_QuickLinkTile(), w: 2),
+                        const PCell(_SpeedTile()),
+                        const PCell(_StorageTile()),
+                        const PCell(_ActivityTile(), w: 2),
+                        const PCell(_QueueTile()),
+                        const PCell(_LastTile()),
+                      ],
+                    ),
+                    if (phase == _Phase.ready) ...[
+                      const SizedBox(height: 26),
+                      const _Recents(),
+                    ],
+                  ],
+                ),
+              },
             ),
-            const _Recents(),
           ],
         ),
       ),
@@ -139,11 +187,82 @@ class _Home extends ConsumerWidget {
 
 // ── In progress ─────────────────────────────────────────────────────────────
 
-class _ActiveTile extends ConsumerWidget {
+/// The finish moment's squish: squash down, spring up, settle (0 = rest).
+final _squish = TweenSequence<double>([
+  TweenSequenceItem(
+    tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeOut)),
+    weight: 14,
+  ),
+  TweenSequenceItem(
+    tween: Tween(
+      begin: 1.0,
+      end: -0.7,
+    ).chain(CurveTween(curve: Curves.easeInOut)),
+    weight: 18,
+  ),
+  TweenSequenceItem(
+    tween: Tween(begin: -0.7, end: 0.0).chain(CurveTween(curve: pEase)),
+    weight: 26,
+  ),
+  TweenSequenceItem(tween: ConstantTween(0.0), weight: 42),
+]);
+
+class _ActiveTile extends ConsumerStatefulWidget {
   const _ActiveTile();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ActiveTile> createState() => _ActiveTileState();
+}
+
+class _ActiveTileState extends ConsumerState<_ActiveTile>
+    with SingleTickerProviderStateMixin {
+  /// The moment runs in its first ~800 ms, then holds « Terminé » a beat.
+  late final AnimationController _finish = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  );
+
+  /// The download that just finished, shown at 100 % during the moment.
+  DownloadItem? _finished;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual(downloadListProvider, _onList);
+  }
+
+  void _onList(
+    AsyncValue<List<DownloadItem>>? previous,
+    AsyncValue<List<DownloadItem>> next,
+  ) {
+    final before = previous?.valueOrNull;
+    final after = next.valueOrNull;
+    if (before == null || after == null || !mounted) return;
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    final wasActive = {
+      for (final i in before)
+        if (isActiveDownload(i)) i.id,
+    };
+    for (final i in after) {
+      if (i.status != DownloadStatus.completed || !wasActive.contains(i.id)) {
+        continue;
+      }
+      setState(() => _finished = i);
+      _finish.forward(from: 0).whenComplete(() {
+        if (mounted) setState(() => _finished = null);
+      });
+      return;
+    }
+  }
+
+  @override
+  void dispose() {
+    _finish.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final tones = PTones.of(context);
     final items =
@@ -157,10 +276,24 @@ class _ActiveTile extends ConsumerWidget {
       for (final i in items)
         if (i.status == DownloadStatus.paused) i,
     ];
-    final item = all.isEmpty ? null : all.first;
-    final percent = item == null
-        ? 0
-        : (item.progress * 100).clamp(0, 100).floor();
+    final finished = _finished;
+    final item = finished ?? (all.isEmpty ? null : all.first);
+    final failedItems = [
+      for (final i in items)
+        if (i.status == DownloadStatus.failed) i,
+    ];
+    if (failedItems.length > 1) {
+      // Newest failure first (the progress ticks rebuild this: no full sort).
+      final newest = failedItems.reduce(
+        (a, b) => b.sortOrder > a.sortOrder ? b : a,
+      );
+      failedItems
+        ..remove(newest)
+        ..insert(0, newest);
+    }
+    final percent = finished != null
+        ? 100
+        : (item == null ? 0 : (item.progress * 100).clamp(0, 100).floor());
     final running = item != null && isActiveDownload(item);
     final speed = item == null ? null : parseSpeed(item.speed);
     final phase = item == null ? null : livePhase(item, speed);
@@ -168,7 +301,7 @@ class _ActiveTile extends ConsumerWidget {
     final done = item == null ? '' : _size(l10n, item.downloadedSize);
     final total = item == null ? '' : _size(l10n, item.totalSize);
     final notifier = ref.read(downloadListProvider.notifier);
-    return PTile(
+    final tile = PTile(
       color: tones.lav,
       semanticLabel: l10n.designInProgress,
       child: Builder(
@@ -232,6 +365,16 @@ class _ActiveTile extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                             style: pSub(context),
                           ),
+                        if (item == null && failedItems.isNotEmpty)
+                          Text(
+                            [
+                              l10n.pastilleFailedIdle(failedItems.length),
+                              pFailReason(failedItems.first.error),
+                            ].where((s) => s.isNotEmpty).join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: pSub(context),
+                          ),
                       ],
                     ),
                   ),
@@ -240,11 +383,14 @@ class _ActiveTile extends ConsumerWidget {
             ),
             const Spacer(),
             PDots(
+              // A new key replays the cascade: the matrix fills at the finish.
+              key: ValueKey(finished?.id),
               count: 100,
               maxWidth: 560,
               columns: 25,
               on: percent,
-              live: item != null,
+              step: finished == null ? 12 : 4,
+              live: item != null && finished == null,
               paused: !running,
               semanticLabel: '$percent %',
             ),
@@ -253,7 +399,19 @@ class _ActiveTile extends ConsumerWidget {
               height: 40,
               child: Row(
                 children: [
-                  if (item != null) ...[
+                  if (finished != null) ...[
+                    const Icon(Icons.check_circle_rounded, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.pastilleFinished,
+                      style: pBody(
+                        size: 14,
+                        weight: FontWeight.w700,
+                        color: pInk,
+                      ),
+                    ),
+                    const Spacer(),
+                  ] else if (item != null) ...[
                     Text(
                       phase != null
                           ? livePhaseLabel(l10n, phase)
@@ -277,9 +435,10 @@ class _ActiveTile extends ConsumerWidget {
                         ),
                       ),
                   ],
-                  if (item == null || !running || item.eta.isEmpty)
+                  if (finished == null &&
+                      (item == null || !running || item.eta.isEmpty))
                     const Spacer(),
-                  if (item != null)
+                  if (item != null && finished == null)
                     PButton(
                       label: running ? l10n.pause : l10n.resume,
                       height: 38,
@@ -293,6 +452,18 @@ class _ActiveTile extends ConsumerWidget {
           ],
         ),
       ),
+    );
+    return AnimatedBuilder(
+      animation: _finish,
+      child: tile,
+      builder: (context, child) {
+        final s = _finished == null ? 0.0 : _squish.evaluate(_finish);
+        return Transform(
+          alignment: Alignment.bottomCenter,
+          transform: Matrix4.diagonal3Values(1 + 0.025 * s, 1 - 0.045 * s, 1),
+          child: child,
+        );
+      },
     );
   }
 }
@@ -1081,17 +1252,38 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
                             if (failed)
                               Row(
                                 children: [
-                                  Text(
-                                    '${l10n.designFailed} · ',
-                                    style: pBody(size: 12, color: tones.rose),
+                                  Expanded(
+                                    child: Tooltip(
+                                      message: item.error ?? l10n.designFailed,
+                                      child: Text(
+                                        pFailReason(item.error).isEmpty
+                                            ? l10n.designFailed
+                                            : pFailReason(item.error),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: pBody(
+                                          size: 12,
+                                          color: tones.rose,
+                                        ),
+                                      ),
+                                    ),
                                   ),
+                                  const SizedBox(width: 6),
                                   InkWell(
                                     onTap: () => ref
                                         .read(downloadListProvider.notifier)
                                         .retryDownload(item),
+                                    borderRadius: BorderRadius.circular(6),
                                     child: Text(
                                       l10n.retry,
-                                      style: pBody(size: 12, color: tones.rose),
+                                      style: pBody(
+                                        size: 12,
+                                        weight: FontWeight.w700,
+                                        color: tones.rose,
+                                      ).copyWith(
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: tones.rose,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1123,14 +1315,66 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
 
 // ── Library view ────────────────────────────────────────────────────────────
 
-class _LibraryView extends StatelessWidget {
+/// Height of today's library top bar and its hairline; Pastille's no-results
+/// capsule covers the list under it.
+// shortcut: mirrors DownloadTopBar (64) + hairline (1); a DownloadView slot for
+// the empty list would remove it.
+const double _libraryTopBar = 65;
+
+class _LibraryView extends ConsumerWidget {
   const _LibraryView({required this.library});
 
   final Widget library;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final phase = ref.watch(downloadListProvider.select(_phaseOf));
+    final noMatch =
+        phase == _Phase.ready &&
+        pFiltered(ref) &&
+        ref.watch(
+          filteredDownloadListPhaseProvider.select((v) => v.valueOrNull == 0),
+        );
+    final Widget body = switch (phase) {
+      _Phase.loading => const PastilleListSkeleton(),
+      _Phase.error => const Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 32),
+          child: SizedBox(height: 340, child: PastilleLoadError()),
+        ),
+      ),
+      _Phase.empty => Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: SizedBox(
+            height: 340,
+            child: PastilleEmpty(onNew: () => openNewDownload(context)),
+          ),
+        ),
+      ),
+      _Phase.ready => Stack(
+        children: [
+          Positioned.fill(child: library),
+          if (noMatch)
+            Positioned.fill(
+              top: _libraryTopBar,
+              child: ColoredBox(
+                color: pBackground,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 24, 32, 0),
+                    child: const PastilleNoResults(),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    };
     return ColoredBox(
       color: pBackground,
       child: LayoutBuilder(
@@ -1145,6 +1389,7 @@ class _LibraryView extends StatelessWidget {
                   eyebrow: l10n.librarySection.toLowerCase(),
                   title: l10n.pastilleLibraryTitle,
                   actions: [
+                    if (pFailedCount(ref) > 1) const PRetryFailedButton(),
                     KeyedSubtree(
                       key: OnboardingTargets.newDownload,
                       child: PButton(
@@ -1176,7 +1421,10 @@ class _LibraryView extends StatelessWidget {
                     math.max(0, side - 32),
                     92,
                   ),
-                  child: library,
+                  child: AnimatedSwitcher(
+                    duration: pMotion(context, 250),
+                    child: KeyedSubtree(key: ValueKey(phase), child: body),
+                  ),
                 ),
               ),
             ],

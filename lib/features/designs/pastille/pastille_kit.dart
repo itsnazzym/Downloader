@@ -569,6 +569,7 @@ class PDots extends StatefulWidget {
     required this.on,
     this.live = false,
     this.paused = false,
+    this.step = 12,
     this.gap = 6,
     this.square = false,
     this.levels,
@@ -581,6 +582,9 @@ class PDots extends StatefulWidget {
   final int on;
   final bool live;
   final bool paused;
+
+  /// Milliseconds between two dots of the pop-in cascade.
+  final int step;
   final double gap;
 
   /// Calendar cells (7px corners) instead of round dots.
@@ -598,7 +602,7 @@ class PDots extends StatefulWidget {
 class _PDotsState extends State<PDots> with TickerProviderStateMixin {
   late final AnimationController _cascade = AnimationController(
     vsync: this,
-    duration: Duration(milliseconds: widget.count * 12 + 400),
+    duration: Duration(milliseconds: widget.count * widget.step + 400),
   );
   late final AnimationController _blink = AnimationController(
     vsync: this,
@@ -692,7 +696,7 @@ class _DotsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final total = widget.count * 12 + 400.0;
+    final total = widget.count * widget.step + 400.0;
     final elapsed = cascade.value * total;
     final paint = Paint();
     final radius = widget.square ? 7.0 : cell / 2;
@@ -706,7 +710,7 @@ class _DotsPainter extends CustomPainter {
       var scale = 1.0;
       var color = ink.withValues(alpha: _alpha[0]);
       if (level > 0) {
-        final t = ((elapsed - i * 12) / 400).clamp(0.0, 1.0);
+        final t = ((elapsed - i * widget.step) / 400).clamp(0.0, 1.0);
         scale = _dotCurve.transform(t);
         color = ink.withValues(alpha: _alpha[level]);
       } else if (isLive) {

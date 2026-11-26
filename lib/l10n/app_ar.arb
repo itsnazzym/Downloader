@@ -1701,5 +1701,18 @@
   "terminalStatsEmptyBody": "تظهر الأرقام بعد اكتمال أول تنزيل لك.",
   "terminalNoPeers": "لم يُعثر على أي جهاز في هذه الشبكة",
   "terminalArchiveEmpty": "لم تُستورد أي أرشيفات",
-  "terminalArchiveEmptyBody": "استورد ملف بيانات TikTok لتصفّح المفضلة والإعجابات والمجموعات."
+  "terminalArchiveEmptyBody": "استورد ملف بيانات TikTok لتصفّح المفضلة والإعجابات والمجموعات.",
+  "pastilleEmptyTitle": "لا شيء هنا بعد.",
+  "pastilleEmptyBody": "الصق رابطًا من YouTube أو TikTok أو Instagram أو X: كل تنزيل يملأ هذه الشبكة، نقطة بعد نقطة.",
+  "pastilleNoResultsTitle": "لا نتائج لـ «{query}»",
+  "pastilleNoResultsFilters": "لا يوجد تنزيل يطابق هذه الفلاتر",
+  "pastilleNoResultsBody": "تحقّق من الإملاء أو وسّع الفلاتر.",
+  "pastilleLoadErrorTitle": "تعذّر تحميل المكتبة.",
+  "pastilleLoadErrorBody": "ملفاتك ما زالت على القرص. حاول مجددًا بعد قليل.",
+  "pastilleRetryFailed": "إعادة المحاولة للفاشلة ({count})",
+  "pastilleLoading": "جارٍ تحميل المكتبة…",
+  "pastilleFinished": "اكتمل",
+  "pastilleFailedIdle": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيلًا}}",
+  "pastilleStatsEmptyTitle": "لا نقاط بعد.",
+  "pastilleStatsEmptyBody": "كل تنزيل مكتمل يضيف عمودًا هنا، يومًا بعد يوم."
 }

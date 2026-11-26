@@ -2008,5 +2008,21 @@
   "terminalStatsEmptyBody": "Numbers show up after your first finished download.",
   "terminalNoPeers": "no device found on this network",
   "terminalArchiveEmpty": "no archive imported",
-  "terminalArchiveEmptyBody": "Import your TikTok data export to browse your favorites, likes and collections."
+  "terminalArchiveEmptyBody": "Import your TikTok data export to browse your favorites, likes and collections.",
+  "pastilleEmptyTitle": "Nothing here, yet.",
+  "pastilleEmptyBody": "Paste a YouTube, TikTok, Instagram or X link: every download fills this grid, dot by dot.",
+  "pastilleNoResultsTitle": "No results for “{query}”",
+  "@pastilleNoResultsTitle": {"placeholders": {"query": {"type": "String"}}},
+  "pastilleNoResultsFilters": "No download matches these filters",
+  "pastilleNoResultsBody": "Check the spelling or widen the filters.",
+  "pastilleLoadErrorTitle": "The library could not load.",
+  "pastilleLoadErrorBody": "Your files are still on disk. Try again in a moment.",
+  "pastilleRetryFailed": "Retry failed ({count})",
+  "@pastilleRetryFailed": {"placeholders": {"count": {"type": "int"}}},
+  "pastilleLoading": "Loading the library…",
+  "pastilleFinished": "Done",
+  "pastilleFailedIdle": "{count, plural, one{One download failed} other{{count} downloads failed}}",
+  "@pastilleFailedIdle": {"placeholders": {"count": {"type": "int"}}},
+  "pastilleStatsEmptyTitle": "No dots yet.",
+  "pastilleStatsEmptyBody": "Every finished download adds a bar here, day after day."
 }

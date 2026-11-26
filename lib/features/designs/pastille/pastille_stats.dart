@@ -303,15 +303,38 @@ class _ChartTileState extends ConsumerState<_ChartTile> {
               ],
             ),
             const Spacer(),
-            Semantics(
-              label: l10n.pastilleChartTitle(caption),
-              child: PBars(
-                key: ValueKey(_period),
-                values: [for (final n in data) peak > 0 ? n / peak : 0],
-                hi: data.length - 1,
-                gap: 6,
-                height: 186,
-              ),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Semantics(
+                  label: l10n.pastilleChartTitle(caption),
+                  child: PBars(
+                    key: ValueKey(_period),
+                    values: [for (final n in data) peak > 0 ? n / peak : 0],
+                    hi: data.length - 1,
+                    gap: 6,
+                    height: 186,
+                  ),
+                ),
+                // No download yet: the flat bars carry a line instead.
+                if (peak == 0)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.pastilleStatsEmptyTitle,
+                        textAlign: TextAlign.center,
+                        style: pNum(30, weight: FontWeight.w800, color: pInk),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        l10n.pastilleStatsEmptyBody,
+                        textAlign: TextAlign.center,
+                        style: pSub(context, size: 14),
+                      ),
+                    ],
+                  ),
+              ],
             ),
             const SizedBox(height: 10),
             ExcludeSemantics(

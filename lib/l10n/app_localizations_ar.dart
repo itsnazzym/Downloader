@@ -4900,4 +4900,60 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get terminalArchiveEmptyBody =>
       'استورد ملف بيانات TikTok لتصفّح المفضلة والإعجابات والمجموعات.';
+
+  @override
+  String get pastilleEmptyTitle => 'لا شيء هنا بعد.';
+
+  @override
+  String get pastilleEmptyBody =>
+      'الصق رابطًا من YouTube أو TikTok أو Instagram أو X: كل تنزيل يملأ هذه الشبكة، نقطة بعد نقطة.';
+
+  @override
+  String pastilleNoResultsTitle(String query) {
+    return 'لا نتائج لـ «$query»';
+  }
+
+  @override
+  String get pastilleNoResultsFilters => 'لا يوجد تنزيل يطابق هذه الفلاتر';
+
+  @override
+  String get pastilleNoResultsBody => 'تحقّق من الإملاء أو وسّع الفلاتر.';
+
+  @override
+  String get pastilleLoadErrorTitle => 'تعذّر تحميل المكتبة.';
+
+  @override
+  String get pastilleLoadErrorBody =>
+      'ملفاتك ما زالت على القرص. حاول مجددًا بعد قليل.';
+
+  @override
+  String pastilleRetryFailed(int count) {
+    return 'إعادة المحاولة للفاشلة ($count)';
+  }
+
+  @override
+  String get pastilleLoading => 'جارٍ تحميل المكتبة…';
+
+  @override
+  String get pastilleFinished => 'اكتمل';
+
+  @override
+  String pastilleFailedIdle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيلًا',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pastilleStatsEmptyTitle => 'لا نقاط بعد.';
+
+  @override
+  String get pastilleStatsEmptyBody =>
+      'كل تنزيل مكتمل يضيف عمودًا هنا، يومًا بعد يوم.';
 }

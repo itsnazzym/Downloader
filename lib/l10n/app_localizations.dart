@@ -8421,6 +8421,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import your TikTok data export to browse your favorites, likes and collections.'**
   String get terminalArchiveEmptyBody;
+
+  /// No description provided for @pastilleEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here, yet.'**
+  String get pastilleEmptyTitle;
+
+  /// No description provided for @pastilleEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram or X link: every download fills this grid, dot by dot.'**
+  String get pastilleEmptyBody;
+
+  /// No description provided for @pastilleNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for “{query}”'**
+  String pastilleNoResultsTitle(String query);
+
+  /// No description provided for @pastilleNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No download matches these filters'**
+  String get pastilleNoResultsFilters;
+
+  /// No description provided for @pastilleNoResultsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling or widen the filters.'**
+  String get pastilleNoResultsBody;
+
+  /// No description provided for @pastilleLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not load.'**
+  String get pastilleLoadErrorTitle;
+
+  /// No description provided for @pastilleLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are still on disk. Try again in a moment.'**
+  String get pastilleLoadErrorBody;
+
+  /// No description provided for @pastilleRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String pastilleRetryFailed(int count);
+
+  /// No description provided for @pastilleLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the library…'**
+  String get pastilleLoading;
+
+  /// No description provided for @pastilleFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pastilleFinished;
+
+  /// No description provided for @pastilleFailedIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{One download failed} other{{count} downloads failed}}'**
+  String pastilleFailedIdle(int count);
+
+  /// No description provided for @pastilleStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No dots yet.'**
+  String get pastilleStatsEmptyTitle;
+
+  /// No description provided for @pastilleStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every finished download adds a bar here, day after day.'**
+  String get pastilleStatsEmptyBody;
 }
 
 class _AppLocalizationsDelegate

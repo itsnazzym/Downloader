@@ -463,6 +463,17 @@ class _DevicesTile extends ConsumerWidget {
               trailing: Text('${s.peers.length}'),
             ),
             const Spacer(),
+            if (s.peers.isEmpty) ...[
+              // Still looking: a row of dots whose first one blinks.
+              const PDots(
+                count: 6,
+                columns: 6,
+                on: 0,
+                live: true,
+                maxWidth: 104,
+              ),
+              const SizedBox(height: 12),
+            ],
             if (s.peers.isEmpty)
               Text(
                 l10n.transferNoDevices,
