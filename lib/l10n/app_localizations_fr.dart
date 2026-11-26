@@ -4898,4 +4898,61 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'Pas encore téléchargée';
+
+  @override
+  String get terminalEmptyTitle => 'rien téléchargé pour l’instant';
+
+  @override
+  String get terminalEmptyBody =>
+      'Colle un lien dans la barre de commande en haut, ou lance un nouveau téléchargement.';
+
+  @override
+  String terminalNoMatch(String query) {
+    return 'grep : « $query » : aucune ligne ne correspond';
+  }
+
+  @override
+  String get terminalNoMatchFilters => 'aucune ligne ne correspond aux filtres';
+
+  @override
+  String get terminalLoading => 'lecture de la bibliothèque…';
+
+  @override
+  String get terminalLoadError => 'impossible de lire la bibliothèque';
+
+  @override
+  String terminalFailedSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements en échec',
+      one: '$count téléchargement en échec',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get terminalFinished => 'terminé';
+
+  @override
+  String terminalFinishedIn(String size, String duration) {
+    return '$size en $duration';
+  }
+
+  @override
+  String get terminalStatsEmpty => 'aucune statistique pour l’instant';
+
+  @override
+  String get terminalStatsEmptyBody =>
+      'Les chiffres apparaissent après ton premier téléchargement terminé.';
+
+  @override
+  String get terminalNoPeers => 'aucun appareil trouvé sur ce réseau';
+
+  @override
+  String get terminalArchiveEmpty => 'aucune archive importée';
+
+  @override
+  String get terminalArchiveEmptyBody =>
+      'Importe l’export de données TikTok pour parcourir tes favoris, tes likes et tes collections.';
 }

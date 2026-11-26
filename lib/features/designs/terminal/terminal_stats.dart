@@ -13,6 +13,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import '../signal/signal_home.dart' show designFreeSpaceProvider;
+import 'terminal_states.dart';
 import 'terminal_widgets.dart';
 
 /// Completed downloads only: the library's format split and top creators.
@@ -64,6 +65,7 @@ class _TerminalStatsState extends ConsumerState<TerminalStats> {
               children: [
                 TPrompt('stats', l10n.terminalFlagSummary),
                 const SizedBox(height: 12),
+                const _NoStats(),
                 const _Kpis(),
                 const SizedBox(height: 18),
                 _ChartSection(
@@ -77,6 +79,44 @@ class _TerminalStatsState extends ConsumerState<TerminalStats> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Nothing counted yet: a typed headline over a flat, empty bar.
+class _NoStats extends ConsumerWidget {
+  const _NoStats();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    final none = ref.watch(
+      downloadStatsProvider.select(
+        (s) => s.totalDownloads == 0 && s.dailyHistory.isEmpty,
+      ),
+    );
+    if (!none) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TPanel(
+        accentLeft: colors.primary,
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TTyped(
+              '## ${l10n.terminalStatsEmpty}',
+              style: tm(colors.primary, size: 16, weight: FontWeight.w700),
+              cursor: true,
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.terminalStatsEmptyBody, style: tm(colors.textSecondary)),
+            const SizedBox(height: 14),
+            const SizedBox(width: 280, child: TSeg(value: 0, height: 8)),
+          ],
         ),
       ),
     );

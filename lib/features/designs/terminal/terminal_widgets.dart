@@ -185,6 +185,7 @@ class TButton extends StatefulWidget {
 class _TButtonState extends State<TButton> {
   bool _hover = false;
   bool _focus = false;
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -206,10 +207,15 @@ class _TButtonState extends State<TButton> {
         : danger
         ? colors.error
         : colors.primary;
+    // Pressed: primary darkens, the others light up like a selected key.
     final bg = primary
-        ? (_hover
+        ? (_pressed
+              ? Color.lerp(colors.primary, Colors.black, 0.25)!
+              : _hover
               ? Color.lerp(colors.primary, Colors.white, 0.5)!
               : colors.primary)
+        : _pressed
+        ? (danger ? colors.error : colors.primary).withValues(alpha: 0.16)
         : danger && _hover
         ? colors.error.withValues(alpha: 0.08)
         : (enabled ? colors.surface : Colors.transparent);
@@ -237,6 +243,11 @@ class _TButtonState extends State<TButton> {
         },
         child: GestureDetector(
           onTap: widget.onTap,
+          onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+          onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
+          onTapCancel: () {
+            if (mounted) setState(() => _pressed = false);
+          },
           child: AnimatedContainer(
             duration: tMotion(context),
             height: widget.height,

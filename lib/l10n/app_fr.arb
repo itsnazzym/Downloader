@@ -1687,5 +1687,19 @@
   "signalTransferTo": "vers {name}",
   "signalTransferPickDevice": "Choisis l’appareil dans la liste Appareils.",
   "porcelaineSelectedCollections": "{count, plural, =0{Aucune sélection} =1{1 sélectionnée} other{{count} sélectionnées}}",
-  "porcelaineNotDownloadedYet": "Pas encore téléchargée"
+  "porcelaineNotDownloadedYet": "Pas encore téléchargée",
+  "terminalEmptyTitle": "rien téléchargé pour l’instant",
+  "terminalEmptyBody": "Colle un lien dans la barre de commande en haut, ou lance un nouveau téléchargement.",
+  "terminalNoMatch": "grep : « {query} » : aucune ligne ne correspond",
+  "terminalNoMatchFilters": "aucune ligne ne correspond aux filtres",
+  "terminalLoading": "lecture de la bibliothèque…",
+  "terminalLoadError": "impossible de lire la bibliothèque",
+  "terminalFailedSummary": "{count, plural, one{{count} téléchargement en échec} other{{count} téléchargements en échec}}",
+  "terminalFinished": "terminé",
+  "terminalFinishedIn": "{size} en {duration}",
+  "terminalStatsEmpty": "aucune statistique pour l’instant",
+  "terminalStatsEmptyBody": "Les chiffres apparaissent après ton premier téléchargement terminé.",
+  "terminalNoPeers": "aucun appareil trouvé sur ce réseau",
+  "terminalArchiveEmpty": "aucune archive importée",
+  "terminalArchiveEmptyBody": "Importe l’export de données TikTok pour parcourir tes favoris, tes likes et tes collections."
 }

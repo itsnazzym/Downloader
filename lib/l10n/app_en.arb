@@ -1991,5 +1991,22 @@
   "signalTransferPickDevice": "Pick the device in the Devices list.",
   "porcelaineSelectedCollections": "{count, plural, =0{Nothing selected} =1{1 selected} other{{count} selected}}",
   "@porcelaineSelectedCollections": {"placeholders": {"count": {"type": "int"}}},
-  "porcelaineNotDownloadedYet": "Not downloaded yet"
+  "porcelaineNotDownloadedYet": "Not downloaded yet",
+  "terminalEmptyTitle": "nothing downloaded yet",
+  "terminalEmptyBody": "Paste a link in the command bar above, or start a new download.",
+  "terminalNoMatch": "grep: \"{query}\": no matching line",
+  "@terminalNoMatch": {"placeholders": {"query": {"type": "String"}}},
+  "terminalNoMatchFilters": "no line matches the filters",
+  "terminalLoading": "reading the library…",
+  "terminalLoadError": "could not read the library",
+  "terminalFailedSummary": "{count, plural, one{{count} failed download} other{{count} failed downloads}}",
+  "@terminalFailedSummary": {"placeholders": {"count": {"type": "int"}}},
+  "terminalFinished": "done",
+  "terminalFinishedIn": "{size} in {duration}",
+  "@terminalFinishedIn": {"placeholders": {"size": {"type": "String"}, "duration": {"type": "String"}}},
+  "terminalStatsEmpty": "no statistics yet",
+  "terminalStatsEmptyBody": "Numbers show up after your first finished download.",
+  "terminalNoPeers": "no device found on this network",
+  "terminalArchiveEmpty": "no archive imported",
+  "terminalArchiveEmptyBody": "Import your TikTok data export to browse your favorites, likes and collections."
 }

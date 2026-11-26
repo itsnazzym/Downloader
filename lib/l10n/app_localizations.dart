@@ -8337,6 +8337,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not downloaded yet'**
   String get porcelaineNotDownloadedYet;
+
+  /// No description provided for @terminalEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'nothing downloaded yet'**
+  String get terminalEmptyTitle;
+
+  /// No description provided for @terminalEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link in the command bar above, or start a new download.'**
+  String get terminalEmptyBody;
+
+  /// No description provided for @terminalNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'grep: \"{query}\": no matching line'**
+  String terminalNoMatch(String query);
+
+  /// No description provided for @terminalNoMatchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'no line matches the filters'**
+  String get terminalNoMatchFilters;
+
+  /// No description provided for @terminalLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'reading the library…'**
+  String get terminalLoading;
+
+  /// No description provided for @terminalLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'could not read the library'**
+  String get terminalLoadError;
+
+  /// No description provided for @terminalFailedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} failed download} other{{count} failed downloads}}'**
+  String terminalFailedSummary(int count);
+
+  /// No description provided for @terminalFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get terminalFinished;
+
+  /// No description provided for @terminalFinishedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} in {duration}'**
+  String terminalFinishedIn(String size, String duration);
+
+  /// No description provided for @terminalStatsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'no statistics yet'**
+  String get terminalStatsEmpty;
+
+  /// No description provided for @terminalStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers show up after your first finished download.'**
+  String get terminalStatsEmptyBody;
+
+  /// No description provided for @terminalNoPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'no device found on this network'**
+  String get terminalNoPeers;
+
+  /// No description provided for @terminalArchiveEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'no archive imported'**
+  String get terminalArchiveEmpty;
+
+  /// No description provided for @terminalArchiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your TikTok data export to browse your favorites, likes and collections.'**
+  String get terminalArchiveEmptyBody;
 }
 
 class _AppLocalizationsDelegate

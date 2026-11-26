@@ -4840,4 +4840,64 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get porcelaineNotDownloadedYet => 'لم تُنزَّل بعد';
+
+  @override
+  String get terminalEmptyTitle => 'لم يُنزَّل شيء بعد';
+
+  @override
+  String get terminalEmptyBody =>
+      'الصق رابطًا في شريط الأوامر بالأعلى، أو ابدأ تنزيلًا جديدًا.';
+
+  @override
+  String terminalNoMatch(String query) {
+    return 'grep: «$query»: لا يوجد سطر مطابق';
+  }
+
+  @override
+  String get terminalNoMatchFilters => 'لا يوجد سطر يطابق عوامل التصفية';
+
+  @override
+  String get terminalLoading => 'جارٍ قراءة المكتبة…';
+
+  @override
+  String get terminalLoadError => 'تعذّرت قراءة المكتبة';
+
+  @override
+  String terminalFailedSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تنزيل فاشل',
+      many: '$count تنزيلًا فاشلًا',
+      few: '$count تنزيلات فاشلة',
+      two: 'تنزيلان فاشلان',
+      one: 'تنزيل واحد فاشل',
+      zero: 'لا تنزيلات فاشلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get terminalFinished => 'اكتمل';
+
+  @override
+  String terminalFinishedIn(String size, String duration) {
+    return '$size في $duration';
+  }
+
+  @override
+  String get terminalStatsEmpty => 'لا توجد إحصاءات بعد';
+
+  @override
+  String get terminalStatsEmptyBody => 'تظهر الأرقام بعد اكتمال أول تنزيل لك.';
+
+  @override
+  String get terminalNoPeers => 'لم يُعثر على أي جهاز في هذه الشبكة';
+
+  @override
+  String get terminalArchiveEmpty => 'لم تُستورد أي أرشيفات';
+
+  @override
+  String get terminalArchiveEmptyBody =>
+      'استورد ملف بيانات TikTok لتصفّح المفضلة والإعجابات والمجموعات.';
 }
