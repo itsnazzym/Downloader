@@ -11,13 +11,13 @@ import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
-import 'package:modern_downloader/core/ui/shell/shell_strips.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
+import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_list.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
 import 'package:modern_downloader/features/downloader/presentation/widgets/download_item_context_menu.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
@@ -27,21 +27,20 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../shared/design_data.dart';
 import '../signal/signal_home.dart' show designFreeSpaceProvider;
 import 'pastille_kit.dart';
+import 'pastille_library.dart';
 import 'pastille_states.dart';
 
 /// Pastille's `/` route: the bento home (mockup Pastille.dc.html), or the
 /// whole library at `/?view=library` (the dock's Bibliothèque stop and
-/// "Toute la bibliothèque"): today's library view — filters, search, sort,
-/// view mode, list, inspector, context menu — under a Pastille header.
+/// "Toute la bibliothèque"): filters, search, sort, view mode, list,
+/// inspector and context menu, all drawn in Pastille.
 class PastilleHome extends StatelessWidget {
-  const PastilleHome({super.key, required this.library});
-
-  final Widget library;
+  const PastilleHome({super.key});
 
   @override
   Widget build(BuildContext context) {
     final view = GoRouterState.of(context).uri.queryParameters['view'];
-    return view == 'library' ? _LibraryView(library: library) : const _Home();
+    return view == 'library' ? const _LibraryView() : const _Home();
   }
 }
 
@@ -1321,20 +1320,16 @@ class _RecentCardState extends ConsumerState<_RecentCard> {
 
 // ── Library view ────────────────────────────────────────────────────────────
 
-/// Height of today's library top bar and its hairline; Pastille's no-results
-/// capsule covers the list under it.
-// shortcut: mirrors DownloadTopBar (64) + hairline (1); a DownloadView slot for
-// the empty list would remove it.
-const double _libraryTopBar = 65;
-
+/// The whole library in Pastille: its own filters and toolbar over the
+/// shared list (rows drawn by `pastilleSkin`), its own inspector beside it.
 class _LibraryView extends ConsumerWidget {
-  const _LibraryView({required this.library});
-
-  final Widget library;
+  const _LibraryView();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final narrow = MediaQuery.sizeOf(context).width < 620;
+    if (narrow) pListenNarrowInspector(context, ref);
     final phase = ref.watch(downloadListProvider.select(_phaseOf));
     final noMatch =
         phase == _Phase.ready &&
@@ -1346,96 +1341,110 @@ class _LibraryView extends ConsumerWidget {
       _Phase.loading => const PastilleListSkeleton(),
       _Phase.error => const Align(
         alignment: Alignment.topCenter,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32),
-          child: SizedBox(height: 340, child: PastilleLoadError()),
-        ),
+        child: SizedBox(height: 340, child: PastilleLoadError()),
       ),
       _Phase.empty => Align(
         alignment: Alignment.topCenter,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: SizedBox(
-            height: 340,
-            child: PastilleEmpty(onNew: () => openNewDownload(context)),
-          ),
+        child: SizedBox(
+          height: 340,
+          child: PastilleEmpty(onNew: () => openNewDownload(context)),
         ),
       ),
-      _Phase.ready => Stack(
+      _Phase.ready when noMatch => const Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: EdgeInsets.only(top: 12),
+          child: PastilleNoResults(),
+        ),
+      ),
+      _Phase.ready => Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Positioned.fill(child: library),
-          if (noMatch)
-            Positioned.fill(
-              top: _libraryTopBar,
-              child: ColoredBox(
-                color: pBackground,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 24, 32, 0),
-                    child: const PastilleNoResults(),
-                  ),
-                ),
-              ),
-            ),
+          Expanded(child: DownloadList(key: OnboardingTargets.creatorList)),
+          if (!narrow) const PastilleInspectorPane(),
         ],
       ),
     };
-    return ColoredBox(
-      color: pBackground,
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final side = c.maxWidth > 1264 ? (c.maxWidth - 1200) / 2 : 32.0;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(side, 30, side, 0),
-                child: PastilleHeader(
-                  eyebrow: l10n.librarySection.toLowerCase(),
-                  title: l10n.pastilleLibraryTitle,
-                  actions: [
-                    if (pFailedCount(ref) > 1) const PRetryFailedButton(),
-                    KeyedSubtree(
-                      key: OnboardingTargets.newDownload,
-                      child: PButton(
-                        label: l10n.newDownload,
-                        icon: Icons.download_rounded,
-                        iconSize: 17,
-                        kind: PButtonKind.butter,
-                        height: 46,
-                        padH: 22,
-                        fontSize: 14,
-                        onTap: () => openNewDownload(context),
+    void search() => DownloadSearchFocus.request();
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true): search,
+        const SingleActivator(LogicalKeyboardKey.keyF, meta: true): search,
+      },
+      child: Focus(
+        autofocus: true,
+        child: ColoredBox(
+          color: pBackground,
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final side = c.maxWidth > 1264 ? (c.maxWidth - 1200) / 2 : 32.0;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(side, 30, side, 0),
+                    child: PastilleHeader(
+                      eyebrow: l10n.librarySection.toLowerCase(),
+                      title: l10n.pastilleLibraryTitle,
+                      actions: [
+                        KeyedSubtree(
+                          key: OnboardingTargets.newDownload,
+                          child: PButton(
+                            label: l10n.newDownload,
+                            icon: Icons.download_rounded,
+                            iconSize: 17,
+                            kind: PButtonKind.butter,
+                            height: 46,
+                            padH: 22,
+                            fontSize: 14,
+                            onTap: () => openNewDownload(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(side, 20, side, 0),
+                    child: const Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: PastilleLibraryFilters(),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(side, 14, side, 4),
+                    child: PastilleLibraryToolbar(
+                      key: OnboardingTargets.topBar,
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      // The list pads its rows by 16 on every side.
+                      padding: EdgeInsets.fromLTRB(
+                        math.max(0, side - 16),
+                        0,
+                        side,
+                        92,
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: pMotion(context, 250),
+                        child: KeyedSubtree(
+                          key: ValueKey((phase, noMatch)),
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              left: phase == _Phase.ready && !noMatch ? 0 : 16,
+                              top: phase == _Phase.ready && !noMatch ? 0 : 16,
+                            ),
+                            child: body,
+                          ),
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(side, 20, side, 12),
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: LibraryFilterStrip(),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    math.max(0, side - 32),
-                    0,
-                    math.max(0, side - 32),
-                    92,
                   ),
-                  child: AnimatedSwitcher(
-                    duration: pMotion(context, 250),
-                    child: KeyedSubtree(key: ValueKey(phase), child: body),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }

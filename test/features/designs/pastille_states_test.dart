@@ -107,7 +107,7 @@ void main() {
                 GoRoute(
                   path: '/',
                   builder: (context, state) =>
-                      const PastilleHome(library: SizedBox()),
+                      const PastilleHome(),
                 ),
               ],
             ),

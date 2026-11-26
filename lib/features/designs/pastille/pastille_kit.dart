@@ -370,7 +370,8 @@ class PLabel extends StatelessWidget {
 
 // ── Buttons ──────────────────────────────────────────────────────────────────
 
-enum PButtonKind { ink, butter, cream, rose }
+/// [ghost] is the quiet one for the dark page: a faint cream wash.
+enum PButtonKind { ink, butter, cream, rose, ghost }
 
 /// `.btn`: a pill that lifts 1px on hover and squishes on press.
 class PButton extends StatefulWidget {
@@ -416,6 +417,7 @@ class _PButtonState extends State<PButton> {
       PButtonKind.butter => (tones.butter, pInk),
       PButtonKind.cream => (tones.cream, pInk),
       PButtonKind.rose => (tones.rose, pInk),
+      PButtonKind.ghost => (pCream.withValues(alpha: 0.08), pCream),
     };
     final enabled = widget.onTap != null;
     final iconOnly = widget.label.isEmpty;
@@ -583,6 +585,7 @@ class PDots extends StatefulWidget {
     this.levels,
     this.maxWidth,
     this.semanticLabel,
+    this.cascade = true,
   });
 
   final int count;
@@ -602,6 +605,9 @@ class PDots extends StatefulWidget {
   final List<int>? levels;
   final double? maxWidth;
   final String? semanticLabel;
+
+  /// Off for list rows, where a rebuilt row would replay the pop-in.
+  final bool cascade;
 
   @override
   State<PDots> createState() => _PDotsState();
@@ -640,7 +646,7 @@ class _PDotsState extends State<PDots> with TickerProviderStateMixin {
     super.didChangeDependencies();
     if (!_started) {
       _started = true;
-      if (MediaQuery.disableAnimationsOf(context)) {
+      if (MediaQuery.disableAnimationsOf(context) || !widget.cascade) {
         _cascade.value = 1;
       } else {
         _cascade.forward();
