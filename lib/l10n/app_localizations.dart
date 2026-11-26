@@ -8499,6 +8499,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every finished download adds a bar here, day after day.'**
   String get pastilleStatsEmptyBody;
+
+  /// No description provided for @studioEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is empty.'**
+  String get studioEmptyTitle;
+
+  /// No description provided for @studioEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy a video link, then paste it here. Ctrl+N also starts a new download.'**
+  String get studioEmptyBody;
+
+  /// No description provided for @studioNoResultsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”.'**
+  String studioNoResultsFor(String query);
+
+  /// No description provided for @studioNoResultsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling or remove a filter.'**
+  String get studioNoResultsHint;
+
+  /// No description provided for @studioLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library couldn’t be loaded.'**
+  String get studioLoadErrorTitle;
+
+  /// No description provided for @studioLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are untouched. Try again in a moment.'**
+  String get studioLoadErrorBody;
+
+  /// No description provided for @studioFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String studioFailedCount(int count);
+
+  /// No description provided for @studioRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String studioRetryFailed(int count);
+
+  /// No description provided for @studioNoDevicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No device nearby'**
+  String get studioNoDevicesTitle;
+
+  /// No description provided for @studioNoStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No stats yet'**
+  String get studioNoStatsTitle;
+
+  /// No description provided for @studioNoStatsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They’ll show up here after your first download.'**
+  String get studioNoStatsBody;
 }
 
 class _AppLocalizationsDelegate

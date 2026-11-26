@@ -2024,5 +2024,19 @@
   "pastilleFailedIdle": "{count, plural, one{One download failed} other{{count} downloads failed}}",
   "@pastilleFailedIdle": {"placeholders": {"count": {"type": "int"}}},
   "pastilleStatsEmptyTitle": "No dots yet.",
-  "pastilleStatsEmptyBody": "Every finished download adds a bar here, day after day."
+  "pastilleStatsEmptyBody": "Every finished download adds a bar here, day after day.",
+  "studioEmptyTitle": "Your library is empty.",
+  "studioEmptyBody": "Copy a video link, then paste it here. Ctrl+N also starts a new download.",
+  "studioNoResultsFor": "Nothing matches “{query}”.",
+  "@studioNoResultsFor": {"placeholders": {"query": {"type": "String"}}},
+  "studioNoResultsHint": "Check the spelling or remove a filter.",
+  "studioLoadErrorTitle": "The library couldn’t be loaded.",
+  "studioLoadErrorBody": "Your files are untouched. Try again in a moment.",
+  "studioFailedCount": "{count, plural, =1{1 download failed} other{{count} downloads failed}}",
+  "@studioFailedCount": {"placeholders": {"count": {"type": "int"}}},
+  "studioRetryFailed": "Retry failed ({count})",
+  "@studioRetryFailed": {"placeholders": {"count": {"type": "int"}}},
+  "studioNoDevicesTitle": "No device nearby",
+  "studioNoStatsTitle": "No stats yet",
+  "studioNoStatsBody": "They’ll show up here after your first download."
 }

@@ -4956,4 +4956,52 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get pastilleStatsEmptyBody =>
       'كل تنزيل مكتمل يضيف عمودًا هنا، يومًا بعد يوم.';
+
+  @override
+  String get studioEmptyTitle => 'مكتبتك فارغة.';
+
+  @override
+  String get studioEmptyBody =>
+      'انسخ رابط فيديو ثم الصقه هنا. يبدأ Ctrl+N أيضًا تنزيلًا جديدًا.';
+
+  @override
+  String studioNoResultsFor(String query) {
+    return 'لا شيء يطابق «$query».';
+  }
+
+  @override
+  String get studioNoResultsHint => 'تحقق من الإملاء أو أزل عامل تصفية.';
+
+  @override
+  String get studioLoadErrorTitle => 'تعذّر تحميل المكتبة.';
+
+  @override
+  String get studioLoadErrorBody => 'لم تُمسّ ملفاتك. حاول مجددًا بعد لحظة.';
+
+  @override
+  String studioFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيلًا',
+      few: 'فشلت $count تنزيلات',
+      two: 'فشل تنزيلان',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioRetryFailed(int count) {
+    return 'إعادة محاولة الفاشلة ($count)';
+  }
+
+  @override
+  String get studioNoDevicesTitle => 'لا يوجد جهاز قريب';
+
+  @override
+  String get studioNoStatsTitle => 'لا توجد إحصاءات بعد';
+
+  @override
+  String get studioNoStatsBody => 'ستظهر هنا بعد أول تنزيل لك.';
 }

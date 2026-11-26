@@ -1714,5 +1714,16 @@
   "pastilleFinished": "اكتمل",
   "pastilleFailedIdle": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيلًا}}",
   "pastilleStatsEmptyTitle": "لا نقاط بعد.",
-  "pastilleStatsEmptyBody": "كل تنزيل مكتمل يضيف عمودًا هنا، يومًا بعد يوم."
+  "pastilleStatsEmptyBody": "كل تنزيل مكتمل يضيف عمودًا هنا، يومًا بعد يوم.",
+  "studioEmptyTitle": "مكتبتك فارغة.",
+  "studioEmptyBody": "انسخ رابط فيديو ثم الصقه هنا. يبدأ Ctrl+N أيضًا تنزيلًا جديدًا.",
+  "studioNoResultsFor": "لا شيء يطابق «{query}».",
+  "studioNoResultsHint": "تحقق من الإملاء أو أزل عامل تصفية.",
+  "studioLoadErrorTitle": "تعذّر تحميل المكتبة.",
+  "studioLoadErrorBody": "لم تُمسّ ملفاتك. حاول مجددًا بعد لحظة.",
+  "studioFailedCount": "{count, plural, =1{فشل تنزيل واحد} two{فشل تنزيلان} few{فشلت {count} تنزيلات} other{فشل {count} تنزيلًا}}",
+  "studioRetryFailed": "إعادة محاولة الفاشلة ({count})",
+  "studioNoDevicesTitle": "لا يوجد جهاز قريب",
+  "studioNoStatsTitle": "لا توجد إحصاءات بعد",
+  "studioNoStatsBody": "ستظهر هنا بعد أول تنزيل لك."
 }

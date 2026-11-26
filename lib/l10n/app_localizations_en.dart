@@ -4952,4 +4952,52 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pastilleStatsEmptyBody =>
       'Every finished download adds a bar here, day after day.';
+
+  @override
+  String get studioEmptyTitle => 'Your library is empty.';
+
+  @override
+  String get studioEmptyBody =>
+      'Copy a video link, then paste it here. Ctrl+N also starts a new download.';
+
+  @override
+  String studioNoResultsFor(String query) {
+    return 'Nothing matches “$query”.';
+  }
+
+  @override
+  String get studioNoResultsHint => 'Check the spelling or remove a filter.';
+
+  @override
+  String get studioLoadErrorTitle => 'The library couldn’t be loaded.';
+
+  @override
+  String get studioLoadErrorBody =>
+      'Your files are untouched. Try again in a moment.';
+
+  @override
+  String studioFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads failed',
+      one: '1 download failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String studioRetryFailed(int count) {
+    return 'Retry failed ($count)';
+  }
+
+  @override
+  String get studioNoDevicesTitle => 'No device nearby';
+
+  @override
+  String get studioNoStatsTitle => 'No stats yet';
+
+  @override
+  String get studioNoStatsBody =>
+      'They’ll show up here after your first download.';
 }

@@ -31,7 +31,7 @@ class StudioArchive extends ConsumerWidget {
         ),
       ),
     );
-    if (loading || hub || !hasCatalog) return current;
+    if (loading || hub || !hasCatalog) return _studioButtons(context, current);
     final catalog = ref.watch(tikTokArchiveProvider.select((s) => s.catalog!));
     // An opened collection, or « Toutes les options », shows today's view.
     final opened = ref.watch(
@@ -87,6 +87,29 @@ class StudioArchive extends ConsumerWidget {
       },
     );
   }
+}
+
+/// Today's import hub with Studio's 8px button corners instead of pills.
+Widget _studioButtons(BuildContext context, Widget child) {
+  final t = Theme.of(context);
+  const shape = WidgetStatePropertyAll<OutlinedBorder>(
+    RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+  );
+  return Theme(
+    data: t.copyWith(
+      filledButtonTheme: FilledButtonThemeData(
+        style: (t.filledButtonTheme.style ?? const ButtonStyle()).copyWith(
+          shape: shape,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: (t.outlinedButtonTheme.style ?? const ButtonStyle()).copyWith(
+          shape: shape,
+        ),
+      ),
+    ),
+    child: child,
+  );
 }
 
 final _fullProvider = StateProvider.autoDispose<bool>((ref) => false);
