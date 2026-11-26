@@ -24,7 +24,10 @@ import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
+import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/download_view.dart';
 import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
 import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
@@ -52,13 +55,15 @@ void main() {
     GoRouter? router,
     ThemePreset preset = ThemePresets.signal,
     Size size = const Size(1280, 800),
+    List<DownloadItem>? items,
+    bool loading = false,
   }) async {
     tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     PlatformInfo.debugForceMobile = false;
-    final data = sampleDownloads();
+    final data = items ?? sampleDownloads();
     final key = GlobalKey();
     await tester.pumpWidget(
       ProviderScope(
@@ -72,11 +77,16 @@ void main() {
           ),
           persistenceServiceProvider.overrideWith((ref) => FakePersistence()),
           downloadListProvider.overrideWith(
-            (ref) => PinnedDownloadList(
-              ref.read(downloaderRepositoryProvider),
-              ref,
-              data,
-            ),
+            (ref) => loading
+                ? LoadingDownloadList(
+                    ref.read(downloaderRepositoryProvider),
+                    ref,
+                  )
+                : PinnedDownloadList(
+                    ref.read(downloaderRepositoryProvider),
+                    ref,
+                    data,
+                  ),
           ),
           downloadStatsProvider.overrideWith((ref) => FakeStatsNotifier()),
           // A disk probe spawns a process, which a widget test cannot finish.
@@ -378,5 +388,86 @@ void main() {
       await settle(tester);
       await shot(tester, key, 'app_${entry.key}');
     });
+  }
+
+  // The situations every design must draw (build/visual/state_<id>_<case>.png):
+  // nothing downloaded yet, a search with no match, the library loading,
+  // everything failed, and a narrow window.
+  final failedItems = [
+    for (final item in sampleDownloads())
+      item.copyWith(
+        status: DownloadStatus.failed,
+        error: 'ERROR: Unable to download: HTTP Error 403: Forbidden',
+        progress: 0,
+      ),
+  ];
+  final states =
+      <
+        String,
+        ({List<DownloadItem>? items, bool loading, String search, Size size})
+      >{
+        'empty': (
+          items: const [],
+          loading: false,
+          search: '',
+          size: const Size(1280, 800),
+        ),
+        'noresults': (
+          items: null,
+          loading: false,
+          search: 'zzzz introuvable',
+          size: const Size(1280, 800),
+        ),
+        'loading': (
+          items: const [],
+          loading: true,
+          search: '',
+          size: const Size(1280, 800),
+        ),
+        'failed': (
+          items: failedItems,
+          loading: false,
+          search: '',
+          size: const Size(1280, 800),
+        ),
+        'narrow': (
+          items: null,
+          loading: false,
+          search: '',
+          size: const Size(820, 900),
+        ),
+      };
+  for (final id in const [
+    'signal',
+    'porcelaine',
+    'pastille',
+    'studio',
+    'terminal',
+    'nocturne',
+  ]) {
+    for (final state in states.entries) {
+      testWidgets('state $id ${state.key}', (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final router = container.read(routerProvider);
+        final key = await pump(
+          tester,
+          () => const SizedBox(),
+          router: router,
+          preset: ThemePresets.getById(id),
+          size: state.value.size,
+          items: state.value.items,
+          loading: state.value.loading,
+          extra: [
+            if (state.value.search.isNotEmpty)
+              downloadSearchQueryProvider.overrideWith(
+                (ref) => state.value.search,
+              ),
+          ],
+        );
+        await settle(tester);
+        await shot(tester, key, 'state_${id}_${state.key}');
+      });
+    }
   }
 }
