@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:modern_downloader/core/services/local_server_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
@@ -13,12 +14,14 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 
 import 'signal_controls.dart';
+import 'signal_states.dart';
 import 'signal_widgets.dart';
 
 /// Signal's TikTok archive (mockup Signal-Archives.dc.html): an archive
 /// card, Vidéos / Collections / Favoris chips, then the collection cards
-/// with their purge bar, or the video list. The hub (import, sync), loading
-/// and empty states stay today's view ([current]).
+/// with their purge bar, or the video list. With nothing imported yet, its
+/// own empty state; the hub (sync results) and loading stay today's view
+/// ([current]).
 class SignalArchive extends ConsumerWidget {
   const SignalArchive({super.key, required this.current});
 
@@ -26,12 +29,78 @@ class SignalArchive extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final today = ref.watch(
+    final (today, empty) = ref.watch(
       tikTokArchiveProvider.select(
-        (s) => s.isLoading || s.viewMode == TikTokViewMode.hub || !s.hasCatalog,
+        (s) => (
+          s.isLoading || s.viewMode == TikTokViewMode.hub || !s.hasCatalog,
+          // A sync in flight or its result stays today's hub.
+          !s.isLoading &&
+              !s.hasCatalog &&
+              s.syncStatus == TikTokSyncStatus.idle,
+        ),
       ),
     );
+    if (empty) return const _ArchiveEmpty();
     return today ? current : const _ArchivePage();
+  }
+}
+
+/// Nothing imported yet: import the TikTok export, or sync through the
+/// browser extension (today's hub handlers).
+class _ArchiveEmpty extends ConsumerWidget {
+  const _ArchiveEmpty();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final colors = AppColors.of(context);
+    final showcase = ref.watch(showcaseModeProvider);
+    final connected =
+        !showcase && ref.watch(extensionConnectedClientsProvider) > 0;
+    final error = ref.watch(
+      tikTokArchiveProvider.select((s) => s.errorMessage),
+    );
+    final n = ref.read(tikTokArchiveProvider.notifier);
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: signalPagePadding(constraints.maxWidth),
+        child: SignalStateCard(
+          eyebrow: l10n.designArchivesTab,
+          eyebrowColor: error != null ? colors.error : null,
+          title: l10n.signalArchiveEmptyTitle,
+          body: error ?? l10n.signalArchiveEmptyBody,
+          art: const SignalEmptyArt(),
+          actions: [
+            SignalButton(
+              label: l10n.signalArchiveImport,
+              icon: Icons.file_open_outlined,
+              onTap: showcase ? null : n.pickAndImportFile,
+            ),
+            if (connected)
+              SignalButton(
+                label: l10n.signalArchiveSync,
+                icon: Icons.sync_rounded,
+                accent: false,
+                onTap: n.triggerExtensionSync,
+              )
+            else
+              // Sync needs the extension: say so instead of a dead button.
+              Tooltip(
+                message: l10n.signalArchiveSyncHint,
+                child: Opacity(
+                  opacity: 0.45,
+                  child: SignalButton(
+                    label: l10n.signalArchiveSync,
+                    icon: Icons.sync_rounded,
+                    accent: false,
+                    onTap: null,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

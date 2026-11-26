@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
@@ -13,16 +14,21 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import 'signal_home.dart' show designFreeSpaceProvider;
+import 'signal_states.dart';
 import 'signal_widgets.dart';
 
 /// Signal's statistics (mockup Signal-Stats.dc.html): four figures, the
 /// daily chart, sources, formats, top creators, then keyboard shortcuts.
-class SignalStats extends StatelessWidget {
+class SignalStats extends ConsumerWidget {
   const SignalStats({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
+    // Nothing downloaded yet: zeros and an empty chart say nothing.
+    final empty = ref.watch(
+      downloadStatsProvider.select((s) => s.totalDownloads == 0),
+    );
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 900;
@@ -39,19 +45,34 @@ class SignalStats extends StatelessWidget {
                 ).copyWith(color: colors.textPrimary, height: 1.15),
               ),
               const SizedBox(height: 20),
-              _KpiRow(wide: wide),
-              const SizedBox(height: 16),
-              signalRow(
-                wide: wide,
-                flexes: const [8, 4],
-                children: const [_ChartCard(), _SourcesCard()],
-              ),
-              const SizedBox(height: 16),
-              signalRow(
-                wide: wide,
-                flexes: const [5, 7],
-                children: const [_FormatCard(), _CreatorsCard()],
-              ),
+              if (empty)
+                SignalStateCard(
+                  title: context.l10n.signalStatsEmptyTitle,
+                  body: context.l10n.signalStatsEmptyBody,
+                  art: const SignalEmptyArt(),
+                  actions: [
+                    SignalButton(
+                      label: context.l10n.newDownload,
+                      icon: Icons.add_link_rounded,
+                      onTap: () => context.go('/'),
+                    ),
+                  ],
+                )
+              else ...[
+                _KpiRow(wide: wide),
+                const SizedBox(height: 16),
+                signalRow(
+                  wide: wide,
+                  flexes: const [8, 4],
+                  children: const [_ChartCard(), _SourcesCard()],
+                ),
+                const SizedBox(height: 16),
+                signalRow(
+                  wide: wide,
+                  flexes: const [5, 7],
+                  children: const [_FormatCard(), _CreatorsCard()],
+                ),
+              ],
               const SizedBox(height: 16),
               const _ShortcutsCard(),
             ],

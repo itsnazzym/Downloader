@@ -612,15 +612,9 @@ class _DevicesCard extends ConsumerWidget {
           ],
           const SizedBox(height: 10),
           if (peers.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                l10n.transferNoDevices,
-                style: AppTypography.body.copyWith(
-                  fontSize: 13,
-                  color: colors.textSecondary,
-                ),
-              ),
+            _NoDevices(
+              onScan: scanning ? null : () => unawaited(n.scanSubnet()),
+              onDirectIp: () => _directIp(context),
             ),
           for (final peer in peers)
             _PeerRow(
@@ -633,6 +627,115 @@ class _DevicesCard extends ConsumerWidget {
               onStar: () => unawaited(n.toggleTrusted(peer)),
               onSend: () => _sendTo(context, ref, peer),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// No device yet: a quiet radar, what to do on the phone, and the two ways
+/// to look for it.
+class _NoDevices extends StatelessWidget {
+  const _NoDevices({required this.onScan, required this.onDirectIp});
+
+  final VoidCallback? onScan;
+  final VoidCallback onDirectIp;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    Widget ring(double size, double alpha) => Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: colors.textPrimary.withValues(alpha: alpha)),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 72,
+                height: 72,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ring(72, 0.06),
+                    ring(52, 0.1),
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colors.primary.withValues(alpha: 0.14),
+                        border: Border.all(
+                          color: colors.primary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.smartphone_rounded,
+                        size: 16,
+                        color: colors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.transferNoDevices,
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.signalTransferNoDevicesHint,
+                      style: AppTypography.body.copyWith(
+                        fontSize: 12.5,
+                        height: 1.45,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              SignalButton(
+                label: l10n.transferScanSubnet,
+                icon: Icons.travel_explore_rounded,
+                accent: false,
+                height: 36,
+                fontSize: 13,
+                onTap: onScan,
+              ),
+              SignalButton(
+                label: l10n.transferDirectIpTitle,
+                icon: Icons.add_link_rounded,
+                accent: false,
+                height: 36,
+                fontSize: 13,
+                onTap: onDirectIp,
+              ),
+            ],
+          ),
         ],
       ),
     );
