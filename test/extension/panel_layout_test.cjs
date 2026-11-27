@@ -159,3 +159,72 @@ test('accounts and the meta line use the handle from the post URL, never a messy
   assert.equal(ctx.itemAuthorLabel({ platform: 'instagram', author: 'Camille' }), 'Camille');
   assert.equal(ctx.itemCreatorKey({ platform: 'x', author: messy, url: 'https://x.com/Studio_Nova/status/1' }), 'x:studio_nova');
 });
+
+// Runs the panel's own creator-banner code (syncCreatorProfileBanner, loadAllCreatorVideos,
+// creatorHandleFor and the item helpers) in a vm, with stub elements and a fixed feed.
+function creatorHarness(items) {
+  const fn = (name) => panel.match(new RegExp(String.raw`\n  function ${name}\([^)]*\) \{[\s\S]*?\n  \}\n`))[0];
+  const el = () => ({ textContent: '', hidden: false, disabled: false, src: '', style: { display: '', setProperty() {}, removeProperty() {} },
+    classList: { add() {}, remove() {} }, querySelector() { return { textContent: '' }; } });
+  const ctx = { items, log: { status: [], updates: [], created: [], tabs: 0 } };
+  ctx.self = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(read('profile_url.js'), ctx);
+  vm.runInContext(`
+    var activeCreatorFilter = 'all', activeCreatorPlatform = '', activeTabUrl = '', previousPlaylistUrl = '';
+    var creatorProfileBanner = el(), creatorBannerHandle = el(), creatorBannerAvatar = el(), creatorBannerSubtitle = el();
+    var loadCreatorProfileBtn = el(), dlCreatorProfileBtn = el(), backToPlaylistBtn = el();
+    var api = { tabs: { update: function (id, o) { log.updates.push(o.url); }, create: function (o) { log.created.push(o.url); } } };
+    function t(k, f) { return f; }
+    function tf(k, f) { return f; }
+    function setStatus(m, s) { log.status.push(s + ':' + m); }
+    function getTargetTab(cb) { log.tabs++; cb({ id: 1, url: 'https://x.com/home' }); }
+    function startDeepScan() {}
+    function renderItems() {}
+    function updateFeedCountStatus() {}
+    function setTimeout() {}
+    function allItems() { return items; }
+    function itemPlatform(item) { return item.platform; }
+  `, Object.assign(ctx, { el }));
+  for (const name of ['itemHandle', 'itemCreatorKey', 'creatorHandleFor', 'syncCreatorProfileBanner', 'loadAllCreatorVideos']) vm.runInContext(fn(name), ctx);
+  ctx.banner = (platform, filter) => {
+    vm.runInContext('activeCreatorPlatform = ' + JSON.stringify(platform) + '; activeCreatorFilter = ' + JSON.stringify(filter) + '; syncCreatorProfileBanner();', ctx);
+    const shown = vm.runInContext('loadCreatorProfileBtn.style.display !== "none" && dlCreatorProfileBtn.style.display !== "none"', ctx);
+    return { shown, handle: vm.runInContext('creatorBannerHandle.textContent', ctx) };
+  };
+  return ctx;
+}
+
+const FEED = [
+  { platform: 'x', author: 'Studio Nova@studio_nova·2h', url: 'https://x.com/studio_nova/status/1', pageUrl: 'https://x.com/home' },
+  { platform: 'tiktok', author: 'Fanny', url: 'https://www.tiktok.com/@fanny_run/video/9' },
+  { platform: 'tiktok', author: 'Camille', url: 'https://www.tiktok.com/video/8' },
+  { platform: 'youtube', author: 'Camille', url: 'https://www.youtube.com/shorts/abc' },
+  { platform: 'instagram', author: 'Reels', url: 'https://www.instagram.com/reel/abc/' },
+];
+
+test('the creator banner offers profile actions only for a handle proven by a post URL', () => {
+  const h = creatorHarness(FEED);
+  assert.deepEqual(h.banner('x', 'studio_nova'), { shown: true, handle: '@studio_nova' });
+  assert.deepEqual(h.banner('tiktok', 'fanny_run'), { shown: true, handle: '@fanny_run' });
+  // Display names from the Accounts tab ("Voir les vidéos") never get Load all / Send account.
+  assert.deepEqual(h.banner('youtube', 'Camille'), { shown: false, handle: 'Camille' });
+  assert.deepEqual(h.banner('instagram', 'Reels'), { shown: false, handle: 'Reels' });
+  assert.deepEqual(h.banner('tiktok', 'Camille'), { shown: false, handle: 'Camille' });
+  assert.match(panel, /var resolved = creatorHandleFor\(activeCreatorPlatform, clean\);/); // Send account button
+});
+
+test('loadAllCreatorVideos refuses a creator whose handle no post URL confirms', () => {
+  const h = creatorHarness(FEED);
+  for (const [platform, name] of [['youtube', 'Camille'], ['instagram', 'Reels'], ['tiktok', 'Camille']]) {
+    vm.runInContext('loadAllCreatorVideos(' + JSON.stringify(name) + ', ' + JSON.stringify(platform) + ')', h);
+  }
+  assert.equal(h.log.tabs, 0, 'no tab touched');
+  assert.deepEqual([...h.log.updates, ...h.log.created], []);
+  assert.equal(h.log.status.length, 3);
+  for (const s of h.log.status) assert.equal(s, 'error:Profil indisponible sur cette plateforme');
+  // The messy X author still resolves through the status URL.
+  vm.runInContext("loadAllCreatorVideos('studio_nova', 'x')", h);
+  assert.deepEqual([...h.log.updates], ['https://x.com/studio_nova']);
+  assert.equal(vm.runInContext('activeCreatorFilter', h), 'studio_nova');
+});

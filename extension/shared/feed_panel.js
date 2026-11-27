@@ -1692,6 +1692,19 @@
     return author.length <= 40 && !/[@·]/.test(author.replace(/^@/, '')) ? author : '';
   }
 
+  // Real handle of the creator behind a filter (platform + handle or cleaned author): taken
+  // from the first of their videos whose post URL names it, else null.
+  function creatorHandleFor(platform, filter) {
+    var key = MDProfile.creatorKey(platform, filter);
+    var items = allItems();
+    for (var i = 0; i < items.length; i++) {
+      if (itemCreatorKey(items[i]) !== key) continue;
+      var handle = itemHandle(items[i]);
+      if (handle) return handle;
+    }
+    return null;
+  }
+
   function filteredItems() {
     if (activePlatformFilter === 'sniffed') {
       return sniffedStreams.map(function (s) {
@@ -1867,10 +1880,6 @@
     creatorProfileBanner.hidden = false;
     creatorProfileBanner.style.removeProperty('display');
 
-    if (creatorBannerHandle) {
-      creatorBannerHandle.textContent = '@' + cleanHandle;
-    }
-
     var firstWithAvatar = matchingItems.find(function (it) { return it.avatarUrl; });
     if (creatorBannerAvatar) {
       if (firstWithAvatar && firstWithAvatar.avatarUrl) {
@@ -1881,9 +1890,13 @@
       }
     }
 
-    var isOnProfilePage = activeTabUrl && activeTabUrl.toLowerCase().indexOf('/@' + cleanHandle.toLowerCase()) !== -1;
+    // Profile actions need a handle proven by a post URL of this creator, never the filter text.
+    var resolvedHandle = creatorHandleFor(activeCreatorPlatform, cleanHandle);
+    if (creatorBannerHandle && resolvedHandle) creatorBannerHandle.textContent = '@' + resolvedHandle;
+    else if (creatorBannerHandle) creatorBannerHandle.textContent = cleanHandle;
+    var isOnProfilePage = !!resolvedHandle && !!activeTabUrl && activeTabUrl.toLowerCase().indexOf('/@' + resolvedHandle.toLowerCase()) !== -1;
 
-    var hasProfile = !!MDProfile.profileUrl(activeCreatorPlatform, cleanHandle);
+    var hasProfile = !!(resolvedHandle && MDProfile.profileUrl(activeCreatorPlatform, resolvedHandle));
     [loadCreatorProfileBtn, dlCreatorProfileBtn].forEach(function (btn) {
       if (btn) btn.style.display = hasProfile ? '' : 'none';
     });
@@ -1918,7 +1931,9 @@
     var clean = String(handle).replace(/^@/, '').trim();
     if (!clean) return;
 
-    var profileUrl = MDProfile.profileUrl(platform, clean);
+    // Only a handle read from one of this creator's post URLs may open or scan a profile.
+    var resolved = creatorHandleFor(platform, clean);
+    var profileUrl = resolved ? MDProfile.profileUrl(platform, resolved) : null;
     if (!profileUrl) {
       setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
       return;
@@ -1934,7 +1949,7 @@
     getTargetTab(function (tab) {
       if (tab && tab.id) {
         var currentUrl = tab.url || '';
-        var isAlreadyOnProfile = currentUrl.toLowerCase().indexOf('/@' + clean.toLowerCase()) !== -1;
+        var isAlreadyOnProfile = currentUrl.toLowerCase().indexOf('/@' + resolved.toLowerCase()) !== -1;
 
         if (isAlreadyOnProfile) {
           setStatus(tf('feedScanningProfile', 'Scan du profil @{name} en cours pour charger toutes ses vidéos…', { name: clean }), 'success');
@@ -1971,8 +1986,13 @@
     dlCreatorProfileBtn.addEventListener('click', function () {
       if (!activeCreatorFilter || activeCreatorFilter === 'all') return;
       var clean = String(activeCreatorFilter).replace(/^@/, '').trim();
-      var profileUrl = MDProfile.profileUrl(activeCreatorPlatform, clean);
-      if (!profileUrl) return;
+      var resolved = creatorHandleFor(activeCreatorPlatform, clean);
+      var profileUrl = resolved ? MDProfile.profileUrl(activeCreatorPlatform, resolved) : null;
+      if (!profileUrl) {
+        setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
+        return;
+      }
+      clean = resolved;
       dlCreatorProfileBtn.disabled = true;
       dlCreatorProfileBtn.textContent = t('feedSending', 'Envoi…');
       sendRuntimeMessage({
