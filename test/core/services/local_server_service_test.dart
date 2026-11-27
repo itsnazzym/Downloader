@@ -262,6 +262,62 @@ void main() {
     },
   );
 
+  group('Origin policy', () {
+    Future<WebSocket> connectWithOrigin(String origin) => WebSocket.connect(
+      'ws://127.0.0.1:${server.boundPort}/',
+      headers: {'Origin': origin},
+    );
+
+    test('a web page origin is refused with 403 before the upgrade', () async {
+      for (final origin in [
+        'https://evil.example',
+        'http://127.0.0.1',
+        'null',
+        'file://',
+        'chrome-extension://',
+      ]) {
+        await expectLater(
+          connectWithOrigin(origin),
+          throwsA(
+            isA<WebSocketException>().having(
+              (e) => e.toString(),
+              'status',
+              contains('status code: 403'),
+            ),
+          ),
+          reason: origin,
+        );
+      }
+    });
+
+    test('an extension origin is upgraded', () async {
+      for (final origin in [
+        'chrome-extension://abcdefghijklmnopabcdefghijklmnop',
+        'moz-extension://9a8b7c6d-1111-2222-3333-444455556666',
+      ]) {
+        final ws = await connectWithOrigin(origin);
+        final first = firstMessage(ws);
+        ws.add(jsonEncode({'type': 'HELLO', 'token': expectedToken}));
+        final msg = await first.timeout(const Duration(seconds: 2));
+        expect(msg['type'], 'HELLO_OK', reason: origin);
+        await ws.close();
+      }
+    });
+
+    test('/status stays reachable from a web page origin', () async {
+      HttpOverrides.global = null; // the test binding fakes every request
+      final client = HttpClient();
+      final req = await client.getUrl(
+        Uri.parse('http://127.0.0.1:${server.boundPort}/status'),
+      );
+      req.headers.set('Origin', 'https://evil.example');
+      final res = await req.close();
+      expect(res.statusCode, HttpStatus.ok);
+      await res.drain<void>();
+      client.close();
+    });
+  });
+
   test('HELLO with wrong token returns AUTH_FAILED', () async {
     final ws = await connect();
     final first = firstMessage(ws);

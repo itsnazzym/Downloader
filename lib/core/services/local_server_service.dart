@@ -15,6 +15,7 @@ import '../logger/logger_service.dart';
 import '../theme/extension_theme.dart';
 import 'heartbeat_cookie_locator.dart';
 import '../services/notification_service.dart';
+import '../security/extension_origin.dart';
 import '../security/local_server_auth.dart';
 import '../security/local_server_download_intake.dart';
 import '../../features/x_feed/gobird_x_feed_service.dart';
@@ -154,6 +155,16 @@ Ready for Extension Connection
 
   Future<void> _handleRequest(HttpRequest request) async {
     if (WebSocketTransformer.isUpgradeRequest(request)) {
+      // A web page cannot forge Origin: refuse any present non-extension one.
+      final origin = request.headers.value('origin');
+      if (origin != null && !ExtensionOrigin.isExtensionOrigin(origin)) {
+        LoggerService.w(
+          'WebSocket refused: origin rejected:${ExtensionOrigin.originScheme(origin)}',
+        );
+        request.response.statusCode = HttpStatus.forbidden;
+        await request.response.close();
+        return;
+      }
       try {
         final socket = await WebSocketTransformer.upgrade(request);
         _handleWebSocket(socket, request);
@@ -190,8 +201,12 @@ Ready for Extension Connection
   }
 
   void _handleWebSocket(WebSocket socket, HttpRequest request) {
+    final origin = request.headers.value('origin');
+    // Used by the pairing flow: only extension origins may request pairing.
+    // ignore: unused_local_variable
+    final hasExtensionOrigin = ExtensionOrigin.isExtensionOrigin(origin);
     LoggerService.i(
-      'Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}',
+      'Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}, origin ${ExtensionOrigin.originScheme(origin)}',
     );
 
     // Token must arrive via HELLO message body — never from the URL query.
