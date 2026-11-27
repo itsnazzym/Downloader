@@ -8895,6 +8895,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
   String get archiveDeskSyncManual;
+
+  /// No description provided for @porcelaineArchiveFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get porcelaineArchiveFavorite;
+
+  /// No description provided for @porcelaineArchiveLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get porcelaineArchiveLike;
+
+  /// No description provided for @porcelaineCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get porcelaineCopyLink;
+
+  /// No description provided for @porcelaineLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get porcelaineLinkCopied;
+
+  /// No description provided for @porcelaineOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get porcelaineOpenInBrowser;
+
+  /// No description provided for @porcelaineDemoExcerpt.
+  ///
+  /// In en, this message translates to:
+  /// **'{film} · excerpt {n}'**
+  String porcelaineDemoExcerpt(String film, int n);
+
+  /// No description provided for @porcelaineClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get porcelaineClear;
+
+  /// No description provided for @porcelaineAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get porcelaineAllCollections;
+
+  /// No description provided for @porcelaineCollectionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No videos in this collection'**
+  String get porcelaineCollectionEmpty;
+
+  /// No description provided for @porcelaineDownloadingFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the folder\'s {count} videos…'**
+  String porcelaineDownloadingFolder(int count);
+
+  /// No description provided for @porcelaineSuggestionsBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sorting suggestions to review'**
+  String porcelaineSuggestionsBanner(int count);
+
+  /// No description provided for @porcelaineSuggestionsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the {count} suggestions'**
+  String porcelaineSuggestionsReview(int count);
+
+  /// No description provided for @porcelaineSuggestionsApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting…'**
+  String get porcelaineSuggestionsApplying;
+
+  /// No description provided for @porcelaineSuggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review suggestions'**
+  String get porcelaineSuggestionsTitle;
+
+  /// No description provided for @porcelaineSuggestionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the videos to file. Nothing changes until you apply.'**
+  String get porcelaineSuggestionsHint;
+
+  /// No description provided for @porcelaineSuggestionVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video {id}'**
+  String porcelaineSuggestionVideo(String id);
+
+  /// No description provided for @porcelaineSuggestionPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete sync result'**
+  String get porcelaineSuggestionPartial;
+
+  /// No description provided for @porcelaineSuggestionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date close to confirmed videos'**
+  String get porcelaineSuggestionDate;
+
+  /// No description provided for @porcelaineSuggestionMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Old mapping file'**
+  String get porcelaineSuggestionMapping;
+
+  /// No description provided for @porcelaineSuggestionOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Old classification to check'**
+  String get porcelaineSuggestionOther;
+
+  /// No description provided for @porcelaineSuggestionsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String porcelaineSuggestionsSelected(int count);
+
+  /// No description provided for @porcelaineSuggestionsApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get porcelaineSuggestionsApply;
+
+  /// No description provided for @porcelaineSuggestionsDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} suggestions added to collections.'**
+  String porcelaineSuggestionsDone(int count);
+
+  /// No description provided for @porcelaineSuggestionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply these suggestions: {error}'**
+  String porcelaineSuggestionsFailed(String error);
 }
 
 class _AppLocalizationsDelegate

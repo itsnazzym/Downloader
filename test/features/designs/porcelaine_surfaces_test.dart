@@ -149,7 +149,9 @@ void main() {
       '/',
       extra: [
         ...library,
-        downloadViewModeProvider.overrideWith((ref) => DownloadViewMode.detailed),
+        downloadViewModeProvider.overrideWith(
+          (ref) => DownloadViewMode.detailed,
+        ),
       ],
     );
   });
@@ -161,7 +163,9 @@ void main() {
       '/',
       extra: [
         ...library,
-        downloadViewModeProvider.overrideWith((ref) => DownloadViewMode.folders),
+        downloadViewModeProvider.overrideWith(
+          (ref) => DownloadViewMode.folders,
+        ),
       ],
     );
   });
@@ -193,8 +197,9 @@ void main() {
       tester,
       'archive_hub',
       '/archive',
-      setUp: (c) =>
-          c.read(tikTokArchiveProvider.notifier).setViewMode(TikTokViewMode.hub),
+      setUp: (c) => c
+          .read(tikTokArchiveProvider.notifier)
+          .setViewMode(TikTokViewMode.hub),
     );
   });
 

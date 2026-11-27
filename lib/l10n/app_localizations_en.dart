@@ -5218,4 +5218,93 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.';
+
+  @override
+  String get porcelaineArchiveFavorite => 'Favorite';
+
+  @override
+  String get porcelaineArchiveLike => 'Like';
+
+  @override
+  String get porcelaineCopyLink => 'Copy link';
+
+  @override
+  String get porcelaineLinkCopied => 'Link copied';
+
+  @override
+  String get porcelaineOpenInBrowser => 'Open in browser';
+
+  @override
+  String porcelaineDemoExcerpt(String film, int n) {
+    return '$film · excerpt $n';
+  }
+
+  @override
+  String get porcelaineClear => 'Clear';
+
+  @override
+  String get porcelaineAllCollections => 'All collections';
+
+  @override
+  String get porcelaineCollectionEmpty => 'No videos in this collection';
+
+  @override
+  String porcelaineDownloadingFolder(int count) {
+    return 'Downloading the folder\'s $count videos…';
+  }
+
+  @override
+  String porcelaineSuggestionsBanner(int count) {
+    return '$count sorting suggestions to review';
+  }
+
+  @override
+  String porcelaineSuggestionsReview(int count) {
+    return 'Review the $count suggestions';
+  }
+
+  @override
+  String get porcelaineSuggestionsApplying => 'Sorting…';
+
+  @override
+  String get porcelaineSuggestionsTitle => 'Review suggestions';
+
+  @override
+  String get porcelaineSuggestionsHint =>
+      'Tick the videos to file. Nothing changes until you apply.';
+
+  @override
+  String porcelaineSuggestionVideo(String id) {
+    return 'Video $id';
+  }
+
+  @override
+  String get porcelaineSuggestionPartial => 'Incomplete sync result';
+
+  @override
+  String get porcelaineSuggestionDate => 'Date close to confirmed videos';
+
+  @override
+  String get porcelaineSuggestionMapping => 'Old mapping file';
+
+  @override
+  String get porcelaineSuggestionOther => 'Old classification to check';
+
+  @override
+  String porcelaineSuggestionsSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get porcelaineSuggestionsApply => 'Apply';
+
+  @override
+  String porcelaineSuggestionsDone(int count) {
+    return '$count suggestions added to collections.';
+  }
+
+  @override
+  String porcelaineSuggestionsFailed(String error) {
+    return 'Could not apply these suggestions: $error';
+  }
 }

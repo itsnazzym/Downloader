@@ -368,13 +368,15 @@ class _PRow extends StatelessWidget {
                   if (busy) ...[
                     Row(
                       children: [
-                        Expanded(
-                          child: PBar(value: item.progress, height: 6),
-                        ),
+                        Expanded(child: PBar(value: item.progress, height: 6)),
                         const SizedBox(width: 10),
                         Text(
                           '${(item.progress * 100).toStringAsFixed(1)} %',
-                          style: pMono(colors, size: 11.5, color: colors.primary),
+                          style: pMono(
+                            colors,
+                            size: 11.5,
+                            color: colors.primary,
+                          ),
                         ),
                       ],
                     ),
@@ -386,16 +388,22 @@ class _PRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: busy
                         ? pMono(colors, size: 11.5)
-                        : pBody(colors, size: 12.5, color: colors.textSecondary)
-                              .copyWith(height: 1.3),
+                        : pBody(
+                            colors,
+                            size: 12.5,
+                            color: colors.textSecondary,
+                          ).copyWith(height: 1.3),
                   ),
                   if (reason.isNotEmpty)
                     Text(
                       reason,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: pBody(colors, size: 12.5, color: colors.error)
-                          .copyWith(height: 1.3),
+                      style: pBody(
+                        colors,
+                        size: 12.5,
+                        color: colors.error,
+                      ).copyWith(height: 1.3),
                     ),
                   if (_ageCheck(item)) ...[
                     const SizedBox(height: 4),
@@ -882,7 +890,8 @@ class _SortButton extends ConsumerWidget {
         mode == DownloadViewMode.folders &&
         ref.read(openedCreatorFolderKeyProvider) != null;
     final contents = ref.read(folderContentsViewModeProvider);
-    void setSort(DownloadSort v) => ref.read(downloadSortProvider.notifier).state = v;
+    void setSort(DownloadSort v) =>
+        ref.read(downloadSortProvider.notifier).state = v;
 
     PopupMenuItem<VoidCallback> field(
       String label,
@@ -913,7 +922,8 @@ class _SortButton extends ConsumerWidget {
       }
       ref.read(downloadViewModeProvider.notifier).state = v;
       if (v == DownloadViewMode.folders) {
-        if (inside) ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
+        if (inside)
+          ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
         return;
       }
       ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
@@ -1129,7 +1139,10 @@ class PLibraryBody extends ConsumerWidget {
     final Widget list = noResults
         ? const PNoResults()
         : folders
-        ? KeyedSubtree(key: OnboardingTargets.creatorList, child: const _Folders())
+        ? KeyedSubtree(
+            key: OnboardingTargets.creatorList,
+            child: const _Folders(),
+          )
         : DownloadList(key: OnboardingTargets.creatorList);
     final sheet = Container(
       clipBehavior: Clip.antiAlias,
@@ -1372,11 +1385,14 @@ class _FolderContents extends ConsumerWidget {
           child: Row(
             children: [
               PIconBtn(
-                icon: rtl ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
+                icon: rtl
+                    ? Icons.arrow_forward_rounded
+                    : Icons.arrow_back_rounded,
                 tooltip: l10n.folderBack,
                 size: 36,
                 onTap: () {
-                  ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
+                  ref.read(openedCreatorFolderKeyProvider.notifier).state =
+                      null;
                   ref.read(selectedDownloadIdProvider.notifier).state = null;
                 },
               ),
@@ -1807,10 +1823,10 @@ class PInspector extends ConsumerWidget {
                     _titleOf(context, item),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: pDisp(20, color: colors.textPrimary).copyWith(
-                      height: 1.2,
-                      letterSpacing: -0.4,
-                    ),
+                    style: pDisp(
+                      20,
+                      color: colors.textPrimary,
+                    ).copyWith(height: 1.2, letterSpacing: -0.4),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -1861,10 +1877,7 @@ class PInspector extends ConsumerWidget {
                         ),
                     ],
                   ),
-                  if (failure != null) ...[
-                    const SizedBox(height: 18),
-                    failure,
-                  ],
+                  if (failure != null) ...[const SizedBox(height: 18), failure],
                   const SizedBox(height: 18),
                   Wrap(spacing: 8, runSpacing: 8, children: actions),
                   const SizedBox(height: 22),

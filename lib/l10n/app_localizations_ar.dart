@@ -5225,4 +5225,93 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
+
+  @override
+  String get porcelaineArchiveFavorite => 'مفضّلة';
+
+  @override
+  String get porcelaineArchiveLike => 'إعجاب';
+
+  @override
+  String get porcelaineCopyLink => 'نسخ الرابط';
+
+  @override
+  String get porcelaineLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get porcelaineOpenInBrowser => 'فتح في المتصفح';
+
+  @override
+  String porcelaineDemoExcerpt(String film, int n) {
+    return '$film · مقتطف $n';
+  }
+
+  @override
+  String get porcelaineClear => 'مسح';
+
+  @override
+  String get porcelaineAllCollections => 'كل المجموعات';
+
+  @override
+  String get porcelaineCollectionEmpty => 'لا توجد فيديوهات في هذه المجموعة';
+
+  @override
+  String porcelaineDownloadingFolder(int count) {
+    return 'جارٍ تنزيل $count فيديو من المجلد…';
+  }
+
+  @override
+  String porcelaineSuggestionsBanner(int count) {
+    return '$count اقتراحات تصنيف للمراجعة';
+  }
+
+  @override
+  String porcelaineSuggestionsReview(int count) {
+    return 'مراجعة $count اقتراحات';
+  }
+
+  @override
+  String get porcelaineSuggestionsApplying => 'جارٍ التصنيف…';
+
+  @override
+  String get porcelaineSuggestionsTitle => 'مراجعة الاقتراحات';
+
+  @override
+  String get porcelaineSuggestionsHint =>
+      'حدّد الفيديوهات المراد ترتيبها. لا يتغيّر شيء قبل التأكيد.';
+
+  @override
+  String porcelaineSuggestionVideo(String id) {
+    return 'فيديو $id';
+  }
+
+  @override
+  String get porcelaineSuggestionPartial => 'نتيجة مزامنة غير مكتملة';
+
+  @override
+  String get porcelaineSuggestionDate => 'تاريخ قريب من الفيديوهات المؤكدة';
+
+  @override
+  String get porcelaineSuggestionMapping => 'ملف تطابق قديم';
+
+  @override
+  String get porcelaineSuggestionOther => 'تصنيف قديم للتحقق';
+
+  @override
+  String porcelaineSuggestionsSelected(int count) {
+    return '$count محددة';
+  }
+
+  @override
+  String get porcelaineSuggestionsApply => 'تطبيق';
+
+  @override
+  String porcelaineSuggestionsDone(int count) {
+    return 'أُضيفت $count اقتراحات إلى المجموعات.';
+  }
+
+  @override
+  String porcelaineSuggestionsFailed(String error) {
+    return 'تعذّر تطبيق هذه الاقتراحات: $error';
+  }
 }

@@ -1038,10 +1038,7 @@ Future<bool> pConfirm(
                 Text(title, style: pDisp(22, color: colors.textPrimary)),
                 if (body != null) ...[
                   const SizedBox(height: 12),
-                  Text(
-                    body,
-                    style: pBody(colors, color: colors.textSecondary),
-                  ),
+                  Text(body, style: pBody(colors, color: colors.textSecondary)),
                 ],
                 if (content != null) ...[
                   const SizedBox(height: 12),
@@ -1056,9 +1053,9 @@ Future<bool> pConfirm(
                     Focus(
                       autofocus: true,
                       child: PBtn(
-                        label: cancel ?? MaterialLocalizations.of(
-                          ctx,
-                        ).cancelButtonLabel,
+                        label:
+                            cancel ??
+                            MaterialLocalizations.of(ctx).cancelButtonLabel,
                         kind: PBtnKind.ghost,
                         onTap: () => Navigator.of(ctx).pop(false),
                       ),
@@ -1165,7 +1162,9 @@ class PSheetTheme extends StatelessWidget {
         listTileTheme: ListTileThemeData(
           tileColor: colors.surface,
           contentPadding: const EdgeInsetsDirectional.fromSTEB(18, 4, 14, 4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
           iconColor: colors.textSecondary,
           selectedColor: colors.primary,
           selectedTileColor: colors.primary.withValues(alpha: 0.08),
@@ -1256,13 +1255,17 @@ class PSheetTheme extends StatelessWidget {
           color: colors.surface,
           surfaceTintColor: Colors.transparent,
           elevation: 12,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           textStyle: pBody(colors, size: 13),
         ),
         dialogTheme: DialogThemeData(
           backgroundColor: colors.surface,
           surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
           titleTextStyle: pDisp(22, color: colors.textPrimary),
           contentTextStyle: pBody(colors, color: colors.textSecondary),
         ),
@@ -1274,6 +1277,113 @@ class PSheetTheme extends StatelessWidget {
         extensions: [AppPalette(sheet)],
       ),
       child: child,
+    );
+  }
+}
+
+/// `.ck`: the 24px checkbox.
+class PCheckBox extends StatelessWidget {
+  const PCheckBox({super.key, required this.on, required this.hover});
+
+  final bool on;
+  final bool hover;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return AnimatedContainer(
+      duration: pMotion(context, 150),
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: on ? colors.primary : colors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: on
+            ? null
+            : Border.all(
+                color: hover
+                    ? colors.primary
+                    : colors.textPrimary.withValues(alpha: 0.45),
+                width: 1.5,
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: colors.textPrimary.withValues(alpha: on ? 0.2 : 0.15),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: on
+          ? Icon(Icons.check_rounded, size: 15, color: colors.onPrimary)
+          : null,
+    );
+  }
+}
+
+/// The stone search field (`.search`): icon, text, a clear button.
+class PSearchField extends StatelessWidget {
+  const PSearchField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    required this.onChanged,
+    this.height = 42,
+    this.clearTooltip,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final ValueChanged<String> onChanged;
+  final double height;
+  final String? clearTooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Container(
+      height: height,
+      padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+      decoration: BoxDecoration(
+        color: colors.inputBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search_rounded, size: 17, color: colors.textSecondary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
+              cursorColor: colors.primary,
+              style: pBody(colors, size: 13),
+              decoration: InputDecoration(
+                isCollapsed: true,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                hintText: hint,
+                hintStyle: pBody(colors, size: 13, color: colors.textSecondary),
+              ),
+            ),
+          ),
+          if (controller.text.isNotEmpty)
+            PIconBtn(
+              icon: Icons.close_rounded,
+              tooltip:
+                  clearTooltip ??
+                  MaterialLocalizations.of(context).deleteButtonTooltip,
+              size: 26,
+              filled: false,
+              onTap: () {
+                controller.clear();
+                onChanged('');
+              },
+            ),
+        ],
+      ),
     );
   }
 }

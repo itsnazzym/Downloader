@@ -5281,4 +5281,94 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.';
+
+  @override
+  String get porcelaineArchiveFavorite => 'Favori';
+
+  @override
+  String get porcelaineArchiveLike => 'Like';
+
+  @override
+  String get porcelaineCopyLink => 'Copier le lien';
+
+  @override
+  String get porcelaineLinkCopied => 'Lien copié';
+
+  @override
+  String get porcelaineOpenInBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String porcelaineDemoExcerpt(String film, int n) {
+    return '$film · extrait $n';
+  }
+
+  @override
+  String get porcelaineClear => 'Effacer';
+
+  @override
+  String get porcelaineAllCollections => 'Toutes les collections';
+
+  @override
+  String get porcelaineCollectionEmpty => 'Aucune vidéo dans cette collection';
+
+  @override
+  String porcelaineDownloadingFolder(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String porcelaineSuggestionsBanner(int count) {
+    return '$count propositions de classement à vérifier';
+  }
+
+  @override
+  String porcelaineSuggestionsReview(int count) {
+    return 'Examiner les $count propositions';
+  }
+
+  @override
+  String get porcelaineSuggestionsApplying => 'Classement en cours…';
+
+  @override
+  String get porcelaineSuggestionsTitle => 'Vérifier les propositions';
+
+  @override
+  String get porcelaineSuggestionsHint =>
+      'Coche les vidéos à ranger. Rien ne change avant validation.';
+
+  @override
+  String porcelaineSuggestionVideo(String id) {
+    return 'Vidéo $id';
+  }
+
+  @override
+  String get porcelaineSuggestionPartial =>
+      'Résultat de synchronisation incomplet';
+
+  @override
+  String get porcelaineSuggestionDate => 'Date proche des vidéos confirmées';
+
+  @override
+  String get porcelaineSuggestionMapping => 'Ancien fichier de correspondance';
+
+  @override
+  String get porcelaineSuggestionOther => 'Ancien classement à vérifier';
+
+  @override
+  String porcelaineSuggestionsSelected(int count) {
+    return '$count sélectionnées';
+  }
+
+  @override
+  String get porcelaineSuggestionsApply => 'Appliquer';
+
+  @override
+  String porcelaineSuggestionsDone(int count) {
+    return '$count propositions ajoutées aux collections.';
+  }
+
+  @override
+  String porcelaineSuggestionsFailed(String error) {
+    return 'Impossible d’appliquer ces propositions : $error';
+  }
 }

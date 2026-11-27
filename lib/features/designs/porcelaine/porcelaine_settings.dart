@@ -1009,8 +1009,7 @@ class _AppearancePage extends ConsumerWidget {
                             _AccentDot(
                               color: c,
                               selected: c.toARGB32() == accent.toARGB32(),
-                              onTap: () =>
-                                  n.setCustomAccentColor(c.toARGB32()),
+                              onTap: () => n.setCustomAccentColor(c.toARGB32()),
                             ),
                         ],
                       ),
@@ -1094,7 +1093,11 @@ class _AccentDotState extends State<_AccentDot> {
                 ],
               ),
               child: widget.selected
-                  ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
+                  ? const Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    )
                   : null,
             ),
           ),

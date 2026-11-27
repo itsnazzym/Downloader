@@ -1915,120 +1915,120 @@ class _Library extends ConsumerWidget {
       child: Focus(
         autofocus: true,
         child: LayoutBuilder(
-        builder: (context, box) {
-          final side = box.maxWidth > 1284 ? (box.maxWidth - 1220) / 2 : 32.0;
-          final compact = box.maxWidth < 900;
-          // The sheet rises once when the library opens.
-          return TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: pMotion(context, 420),
-            curve: pEase,
-            builder: (context, t, child) => Opacity(
-              opacity: t,
-              child: Transform.translate(
-                offset: Offset(0, 14 * (1 - t)),
-                child: child,
+          builder: (context, box) {
+            final side = box.maxWidth > 1284 ? (box.maxWidth - 1220) / 2 : 32.0;
+            final compact = box.maxWidth < 900;
+            // The sheet rises once when the library opens.
+            return TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: pMotion(context, 420),
+              curve: pEase,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(
+                  offset: Offset(0, 14 * (1 - t)),
+                  child: child,
+                ),
               ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(side, 4, side, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      PBtn(
-                        label: compact ? '' : l10n.porcelaineSpace,
-                        tooltip: compact ? l10n.porcelaineSpace : null,
-                        icon: rtl
-                            ? Icons.arrow_forward_rounded
-                            : Icons.arrow_back_rounded,
-                        kind: PBtnKind.line,
-                        height: 36,
-                        padding: compact ? 11 : 16,
-                        onTap: back,
-                      ),
-                      const SizedBox(width: 16),
-                      Flexible(
-                        child: Text(
-                          l10n.librarySection,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: pDisp(
-                            compact ? 24 : 28,
-                            color: colors.textPrimary,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(side, 4, side, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        PBtn(
+                          label: compact ? '' : l10n.porcelaineSpace,
+                          tooltip: compact ? l10n.porcelaineSpace : null,
+                          icon: rtl
+                              ? Icons.arrow_forward_rounded
+                              : Icons.arrow_back_rounded,
+                          kind: PBtnKind.line,
+                          height: 36,
+                          padding: compact ? 11 : 16,
+                          onTap: back,
+                        ),
+                        const SizedBox(width: 16),
+                        Flexible(
+                          child: Text(
+                            l10n.librarySection,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: pDisp(
+                              compact ? 24 : 28,
+                              color: colors.textPrimary,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      if (phase > 0)
-                        Text('$count', style: pMono(colors, size: 14)),
-                      const Spacer(),
-                      if (failed > 0) ...[
+                        const SizedBox(width: 12),
+                        if (phase > 0)
+                          Text('$count', style: pMono(colors, size: 14)),
+                        const Spacer(),
+                        if (failed > 0) ...[
+                          PBtn(
+                            label: compact
+                                ? '$failed'
+                                : l10n.porcelaineRetryFailedCount(failed),
+                            tooltip: compact
+                                ? l10n.porcelaineRetryFailedCount(failed)
+                                : l10n.retryAllFailedTooltip(failed),
+                            icon: Icons.refresh_rounded,
+                            height: 36,
+                            onTap: () async {
+                              await ref
+                                  .read(downloadListProvider.notifier)
+                                  .retryAllFailed();
+                              if (context.mounted) {
+                                pNotice(context, l10n.retryingFailed(failed));
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        // Today's « Nouveau téléchargement » (also Ctrl+N and
+                        // the Lien rapide widget's menu).
                         PBtn(
-                          label: compact
-                              ? '$failed'
-                              : l10n.porcelaineRetryFailedCount(failed),
-                          tooltip: compact
-                              ? l10n.porcelaineRetryFailedCount(failed)
-                              : l10n.retryAllFailedTooltip(failed),
-                          icon: Icons.refresh_rounded,
+                          label: compact ? '' : l10n.newDownload,
+                          tooltip: compact ? l10n.newDownload : null,
+                          icon: Icons.add_rounded,
+                          kind: PBtnKind.accent,
                           height: 36,
-                          onTap: () async {
-                            await ref
-                                .read(downloadListProvider.notifier)
-                                .retryAllFailed();
-                            if (context.mounted) {
-                              pNotice(context, l10n.retryingFailed(failed));
-                            }
-                          },
+                          padding: compact ? 11 : 16,
+                          onTap: () => openNewDownload(context),
                         ),
-                        const SizedBox(width: 8),
                       ],
-                      // Today's « Nouveau téléchargement » (also Ctrl+N and
-                      // the Lien rapide widget's menu).
-                      PBtn(
-                        label: compact ? '' : l10n.newDownload,
-                        tooltip: compact ? l10n.newDownload : null,
-                        icon: Icons.add_rounded,
-                        kind: PBtnKind.accent,
-                        height: 36,
-                        padding: compact ? 11 : 16,
-                        onTap: () => openNewDownload(context),
-                      ),
+                    ),
+                    if (phase > 0) ...[
+                      const SizedBox(height: 16),
+                      PLibraryToolbar(key: OnboardingTargets.topBar),
+                      const SizedBox(height: 12),
+                      const PLibraryFilters(),
                     ],
-                  ),
-                  if (phase > 0) ...[
-                    const SizedBox(height: 16),
-                    PLibraryToolbar(key: OnboardingTargets.topBar),
-                    const SizedBox(height: 12),
-                    const PLibraryFilters(),
-                  ],
-                  const SizedBox(height: 14),
-                  Expanded(
-                    child: content == null
-                        ? PLibraryBody(noResults: count == 0)
-                        : Container(
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                              color: pCardFill(colors),
-                              borderRadius: BorderRadius.circular(28),
-                              boxShadow: pCardShadow(colors),
-                            ),
-                            child: AnimatedSwitcher(
-                              duration: pMotion(context, 220),
-                              child: KeyedSubtree(
-                                key: ValueKey(phase),
-                                child: content,
+                    const SizedBox(height: 14),
+                    Expanded(
+                      child: content == null
+                          ? PLibraryBody(noResults: count == 0)
+                          : Container(
+                              clipBehavior: Clip.antiAlias,
+                              decoration: BoxDecoration(
+                                color: pCardFill(colors),
+                                borderRadius: BorderRadius.circular(28),
+                                boxShadow: pCardShadow(colors),
+                              ),
+                              child: AnimatedSwitcher(
+                                duration: pMotion(context, 220),
+                                child: KeyedSubtree(
+                                  key: ValueKey(phase),
+                                  child: content,
+                                ),
                               ),
                             ),
-                          ),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
         ),
       ),
     );
