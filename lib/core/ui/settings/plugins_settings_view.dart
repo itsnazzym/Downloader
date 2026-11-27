@@ -18,7 +18,6 @@ import '../../design_system/foundation/typography.dart';
 import '../../design_system/components/app_button.dart';
 
 import '../../design_system/components/app_toast.dart';
-import '../../design_system/design_skin.dart';
 
 import '../../plugins/plugin_manager.dart';
 import '../../plugins/feature_activation.dart';

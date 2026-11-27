@@ -19,6 +19,7 @@ import 'package:modern_downloader/core/ui/mobile/mobile_app_shell.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:modern_downloader/features/designs/design_skins.dart';
+import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
 
 /// Where the PNGs and the report land.
 const String kVisualOutDir =
@@ -39,6 +40,9 @@ late FeatureCatalog visualCatalog;
 Future<void> setUpVisualEnvironment() async {
   HttpOverrides.global = null;
   registerDesignSkins();
+  // Advanced checks gobird on open: a real process would outlive the test.
+  BinaryVerifier.debugCheckGobird = () async =>
+      BinaryStatus(isInstalled: false, version: null, error: 'gobird not found');
   Directory(kVisualOutDir).createSync(recursive: true);
 
   final cacheDir = Directory('$kVisualOutDir/.font_cache')
