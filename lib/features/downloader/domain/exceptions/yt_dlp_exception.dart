@@ -109,14 +109,15 @@ class YtDlpException implements Exception {
   static String withoutMediaIds(String text) =>
       text.replaceAll(RegExp(r'\d{12,}'), '<id>');
 
+  /// Only `ERROR` lines: a warning (Android's "no impersonate target" on
+  /// every TikTok run) must not hide the real error behind its own label.
   static String _errorLines(String data) {
     final buffer = StringBuffer();
     for (final line in data.split(RegExp(r'\r?\n'))) {
       final trimmed = line.trimLeft();
       if (trimmed.startsWith('ERROR:') ||
           trimmed.startsWith('ERROR -') ||
-          trimmed.contains('ERROR: ') ||
-          trimmed.startsWith('WARNING:')) {
+          trimmed.contains('ERROR: ')) {
         if (buffer.isNotEmpty) buffer.writeln();
         buffer.write(trimmed);
       }

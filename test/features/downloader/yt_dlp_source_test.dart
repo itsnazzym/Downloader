@@ -148,6 +148,21 @@ void main() {
     },
   );
 
+  test('Android stages non-ASCII names under an ASCII one with the ID', () {
+    expect(
+      YtDlpSource.androidStagingName('un peu de tout [7631].%(ext)s', 'd1'),
+      isNull,
+    );
+    expect(
+      YtDlpSource.androidStagingName('#prtoiシ #prt [7631145].%(ext)s', 'd1'),
+      'tapload [7631145].%(ext)s',
+    );
+    expect(
+      YtDlpSource.androidStagingName('Été à Paris.%(ext)s', 'd1'),
+      'tapload [d1].%(ext)s',
+    );
+  });
+
   test('fromLog detects XHamster impersonation and no formats found error', () {
     const errorLog = '''
 WARNING: [XHamster] The extractor is attempting impersonation, but no impersonate target is available. If you encounter errors, then see https://github.com/yt-dlp/yt-dlp#impersonation for information on installing the required dependencies

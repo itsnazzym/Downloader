@@ -81,6 +81,28 @@ void main() {
       );
     });
 
+    test('the Android impersonation warning never names the error', () {
+      const warning =
+          'WARNING: [TikTok] The extractor is attempting impersonation, but '
+          'no impersonate target is available. If you encounter errors, then '
+          'see https://github.com/yt-dlp/yt-dlp#impersonation';
+      expect(YtDlpException.fromLog(warning), isNull);
+      expect(
+        YtDlpException.fromLog(
+          '$warning\nERROR: Postprocessing: Error opening output files: '
+          'Invalid argument',
+        ),
+        isNot(isA<NoVideoFormatsException>()),
+      );
+      expect(
+        YtDlpException.fromLog(
+          '$warning\nERROR: [TikTok] 7589106706517478678: Video not '
+          'available, status code 0',
+        ),
+        isA<TikTokRefusedException>(),
+      );
+    });
+
     test('a TikTok post without video formats is a photo post', () {
       final error = YtDlpException.fromLog(
         'ERROR: [TikTok] 7235285015339257089: No video formats found!; '
