@@ -207,7 +207,9 @@ class _Pairing extends ConsumerWidget {
     final c = AppColors.of(context);
     final l10n = context.l10n;
     final (qr, pin, ip, port) = ref.watch(
-      transferControllerProvider.select((s) => (s.qrUrl, s.pin, s.lanIp, s.port)),
+      transferControllerProvider.select(
+        (s) => (s.qrUrl, s.pin, s.lanIp, s.port),
+      ),
     );
     final pinLabel = pin.length == 6
         ? '${pin.substring(0, 3)} ${pin.substring(3)}'
@@ -369,8 +371,8 @@ class _Devices extends ConsumerWidget {
             _DeviceRow(
               peer: peers[i],
               first: i == 0,
-              chosen: _targetOf(peers, target)?.fingerprint ==
-                  peers[i].fingerprint,
+              chosen:
+                  _targetOf(peers, target)?.fingerprint == peers[i].fingerprint,
               onChoose: () =>
                   controller.setActiveTargetFingerprint(peers[i].fingerprint),
             ),
@@ -416,9 +418,7 @@ class _DeviceRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
-          border: first
-              ? null
-              : Border(top: BorderSide(color: c.borderSubtle)),
+          border: first ? null : Border(top: BorderSide(color: c.borderSubtle)),
         ),
         child: Row(
           children: [
@@ -509,13 +509,8 @@ class _Files extends ConsumerWidget {
       required bool on,
       required VoidCallback onTap,
       bool first = false,
-    }) => _FileRow(
-      label: label,
-      size: size,
-      on: on,
-      onTap: onTap,
-      first: first,
-    );
+    }) =>
+        _FileRow(label: label, size: size, on: on, onTap: onTap, first: first);
 
     int folderBytes(CreatorFolder f) =>
         f.itemIds.fold(0, (sum, id) => sum + (bytesById[id] ?? 0));
@@ -780,10 +775,7 @@ class _Progress extends ConsumerWidget {
                     onTap: controller.retryLastTransfer,
                   ),
                 ] else ...[
-                  if (live) ...[
-                    const StudioRecDot(),
-                    const SizedBox(width: 6),
-                  ],
+                  if (live) ...[const StudioRecDot(), const SizedBox(width: 6)],
                   Text(
                     phaseLabel ??
                         (progress.bytesPerSecond > 0

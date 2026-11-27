@@ -5281,4 +5281,110 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.';
+
+  @override
+  String get studioArchiveAllCollections => 'Toutes les collections';
+
+  @override
+  String studioArchiveBatchRunning(int done, int total) {
+    return 'En cours ($done/$total)';
+  }
+
+  @override
+  String get studioArchiveDemo => 'Mode démo : téléchargement simulé.';
+
+  @override
+  String get studioArchiveFavorite => 'Favori';
+
+  @override
+  String get studioArchiveLike => 'Like';
+
+  @override
+  String get studioArchiveCopyLink => 'Copier le lien';
+
+  @override
+  String get studioArchiveLinkCopied => 'Lien copié';
+
+  @override
+  String get studioArchiveOpenBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String get studioArchiveShowPosters => 'Afficher les miniatures';
+
+  @override
+  String get studioArchiveShowFolders => 'Afficher les dossiers';
+
+  @override
+  String get studioArchiveSyncIncomplete =>
+      'Synchronisation incomplète. Le dernier état fiable est conservé.';
+
+  @override
+  String studioArchiveSyncIncompleteWhy(String error) {
+    return 'Synchronisation incomplète : $error';
+  }
+
+  @override
+  String studioArchiveDeclared(int count, int total) {
+    return '$count vidéos synchronisées sur $total déclarées';
+  }
+
+  @override
+  String studioArchiveSuggestions(int count) {
+    return '$count propositions de classement à vérifier';
+  }
+
+  @override
+  String studioArchiveReview(int count) {
+    return 'Examiner les $count propositions';
+  }
+
+  @override
+  String get studioArchiveApplying => 'Classement en cours…';
+
+  @override
+  String get studioArchiveReviewTitle => 'Vérifier les propositions';
+
+  @override
+  String get studioArchiveReviewHint =>
+      'Coche les vidéos à ranger. Rien ne change avant validation.';
+
+  @override
+  String get studioArchiveReasonPartial =>
+      'Résultat de synchronisation incomplet';
+
+  @override
+  String get studioArchiveReasonDate => 'Date proche des vidéos confirmées';
+
+  @override
+  String get studioArchiveReasonMapping => 'Ancien fichier de correspondance';
+
+  @override
+  String get studioArchiveReasonOther => 'Ancien classement à vérifier';
+
+  @override
+  String studioArchiveSuggestionVideo(String id) {
+    return 'Vidéo $id';
+  }
+
+  @override
+  String get studioArchiveApply => 'Appliquer';
+
+  @override
+  String studioArchiveApplied(int count) {
+    return '$count propositions ajoutées aux collections.';
+  }
+
+  @override
+  String studioArchiveApplyFailed(String error) {
+    return 'Impossible d’appliquer ces propositions : $error';
+  }
+
+  @override
+  String studioArchiveFolderQueued(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String get studioArchiveEmptyCollection =>
+      'Aucune vidéo dans cette collection';
 }

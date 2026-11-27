@@ -5218,4 +5218,108 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.';
+
+  @override
+  String get studioArchiveAllCollections => 'All collections';
+
+  @override
+  String studioArchiveBatchRunning(int done, int total) {
+    return 'Running ($done/$total)';
+  }
+
+  @override
+  String get studioArchiveDemo => 'Demo mode: download simulated.';
+
+  @override
+  String get studioArchiveFavorite => 'Favorite';
+
+  @override
+  String get studioArchiveLike => 'Like';
+
+  @override
+  String get studioArchiveCopyLink => 'Copy link';
+
+  @override
+  String get studioArchiveLinkCopied => 'Link copied';
+
+  @override
+  String get studioArchiveOpenBrowser => 'Open in browser';
+
+  @override
+  String get studioArchiveShowPosters => 'Show thumbnails';
+
+  @override
+  String get studioArchiveShowFolders => 'Show folders';
+
+  @override
+  String get studioArchiveSyncIncomplete =>
+      'Sync incomplete. The last reliable state is kept.';
+
+  @override
+  String studioArchiveSyncIncompleteWhy(String error) {
+    return 'Sync incomplete: $error';
+  }
+
+  @override
+  String studioArchiveDeclared(int count, int total) {
+    return '$count videos synced out of $total declared';
+  }
+
+  @override
+  String studioArchiveSuggestions(int count) {
+    return '$count sorting suggestions to review';
+  }
+
+  @override
+  String studioArchiveReview(int count) {
+    return 'Review the $count suggestions';
+  }
+
+  @override
+  String get studioArchiveApplying => 'Sorting…';
+
+  @override
+  String get studioArchiveReviewTitle => 'Review the suggestions';
+
+  @override
+  String get studioArchiveReviewHint =>
+      'Tick the videos to sort. Nothing changes until you apply.';
+
+  @override
+  String get studioArchiveReasonPartial => 'Incomplete sync result';
+
+  @override
+  String get studioArchiveReasonDate => 'Date close to confirmed videos';
+
+  @override
+  String get studioArchiveReasonMapping => 'Old mapping file';
+
+  @override
+  String get studioArchiveReasonOther => 'Old sorting to check';
+
+  @override
+  String studioArchiveSuggestionVideo(String id) {
+    return 'Video $id';
+  }
+
+  @override
+  String get studioArchiveApply => 'Apply';
+
+  @override
+  String studioArchiveApplied(int count) {
+    return '$count suggestions added to the collections.';
+  }
+
+  @override
+  String studioArchiveApplyFailed(String error) {
+    return 'Could not apply these suggestions: $error';
+  }
+
+  @override
+  String studioArchiveFolderQueued(int count) {
+    return 'Downloading the folder’s $count videos…';
+  }
+
+  @override
+  String get studioArchiveEmptyCollection => 'No video in this collection';
 }

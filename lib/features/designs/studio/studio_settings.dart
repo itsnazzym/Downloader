@@ -1013,11 +1013,10 @@ class _TileRowState extends State<_TileRow> {
                     ),
                     if (widget.trailing != null) ...[
                       const SizedBox(width: 16),
-                      Flexible(
-                        child: Align(
-                          alignment: AlignmentDirectional.centerEnd,
-                          child: widget.trailing,
-                        ),
+                      // Sized by its content, so the note keeps the width.
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: widget.trailing,
                       ),
                     ],
                   ],

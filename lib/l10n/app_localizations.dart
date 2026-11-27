@@ -8895,6 +8895,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
   String get archiveDeskSyncManual;
+
+  /// No description provided for @studioArchiveAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get studioArchiveAllCollections;
+
+  /// No description provided for @studioArchiveBatchRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running ({done}/{total})'**
+  String studioArchiveBatchRunning(int done, int total);
+
+  /// No description provided for @studioArchiveDemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode: download simulated.'**
+  String get studioArchiveDemo;
+
+  /// No description provided for @studioArchiveFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get studioArchiveFavorite;
+
+  /// No description provided for @studioArchiveLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get studioArchiveLike;
+
+  /// No description provided for @studioArchiveCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get studioArchiveCopyLink;
+
+  /// No description provided for @studioArchiveLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get studioArchiveLinkCopied;
+
+  /// No description provided for @studioArchiveOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get studioArchiveOpenBrowser;
+
+  /// No description provided for @studioArchiveShowPosters.
+  ///
+  /// In en, this message translates to:
+  /// **'Show thumbnails'**
+  String get studioArchiveShowPosters;
+
+  /// No description provided for @studioArchiveShowFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Show folders'**
+  String get studioArchiveShowFolders;
+
+  /// No description provided for @studioArchiveSyncIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete. The last reliable state is kept.'**
+  String get studioArchiveSyncIncomplete;
+
+  /// No description provided for @studioArchiveSyncIncompleteWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete: {error}'**
+  String studioArchiveSyncIncompleteWhy(String error);
+
+  /// No description provided for @studioArchiveDeclared.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos synced out of {total} declared'**
+  String studioArchiveDeclared(int count, int total);
+
+  /// No description provided for @studioArchiveSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sorting suggestions to review'**
+  String studioArchiveSuggestions(int count);
+
+  /// No description provided for @studioArchiveReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the {count} suggestions'**
+  String studioArchiveReview(int count);
+
+  /// No description provided for @studioArchiveApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting…'**
+  String get studioArchiveApplying;
+
+  /// No description provided for @studioArchiveReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the suggestions'**
+  String get studioArchiveReviewTitle;
+
+  /// No description provided for @studioArchiveReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the videos to sort. Nothing changes until you apply.'**
+  String get studioArchiveReviewHint;
+
+  /// No description provided for @studioArchiveReasonPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete sync result'**
+  String get studioArchiveReasonPartial;
+
+  /// No description provided for @studioArchiveReasonDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date close to confirmed videos'**
+  String get studioArchiveReasonDate;
+
+  /// No description provided for @studioArchiveReasonMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Old mapping file'**
+  String get studioArchiveReasonMapping;
+
+  /// No description provided for @studioArchiveReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Old sorting to check'**
+  String get studioArchiveReasonOther;
+
+  /// No description provided for @studioArchiveSuggestionVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video {id}'**
+  String studioArchiveSuggestionVideo(String id);
+
+  /// No description provided for @studioArchiveApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get studioArchiveApply;
+
+  /// No description provided for @studioArchiveApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} suggestions added to the collections.'**
+  String studioArchiveApplied(int count);
+
+  /// No description provided for @studioArchiveApplyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply these suggestions: {error}'**
+  String studioArchiveApplyFailed(String error);
+
+  /// No description provided for @studioArchiveFolderQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the folder’s {count} videos…'**
+  String studioArchiveFolderQueued(int count);
+
+  /// No description provided for @studioArchiveEmptyCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'No video in this collection'**
+  String get studioArchiveEmptyCollection;
 }
 
 class _AppLocalizationsDelegate

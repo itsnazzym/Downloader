@@ -5225,4 +5225,108 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
+
+  @override
+  String get studioArchiveAllCollections => 'كل المجموعات';
+
+  @override
+  String studioArchiveBatchRunning(int done, int total) {
+    return 'قيد التنفيذ ($done/$total)';
+  }
+
+  @override
+  String get studioArchiveDemo => 'وضع العرض: تنزيل محاكى.';
+
+  @override
+  String get studioArchiveFavorite => 'مفضلة';
+
+  @override
+  String get studioArchiveLike => 'إعجاب';
+
+  @override
+  String get studioArchiveCopyLink => 'نسخ الرابط';
+
+  @override
+  String get studioArchiveLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get studioArchiveOpenBrowser => 'فتح في المتصفح';
+
+  @override
+  String get studioArchiveShowPosters => 'عرض الصور المصغرة';
+
+  @override
+  String get studioArchiveShowFolders => 'عرض المجلدات';
+
+  @override
+  String get studioArchiveSyncIncomplete =>
+      'المزامنة غير مكتملة. تم الاحتفاظ بآخر حالة موثوقة.';
+
+  @override
+  String studioArchiveSyncIncompleteWhy(String error) {
+    return 'المزامنة غير مكتملة: $error';
+  }
+
+  @override
+  String studioArchiveDeclared(int count, int total) {
+    return 'تمت مزامنة $count من أصل $total فيديو';
+  }
+
+  @override
+  String studioArchiveSuggestions(int count) {
+    return '$count اقتراحات تصنيف للمراجعة';
+  }
+
+  @override
+  String studioArchiveReview(int count) {
+    return 'مراجعة $count اقتراحات';
+  }
+
+  @override
+  String get studioArchiveApplying => 'جارٍ التصنيف…';
+
+  @override
+  String get studioArchiveReviewTitle => 'مراجعة الاقتراحات';
+
+  @override
+  String get studioArchiveReviewHint =>
+      'حدد الفيديوهات المراد ترتيبها. لا شيء يتغير قبل التأكيد.';
+
+  @override
+  String get studioArchiveReasonPartial => 'نتيجة مزامنة غير مكتملة';
+
+  @override
+  String get studioArchiveReasonDate => 'تاريخ قريب من الفيديوهات المؤكدة';
+
+  @override
+  String get studioArchiveReasonMapping => 'ملف مطابقة قديم';
+
+  @override
+  String get studioArchiveReasonOther => 'تصنيف قديم للتحقق';
+
+  @override
+  String studioArchiveSuggestionVideo(String id) {
+    return 'فيديو $id';
+  }
+
+  @override
+  String get studioArchiveApply => 'تطبيق';
+
+  @override
+  String studioArchiveApplied(int count) {
+    return 'تمت إضافة $count اقتراحات إلى المجموعات.';
+  }
+
+  @override
+  String studioArchiveApplyFailed(String error) {
+    return 'تعذر تطبيق هذه الاقتراحات: $error';
+  }
+
+  @override
+  String studioArchiveFolderQueued(int count) {
+    return 'جارٍ تنزيل $count فيديو من المجلد…';
+  }
+
+  @override
+  String get studioArchiveEmptyCollection => 'لا يوجد فيديو في هذه المجموعة';
 }

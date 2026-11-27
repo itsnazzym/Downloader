@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 
@@ -612,6 +613,110 @@ class StudioSwitch extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A white 36px search box with a hairline ring that turns ink on focus, a
+/// magnifier, and a clear button once something is typed (Esc clears too).
+class StudioSearchBox extends StatefulWidget {
+  const StudioSearchBox({
+    super.key,
+    required this.hint,
+    required this.clearTooltip,
+    required this.onChanged,
+    this.initial = '',
+  });
+
+  final String hint;
+  final String clearTooltip;
+  final ValueChanged<String> onChanged;
+  final String initial;
+
+  @override
+  State<StudioSearchBox> createState() => _StudioSearchBoxState();
+}
+
+class _StudioSearchBoxState extends State<StudioSearchBox> {
+  late final TextEditingController _controller;
+  late final FocusNode _focus;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initial);
+    _focus = FocusNode()..addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _clear() {
+    _controller.clear();
+    widget.onChanged('');
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            _controller.text.isEmpty ? _focus.unfocus() : _clear(),
+      },
+      child: AnimatedContainer(
+        duration: studioMotion(context, 160),
+        height: 36,
+        padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _focus.hasFocus ? c.textPrimary : c.border),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.search_rounded, size: 15, color: c.textDisabled),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                focusNode: _focus,
+                onChanged: (v) {
+                  widget.onChanged(v);
+                  setState(() {});
+                },
+                cursorColor: c.textPrimary,
+                cursorHeight: 16,
+                style: studioText(c),
+                decoration: InputDecoration(
+                  isCollapsed: true,
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  hintText: widget.hint,
+                  hintStyle: studioText(c, color: c.textDisabled),
+                ),
+              ),
+            ),
+            if (_controller.text.isNotEmpty)
+              IconButton(
+                tooltip: widget.clearTooltip,
+                onPressed: _clear,
+                iconSize: 15,
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.close_rounded, color: c.textDisabled),
+              )
+            else
+              const SizedBox(width: 8),
+          ],
         ),
       ),
     );
