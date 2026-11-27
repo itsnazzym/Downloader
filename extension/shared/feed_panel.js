@@ -2917,20 +2917,18 @@
     hoverActions.className = 'card-actions';
     var xItem = xui.isXItem(item);
     if (xItem) hoverActions.appendChild(createXControls(item));
-    if (item.author) {
+    // Profile on the video's own platform; no button when the handle cannot make a profile URL.
+    var profileHref = MDProfile.profileUrl(itemPlatform(item), item.author);
+    if (profileHref) {
       var creatorBtn = document.createElement('button');
       creatorBtn.type = 'button';
       creatorBtn.className = 'card-creator-btn';
-      creatorBtn.title = tf('cardShowAccount', 'Voir {name} dans Comptes', { name: item.author });
+      creatorBtn.title = t('feedOpenAccountTitle', 'Ouvrir le profil dans un nouvel onglet') + ' (' + item.author + ')';
       creatorBtn.setAttribute('aria-label', creatorBtn.title);
       creatorBtn.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M4.8 20c.9-3.6 3.8-5.4 7.2-5.4s6.3 1.8 7.2 5.4"></path></svg>';
       creatorBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        setViewMode('creators');
-        var cardForCreator = Array.from(feedList.querySelectorAll('.creator-card')).find(function (card) {
-          return card.getAttribute('data-creator-key') === itemCreatorKey(item);
-        });
-        if (cardForCreator) cardForCreator.scrollIntoView({ block: 'center' });
+        if (api.tabs && api.tabs.create) api.tabs.create({ url: profileHref });
       });
       hoverActions.appendChild(creatorBtn);
     }

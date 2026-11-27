@@ -997,8 +997,5 @@
     },
     "feedOrderTitle": {
         "message": "Changer l’ordre d’affichage"
-    },
-    "cardShowAccount": {
-        "message": "Voir {name} dans Comptes"
     }
 }

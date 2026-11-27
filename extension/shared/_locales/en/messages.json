@@ -997,8 +997,5 @@
     },
     "feedOrderTitle": {
         "message": "Change the display order"
-    },
-    "cardShowAccount": {
-        "message": "Show {name} in Accounts"
     }
 }

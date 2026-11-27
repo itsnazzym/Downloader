@@ -895,8 +895,5 @@
     },
     "feedOrderTitle": {
         "message": "تغيير ترتيب العرض"
-    },
-    "cardShowAccount": {
-        "message": "عرض {name} في الحسابات"
     }
 }
