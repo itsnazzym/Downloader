@@ -376,3 +376,16 @@ test('allowedCommands returns a fresh array each call', () => {
   allowedCommands('queued').push('retry');
   assert.equal(JSON.stringify(allowedCommands('queued')), '["cancel"]');
 });
+
+test('planRowUpdates keeps rows whose group and status did not change', () => {
+  const { planRowUpdates } = load();
+  const plain = (v) => JSON.parse(JSON.stringify(v));
+  const prev = [{ id: 'a', sig: 'running|running|x' }, { id: 'b', sig: 'queued|queued|x' }, { id: 'c', sig: 'error|error|x' }];
+  // Progress-only tick: same signatures -> every row updated in place.
+  assert.deepEqual(plain(planRowUpdates(prev, prev)), { update: ['a', 'b', 'c'], rebuild: [], create: [], remove: [] });
+  // b starts running, c disappears, d appears.
+  const next = [{ id: 'a', sig: 'running|running|x' }, { id: 'b', sig: 'running|running|x' }, { id: 'd', sig: 'queued|queued|x' }];
+  assert.deepEqual(plain(planRowUpdates(prev, next)), { update: ['a'], rebuild: ['b'], create: ['d'], remove: ['c'] });
+  assert.deepEqual(plain(planRowUpdates(undefined, [{ id: 'a', sig: 's' }])), { update: [], rebuild: [], create: ['a'], remove: [] });
+  assert.deepEqual(plain(planRowUpdates(prev, [])), { update: [], rebuild: [], create: [], remove: ['a', 'b', 'c'] });
+});

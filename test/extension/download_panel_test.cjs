@@ -81,3 +81,21 @@ test('new download CSS uses theme variables only', () => {
     assert.ok(['--canvas', '--panel', '--panel-2', '--line', '--ink', '--sub', '--mute', '--a', '--on-a', '--ok', '--bad', '--r-card', '--r-ctl'].includes(v.slice(4, -1)), 'unexpected ' + v);
   }
 });
+
+test('the downloads view updates rows in place instead of rebuilding them', () => {
+  const start = panel.indexOf('function renderDownloadsView(');
+  const end = panel.indexOf('\n  }\n', start);
+  const body = panel.slice(start, end);
+  assert.ok(start > -1);
+  assert.equal(/downloadsView\.(textContent|innerHTML)\s*=/.test(body), false, 'no full rebuild per render');
+  assert.match(body, /MDDownloads\.planRowUpdates\(/);
+  assert.match(body, /MDFeedStore\.domMoves\(/);
+});
+
+test('a canceled card offers retry, like the Downloads tab', () => {
+  assert.match(panel, /CARD_COMMAND = \{[^}]*canceled: 'retry'/);
+});
+
+test('cancel all only shows when something is queued or running', () => {
+  assert.match(panel, /cancelAll\.hidden = s\.running \+ s\.queued === 0/);
+});

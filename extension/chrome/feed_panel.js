@@ -660,15 +660,15 @@
     btn.setAttribute('aria-label', btn.title);
   }
 
-  // Card states: idle / queued / running / paused / done / error, read from the tracker.
-  var CARD_COMMAND = { queued: 'cancel', running: 'cancel', paused: 'resume', error: 'retry' };
+  // Card states: idle / queued / running / paused / done / error / canceled, read from the tracker.
+  var CARD_COMMAND = { queued: 'cancel', running: 'cancel', paused: 'resume', error: 'retry', canceled: 'retry' };
   function applyCardDownloadState(card, item) {
     var dl = downloads.findByCardKey(cardDownloadKey(item));
     var btn = card.querySelector('.card-single-dl-btn');
     var pendingAt = btn ? Number(btn.dataset.pendingAt || 0) : 0;
     // Just sent: keep the spinner until the app reports on this download.
     if (pendingAt && (!dl || dl.updatedAt <= pendingAt)) return;
-    var state = !dl || dl.status === 'canceled' ? 'idle' : dl.status === 'duplicate' ? 'done' : dl.status;
+    var state = !dl ? 'idle' : dl.status === 'duplicate' ? 'done' : dl.status;
     card.dataset.dlState = state;
     var wrap = card.querySelector('.card-progress-bar-wrap');
     var fill = card.querySelector('.card-progress-bar-fill');
@@ -772,15 +772,37 @@
     retry: ['dlCmdRetry', 'Réessayer'],
   };
 
+  function setText(el, text) {
+    if (el.textContent !== text) el.textContent = text;
+  }
+
+  function dlRowSignature(section, dl) {
+    return section + '|' + dl.status + '|' + (dl.url ? itemPlatform({ url: dl.url }) : '');
+  }
+
+  // Only text and bar width change on a progress tick; buttons stay the same nodes.
+  function updateDownloadRow(rec, dl) {
+    setText(rec.title, dl.title || dl.url || dl.id);
+    setText(rec.state, downloadStateLine(dl));
+    if (rec.fill) rec.fill.style.width = Math.max(2, dl.pct) + '%';
+  }
+
   function createDownloadRow(dl) {
     var row = dlElement('div', 'dl-row');
     row.dataset.dlState = dl.status;
-    row.appendChild(dlElement('div', 'dl-row-title', dl.title || dl.url || dl.id));
+    row.dataset.dlId = dl.id;
+    var rec = { el: row, title: dlElement('div', 'dl-row-title'), state: dlElement('span', 'dl-row-state'), fill: null };
+    row.appendChild(rec.title);
     var meta = dlElement('div', 'dl-row-meta');
     if (dl.url) meta.appendChild(dlElement('span', 'card-platform-pill', itemPlatform({ url: dl.url }).toUpperCase()));
-    meta.appendChild(dlElement('span', 'dl-row-state', downloadStateLine(dl)));
+    meta.appendChild(rec.state);
     row.appendChild(meta);
-    if (dl.status === 'running' || dl.status === 'paused') row.appendChild(dlProgressBar(dl.pct));
+    if (dl.status === 'running' || dl.status === 'paused') {
+      var bar = dlProgressBar(dl.pct);
+      rec.fill = bar.firstChild;
+      row.appendChild(bar);
+    }
+    updateDownloadRow(rec, dl);
     var commands = MDDownloads.allowedCommands(dl.status);
     if (commands.length) {
       var actions = dlElement('div', 'dl-row-actions');
@@ -792,59 +814,123 @@
       });
       row.appendChild(actions);
     }
-    return row;
+    return rec;
   }
 
-  function renderDownloadsView(groups) {
-    if (!downloadsView) return;
-    // Rebuilding must not steal keyboard focus from the button the user is on.
-    var focused = document.activeElement;
-    var focusKey = focused && downloadsView.contains(focused) ? focused.dataset.focusKey : null;
-    downloadsView.textContent = '';
-    var active = groups.running.length + groups.queued.length + groups.paused.length;
-    if (active + groups.error.length + groups.done.length === 0) {
-      downloadsView.appendChild(dlElement('div', 'empty-state', t('dlEmpty', 'Aucun téléchargement pour le moment.')));
-      return;
-    }
-    if (active) {
-      var s = downloads.summary(downloadsNow());
-      var summary = dlElement('div', 'dl-summary');
-      var top = dlElement('div', 'dl-summary-row');
-      var parts = [];
-      var eta = formatEta(s.etaSeconds);
-      var speed = formatSpeed(s.speedBps);
-      if (eta) parts.push(tf('dlEtaLeft', '≈ {eta} restantes', { eta: eta }));
-      if (speed) parts.push(speed);
-      parts.push(formatPct(s.pct));
-      top.appendChild(dlElement('span', 'dl-summary-text', parts.join(' · ')));
-      top.appendChild(dlCommandButton('cancel_all', null, t('dlCancelAll', 'Tout annuler')));
-      summary.appendChild(top);
-      summary.appendChild(dlProgressBar(s.pct));
-      summary.appendChild(dlElement('span', 'dl-summary-counts', tf('dlSummaryCounts', '{running} en cours · {queued} en attente', { running: s.running, queued: s.queued })));
-      downloadsView.appendChild(summary);
-    }
-    [
-      ['dlSectionRunning', 'En cours', groups.running.concat(groups.paused)],
-      ['dlSectionQueued', 'En attente', groups.queued],
-      ['dlSectionFailed', 'Échecs', groups.error],
-      ['dlSectionDone', 'Terminés', groups.done],
-    ].forEach(function (section) {
-      if (!section[2].length) return;
+  var DL_SECTIONS = [
+    ['running', 'dlSectionRunning', 'En cours'],
+    ['queued', 'dlSectionQueued', 'En attente'],
+    ['error', 'dlSectionFailed', 'Échecs'],
+    ['done', 'dlSectionDone', 'Terminés'],
+  ];
+  var dlView = null;        // persistent skeleton of the Downloads view
+  var dlRows = new Map();   // id -> { el, title, state, fill }
+  var dlRowOrder = [];      // [{ id, sig }] as last rendered
+
+  function buildDownloadsSkeleton() {
+    var view = { sections: {} };
+    view.empty = dlElement('div', 'empty-state', t('dlEmpty', 'Aucun téléchargement pour le moment.'));
+    view.summary = dlElement('div', 'dl-summary');
+    var top = dlElement('div', 'dl-summary-row');
+    view.summaryText = dlElement('span', 'dl-summary-text');
+    view.cancelAll = dlCommandButton('cancel_all', null, t('dlCancelAll', 'Tout annuler'));
+    top.appendChild(view.summaryText);
+    top.appendChild(view.cancelAll);
+    var bar = dlProgressBar(0);
+    view.summaryFill = bar.firstChild;
+    view.summaryCounts = dlElement('span', 'dl-summary-counts');
+    view.summary.appendChild(top);
+    view.summary.appendChild(bar);
+    view.summary.appendChild(view.summaryCounts);
+    downloadsView.appendChild(view.empty);
+    downloadsView.appendChild(view.summary);
+    DL_SECTIONS.forEach(function (s) {
       var box = dlElement('section', 'dl-section');
       var head = dlElement('div', 'dl-section-head');
-      head.appendChild(dlElement('span', '', t(section[0], section[1]) + ' (' + section[2].length + ')'));
-      if (section[0] === 'dlSectionDone') {
+      var label = dlElement('span', '');
+      head.appendChild(label);
+      if (s[0] === 'done') {
         var clear = dlElement('button', 'dl-cmd-btn', t('dlClearDone', 'Vider'));
         clear.type = 'button';
         clear.dataset.action = 'clear-done';
         clear.dataset.focusKey = 'clear-done';
         head.appendChild(clear);
       }
+      var list = dlElement('div', 'dl-section-list');
       box.appendChild(head);
-      section[2].forEach(function (dl) { box.appendChild(createDownloadRow(dl)); });
+      box.appendChild(list);
       downloadsView.appendChild(box);
+      view.sections[s[0]] = { box: box, label: label, list: list };
     });
-    if (focusKey) {
+    return view;
+  }
+
+  // Rows are keyed by download id and patched in place: rebuilding them 4 times a
+  // second detached the button under a press and the click was lost.
+  function renderDownloadsView(groups) {
+    if (!downloadsView) return;
+    if (!dlView) dlView = buildDownloadsSkeleton();
+    // A rebuilt row must not steal keyboard focus from the button the user is on.
+    var focused = document.activeElement;
+    var focusKey = focused && downloadsView.contains(focused) ? focused.dataset.focusKey : null;
+    var bySection = {
+      running: groups.running.concat(groups.paused),
+      queued: groups.queued,
+      error: groups.error,
+      done: groups.done,
+    };
+    var byId = new Map();
+    var next = [];
+    DL_SECTIONS.forEach(function (s) {
+      bySection[s[0]].forEach(function (dl) {
+        byId.set(dl.id, dl);
+        next.push({ id: dl.id, sig: dlRowSignature(s[0], dl) });
+      });
+    });
+    var plan = MDDownloads.planRowUpdates(dlRowOrder, next);
+    plan.remove.concat(plan.rebuild).forEach(function (id) {
+      var rec = dlRows.get(id);
+      if (rec) rec.el.remove();
+      dlRows.delete(id);
+    });
+    plan.update.forEach(function (id) { updateDownloadRow(dlRows.get(id), byId.get(id)); });
+    plan.create.concat(plan.rebuild).forEach(function (id) { dlRows.set(id, createDownloadRow(byId.get(id))); });
+    dlRowOrder = next;
+
+    DL_SECTIONS.forEach(function (s) {
+      var section = dlView.sections[s[0]];
+      var ids = bySection[s[0]].map(function (dl) { return dl.id; });
+      section.box.hidden = ids.length === 0;
+      setText(section.label, t(s[1], s[2]) + ' (' + ids.length + ')');
+      ids.forEach(function (id) {
+        var el = dlRows.get(id).el;
+        if (el.parentNode !== section.list) section.list.appendChild(el);
+      });
+      // Group order is stable across progress ticks, so this usually moves nothing.
+      var current = Array.prototype.map.call(section.list.children, function (el) { return el.dataset.dlId; });
+      MDFeedStore.domMoves(current, ids).forEach(function (move) {
+        section.list.insertBefore(dlRows.get(move.id).el, move.beforeId ? dlRows.get(move.beforeId).el : null);
+      });
+    });
+
+    var active = groups.running.length + groups.queued.length + groups.paused.length;
+    dlView.empty.hidden = next.length > 0;
+    dlView.summary.hidden = active === 0;
+    if (active) {
+      var s = downloads.summary(downloadsNow());
+      var parts = [];
+      var eta = formatEta(s.etaSeconds);
+      var speed = formatSpeed(s.speedBps);
+      if (eta) parts.push(tf('dlEtaLeft', '≈ {eta} restantes', { eta: eta }));
+      if (speed) parts.push(speed);
+      parts.push(formatPct(s.pct));
+      setText(dlView.summaryText, parts.join(' · '));
+      dlView.summaryFill.style.width = Math.max(2, s.pct) + '%';
+      setText(dlView.summaryCounts, tf('dlSummaryCounts', '{running} en cours · {queued} en attente', { running: s.running, queued: s.queued }));
+      // The desktop's cancel_all only hits queued and running items, not paused ones.
+      dlView.cancelAll.hidden = s.running + s.queued === 0;
+    }
+    if (focusKey && !downloadsView.contains(document.activeElement)) {
       var again = Array.prototype.find.call(downloadsView.querySelectorAll('button'), function (b) {
         return b.dataset.focusKey === focusKey;
       });

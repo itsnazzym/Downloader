@@ -37,6 +37,23 @@
     return list ? list.slice() : [];
   }
 
+  // Diff of view rows [{id, sig}]: a row whose signature (group, status...) is
+  // unchanged is updated in place, so its buttons survive progress ticks.
+  function planRowUpdates(prev, next) {
+    var before = new Map();
+    (prev || []).forEach(function (r) { before.set(r.id, r.sig); });
+    var seen = new Set();
+    var plan = { update: [], rebuild: [], create: [], remove: [] };
+    (next || []).forEach(function (r) {
+      seen.add(r.id);
+      if (!before.has(r.id)) plan.create.push(r.id);
+      else if (before.get(r.id) === r.sig) plan.update.push(r.id);
+      else plan.rebuild.push(r.id);
+    });
+    before.forEach(function (sig, id) { if (!seen.has(id)) plan.remove.push(id); });
+    return plan;
+  }
+
   // "3.2MiB/s" -> bytes/s. A unit is mandatory so "Unknown" / "" / "N/A" stay null.
   function parseSpeed(raw) {
     if (typeof raw !== 'string') return null;
@@ -242,6 +259,7 @@
   global.MDDownloads = {
     statusFromIndex: statusFromIndex,
     allowedCommands: allowedCommands,
+    planRowUpdates: planRowUpdates,
     parseSpeed: parseSpeed,
     parseEta: parseEta,
     create: create

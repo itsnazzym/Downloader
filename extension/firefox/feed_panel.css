@@ -287,3 +287,4 @@ body:not([data-view-mode="downloads"]) .downloads-view { display: none; }
 .dl-cmd-btn { flex: none; height: 28px; padding: 0 12px; border-radius: var(--r-ctl); background: var(--panel-2); color: var(--ink); font-size: 12px; font-weight: 700; letter-spacing: normal; text-transform: none; }
 .dl-cmd-btn:hover { background: var(--line); }
 .dl-cmd-btn.primary { background: var(--a); color: var(--on-a); }
+.dl-section-list { display: grid; gap: 6px; }
