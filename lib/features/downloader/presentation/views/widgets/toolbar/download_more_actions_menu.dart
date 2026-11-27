@@ -9,10 +9,14 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
   final bool showQueueActions;
   final bool showRetryFailed;
 
+  /// What the menu opens from; today's ringed "…" square when null.
+  final Widget? child;
+
   const DownloadMoreActionsMenu({
     super.key,
     this.showQueueActions = false,
     this.showRetryFailed = false,
+    this.child,
   });
 
   void _showClearHistoryDialog(BuildContext context, WidgetRef ref) {
@@ -308,7 +312,7 @@ class DownloadMoreActionsMenu extends ConsumerWidget {
           ),
         ];
       },
-      child: Container(
+      child: child ?? Container(
         height: 34,
         width: 34,
         decoration: BoxDecoration(
