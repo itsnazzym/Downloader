@@ -113,7 +113,15 @@ class TerminalInspector extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _Preview(item: item, path: path, onOpen: (p) => _open(ref, p)),
+                // A wide sheet would make a 16:9 preview fill the screen.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 240),
+                  child: _Preview(
+                    item: item,
+                    path: path,
+                    onOpen: (p) => _open(ref, p),
+                  ),
+                ),
                 if (path != null) ...[
                   const SizedBox(height: 10),
                   TButton(

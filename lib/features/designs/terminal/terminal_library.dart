@@ -551,6 +551,7 @@ class _TSearchFieldState extends ConsumerState<TSearchField> {
                 style: tm(colors.textPrimary),
                 decoration: InputDecoration(
                   isCollapsed: true,
+                  contentPadding: EdgeInsets.zero,
                   filled: false,
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,

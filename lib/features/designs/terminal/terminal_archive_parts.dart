@@ -579,7 +579,7 @@ class TerminalArchiveHub extends ConsumerWidget {
                         Text(
                           connected
                               ? '● ${l10n.terminalExtensionOnline}'
-                              : '○ ${l10n.terminalExtensionOffline}',
+                              : '· ${l10n.terminalExtensionOffline}',
                           style: tm(
                             connected ? colors.primary : colors.textDisabled,
                           ),
