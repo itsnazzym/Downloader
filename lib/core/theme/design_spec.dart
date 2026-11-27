@@ -4,7 +4,7 @@ import 'app_palette.dart';
 
 /// How a design lays out the desktop navigation around the pages.
 enum DesignNav {
-  /// The classic grouped sidebar (OLED, iOS).
+  /// The classic grouped sidebar (iOS).
   sidebar,
 
   /// Signal: a top bar with a sliding pill under the active tab.
@@ -24,6 +24,11 @@ enum DesignNav {
 
   /// Pastille: a floating dock at the bottom of the window.
   bottomDock,
+
+  /// OLED: text links in a black top bar, a glowing dot under the active one.
+  textLinks,
+  /// iOS (Liquid Glass): a floating frosted sidebar over a coloured ambient.
+  glassSidebar,
 }
 
 /// How a design draws download progress.
@@ -151,10 +156,10 @@ class DesignSpec {
     brightness: Brightness.dark,
     displayFont: 'Instrument Sans',
     uiFont: 'Instrument Sans',
-    monoFont: 'JetBrains Mono',
+    monoFont: 'IBM Plex Mono',
     cardRadius: 12,
     controlRadius: 8,
-    nav: DesignNav.sidebar,
+    nav: DesignNav.textLinks,
     progress: DesignProgress.bar,
   );
 
@@ -165,7 +170,7 @@ class DesignSpec {
     monoFont: 'JetBrains Mono',
     cardRadius: 16,
     controlRadius: 14,
-    nav: DesignNav.sidebar,
+    nav: DesignNav.glassSidebar,
     progress: DesignProgress.bar,
   );
 

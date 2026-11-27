@@ -377,7 +377,12 @@ class YtDlpSource {
 
     // Native multi-fragment downloader scales beyond aria2c's 16-connection cap.
     // Max speed stays on; the global fragment budget only shares 64 across jobs.
-    if (Platform.isAndroid || concurrentFragments >= 16 || maxSpeedMode) {
+    // TikTok files are small single files: aria2c's parallel connections to
+    // one file only draw the CDN's throttling.
+    if (Platform.isAndroid ||
+        concurrentFragments >= 16 ||
+        maxSpeedMode ||
+        _isTikTokUrl(request.url)) {
       LoggerService.i(
         'Native high-speed downloader: $concurrentFragments parallel fragments'
         '${maxSpeedMode ? ' (max speed mode)' : ''} '
@@ -419,57 +424,20 @@ class YtDlpSource {
 
     // Output template - Use platform path separators
     String outputPath;
-    String baseFolder = request.outputFolder ?? '';
-
-    // Standard User Downloads directory if none provided
-    if (baseFolder.isEmpty) {
-      if (Platform.isWindows) {
-        final userProfile = Platform.environment['USERPROFILE'];
-        if (userProfile != null) {
-          baseFolder = '$userProfile\\Downloads';
-        }
-      } else if (Platform.isAndroid) {
-        try {
-          baseFolder =
-              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
-        } catch (_) {}
-      }
-      baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
-    }
-
-    if (Platform.isWindows) {
-      baseFolder = baseFolder.replaceAll('/', '\\');
-    }
-
-    // Organize by site: Add subfolder
-    if (request.organizeBySite) {
-      // Use DownloadItem.source logic but for the request URL
-      final siteFolder = _getSiteName(request.url);
-      baseFolder = p.join(baseFolder, siteFolder);
-    }
-
-    try {
-      final downloadsDir = Directory(baseFolder);
-      if (!downloadsDir.existsSync()) {
-        downloadsDir.createSync(recursive: true);
-      }
-    } catch (e) {
-      LoggerService.w(
-        'YtDlpSource: Could not create baseFolder $baseFolder: $e',
-      );
-      if (Platform.isAndroid) {
-        try {
-          baseFolder =
-              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
-          Directory(baseFolder).createSync(recursive: true);
-        } catch (_) {}
-      }
-    }
+    final baseFolder = await outputFolderFor(request);
 
     // Include %(id)s in the filename to prevent false duplicates when
     // yt-dlp extracts the same generic title for different videos on unknown sites.
     // The ID is unique per video (e.g. YouTube video ID, tweet status ID, etc.)
-    final filename = request.customFilename ?? '%(title)s [%(id)s].%(ext)s';
+    final wantedName = request.customFilename;
+    // Android's ffmpeg cannot open a non-ASCII path ("Postprocessing: Error
+    // opening output files: Invalid argument"): there yt-dlp and its
+    // post-processors work on an ASCII name, renamed once done.
+    final stagedName = Platform.isAndroid && wantedName != null
+        ? androidStagingName(wantedName, id)
+        : null;
+    final filename =
+        stagedName ?? wantedName ?? '%(title)s [%(id)s].%(ext)s';
     if (request.organizeByCreator) {
       final isTikTok = _isTikTokUrl(request.url);
       final creatorFolder = isTikTok
@@ -529,11 +497,8 @@ class YtDlpSource {
             'best[format_note!*=watermark][height<=$height][ext=mp4]/best[format_note!*=watermark][height<=$height]/bestvideo[format_note!*=watermark][height<=$height]+bestaudio/best',
           );
         }
-        // Force TikTok mobile API extractor args for clean streams
-        args.addAll([
-          '--extractor-args',
-          'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com;app_info=7355',
-        ]);
+        // No `tiktok:app_info` extractor args: the app API answers empty, so
+        // it only added a failed request per video before the web page.
       } else if (request.preferredQuality == 'best' ||
           request.preferredQuality == 'manual' ||
           request.preferredQuality == 'manual+') {
@@ -889,6 +854,11 @@ class YtDlpSource {
         LoggerService.w('Could not verify file on disk: $currentFilePath');
       }
 
+      if (stagedName != null && currentFilePath != null) {
+        currentFilePath = await _renameStaged(currentFilePath, wantedName!);
+        parser.currentFilePath = currentFilePath;
+      }
+
       // Success if we saw download progress OR a non-fragment file exists with size > 0.
       if (!parser.isSuccessfulExit(
         outputFolder: baseFolder,
@@ -978,6 +948,89 @@ class YtDlpSource {
         lower.contains('xvideos') ||
         lower.contains('instagram.com') ||
         lower.contains('tiktok.com');
+  }
+
+  /// The ASCII name yt-dlp writes on Android when [wanted] (a
+  /// `<name>.%(ext)s` template) has other characters; null when it has none.
+  /// Keeps the `[id]` the file resolver looks for.
+  static String? androidStagingName(String wanted, String downloadId) {
+    if (wanted.codeUnits.every((c) => c < 128)) return null;
+    final id = DownloadFileResolver.extractBracketId(wanted);
+    final safeId = id != null && id.codeUnits.every((c) => c < 128)
+        ? id
+        : downloadId;
+    return 'tapload [$safeId].%(ext)s';
+  }
+
+  /// Gives the staged file its real name (same folder, real extension);
+  /// keeps the ASCII name when the rename fails or the name is taken.
+  static Future<String> _renameStaged(String staged, String wanted) async {
+    final ext = p.extension(staged);
+    final target = p.join(
+      p.dirname(staged),
+      wanted.replaceAll('.%(ext)s', ext).replaceAll('%(ext)s', ext),
+    );
+    try {
+      if (target == staged || await File(target).exists()) return staged;
+      return (await File(staged).rename(target)).path;
+    } catch (e) {
+      LoggerService.w('Could not give $staged its name: $e');
+      return staged;
+    }
+  }
+
+  /// The folder a download of [request] lands in (default folder, site
+  /// subfolder), created when missing. The creator subfolder is not included:
+  /// yt-dlp fills it from the metadata.
+  Future<String> outputFolderFor(DownloadRequest request) async {
+    String baseFolder = request.outputFolder ?? '';
+
+    // Standard User Downloads directory if none provided
+    if (baseFolder.isEmpty) {
+      if (Platform.isWindows) {
+        final userProfile = Platform.environment['USERPROFILE'];
+        if (userProfile != null) {
+          baseFolder = '$userProfile\\Downloads';
+        }
+      } else if (Platform.isAndroid) {
+        try {
+          baseFolder =
+              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+        } catch (_) {}
+      }
+      baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
+    }
+
+    if (Platform.isWindows) {
+      baseFolder = baseFolder.replaceAll('/', '\\');
+    }
+
+    // Organize by site: Add subfolder
+    if (request.organizeBySite) {
+      // Use DownloadItem.source logic but for the request URL
+      final siteFolder = _getSiteName(request.url);
+      baseFolder = p.join(baseFolder, siteFolder);
+    }
+
+    try {
+      final downloadsDir = Directory(baseFolder);
+      if (!downloadsDir.existsSync()) {
+        downloadsDir.createSync(recursive: true);
+      }
+    } catch (e) {
+      LoggerService.w(
+        'YtDlpSource: Could not create baseFolder $baseFolder: $e',
+      );
+      if (Platform.isAndroid) {
+        try {
+          baseFolder =
+              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+          Directory(baseFolder).createSync(recursive: true);
+        } catch (_) {}
+      }
+    }
+
+    return baseFolder;
   }
 
   String _getSiteName(String url) {

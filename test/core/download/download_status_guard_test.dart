@@ -179,5 +179,47 @@ void main() {
       );
     });
   });
-}
 
+  group('TikTok refusals', () {
+    test('are retried, not treated as deleted', () {
+      final error = TikTokRefusedException(status: 10231);
+      expect(DownloadStatusGuard.isPermanentDownloadError(error), isFalse);
+      expect(DownloadStatusGuard.isSiteRefusal(error), isTrue);
+    });
+
+    test('photo posts stop retrying but are not deleted as unavailable', () {
+      final error = TikTokPhotoPostException();
+      expect(DownloadStatusGuard.isNonRetryableError(error), isTrue);
+      expect(DownloadStatusGuard.isPermanentDownloadError(error), isFalse);
+      expect(
+        DownloadStatusGuard.isPermanentDownloadError(error.message),
+        isFalse,
+      );
+    });
+
+    test('rate limits are site refusals, ordinary failures are not', () {
+      expect(DownloadStatusGuard.isSiteRefusal(RateLimitException()), isTrue);
+      expect(
+        DownloadStatusGuard.isSiteRefusal(NetworkException()),
+        isFalse,
+      );
+    });
+
+    test('an ID containing 10204 does not mark the post private', () {
+      expect(
+        DownloadStatusGuard.isPermanentDownloadError(
+          Exception(
+            'ERROR: [TikTok] 7310204998877665544: HTTP Error 500',
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        DownloadStatusGuard.isPermanentDownloadError(
+          Exception('TikTok status code 10204'),
+        ),
+        isTrue,
+      );
+    });
+  });
+}

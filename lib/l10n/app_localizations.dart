@@ -9789,6 +9789,1008 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download canceled.'**
   String get designLogCanceled;
+
+  /// No description provided for @vitrineListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available designs'**
+  String get vitrineListLabel;
+
+  /// No description provided for @vitrinePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get vitrinePreviewLabel;
+
+  /// No description provided for @vitrineCurrentBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get vitrineCurrentBadge;
+
+  /// No description provided for @vitrineApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {name}'**
+  String vitrineApply(String name);
+
+  /// No description provided for @vitrineApplyCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current design'**
+  String get vitrineApplyCurrent;
+
+  /// No description provided for @vitrineColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Colors'**
+  String get vitrineColors;
+
+  /// No description provided for @vitrineFont.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get vitrineFont;
+
+  /// No description provided for @vitrineNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get vitrineNav;
+
+  /// No description provided for @vitrineChipDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get vitrineChipDark;
+
+  /// No description provided for @vitrineChipLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get vitrineChipLight;
+
+  /// No description provided for @vitrineSignalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark and vivid, in bento blocks.'**
+  String get vitrineSignalShort;
+
+  /// No description provided for @vitrineSignalLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A dashboard of blocks on a near-black ground, with a single chartreuse accent for what matters: the link to paste and what is downloading.'**
+  String get vitrineSignalLong;
+
+  /// No description provided for @vitrineSignalChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Top tabs'**
+  String get vitrineSignalChip2;
+
+  /// No description provided for @vitrineSignalChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Energetic'**
+  String get vitrineSignalChip3;
+
+  /// No description provided for @vitrineSignalNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Top tabs'**
+  String get vitrineSignalNav;
+
+  /// No description provided for @vitrinePorcelaineShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Light and calm, in widgets.'**
+  String get vitrinePorcelaineShort;
+
+  /// No description provided for @vitrinePorcelaineLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A space of white widgets on a porcelain ground that you arrange your way. Cobalt blue is only for actions.'**
+  String get vitrinePorcelaineLong;
+
+  /// No description provided for @vitrinePorcelaineChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre dock'**
+  String get vitrinePorcelaineChip2;
+
+  /// No description provided for @vitrinePorcelaineChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Serene'**
+  String get vitrinePorcelaineChip3;
+
+  /// No description provided for @vitrinePorcelaineNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Centred dock'**
+  String get vitrinePorcelaineNav;
+
+  /// No description provided for @vitrinePastilleShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Playful, pastel tiles.'**
+  String get vitrinePastilleShort;
+
+  /// No description provided for @vitrinePastilleLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Big soft-coloured tiles and giant numbers: every piece of information has its own pastille. The most playful of the eight.'**
+  String get vitrinePastilleLong;
+
+  /// No description provided for @vitrinePastilleChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom dock'**
+  String get vitrinePastilleChip2;
+
+  /// No description provided for @vitrinePastilleChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Playful'**
+  String get vitrinePastilleChip3;
+
+  /// No description provided for @vitrinePastilleNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom dock'**
+  String get vitrinePastilleNav;
+
+  /// No description provided for @vitrineStudioShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Editorial, paper and ink.'**
+  String get vitrineStudioShort;
+
+  /// No description provided for @vitrineStudioLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A magazine layout: paper, black ink, fine rules and a red recording dot. Your library reads like a table.'**
+  String get vitrineStudioLong;
+
+  /// No description provided for @vitrineStudioChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar'**
+  String get vitrineStudioChip2;
+
+  /// No description provided for @vitrineStudioChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Understated'**
+  String get vitrineStudioChip3;
+
+  /// No description provided for @vitrineStudioNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Text sidebar'**
+  String get vitrineStudioNav;
+
+  /// No description provided for @vitrineTerminalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard-first, green phosphor.'**
+  String get vitrineTerminalShort;
+
+  /// No description provided for @vitrineTerminalLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is driven from the keyboard, like a console: each action has its key, text is monospaced and phosphor green marks what is running.'**
+  String get vitrineTerminalLong;
+
+  /// No description provided for @vitrineTerminalChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts'**
+  String get vitrineTerminalChip2;
+
+  /// No description provided for @vitrineTerminalChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical'**
+  String get vitrineTerminalChip3;
+
+  /// No description provided for @vitrineTerminalNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Key bar'**
+  String get vitrineTerminalNav;
+
+  /// No description provided for @vitrineNocturneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep night, rings.'**
+  String get vitrineNocturneShort;
+
+  /// No description provided for @vitrineNocturneLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A soothing night blue, soft light and progress rings. Made for long evening sessions.'**
+  String get vitrineNocturneLong;
+
+  /// No description provided for @vitrineNocturneChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon rail'**
+  String get vitrineNocturneChip2;
+
+  /// No description provided for @vitrineNocturneChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle'**
+  String get vitrineNocturneChip3;
+
+  /// No description provided for @vitrineNocturneNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon rail'**
+  String get vitrineNocturneNav;
+
+  /// No description provided for @vitrineOledShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Absolute black, only what is alive lights up.'**
+  String get vitrineOledShort;
+
+  /// No description provided for @vitrineOledLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A 0% brightness ground: on an OLED screen these pixels are off. Only what is alive lights up, in dot-matrix numbers and one vivid colour.'**
+  String get vitrineOledLong;
+
+  /// No description provided for @vitrineOledChip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pure black'**
+  String get vitrineOledChip1;
+
+  /// No description provided for @vitrineOledChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Text navigation'**
+  String get vitrineOledChip2;
+
+  /// No description provided for @vitrineOledChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal'**
+  String get vitrineOledChip3;
+
+  /// No description provided for @vitrineOledNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Text links at the top'**
+  String get vitrineOledNav;
+
+  /// No description provided for @vitrineIosShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid Glass: living glass over your videos.'**
+  String get vitrineIosShort;
+
+  /// No description provided for @vitrineIosLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating glass panels that take on the colour of your thumbnails, XXL titles, capsule controls and progress rings. Dark by default, light if your system is.'**
+  String get vitrineIosLong;
+
+  /// No description provided for @vitrineIosChip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid Glass'**
+  String get vitrineIosChip1;
+
+  /// No description provided for @vitrineIosChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark or light'**
+  String get vitrineIosChip2;
+
+  /// No description provided for @vitrineIosChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating bar'**
+  String get vitrineIosChip3;
+
+  /// No description provided for @vitrineIosNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar'**
+  String get vitrineIosNav;
+
+  /// No description provided for @oledNavHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get oledNavHome;
+
+  /// No description provided for @oledMainNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Main navigation'**
+  String get oledMainNavigation;
+
+  /// No description provided for @oledFreeWord.
+  ///
+  /// In en, this message translates to:
+  /// **'free'**
+  String get oledFreeWord;
+
+  /// No description provided for @oledPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram, X link…'**
+  String get oledPasteHint;
+
+  /// No description provided for @oledActiveOf.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress · {index} of {count}'**
+  String oledActiveOf(int index, int count);
+
+  /// No description provided for @oledEtaLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{eta} left'**
+  String oledEtaLeft(String eta);
+
+  /// No description provided for @oledNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get oledNext;
+
+  /// No description provided for @oledDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String oledDaysShort(int days);
+
+  /// No description provided for @oledStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has lit up yet'**
+  String get oledStatsEmptyTitle;
+
+  /// No description provided for @oledStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your figures appear here after your first download.'**
+  String get oledStatsEmptyBody;
+
+  /// No description provided for @oledDownloadsInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{download} other{downloads}} in {days} days'**
+  String oledDownloadsInDays(int count, int days);
+
+  /// No description provided for @oledDownloadsInAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{download} other{downloads}} in all'**
+  String oledDownloadsInAll(int count);
+
+  /// No description provided for @oledTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} today'**
+  String oledTodayCount(int count);
+
+  /// No description provided for @oledVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get oledVolume;
+
+  /// No description provided for @oledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get oledSuccess;
+
+  /// No description provided for @oledFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get oledFree;
+
+  /// No description provided for @oledLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days'**
+  String oledLastDays(int days);
+
+  /// No description provided for @oledPerDot.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dot = 1 download} other{1 dot = {count} downloads}}'**
+  String oledPerDot(int count);
+
+  /// No description provided for @oledHistogramLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads per day over {days} days, {count} in all'**
+  String oledHistogramLabel(int days, int count);
+
+  /// No description provided for @oledTodayWord.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get oledTodayWord;
+
+  /// No description provided for @oledSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get oledSources;
+
+  /// No description provided for @oledSpaceUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Space used'**
+  String get oledSpaceUsed;
+
+  /// No description provided for @oledWordVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{video} other{videos}}'**
+  String oledWordVideos(int count);
+
+  /// No description provided for @oledWordCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{collection} other{collections}}'**
+  String oledWordCollections(int count);
+
+  /// No description provided for @oledWordFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{favourite} other{favourites}}'**
+  String oledWordFavorites(int count);
+
+  /// No description provided for @oledSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get oledSync;
+
+  /// No description provided for @oledSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get oledSyncing;
+
+  /// No description provided for @oledImportExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import an export'**
+  String get oledImportExport;
+
+  /// No description provided for @oledTabVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get oledTabVideos;
+
+  /// No description provided for @oledTabCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get oledTabCollections;
+
+  /// No description provided for @oledTabFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get oledTabFavorites;
+
+  /// No description provided for @oledSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get oledSelectAll;
+
+  /// No description provided for @oledSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String oledSelectedCount(int count);
+
+  /// No description provided for @oledDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get oledDownloadSelection;
+
+  /// No description provided for @oledQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the downloads'**
+  String get oledQueued;
+
+  /// No description provided for @oledStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get oledStop;
+
+  /// No description provided for @oledAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get oledAllOptions;
+
+  /// No description provided for @oledSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get oledSimpleView;
+
+  /// No description provided for @oledThisPc.
+  ///
+  /// In en, this message translates to:
+  /// **'this PC'**
+  String get oledThisPc;
+
+  /// No description provided for @oledRefreshDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for devices'**
+  String get oledRefreshDevices;
+
+  /// No description provided for @oledPairingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing code'**
+  String get oledPairingCode;
+
+  /// No description provided for @oledPairingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter this code in TapLoad on your phone.'**
+  String get oledPairingHint;
+
+  /// No description provided for @oledSendToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'To send to {name}'**
+  String oledSendToDevice(String name);
+
+  /// No description provided for @oledSendNoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'To send'**
+  String get oledSendNoDevice;
+
+  /// No description provided for @oledVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String oledVideoCount(int count);
+
+  /// No description provided for @oledChooseFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose files'**
+  String get oledChooseFiles;
+
+  /// No description provided for @oledSettingsSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings sections'**
+  String get oledSettingsSections;
+
+  /// No description provided for @oledLeadGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'What TapLoad does by default.'**
+  String get oledLeadGeneral;
+
+  /// No description provided for @oledLeadOutput.
+  ///
+  /// In en, this message translates to:
+  /// **'Where files go, their format and how they are sorted.'**
+  String get oledLeadOutput;
+
+  /// No description provided for @oledLeadAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'The design, the language and the look.'**
+  String get oledLeadAppearance;
+
+  /// No description provided for @oledLeadPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Simultaneous downloads, speed and effects.'**
+  String get oledLeadPerformance;
+
+  /// No description provided for @oledLeadSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Engines, dependencies and library upkeep.'**
+  String get oledLeadSystem;
+
+  /// No description provided for @oledLeadPlugins.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the app’s features on or off.'**
+  String get oledLeadPlugins;
+
+  /// No description provided for @oledLeadAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Cookies, clipboard, history and experiments.'**
+  String get oledLeadAdvanced;
+
+  /// No description provided for @oledLeadOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules that sort your downloads into folders.'**
+  String get oledLeadOrganizer;
+
+  /// No description provided for @iosFailures.
+  ///
+  /// In en, this message translates to:
+  /// **'Failures'**
+  String get iosFailures;
+
+  /// No description provided for @iosTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get iosTools;
+
+  /// No description provided for @iosRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get iosRecent;
+
+  /// No description provided for @iosEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get iosEmptyTitle;
+
+  /// No description provided for @iosEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link from YouTube, TikTok, X or anywhere else: your videos, music and pictures will line up here.'**
+  String get iosEmptyBody;
+
+  /// No description provided for @iosNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No match'**
+  String get iosNoResultsTitle;
+
+  /// No description provided for @iosNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No download matches these filters.'**
+  String get iosNoResultsFilters;
+
+  /// No description provided for @iosNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”.'**
+  String iosNoResultsQuery(String query);
+
+  /// No description provided for @iosClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search and filters'**
+  String get iosClearFilters;
+
+  /// No description provided for @iosClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get iosClearSearch;
+
+  /// No description provided for @iosLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not be read'**
+  String get iosLoadErrorTitle;
+
+  /// No description provided for @iosLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are untouched. Try reading it again.'**
+  String get iosLoadErrorBody;
+
+  /// No description provided for @iosFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String iosFailedCount(int count);
+
+  /// No description provided for @iosEtaLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{eta} left'**
+  String iosEtaLeft(String eta);
+
+  /// No description provided for @iosWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get iosWeek;
+
+  /// No description provided for @iosMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get iosMonth;
+
+  /// No description provided for @iosStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No statistics yet'**
+  String get iosStatsEmptyTitle;
+
+  /// No description provided for @iosStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first download will draw the bars, the rings and the storage here.'**
+  String get iosStatsEmptyBody;
+
+  /// No description provided for @iosDownloadsWord.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{download} other{downloads}}'**
+  String iosDownloadsWord(int count);
+
+  /// No description provided for @iosVsBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'vs the period before'**
+  String get iosVsBefore;
+
+  /// No description provided for @iosBarsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads per day over {days} days, {today} today'**
+  String iosBarsLabel(int days, int today);
+
+  /// No description provided for @iosSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get iosSuccess;
+
+  /// No description provided for @iosSpaceUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Space used'**
+  String get iosSpaceUsed;
+
+  /// No description provided for @iosStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get iosStorage;
+
+  /// No description provided for @iosFreeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{free} free'**
+  String iosFreeLeft(String free);
+
+  /// No description provided for @iosTransferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices on the same Wi-Fi · click a device to send it the selection'**
+  String get iosTransferHint;
+
+  /// No description provided for @iosThisPc.
+  ///
+  /// In en, this message translates to:
+  /// **'This PC'**
+  String get iosThisPc;
+
+  /// No description provided for @iosSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending… {percent} %'**
+  String iosSending(int percent);
+
+  /// No description provided for @iosSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get iosSelected;
+
+  /// No description provided for @iosAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get iosAvailable;
+
+  /// No description provided for @iosSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get iosSent;
+
+  /// No description provided for @iosRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get iosRemove;
+
+  /// No description provided for @iosPairingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing code'**
+  String get iosPairingCode;
+
+  /// No description provided for @iosCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get iosCopy;
+
+  /// No description provided for @iosCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied.'**
+  String get iosCopied;
+
+  /// No description provided for @iosChooseFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose files…'**
+  String get iosChooseFiles;
+
+  /// No description provided for @iosCollectionFigures.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}} · {downloaded} downloaded'**
+  String iosCollectionFigures(int count, int downloaded);
+
+  /// No description provided for @iosInCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'In {name}'**
+  String iosInCollection(String name);
+
+  /// No description provided for @iosSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String iosSelectedCount(int count);
+
+  /// No description provided for @iosClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get iosClearSelection;
+
+  /// No description provided for @iosSelectVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Select {date}'**
+  String iosSelectVideo(String date);
+
+  /// No description provided for @iosDownloadsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get iosDownloadsGroup;
+
+  /// No description provided for @iosNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get iosNotifications;
+
+  /// No description provided for @iosNotificationsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tells you when each download finishes'**
+  String get iosNotificationsDesc;
+
+  /// No description provided for @iosQualityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Used when nothing is specified'**
+  String get iosQualityDesc;
+
+  /// No description provided for @iosAutoStartOn.
+  ///
+  /// In en, this message translates to:
+  /// **'New links start as soon as they are added.'**
+  String get iosAutoStartOn;
+
+  /// No description provided for @iosAutoStartOff.
+  ///
+  /// In en, this message translates to:
+  /// **'New links wait in the queue until you start them.'**
+  String get iosAutoStartOff;
+
+  /// No description provided for @iosOutputGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Output folder'**
+  String get iosOutputGroup;
+
+  /// No description provided for @iosAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get iosAuto;
+
+  /// No description provided for @iosTint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tint'**
+  String get iosTint;
+
+  /// No description provided for @iosTintBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get iosTintBlue;
+
+  /// No description provided for @iosTintPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get iosTintPurple;
+
+  /// No description provided for @iosTintPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get iosTintPink;
+
+  /// No description provided for @iosTintOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get iosTintOrange;
+
+  /// No description provided for @iosTintGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get iosTintGreen;
+
+  /// No description provided for @iosTintGraphite.
+  ///
+  /// In en, this message translates to:
+  /// **'Graphite'**
+  String get iosTintGraphite;
+
+  /// No description provided for @iosChangeDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Change design'**
+  String get iosChangeDesign;
+
+  /// No description provided for @iosDesignCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} interface styles'**
+  String iosDesignCount(int count);
+
+  /// No description provided for @iosLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get iosLight;
+
+  /// No description provided for @iosDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get iosDark;
 }
 
 class _AppLocalizationsDelegate

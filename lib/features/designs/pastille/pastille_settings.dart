@@ -5,6 +5,7 @@ import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
@@ -870,34 +871,8 @@ class _Appearance extends ConsumerWidget {
             onChanged: n.setThemeMode,
             icon: Icons.brightness_4_rounded,
           ),
-        PTile(
-          color: tones.cream,
-          semanticLabel: l10n.theme,
-          child: LayoutBuilder(
-            builder: (context, c) {
-              final cols = (c.maxWidth / 170).floor().clamp(2, 6);
-              final w = (c.maxWidth - 10 * (cols - 1)) / cols;
-              return Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  for (final preset in ThemePresets.all)
-                    SizedBox(
-                      width: w,
-                      child: _DesignChoice(
-                        label: preset.name,
-                        bg: preset.background,
-                        a: preset.primary,
-                        b: preset.textPrimary,
-                        selected: preset.id == s.themePreset,
-                        onTap: () => n.setThemePreset(preset.id),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
+        // On the page, not in a cream tile: the Vitrine uses the palette.
+        const DesignVitrine(),
         if (s.themePreset != 'oled') ...[
           SectionTitle(l10n.accentColor),
           PTile(

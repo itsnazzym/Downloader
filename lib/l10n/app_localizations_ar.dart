@@ -5794,4 +5794,645 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'أُلغي التنزيل.';
+
+  @override
+  String get vitrineListLabel => 'التصاميم المتاحة';
+
+  @override
+  String get vitrinePreviewLabel => 'معاينة';
+
+  @override
+  String get vitrineCurrentBadge => 'الحالي';
+
+  @override
+  String vitrineApply(String name) {
+    return 'استخدام $name';
+  }
+
+  @override
+  String get vitrineApplyCurrent => 'التصميم الحالي';
+
+  @override
+  String get vitrineColors => 'الألوان';
+
+  @override
+  String get vitrineFont => 'الخط';
+
+  @override
+  String get vitrineNav => 'التنقل';
+
+  @override
+  String get vitrineChipDark => 'داكن';
+
+  @override
+  String get vitrineChipLight => 'فاتح';
+
+  @override
+  String get vitrineSignalShort => 'داكن وحيوي، في مربعات.';
+
+  @override
+  String get vitrineSignalLong =>
+      'لوحة تحكم من مربعات على خلفية شبه سوداء، مع لون مميز واحد أخضر مصفرّ لما يهم: الرابط الذي تلصقه وما يجري تنزيله.';
+
+  @override
+  String get vitrineSignalChip2 => 'علامات تبويب في الأعلى';
+
+  @override
+  String get vitrineSignalChip3 => 'نشيط';
+
+  @override
+  String get vitrineSignalNav => 'علامات تبويب في الأعلى';
+
+  @override
+  String get vitrinePorcelaineShort => 'فاتح وهادئ، في أدوات.';
+
+  @override
+  String get vitrinePorcelaineLong =>
+      'مساحة من الأدوات البيضاء على خلفية بلون الخزف، ترتّبها على طريقتك. الأزرق الكوبالتي مخصّص للإجراءات فقط.';
+
+  @override
+  String get vitrinePorcelaineChip2 => 'شريط مركزي';
+
+  @override
+  String get vitrinePorcelaineChip3 => 'هادئ';
+
+  @override
+  String get vitrinePorcelaineNav => 'شريط في الوسط';
+
+  @override
+  String get vitrinePastilleShort => 'مرح، مربعات بألوان الباستيل.';
+
+  @override
+  String get vitrinePastilleLong =>
+      'مربعات كبيرة بألوان ناعمة وأرقام ضخمة: لكل معلومة قرصها الخاص. الأكثر مرحًا بين التصاميم الثمانية.';
+
+  @override
+  String get vitrinePastilleChip2 => 'شريط في الأسفل';
+
+  @override
+  String get vitrinePastilleChip3 => 'مرح';
+
+  @override
+  String get vitrinePastilleNav => 'شريط في الأسفل';
+
+  @override
+  String get vitrineStudioShort => 'تحريري، ورق وحبر.';
+
+  @override
+  String get vitrineStudioLong =>
+      'تخطيط مجلة: ورق وحبر أسود وخطوط رفيعة ونقطة تسجيل حمراء. تُقرأ مكتبتك كجدول.';
+
+  @override
+  String get vitrineStudioChip2 => 'شريط جانبي';
+
+  @override
+  String get vitrineStudioChip3 => 'رصين';
+
+  @override
+  String get vitrineStudioNav => 'شريط جانبي نصي';
+
+  @override
+  String get vitrineTerminalShort => 'بلوحة المفاتيح، فوسفور أخضر.';
+
+  @override
+  String get vitrineTerminalLong =>
+      'كل شيء يُدار من لوحة المفاتيح مثل وحدة التحكم: لكل إجراء مفتاحه، والنص بخط ثابت العرض، والأخضر الفوسفوري يشير إلى ما يعمل.';
+
+  @override
+  String get vitrineTerminalChip2 => 'اختصارات';
+
+  @override
+  String get vitrineTerminalChip3 => 'تقني';
+
+  @override
+  String get vitrineTerminalNav => 'شريط المفاتيح';
+
+  @override
+  String get vitrineNocturneShort => 'ليل عميق، حلقات.';
+
+  @override
+  String get vitrineNocturneLong =>
+      'أزرق ليلي مريح وضوء ناعم وحلقات تقدّم. مصمّم لجلسات المساء الطويلة.';
+
+  @override
+  String get vitrineNocturneChip2 => 'شريط أيقونات';
+
+  @override
+  String get vitrineNocturneChip3 => 'ناعم';
+
+  @override
+  String get vitrineNocturneNav => 'شريط أيقونات';
+
+  @override
+  String get vitrineOledShort => 'أسود مطلق، لا يضيء إلا ما هو حي.';
+
+  @override
+  String get vitrineOledLong =>
+      'خلفية بسطوع 0٪: على شاشة OLED تكون هذه البكسلات مطفأة. لا يضيء إلا ما هو حي، بأرقام نقطية ولون زاهٍ واحد.';
+
+  @override
+  String get vitrineOledChip1 => 'أسود خالص';
+
+  @override
+  String get vitrineOledChip2 => 'تنقّل نصي';
+
+  @override
+  String get vitrineOledChip3 => 'بسيط';
+
+  @override
+  String get vitrineOledNav => 'روابط نصية في الأعلى';
+
+  @override
+  String get vitrineIosShort => 'Liquid Glass: زجاج حي فوق فيديوهاتك.';
+
+  @override
+  String get vitrineIosLong =>
+      'ألواح زجاجية عائمة تأخذ لون صورك المصغّرة، وعناوين كبيرة جدًا، وأزرار على شكل كبسولة، وحلقات تقدّم. داكن افتراضيًا، وفاتح إذا كان نظامك كذلك.';
+
+  @override
+  String get vitrineIosChip1 => 'Liquid Glass';
+
+  @override
+  String get vitrineIosChip2 => 'داكن أو فاتح';
+
+  @override
+  String get vitrineIosChip3 => 'شريط عائم';
+
+  @override
+  String get vitrineIosNav => 'شريط جانبي';
+
+  @override
+  String get oledNavHome => 'الرئيسية';
+
+  @override
+  String get oledMainNavigation => 'التنقل الرئيسي';
+
+  @override
+  String get oledFreeWord => 'متاحة';
+
+  @override
+  String get oledPasteHint => 'الصق رابط YouTube أو TikTok أو Instagram أو X…';
+
+  @override
+  String oledActiveOf(int index, int count) {
+    return 'قيد التنزيل · $index من $count';
+  }
+
+  @override
+  String oledEtaLeft(String eta) {
+    return 'متبقٍ $eta';
+  }
+
+  @override
+  String get oledNext => 'التالي';
+
+  @override
+  String oledDaysShort(int days) {
+    return '$days ي';
+  }
+
+  @override
+  String get oledStatsEmptyTitle => 'لم يُضئ شيء بعد';
+
+  @override
+  String get oledStatsEmptyBody => 'ستظهر أرقامك هنا بعد أول تنزيل.';
+
+  @override
+  String oledDownloadsInDays(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيلات',
+      one: 'تنزيل',
+    );
+    return '$_temp0 خلال $days يومًا';
+  }
+
+  @override
+  String oledDownloadsInAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيلات',
+      one: 'تنزيل',
+    );
+    return '$_temp0 إجمالًا';
+  }
+
+  @override
+  String oledTodayCount(int count) {
+    return '$count اليوم';
+  }
+
+  @override
+  String get oledVolume => 'الحجم';
+
+  @override
+  String get oledSuccess => 'النجاح';
+
+  @override
+  String get oledFree => 'المتاح';
+
+  @override
+  String oledLastDays(int days) {
+    return 'آخر $days يومًا';
+  }
+
+  @override
+  String oledPerDot(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'نقطة = $count تنزيلات',
+      one: 'نقطة = تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledHistogramLabel(int days, int count) {
+    return 'التنزيلات يوميًا خلال $days يومًا، $count إجمالًا';
+  }
+
+  @override
+  String get oledTodayWord => 'اليوم';
+
+  @override
+  String get oledSources => 'المصادر';
+
+  @override
+  String get oledSpaceUsed => 'المساحة المستخدمة';
+
+  @override
+  String oledWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فيديوهات',
+      one: 'فيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مجموعات',
+      one: 'مجموعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مفضّلات',
+      one: 'مفضّل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledSync => 'مزامنة';
+
+  @override
+  String get oledSyncing => 'جارٍ المزامنة…';
+
+  @override
+  String get oledImportExport => 'استيراد ملف تصدير';
+
+  @override
+  String get oledTabVideos => 'الفيديوهات';
+
+  @override
+  String get oledTabCollections => 'المجموعات';
+
+  @override
+  String get oledTabFavorites => 'المفضّلة';
+
+  @override
+  String get oledSelectAll => 'تحديد الكل';
+
+  @override
+  String oledSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count',
+      one: 'تم تحديد 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get oledQueued => 'أُضيف إلى التنزيلات';
+
+  @override
+  String get oledStop => 'إيقاف';
+
+  @override
+  String get oledAllOptions => 'كل الخيارات';
+
+  @override
+  String get oledSimpleView => 'عرض مبسّط';
+
+  @override
+  String get oledThisPc => 'هذا الحاسوب';
+
+  @override
+  String get oledRefreshDevices => 'البحث عن الأجهزة';
+
+  @override
+  String get oledPairingCode => 'رمز الاقتران';
+
+  @override
+  String get oledPairingHint => 'أدخل هذا الرمز في TapLoad على هاتفك.';
+
+  @override
+  String oledSendToDevice(String name) {
+    return 'للإرسال إلى $name';
+  }
+
+  @override
+  String get oledSendNoDevice => 'للإرسال';
+
+  @override
+  String oledVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledChooseFiles => 'اختيار ملفات';
+
+  @override
+  String get oledSettingsSections => 'أقسام الإعدادات';
+
+  @override
+  String get oledLeadGeneral => 'ما يفعله TapLoad افتراضيًا.';
+
+  @override
+  String get oledLeadOutput => 'أين تُحفظ الملفات وصيغتها وطريقة ترتيبها.';
+
+  @override
+  String get oledLeadAppearance => 'التصميم واللغة والمظهر.';
+
+  @override
+  String get oledLeadPerformance => 'التنزيلات المتزامنة والسرعة والمؤثرات.';
+
+  @override
+  String get oledLeadSystem => 'المحركات والتبعيات وصيانة المكتبة.';
+
+  @override
+  String get oledLeadPlugins => 'فعّل ميزات التطبيق أو أوقفها.';
+
+  @override
+  String get oledLeadAdvanced =>
+      'ملفات تعريف الارتباط والحافظة والسجل والتجارب.';
+
+  @override
+  String get oledLeadOrganizer => 'قواعد ترتّب تنزيلاتك في مجلدات.';
+
+  @override
+  String get iosFailures => 'الإخفاقات';
+
+  @override
+  String get iosTools => 'الأدوات';
+
+  @override
+  String get iosRecent => 'الأحدث';
+
+  @override
+  String get iosEmptyTitle => 'لا شيء هنا بعد';
+
+  @override
+  String get iosEmptyBody =>
+      'الصق رابطًا من يوتيوب أو تيك توك أو إكس أو غيرها: ستصطف فيديوهاتك وموسيقاك وصورك هنا.';
+
+  @override
+  String get iosNoResultsTitle => 'لا نتائج';
+
+  @override
+  String get iosNoResultsFilters => 'لا يوجد تنزيل يطابق هذه المرشحات.';
+
+  @override
+  String iosNoResultsQuery(String query) {
+    return 'لا شيء يطابق «$query».';
+  }
+
+  @override
+  String get iosClearFilters => 'مسح البحث والمرشحات';
+
+  @override
+  String get iosClearSearch => 'مسح البحث';
+
+  @override
+  String get iosLoadErrorTitle => 'تعذّرت قراءة المكتبة';
+
+  @override
+  String get iosLoadErrorBody => 'ملفاتك لم تُمس. حاول قراءتها مجددًا.';
+
+  @override
+  String iosFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيلات',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String iosEtaLeft(String eta) {
+    return 'يتبقى $eta';
+  }
+
+  @override
+  String get iosWeek => 'أسبوع';
+
+  @override
+  String get iosMonth => 'شهر';
+
+  @override
+  String get iosStatsEmptyTitle => 'لا إحصاءات بعد';
+
+  @override
+  String get iosStatsEmptyBody =>
+      'سيرسم تنزيلك الأول الأعمدة والحلقات والتخزين هنا.';
+
+  @override
+  String iosDownloadsWord(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيلات',
+      one: 'تنزيل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosVsBefore => 'مقارنة بالفترة السابقة';
+
+  @override
+  String iosBarsLabel(int days, int today) {
+    return 'التنزيلات يوميًا خلال $days يومًا، $today اليوم';
+  }
+
+  @override
+  String get iosSuccess => 'النجاح';
+
+  @override
+  String get iosSpaceUsed => 'المساحة المستخدمة';
+
+  @override
+  String get iosStorage => 'التخزين';
+
+  @override
+  String iosFreeLeft(String free) {
+    return '$free متاحة';
+  }
+
+  @override
+  String get iosTransferHint =>
+      'الأجهزة على شبكة Wi-Fi نفسها · انقر على جهاز لإرسال التحديد إليه';
+
+  @override
+  String get iosThisPc => 'هذا الحاسوب';
+
+  @override
+  String iosSending(int percent) {
+    return 'جارٍ الإرسال… $percent٪';
+  }
+
+  @override
+  String get iosSelected => 'محدد';
+
+  @override
+  String get iosAvailable => 'متاح';
+
+  @override
+  String get iosSent => 'أُرسل';
+
+  @override
+  String get iosRemove => 'إزالة';
+
+  @override
+  String get iosPairingCode => 'رمز الاقتران';
+
+  @override
+  String get iosCopy => 'نسخ';
+
+  @override
+  String get iosCopied => 'تم نسخ الرمز.';
+
+  @override
+  String get iosChooseFiles => 'اختر ملفات…';
+
+  @override
+  String iosCollectionFigures(int count, int downloaded) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديوهات',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0 · $downloaded منزّلة';
+  }
+
+  @override
+  String iosInCollection(String name) {
+    return 'في $name';
+  }
+
+  @override
+  String iosSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محددة',
+      one: 'واحد محدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosClearSelection => 'إلغاء التحديد';
+
+  @override
+  String iosSelectVideo(String date) {
+    return 'تحديد $date';
+  }
+
+  @override
+  String get iosDownloadsGroup => 'التنزيلات';
+
+  @override
+  String get iosNotifications => 'الإشعارات';
+
+  @override
+  String get iosNotificationsDesc => 'ينبّهك عند انتهاء كل تنزيل';
+
+  @override
+  String get iosQualityDesc => 'تُستخدم عندما لا يُحدَّد شيء';
+
+  @override
+  String get iosAutoStartOn => 'تبدأ الروابط الجديدة فور إضافتها.';
+
+  @override
+  String get iosAutoStartOff => 'تنتظر الروابط الجديدة في الطابور حتى تبدأها.';
+
+  @override
+  String get iosOutputGroup => 'مجلد الحفظ';
+
+  @override
+  String get iosAuto => 'تلقائي';
+
+  @override
+  String get iosTint => 'اللون';
+
+  @override
+  String get iosTintBlue => 'أزرق';
+
+  @override
+  String get iosTintPurple => 'بنفسجي';
+
+  @override
+  String get iosTintPink => 'وردي';
+
+  @override
+  String get iosTintOrange => 'برتقالي';
+
+  @override
+  String get iosTintGreen => 'أخضر';
+
+  @override
+  String get iosTintGraphite => 'غرافيت';
+
+  @override
+  String get iosChangeDesign => 'تغيير التصميم';
+
+  @override
+  String iosDesignCount(int count) {
+    return '$count أنماط للواجهة';
+  }
+
+  @override
+  String get iosLight => 'فاتح';
+
+  @override
+  String get iosDark => 'داكن';
 }

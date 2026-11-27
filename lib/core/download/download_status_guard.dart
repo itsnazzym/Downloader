@@ -53,7 +53,9 @@ class DownloadStatusGuard {
         error is LiveStreamOfflineException) {
       return true;
     }
-    final text = error.toString().toLowerCase();
+    final text = YtDlpException.withoutMediaIds(
+      error.toString().toLowerCase(),
+    );
     if (text.contains('unsupported url') ||
         text.contains('this url is not a supported video page')) {
       return true;
@@ -75,7 +77,7 @@ class DownloadStatusGuard {
         text.contains('status_self_see') ||
         text.contains('item_privacy_authorization') ||
         text.contains('item_privacy_auth') ||
-        text.contains('10204') ||
+        RegExp(r'\b10204\b').hasMatch(text) ||
         text.contains('comfortable for some audiences') ||
         text.contains('log in for access')) {
       return true;
@@ -96,8 +98,19 @@ class DownloadStatusGuard {
         text.contains('x account or tweet is suspended');
   }
 
+  /// The site refused for now (throttling, anti-bot, TikTok's error page):
+  /// every job on that site should wait before its next request.
+  static bool isSiteRefusal(Object error) =>
+      error is TikTokRefusedException ||
+      error is ExtractorProtectionException ||
+      isRateLimitOrCaptchaError(error);
+
   static bool isNonRetryableError(Object error) {
-    return isNonRetryableProxyError(error) || isPermanentDownloadError(error);
+    // A photo post never gains a video, but it is not deleted either: kept
+    // out of [isPermanentDownloadError] so its row stays visible.
+    return isNonRetryableProxyError(error) ||
+        error is TikTokPhotoPostException ||
+        isPermanentDownloadError(error);
   }
 
   static String userFacingProxyErrorMessage(Object error) {

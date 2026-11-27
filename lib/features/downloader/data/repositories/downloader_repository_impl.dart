@@ -11,6 +11,7 @@ import '../../domain/exceptions/yt_dlp_exception.dart';
 import '../sources/fallback_media_resolver.dart';
 import '../sources/yt_dlp_source.dart';
 import '../sources/gallery_dl_source.dart';
+import '../sources/tiktok_photo_post_source.dart';
 import '../sources/kick_source.dart';
 import '../sources/kick/kick_hls.dart';
 import '../services/library_scanner_service.dart';
@@ -31,6 +32,7 @@ import '../../../../core/download/extraction_placeholders.dart';
 import '../../../../core/download/x_download_url.dart';
 import '../../../../core/download/x_tweet_display_title.dart';
 import '../../../../core/download/metadata_probe_limiter.dart';
+import '../../../../core/download/site_backoff.dart';
 import '../../../../core/services/heartbeat_cookie_locator.dart';
 import '../services/x_library_title_repair_service.dart';
 
@@ -46,6 +48,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   /// Throws to refuse a download before it starts (e.g. Wi-Fi only on mobile
   /// data). Checked once per download, before the disk-space check.
   final Future<void> Function()? _networkPreflight;
+  final SiteBackoff _siteBackoff;
+  final TikTokPhotoPostSource _photoPosts;
+  final Future<void> Function(Duration) _sleep;
 
   /// Used when yt-dlp cannot read a link (X posts that need a login, players
   /// without an extractor): finds a direct stream instead.
@@ -80,7 +85,13 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     Future<void> Function()? waitForLibraryScan,
     Future<void> Function()? networkPreflight,
     FallbackMediaResolver? fallbackResolver,
+    SiteBackoff? siteBackoff,
+    Future<void> Function(Duration)? sleep,
+    TikTokPhotoPostSource? photoPostSource,
   }) : _networkPreflight = networkPreflight,
+       _siteBackoff = siteBackoff ?? SiteBackoff(),
+       _photoPosts = photoPostSource ?? TikTokPhotoPostSource(),
+       _sleep = sleep ?? Future<void>.delayed,
        _fallbackResolver = fallbackResolver ?? FallbackMediaResolver(),
        _kickSource = kickSource ?? KickSource(),
        _useTorProxyGetter = useTorProxyGetter ?? (() => false),
@@ -351,7 +362,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     final token = (_runTokens[id] ?? 0) + 1;
     _runTokens[id] = token;
     int retryCount = 0;
-    const maxRetries = 3;
+    // Four tries spaced 5 s, 20 s, 80 s (see [SiteBackoff]): long enough to
+    // outlast a site's short block instead of failing inside it.
+    const maxRetries = 4;
 
     Future<void> run() async {
       File? tempCookiesFile;
@@ -376,15 +389,23 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               );
             }
 
-            // 3. Status Update
-            if (retryCount > 0) {
+            // 3. Status Update. A retry, or any job of a site that just
+            // refused, waits first: the site pause can outlast the delay.
+            final retryWait = retryCount > 0
+                ? _siteBackoff.retryDelay(retryCount)
+                : Duration.zero;
+            final siteWait = _siteBackoff.waitFor(currentRequest.url);
+            final wait = siteWait > retryWait ? siteWait : retryWait;
+            if (wait > Duration.zero) {
               _update(
                 _activeDownloads[id]!.copyWith(
                   status: DownloadStatus.extracting,
-                  speed: 'Retry ${retryCount + 1}/$maxRetries...',
+                  speed: retryCount > 0
+                      ? 'Retry ${retryCount + 1}/$maxRetries...'
+                      : 'Waiting for the site...',
                 ),
               );
-              await Future.delayed(const Duration(seconds: 5));
+              await _sleep(wait);
               if (!(_isCurrentRun(id, token) &&
                   DownloadStatusGuard.shouldRetryAfterError(
                     _activeDownloads[id]?.status,
@@ -603,6 +624,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
                   if (DownloadStatusGuard.isNonRetryableError(e)) {
                     rethrow;
                   }
+                  if (DownloadStatusGuard.isSiteRefusal(e)) {
+                    _siteBackoff.recordRefusal(currentRequest.url);
+                  }
                   if (retryCount < maxRetries - 1) {
                     retryCount++;
                     continue;
@@ -688,6 +712,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
             }
 
             // 6. Success
+            _siteBackoff.recordSuccess(currentRequest.url);
             _update(
               _withCompletedFileSize(
                 _activeDownloads[id]!.copyWith(
@@ -755,6 +780,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
               return;
             }
 
+            if (DownloadStatusGuard.isSiteRefusal(e)) {
+              _siteBackoff.recordRefusal(currentRequest.url);
+            }
             retryCount++;
             LoggerService.e('Download try $retryCount failed: $e');
             if (retryCount >= maxRetries) rethrow;
@@ -776,6 +804,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           // per item (a queued batch would raise one for each row).
           _markDownloadFailed(id, e, notify: false);
           return;
+        }
+        if (e is TikTokPhotoPostException && !request.audioOnly) {
+          try {
+            await _downloadTikTokPhotoPost(id, request);
+            return;
+          } catch (pe) {
+            LoggerService.w('TikTok photo post failed: $pe');
+          }
         }
         if (!DownloadStatusGuard.isNonRetryableError(e) &&
             GalleryDlSource.shouldUseFallback(request.url)) {
@@ -802,7 +838,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     DownloadRequest request,
   ) async {
     if (request.rawCookies == null || request.rawCookies!.isEmpty) {
-      return (request: request, tempFile: null);
+      return _privateCookieCopy(id, request);
     }
     final isHeader =
         !request.rawCookies!.contains('\t') &&
@@ -822,6 +858,41 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
       );
     } catch (e) {
       LoggerService.w('Failed to create temp cookies file: $e');
+      return (request: request, tempFile: null);
+    }
+  }
+
+  /// yt-dlp writes its cookie jar back to `--cookies` on exit, so parallel
+  /// jobs sharing the extension's file overwrote each other's copy: each job
+  /// reads its own. A file gone since the job was queued (Retry) is looked
+  /// up again for the URL.
+  Future<({DownloadRequest request, File? tempFile})> _privateCookieCopy(
+    String id,
+    DownloadRequest request,
+  ) async {
+    final stored = request.cookiesFilePath;
+    if (stored == null || stored.isEmpty) {
+      return (request: request, tempFile: null);
+    }
+    try {
+      final source = await File(stored).exists()
+          ? stored
+          : await HeartbeatCookieLocator.pathForUrl(request.url);
+      if (source == null) {
+        return (
+          request: request.copyWith(clearCookiesFilePath: true),
+          tempFile: null,
+        );
+      }
+      final copy = await File(
+        source,
+      ).copy('${Directory.systemTemp.path}/md_cookies_$id.txt');
+      return (
+        request: request.copyWith(cookiesFilePath: copy.path),
+        tempFile: copy,
+      );
+    } catch (e) {
+      LoggerService.w('Failed to copy cookies file: $e');
       return (request: request, tempFile: null);
     }
   }
@@ -876,6 +947,35 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         message,
       ),
     );
+  }
+
+  /// yt-dlp has no format for a photo slideshow: it becomes one MP4.
+  Future<void> _downloadTikTokPhotoPost(
+    String id,
+    DownloadRequest request,
+  ) async {
+    _update(
+      _activeDownloads[id]!.copyWith(
+        status: DownloadStatus.downloading,
+        speed: 'Slideshow...',
+      ),
+    );
+    final folder = await _source.outputFolderFor(request);
+    final result = await _photoPosts.download(request, folder);
+    _siteBackoff.recordSuccess(request.url);
+    _update(
+      _withCompletedFileSize(
+        _activeDownloads[id]!.copyWith(
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          speed: 'Terminé',
+          clearError: true,
+          title: result.title,
+          filePath: result.filePath,
+        ),
+      ),
+    );
+    await _deduplicateFinalFile(id);
   }
 
   Future<void> _tryGalleryDlFallback(String id, DownloadRequest request) async {

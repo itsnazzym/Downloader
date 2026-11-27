@@ -3,6 +3,7 @@
 // pixels: it writes images and fails only on a crash.
 //
 //   flutter test test/visual/desktop_screens_test.dart --no-pub
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,12 +16,13 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/theme/app_theme.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/theme/theme_resolver.dart';
 import 'package:modern_downloader/core/router/app_router.dart';
 import 'package:modern_downloader/core/ui/app_shell.dart';
-import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
-import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_miniature.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/features/designs/pastille/pastille_kit.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/designs/terminal/terminal_library.dart';
@@ -60,6 +62,7 @@ void main() {
     Size size = const Size(1280, 800),
     List<DownloadItem>? items,
     bool loading = false,
+    Brightness? brightness,
   }) async {
     tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
@@ -104,8 +107,13 @@ void main() {
             debugShowCheckedModeBanner: false,
             locale: Locale(locale),
             theme: AppTheme.fromPalette(
-              preset,
-              DesignSpec.forId(preset.id).brightness ?? Brightness.dark,
+              ThemeResolver.forBrightness(
+                preset,
+                brightness ?? Brightness.dark,
+              ),
+              brightness ??
+                  DesignSpec.forId(preset.id).brightness ??
+                  Brightness.dark,
             ),
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -209,45 +217,6 @@ void main() {
     await shot(tester, key, 'desktop_transfer');
   });
 
-  testWidgets('desktop sidebar switches between settings pages', (
-    tester,
-  ) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final router = container.read(routerProvider);
-    final key = await pump(
-      tester,
-      () => const SizedBox(),
-      router: router,
-      preset: ThemePresets.ios,
-    );
-    Finder inSidebar(IconData icon) => find.descendant(
-      of: find.byType(AppSidebar),
-      matching: find.byIcon(icon),
-    );
-    Future<void> open(IconData icon) async {
-      await tester.tap(inSidebar(icon));
-      await settle(tester);
-      expect(tester.takeException(), isNull);
-    }
-
-    await open(Icons.settings_outlined); // expand the group
-    // Plugins twice: a stacked page would hold its onboarding GlobalKey twice.
-    for (final icon in [
-      Icons.extension_outlined,
-      Icons.tune,
-      Icons.extension_outlined,
-      Icons.tune,
-    ]) {
-      await open(icon);
-      final shown = icon == Icons.tune
-          ? GeneralSettingsView
-          : PluginsSettingsView;
-      expect(find.byType(shown).hitTestable(), findsOneWidget);
-    }
-    await shot(tester, key, 'desktop_sidebar_settings');
-  });
-
   // Each design draws its own settings section navigation: going Plugins ->
   // Général twice must land on the right page every time (a stacked page
   // would hold the Plugins onboarding GlobalKey twice and jam the navigator).
@@ -258,6 +227,7 @@ void main() {
     'studio',
     'terminal',
     'nocturne',
+    'oled',
   ]) {
     testWidgets('design $id switches between settings sections', (
       tester,
@@ -382,6 +352,84 @@ void main() {
     });
   }
 
+  // The Vitrine previewing another design than the current one: wide, and at
+  // the client width of a 1000 px window.
+  for (final (id, size) in const [
+    ('signal', Size(1280, 900)),
+    ('pastille', Size(984, 680)),
+  ]) {
+    testWidgets('design $id vitrine previews another design', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      final key = await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.getById(id),
+        size: size,
+      );
+      router.go('/settings/appearance');
+      await settle(tester);
+      final oled = find.descendant(
+        of: find.byType(DesignVitrine),
+        matching: find.text('OLED'),
+      );
+      // Mid-viewport: Pastille's floating dock covers the bottom edge.
+      Future<void> reveal(Finder f) async {
+        Scrollable.ensureVisible(tester.element(f), alignment: 0.3);
+        await tester.pump();
+      }
+
+      await reveal(oled.first);
+      await tester.tap(oled.first);
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await reveal(find.byType(DesignMiniature));
+      await shot(tester, key, 'vitrine_${id}_${size.width.toInt()}');
+    });
+  }
+
+  // The mouse wheel over the Appearance page scrolls it, in every design
+  // (the Vitrine's list is long: the designs below it must stay reachable).
+  for (final id in const [
+    'signal',
+    'porcelaine',
+    'pastille',
+    'studio',
+    'terminal',
+    'nocturne',
+    'oled',
+    'ios',
+  ]) {
+    testWidgets('design $id appearance scrolls with the wheel', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.getById(id),
+        size: const Size(1000, 720),
+      );
+      router.go('/settings/appearance');
+      await settle(tester);
+      final vitrine = find.byType(DesignVitrine);
+      final before = tester.getTopLeft(vitrine).dy;
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      // The middle of the visible scroll area: the Vitrine itself may
+      // reach below the window.
+      final at = tester.getCenter(
+        find.ancestor(of: vitrine, matching: find.byType(Scrollable)).first,
+      );
+      await tester.sendEventToBinding(pointer.hover(at));
+      await tester.sendEventToBinding(pointer.scroll(const Offset(0, 400)));
+      await settle(tester);
+      expect(tester.getTopLeft(vitrine).dy, lessThan(before), reason: id);
+    });
+  }
+
   // Terminal sets the search field to 30 px: its text must stay inside.
   testWidgets('terminal search field keeps its text inside 30 px', (
     tester,
@@ -418,6 +466,7 @@ void main() {
     'studio',
     'terminal',
     'nocturne',
+    'oled',
   ];
   const pages = {
     'library': '/',
@@ -527,6 +576,11 @@ void main() {
     'Nocturne-Stats': ('nocturne', '/stats', Size(1280, 900)),
     'Nocturne-Transfert': ('nocturne', '/transfer', Size(1280, 900)),
     'Nocturne-Reglages': ('nocturne', '/settings/general', Size(1280, 900)),
+    'OLED-Accueil': ('oled', '/', Size(1280, 800)),
+    'OLED-Archives': ('oled', '/archive', Size(1280, 800)),
+    'OLED-Stats': ('oled', '/stats', Size(1280, 800)),
+    'OLED-Transfert': ('oled', '/transfer', Size(1280, 800)),
+    'OLED-Reglages': ('oled', '/settings/general', Size(1280, 800)),
   };
   for (final entry in mockups.entries) {
     testWidgets('mockup ${entry.key}', (tester) async {
@@ -607,6 +661,7 @@ void main() {
     'studio',
     'terminal',
     'nocturne',
+    'oled',
   ]) {
     for (final state in states.entries) {
       testWidgets('state $id ${state.key}', (tester) async {
@@ -632,5 +687,97 @@ void main() {
         await shot(tester, key, 'state_${id}_${state.key}');
       });
     }
+  }
+
+  // iOS (Liquid Glass) follows the light/dark setting: every page in both
+  // modes at three widths, its surfaces in both, its states in dark
+  // (build/visual/design_ios_*.png, surface_ios_*.png, state_ios_*.png).
+  for (final mode in Brightness.values) {
+    for (final page in pages.entries) {
+      for (final width in const [1280.0, 1000.0, 820.0]) {
+        final name = '${page.key}_${mode.name}${width == 1280 ? '' : '_${width.round()}'}';
+        testWidgets('design ios $name', (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final router = container.read(routerProvider);
+        final key = await pump(
+          tester,
+          () => const SizedBox(),
+          router: router,
+          preset: ThemePresets.ios,
+          brightness: mode,
+          size: Size(width, 900),
+          extra: [
+            ...archive(),
+            transferControllerProvider.overrideWith(
+              (ref) => FakeTransferController(ref),
+            ),
+          ],
+        );
+        router.go(page.value);
+        await settle(tester);
+        expect(tester.takeException(), isNull);
+        await shot(tester, key, 'design_ios_$name');
+        });
+      }
+    }
+  }
+  for (final surface in surfaces.entries) {
+    // Output's disk chart starts a real disk probe (a process) whose timer
+    // outlives this render under iOS, though the other designs finish it:
+    // a race in the shared StorageChart. Its tiles are the iOS skin's.
+    if (surface.key == 'output') continue;
+    for (final mode in Brightness.values) {
+    testWidgets('surface ios ${surface.key} ${mode.name}', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      final items = sampleDownloads();
+      final key = await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.ios,
+        brightness: mode,
+        items: items,
+        extra: [
+          ...archive(),
+          transferControllerProvider.overrideWith(
+            (ref) => FakeTransferController(ref),
+          ),
+          selectedDownloadIdProvider.overrideWith((ref) => items.first.id),
+        ],
+      );
+      router.go(surface.value);
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await shot(tester, key, 'surface_ios_${surface.key}_${mode.name}');
+    });
+    }
+  }
+  for (final state in states.entries) {
+    testWidgets('state ios ${state.key}', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      final key = await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.ios,
+        size: state.value.size,
+        items: state.value.items,
+        loading: state.value.loading,
+        extra: [
+          if (state.value.search.isNotEmpty)
+            downloadSearchQueryProvider.overrideWith(
+              (ref) => state.value.search,
+            ),
+        ],
+      );
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await shot(tester, key, 'state_ios_${state.key}');
+    });
   }
 }

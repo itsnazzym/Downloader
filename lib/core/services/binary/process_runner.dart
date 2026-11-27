@@ -51,7 +51,8 @@ class ProcessRunner {
   }) async {
     LoggerService.debug('Running process: $executable ${arguments.join(' ')}');
     if (PlatformInfo.isAndroid &&
-        AndroidEngineBridge.isEngineBinary(executable)) {
+        AndroidEngineBridge.isEngineBinary(executable) &&
+        timeout == null) {
       return AndroidEngineBridge.instance.run(
         executable,
         arguments,
@@ -94,13 +95,12 @@ class ProcessRunner {
     String? workingDirectory,
     Map<String, String>? environment,
   }) async {
-    final process = await Process.start(
+    // Through [start], so the Android engine gets the same timeout and kill.
+    final process = await start(
       executable,
       arguments,
       workingDirectory: workingDirectory,
-      runInShell: false,
       environment: environment,
-      includeParentEnvironment: true,
     );
     // Drain both pipes while waiting, or a chatty child blocks on a full pipe.
     final stdout = process.stdout.fold<List<int>>([], (a, b) => a..addAll(b));

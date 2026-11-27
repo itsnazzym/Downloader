@@ -18,6 +18,33 @@ class DesignPageTransitionsBuilder extends PageTransitionsBuilder {
     Widget child,
   ) {
     if (MediaQuery.disableAnimationsOf(context)) return child;
+    // The old page stays mounted under the new one until the transition
+    // ends, and pages have no backdrop of their own: it leaves first, then
+    // the new page enters, so the two are never drawn on top of each other.
+    return FadeTransition(
+      opacity: ReverseAnimation(
+        CurvedAnimation(
+          parent: secondaryAnimation,
+          curve: nav == DesignNav.keySidebar
+              ? const Threshold(0.001)
+              : const Interval(0, _exitEnd, curve: Curves.easeOut),
+        ),
+      ),
+      child: _enter(_delayed(animation), child),
+    );
+  }
+
+  /// Share of the transition the old page takes to leave.
+  static const _exitEnd = 0.35;
+
+  /// [animation] held at 0 while the old page leaves.
+  static Animation<double> _delayed(Animation<double> animation) =>
+      CurvedAnimation(
+        parent: animation,
+        curve: const Interval(_exitEnd, 1),
+      );
+
+  Widget _enter(Animation<double> animation, Widget child) {
     switch (nav) {
       // Signal: the page rises a few pixels while it fades in.
       case DesignNav.topTabs:
@@ -63,14 +90,15 @@ class DesignPageTransitionsBuilder extends PageTransitionsBuilder {
       // Nocturne: the page drifts in from the right as it fades in.
       case DesignNav.iconRail:
         return _fadeSlide(animation, child, const Offset(0.012, 0));
-      case DesignNav.sidebar:
-        return const ZoomPageTransitionsBuilder().buildTransitions(
-          route,
-          context,
-          animation,
-          secondaryAnimation,
-          child,
+      // OLED: the page lights up from black, nothing moves.
+      case DesignNav.textLinks:
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
         );
+      case DesignNav.glassSidebar:
+      case DesignNav.sidebar:
+        return _fadeSlide(animation, child, const Offset(0, 0.015));
     }
   }
 

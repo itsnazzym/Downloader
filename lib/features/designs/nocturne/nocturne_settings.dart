@@ -6,6 +6,7 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/plugins/feature_activation.dart';
@@ -926,20 +927,9 @@ class _AppearancePage extends ConsumerWidget {
           subtitle: l10n.nocturneAppearanceDesc,
           highlight: true,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: NocturneAutoGrid(
-                minWidth: 118,
-                gap: 8,
-                children: [
-                  for (final p in ThemePresets.all)
-                    _DesignTile(
-                      preset: p,
-                      selected: p.id == ThemePresets.migrateId(s.themePreset),
-                      onTap: () => n.setThemePreset(p.id),
-                    ),
-                ],
-              ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 6),
+              child: DesignVitrine(),
             ),
             if (followsMode)
               _Row(

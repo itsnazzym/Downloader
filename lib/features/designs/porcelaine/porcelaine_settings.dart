@@ -6,6 +6,7 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
@@ -947,21 +948,7 @@ class _AppearancePage extends ConsumerWidget {
                   onChanged: n.setThemeMode,
                   icon: Icons.brightness_4_rounded,
                 ),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  for (final p in ThemePresets.all)
-                    SizedBox(
-                      width: 168,
-                      child: _DesignTile(
-                        preset: p,
-                        selected: p.id == current,
-                        onTap: () => n.setThemePreset(p.id),
-                      ),
-                    ),
-                ],
-              ),
+              const DesignVitrine(),
               if (s.themePreset != 'oled') ...[
                 const SizedBox(height: 8),
                 SectionTitle(l10n.accentColor),

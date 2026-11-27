@@ -5855,4 +5855,662 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String get vitrineListLabel => 'Designs disponibles';
+
+  @override
+  String get vitrinePreviewLabel => 'Aperçu';
+
+  @override
+  String get vitrineCurrentBadge => 'Actuel';
+
+  @override
+  String vitrineApply(String name) {
+    return 'Utiliser $name';
+  }
+
+  @override
+  String get vitrineApplyCurrent => 'Design actuel';
+
+  @override
+  String get vitrineColors => 'Couleurs';
+
+  @override
+  String get vitrineFont => 'Typo';
+
+  @override
+  String get vitrineNav => 'Navigation';
+
+  @override
+  String get vitrineChipDark => 'Sombre';
+
+  @override
+  String get vitrineChipLight => 'Clair';
+
+  @override
+  String get vitrineSignalShort => 'Sombre et vif, en bento.';
+
+  @override
+  String get vitrineSignalLong =>
+      'Un tableau de bord en blocs sur fond presque noir, avec un seul accent chartreuse pour ce qui compte : le lien à coller et ce qui télécharge.';
+
+  @override
+  String get vitrineSignalChip2 => 'Onglets en haut';
+
+  @override
+  String get vitrineSignalChip3 => 'Énergique';
+
+  @override
+  String get vitrineSignalNav => 'Onglets en haut';
+
+  @override
+  String get vitrinePorcelaineShort => 'Clair et calme, en widgets.';
+
+  @override
+  String get vitrinePorcelaineLong =>
+      'Un espace de widgets blancs posés sur un fond porcelaine, que tu réorganises à ta façon. Le bleu cobalt ne sert qu’aux actions.';
+
+  @override
+  String get vitrinePorcelaineChip2 => 'Dock central';
+
+  @override
+  String get vitrinePorcelaineChip3 => 'Serein';
+
+  @override
+  String get vitrinePorcelaineNav => 'Dock au centre';
+
+  @override
+  String get vitrinePastilleShort => 'Joueur, tuiles pastel.';
+
+  @override
+  String get vitrinePastilleLong =>
+      'De grosses tuiles aux couleurs douces et des chiffres géants : chaque information a sa pastille. Le plus ludique des huit.';
+
+  @override
+  String get vitrinePastilleChip2 => 'Dock en bas';
+
+  @override
+  String get vitrinePastilleChip3 => 'Ludique';
+
+  @override
+  String get vitrinePastilleNav => 'Dock en bas';
+
+  @override
+  String get vitrineStudioShort => 'Éditorial, papier et encre.';
+
+  @override
+  String get vitrineStudioLong =>
+      'Une mise en page de magazine : papier, encre noire, filets fins et un point rouge d’enregistrement. Ta bibliothèque se lit comme un tableau.';
+
+  @override
+  String get vitrineStudioChip2 => 'Barre latérale';
+
+  @override
+  String get vitrineStudioChip3 => 'Sobre';
+
+  @override
+  String get vitrineStudioNav => 'Barre latérale texte';
+
+  @override
+  String get vitrineTerminalShort => 'Au clavier, phosphore vert.';
+
+  @override
+  String get vitrineTerminalLong =>
+      'Tout se pilote au clavier, comme une console : chaque action a sa touche, le texte est en police à chasse fixe et le vert phosphore signale ce qui tourne.';
+
+  @override
+  String get vitrineTerminalChip2 => 'Raccourcis';
+
+  @override
+  String get vitrineTerminalChip3 => 'Technique';
+
+  @override
+  String get vitrineTerminalNav => 'Barre de touches';
+
+  @override
+  String get vitrineNocturneShort => 'Nuit profonde, anneaux.';
+
+  @override
+  String get vitrineNocturneLong =>
+      'Un bleu de nuit apaisant, une lumière douce et des anneaux de progression. Pensé pour les longues sessions le soir.';
+
+  @override
+  String get vitrineNocturneChip2 => 'Rail d’icônes';
+
+  @override
+  String get vitrineNocturneChip3 => 'Doux';
+
+  @override
+  String get vitrineNocturneNav => 'Rail d’icônes';
+
+  @override
+  String get vitrineOledShort => 'Noir absolu, seul le vivant s’allume.';
+
+  @override
+  String get vitrineOledLong =>
+      'Fond à 0 % de luminosité : sur un écran OLED, ces pixels sont éteints. Seul ce qui vit s’allume, en chiffres matriciels et en une couleur vive.';
+
+  @override
+  String get vitrineOledChip1 => 'Noir pur';
+
+  @override
+  String get vitrineOledChip2 => 'Navigation texte';
+
+  @override
+  String get vitrineOledChip3 => 'Minimal';
+
+  @override
+  String get vitrineOledNav => 'Liens texte en haut';
+
+  @override
+  String get vitrineIosShort =>
+      'Liquid Glass : du verre vivant sur tes vidéos.';
+
+  @override
+  String get vitrineIosLong =>
+      'Des panneaux de verre flottants qui prennent la couleur de tes miniatures, des titres XXL, des contrôles en capsule et des anneaux de progression. Sombre par défaut, clair si ton système l’est.';
+
+  @override
+  String get vitrineIosChip1 => 'Liquid Glass';
+
+  @override
+  String get vitrineIosChip2 => 'Sombre ou clair';
+
+  @override
+  String get vitrineIosChip3 => 'Barre flottante';
+
+  @override
+  String get vitrineIosNav => 'Barre latérale';
+
+  @override
+  String get oledNavHome => 'Accueil';
+
+  @override
+  String get oledMainNavigation => 'Navigation principale';
+
+  @override
+  String get oledFreeWord => 'libres';
+
+  @override
+  String get oledPasteHint => 'Colle un lien YouTube, TikTok, Instagram, X…';
+
+  @override
+  String oledActiveOf(int index, int count) {
+    return 'En cours · $index sur $count';
+  }
+
+  @override
+  String oledEtaLeft(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String get oledNext => 'Ensuite';
+
+  @override
+  String oledDaysShort(int days) {
+    return '$days j';
+  }
+
+  @override
+  String get oledStatsEmptyTitle => 'Rien ne s’est encore allumé';
+
+  @override
+  String get oledStatsEmptyBody =>
+      'Tes chiffres apparaîtront ici après ton premier téléchargement.';
+
+  @override
+  String oledDownloadsInDays(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'téléchargements',
+      one: 'téléchargement',
+      zero: 'téléchargement',
+    );
+    return '$_temp0 sur $days jours';
+  }
+
+  @override
+  String oledDownloadsInAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'téléchargements',
+      one: 'téléchargement',
+      zero: 'téléchargement',
+    );
+    return '$_temp0 au total';
+  }
+
+  @override
+  String oledTodayCount(int count) {
+    return '$count aujourd’hui';
+  }
+
+  @override
+  String get oledVolume => 'Volume';
+
+  @override
+  String get oledSuccess => 'Réussite';
+
+  @override
+  String get oledFree => 'Libres';
+
+  @override
+  String oledLastDays(int days) {
+    return '$days derniers jours';
+  }
+
+  @override
+  String oledPerDot(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '1 point = $count téléchargements',
+      one: '1 point = 1 téléchargement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledHistogramLabel(int days, int count) {
+    return 'Téléchargements par jour sur $days jours, $count au total';
+  }
+
+  @override
+  String get oledTodayWord => 'aujourd’hui';
+
+  @override
+  String get oledSources => 'Sources';
+
+  @override
+  String get oledSpaceUsed => 'Espace utilisé';
+
+  @override
+  String oledWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'vidéos',
+      one: 'vidéo',
+      zero: 'vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'collections',
+      one: 'collection',
+      zero: 'collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'favoris',
+      one: 'favori',
+      zero: 'favori',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledSync => 'Synchroniser';
+
+  @override
+  String get oledSyncing => 'Synchronisation…';
+
+  @override
+  String get oledImportExport => 'Importer un export';
+
+  @override
+  String get oledTabVideos => 'Vidéos';
+
+  @override
+  String get oledTabCollections => 'Collections';
+
+  @override
+  String get oledTabFavorites => 'Favoris';
+
+  @override
+  String get oledSelectAll => 'Tout sélectionner';
+
+  @override
+  String oledSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledDownloadSelection => 'Télécharger la sélection';
+
+  @override
+  String get oledQueued => 'Ajouté aux téléchargements';
+
+  @override
+  String get oledStop => 'Arrêter';
+
+  @override
+  String get oledAllOptions => 'Toutes les options';
+
+  @override
+  String get oledSimpleView => 'Vue simple';
+
+  @override
+  String get oledThisPc => 'ce PC';
+
+  @override
+  String get oledRefreshDevices => 'Chercher les appareils';
+
+  @override
+  String get oledPairingCode => 'Code d’appairage';
+
+  @override
+  String get oledPairingHint =>
+      'Saisis ce code dans TapLoad sur ton téléphone.';
+
+  @override
+  String oledSendToDevice(String name) {
+    return 'À envoyer vers $name';
+  }
+
+  @override
+  String get oledSendNoDevice => 'À envoyer';
+
+  @override
+  String oledVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '1 vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledChooseFiles => 'Choisir des fichiers';
+
+  @override
+  String get oledSettingsSections => 'Sections des réglages';
+
+  @override
+  String get oledLeadGeneral => 'Ce que TapLoad fait par défaut.';
+
+  @override
+  String get oledLeadOutput =>
+      'Où vont les fichiers, leur format et leur rangement.';
+
+  @override
+  String get oledLeadAppearance => 'Le design, la langue et l’allure.';
+
+  @override
+  String get oledLeadPerformance =>
+      'Téléchargements simultanés, vitesse et effets.';
+
+  @override
+  String get oledLeadSystem =>
+      'Moteurs, dépendances et entretien de la bibliothèque.';
+
+  @override
+  String get oledLeadPlugins => 'Active ou coupe les fonctionnalités de l’app.';
+
+  @override
+  String get oledLeadAdvanced =>
+      'Cookies, presse-papiers, historique et expériences.';
+
+  @override
+  String get oledLeadOrganizer =>
+      'Les règles qui rangent tes téléchargements en dossiers.';
+
+  @override
+  String get iosFailures => 'Échecs';
+
+  @override
+  String get iosTools => 'Outils';
+
+  @override
+  String get iosRecent => 'Récents';
+
+  @override
+  String get iosEmptyTitle => 'Rien ici pour l’instant';
+
+  @override
+  String get iosEmptyBody =>
+      'Colle un lien YouTube, TikTok, X ou d’ailleurs : tes vidéos, ta musique et tes images s’aligneront ici.';
+
+  @override
+  String get iosNoResultsTitle => 'Aucun résultat';
+
+  @override
+  String get iosNoResultsFilters =>
+      'Aucun téléchargement ne correspond à ces filtres.';
+
+  @override
+  String iosNoResultsQuery(String query) {
+    return 'Rien ne correspond à « $query ».';
+  }
+
+  @override
+  String get iosClearFilters => 'Effacer la recherche et les filtres';
+
+  @override
+  String get iosClearSearch => 'Effacer la recherche';
+
+  @override
+  String get iosLoadErrorTitle => 'La bibliothèque n’a pas pu être lue';
+
+  @override
+  String get iosLoadErrorBody =>
+      'Tes fichiers ne sont pas touchés. Réessaie de la lire.';
+
+  @override
+  String iosFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements ont échoué',
+      one: '1 téléchargement a échoué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String iosEtaLeft(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String get iosWeek => 'Semaine';
+
+  @override
+  String get iosMonth => 'Mois';
+
+  @override
+  String get iosStatsEmptyTitle => 'Pas encore de statistiques';
+
+  @override
+  String get iosStatsEmptyBody =>
+      'Ton premier téléchargement dessinera ici les barres, les anneaux et le stockage.';
+
+  @override
+  String iosDownloadsWord(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'téléchargements',
+      one: 'téléchargement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosVsBefore => 'par rapport à la période précédente';
+
+  @override
+  String iosBarsLabel(int days, int today) {
+    return 'Téléchargements par jour sur $days jours, $today aujourd’hui';
+  }
+
+  @override
+  String get iosSuccess => 'Réussite';
+
+  @override
+  String get iosSpaceUsed => 'Espace utilisé';
+
+  @override
+  String get iosStorage => 'Stockage';
+
+  @override
+  String iosFreeLeft(String free) {
+    return '$free libres';
+  }
+
+  @override
+  String get iosTransferHint =>
+      'Appareils sur le même Wi-Fi · clique sur un appareil pour lui envoyer la sélection';
+
+  @override
+  String get iosThisPc => 'Ce PC';
+
+  @override
+  String iosSending(int percent) {
+    return 'Envoi… $percent %';
+  }
+
+  @override
+  String get iosSelected => 'Sélectionné';
+
+  @override
+  String get iosAvailable => 'Disponible';
+
+  @override
+  String get iosSent => 'Envoyé';
+
+  @override
+  String get iosRemove => 'Retirer';
+
+  @override
+  String get iosPairingCode => 'Code d’appairage';
+
+  @override
+  String get iosCopy => 'Copier';
+
+  @override
+  String get iosCopied => 'Code copié.';
+
+  @override
+  String get iosChooseFiles => 'Choisir des fichiers…';
+
+  @override
+  String iosCollectionFigures(int count, int downloaded) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '1 vidéo',
+    );
+    return '$_temp0 · $downloaded téléchargées';
+  }
+
+  @override
+  String iosInCollection(String name) {
+    return 'Dans $name';
+  }
+
+  @override
+  String iosSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosClearSelection => 'Tout désélectionner';
+
+  @override
+  String iosSelectVideo(String date) {
+    return 'Sélectionner $date';
+  }
+
+  @override
+  String get iosDownloadsGroup => 'Téléchargements';
+
+  @override
+  String get iosNotifications => 'Notifications';
+
+  @override
+  String get iosNotificationsDesc =>
+      'Prévient à la fin de chaque téléchargement';
+
+  @override
+  String get iosQualityDesc => 'Utilisée quand rien n’est précisé';
+
+  @override
+  String get iosAutoStartOn =>
+      'Les nouveaux liens démarrent dès qu’ils sont ajoutés.';
+
+  @override
+  String get iosAutoStartOff =>
+      'Les nouveaux liens attendent dans la file jusqu’à ce que tu les lances.';
+
+  @override
+  String get iosOutputGroup => 'Dossier de sortie';
+
+  @override
+  String get iosAuto => 'Auto';
+
+  @override
+  String get iosTint => 'Teinte';
+
+  @override
+  String get iosTintBlue => 'Bleu';
+
+  @override
+  String get iosTintPurple => 'Violet';
+
+  @override
+  String get iosTintPink => 'Rose';
+
+  @override
+  String get iosTintOrange => 'Orange';
+
+  @override
+  String get iosTintGreen => 'Vert';
+
+  @override
+  String get iosTintGraphite => 'Graphite';
+
+  @override
+  String get iosChangeDesign => 'Changer de design';
+
+  @override
+  String iosDesignCount(int count) {
+    return '$count styles d’interface';
+  }
+
+  @override
+  String get iosLight => 'Clair';
+
+  @override
+  String get iosDark => 'Sombre';
 }

@@ -8,6 +8,8 @@ import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
 import '../../theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'widgets/design_vitrine.dart';
 import 'widgets/settings_tiles.dart';
 import '../widgets/glass_setting_section.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -63,8 +65,10 @@ class _AppearanceSettingsViewState
 
                         const SizedBox(height: AppSpacing.l),
 
-                        // Preset Grid
-                        ds.AppColors.of(context).isIosChrome
+                        // Preset Grid (the Vitrine on desktop)
+                        PlatformInfo.isDesktop && !PlatformInfo.isMobile
+                            ? const DesignVitrine()
+                            : ds.AppColors.of(context).isIosChrome
                             ? GlassSettingSection(
                                 title: l10n.theme,
                                 icon: Icons.palette_outlined,
