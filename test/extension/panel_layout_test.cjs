@@ -114,6 +114,7 @@ test('the card profile button opens the author on the video platform, and only w
   const href = (item) => ctx.cardProfileHref(item);
   assert.equal(href({ platform: 'x', author: 'Studio Nova@studio_nova·2h', url: 'https://x.com/studio_nova/status/123', pageUrl: 'https://x.com/home' }), 'https://x.com/studio_nova');
   assert.equal(href({ platform: 'tiktok', author: 'Fanny', url: 'https://www.tiktok.com/@fanny_run/video/9' }), 'https://www.tiktok.com/@fanny_run');
+  assert.equal(href({ platform: 'tiktok', author: '@fanny_run', url: 'https://www.tiktok.com/video/9' }), null);
   assert.equal(href({ platform: 'youtube', author: 'Camille', url: 'https://www.youtube.com/shorts/abc' }), null);
   assert.equal(href({ platform: 'instagram', author: 'Reels', url: 'https://www.instagram.com/reel/abc/' }), null);
   assert.equal(href({ platform: 'web', author: '@someone', url: 'https://example.com/v.mp4' }), null);

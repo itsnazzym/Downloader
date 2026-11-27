@@ -77,10 +77,11 @@ test('handleFromItem reads X handles from the post URL, never from the display t
   assert.equal(p.handleFromItem({ platform: 'x', url: 'https://notx.com/abc/status/1' }), null);
 });
 
-test('handleFromItem reads TikTok handles from the video URL, else only from an @author', () => {
+test('handleFromItem reads TikTok handles from the post URL only, never from the author string', () => {
   const p = load();
   assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Fanny', url: 'https://www.tiktok.com/@fanny_run/video/9' }), 'fanny_run');
-  assert.equal(p.handleFromItem({ platform: 'tiktok', author: '@fanny_run', url: 'https://www.tiktok.com/video/9' }), 'fanny_run');
+  assert.equal(p.handleFromItem({ platform: 'tiktok', author: '@fanny_run', url: 'https://www.tiktok.com/video/9' }), null);
+  assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Fanny', url: 'https://www.tiktok.com/@fanny_run/photo/9' }), 'fanny_run');
   assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Camille', url: 'https://www.tiktok.com/video/9' }), null);
   assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Camille Cuisine', url: 'https://www.tiktok.com/foryou' }), null);
   // A collection page belongs to its owner, not to the video's author.

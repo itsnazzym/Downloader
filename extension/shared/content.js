@@ -827,9 +827,6 @@
           }
         }
       }
-      if (author && author.charAt(0) !== '@' && !author.includes(' ')) {
-        author = '@' + author;
-      }
 
       // Extract description / caption
       var descEl = container.querySelector ? container.querySelector(
