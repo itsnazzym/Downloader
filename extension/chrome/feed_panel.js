@@ -197,7 +197,7 @@
   var gobirdFallbackError = '';
 
   var currentViewMode = 'videos'; // 'videos' or 'creators'
-  var selectedCreatorHandles = new Set();
+  var selectedCreatorKeys = new Set();
 
   var viewModeBar = document.getElementById('view-mode-bar');
   var viewModeVideosBtn = document.getElementById('view-mode-videos-btn');
@@ -624,6 +624,7 @@
 
   function clearFeed() {
     activeCreatorFilter = 'all';
+    activeCreatorPlatform = '';
     feedItems = [];
     selectedIds.clear();
     sniffedStreams = [];
@@ -857,7 +858,7 @@
   if (creatorFilterAction) {
     creatorFilterAction.addEventListener('click', function () {
       if (!currentCreatorHandle) return;
-      selectCreatorFilter(currentCreatorHandle);
+      selectCreatorFilter(currentCreatorHandle, currentCreatorPlatform);
       closeCreatorModal();
     });
   }
@@ -1015,6 +1016,7 @@
 
   var activePlatformFilter = 'all';
   var activeCreatorFilter = 'all';
+  var activeCreatorPlatform = '';
   var activeTabUrl = '';
   var sniffedStreams = [];
 
@@ -1268,13 +1270,8 @@
     }
   }
 
-  // The creator filter only stores a handle, so the platform comes from the first feed item by that author.
-  function handleProfileUrl(handle) {
-    var key = String(handle || '').replace(/^@/, '').trim().toLowerCase();
-    var match = feedItems.find(function (it) {
-      return String(it.author || '').replace(/^@/, '').trim().toLowerCase() === key;
-    });
-    return match ? MDProfile.profileUrl(itemPlatform(match), match.author) : null;
+  function itemCreatorKey(item) {
+    return MDProfile.creatorKey(itemPlatform(item), item.author);
   }
 
   function filteredItems() {
@@ -1320,10 +1317,9 @@
     }
 
     if (activeCreatorFilter && activeCreatorFilter !== 'all') {
-      var targetHandle = activeCreatorFilter.toLowerCase().replace(/^@/, '').trim();
+      var targetKey = MDProfile.creatorKey(activeCreatorPlatform, activeCreatorFilter);
       items = items.filter(function (item) {
-        var a = String(item.author || '').toLowerCase().replace(/^@/, '').trim();
-        return a === targetHandle;
+        return itemCreatorKey(item) === targetKey;
       });
     }
 
@@ -1387,12 +1383,14 @@
     updateFeedCountStatus();
   }
 
-  function selectCreatorFilter(filter) {
+  function selectCreatorFilter(filter, platform) {
     var clean = (filter === 'all' || !filter) ? 'all' : String(filter).replace(/^@/, '').trim();
-    if (activeCreatorFilter.toLowerCase() === clean.toLowerCase()) {
+    if (activeCreatorFilter !== 'all' && MDProfile.creatorKey(activeCreatorPlatform, activeCreatorFilter) === MDProfile.creatorKey(platform, clean)) {
       activeCreatorFilter = 'all';
+      activeCreatorPlatform = '';
     } else {
       activeCreatorFilter = clean;
+      activeCreatorPlatform = platform || '';
     }
     selectedIds.clear();
     syncCreatorProfileBanner();
@@ -1410,9 +1408,9 @@
     }
 
     var cleanHandle = String(activeCreatorFilter).replace(/^@/, '').trim();
+    var bannerKey = MDProfile.creatorKey(activeCreatorPlatform, cleanHandle);
     var matchingItems = feedItems.filter(function (it) {
-      var a = String(it.author || '').toLowerCase().replace(/^@/, '').trim();
-      return a === cleanHandle.toLowerCase();
+      return itemCreatorKey(it) === bannerKey;
     });
 
     creatorProfileBanner.classList.remove('hidden');
@@ -1435,7 +1433,7 @@
 
     var isOnProfilePage = activeTabUrl && activeTabUrl.toLowerCase().indexOf('/@' + cleanHandle.toLowerCase()) !== -1;
 
-    var hasProfile = !!handleProfileUrl(cleanHandle);
+    var hasProfile = !!MDProfile.profileUrl(activeCreatorPlatform, cleanHandle);
     [loadCreatorProfileBtn, dlCreatorProfileBtn].forEach(function (btn) {
       if (btn) btn.style.display = hasProfile ? '' : 'none';
     });
@@ -1465,12 +1463,12 @@
     }
   }
 
-  function loadAllCreatorVideos(handle) {
+  function loadAllCreatorVideos(handle, platform) {
     if (!handle || handle === 'all') return;
     var clean = String(handle).replace(/^@/, '').trim();
     if (!clean) return;
 
-    var profileUrl = handleProfileUrl(clean);
+    var profileUrl = MDProfile.profileUrl(platform, clean);
     if (!profileUrl) {
       setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
       return;
@@ -1481,6 +1479,7 @@
     }
 
     activeCreatorFilter = clean;
+    activeCreatorPlatform = platform;
 
     getTargetTab(function (tab) {
       if (tab && tab.id) {
@@ -1513,7 +1512,7 @@
   if (loadCreatorProfileBtn) {
     loadCreatorProfileBtn.addEventListener('click', function () {
       if (activeCreatorFilter && activeCreatorFilter !== 'all') {
-        loadAllCreatorVideos(activeCreatorFilter);
+        loadAllCreatorVideos(activeCreatorFilter, activeCreatorPlatform);
       }
     });
   }
@@ -1522,7 +1521,7 @@
     dlCreatorProfileBtn.addEventListener('click', function () {
       if (!activeCreatorFilter || activeCreatorFilter === 'all') return;
       var clean = String(activeCreatorFilter).replace(/^@/, '').trim();
-      var profileUrl = handleProfileUrl(clean);
+      var profileUrl = MDProfile.profileUrl(activeCreatorPlatform, clean);
       if (!profileUrl) return;
       dlCreatorProfileBtn.disabled = true;
       dlCreatorProfileBtn.textContent = t('feedSending', 'Envoi…');
@@ -1550,6 +1549,7 @@
   if (backToPlaylistBtn) {
     backToPlaylistBtn.addEventListener('click', function () {
       activeCreatorFilter = 'all';
+      activeCreatorPlatform = '';
       if (previousPlaylistUrl) {
         var returnUrl = previousPlaylistUrl;
         previousPlaylistUrl = '';
@@ -1582,11 +1582,12 @@
       if (!author || author === 'Créateur' || author === 'Auteur' || author === 'Inconnu') return;
       var clean = author.replace(/^@/, '').trim();
       if (!clean) return;
-      var key = clean.toLowerCase();
+      var key = itemCreatorKey(it);
       if (!creators[key]) {
         var plat = itemPlatform(it);
         var pUrl = MDProfile.profileUrl(plat, clean);
         creators[key] = {
+          key: key,
           handle: clean,
           displayName: author.indexOf('@') === 0 ? author : ('@' + author),
           count: 0,
@@ -1699,10 +1700,10 @@
     }
 
     creators.forEach(function (c) {
-      var isSelected = selectedCreatorHandles.has(c.handle);
+      var isSelected = selectedCreatorKeys.has(c.key);
       var card = document.createElement('div');
       card.className = 'creator-card' + (isSelected ? ' selected' : '');
-      card.setAttribute('data-handle', c.handle);
+      card.setAttribute('data-creator-key', c.key);
 
       var checkWrap = document.createElement('div');
       checkWrap.className = 'creator-card-checkbox';
@@ -1712,7 +1713,7 @@
       cb.setAttribute('aria-label', tf('feedSelectAccount', 'Sélectionner {name}', { name: c.displayName }));
       cb.addEventListener('click', function (e) {
         e.stopPropagation();
-        toggleCreatorSelection(c.handle);
+        toggleCreatorSelection(c.key);
       });
       checkWrap.appendChild(cb);
       card.appendChild(checkWrap);
@@ -1763,7 +1764,7 @@
       loadBtn.querySelector('span').textContent = t('feedLoadProfile', 'Charger le profil');
       loadBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        loadAllCreatorVideos(c.handle);
+        loadAllCreatorVideos(c.handle, c.platform);
       });
       if (c.profileUrl) actions.appendChild(loadBtn);
 
@@ -1799,6 +1800,7 @@
       filterBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         activeCreatorFilter = c.handle;
+        activeCreatorPlatform = c.platform;
         setViewMode('videos');
       });
       actions.appendChild(filterBtn);
@@ -1806,7 +1808,7 @@
       card.appendChild(actions);
 
       card.addEventListener('click', function () {
-        toggleCreatorSelection(c.handle);
+        toggleCreatorSelection(c.key);
       });
 
       feedList.appendChild(card);
@@ -1815,11 +1817,11 @@
     syncCreatorsSelection();
   }
 
-  function toggleCreatorSelection(handle) {
-    if (selectedCreatorHandles.has(handle)) {
-      selectedCreatorHandles.delete(handle);
+  function toggleCreatorSelection(key) {
+    if (selectedCreatorKeys.has(key)) {
+      selectedCreatorKeys.delete(key);
     } else {
-      selectedCreatorHandles.add(handle);
+      selectedCreatorKeys.add(key);
     }
     syncCreatorsSelection();
   }
@@ -1828,29 +1830,29 @@
     if (!feedList) return;
     var cards = feedList.querySelectorAll('.creator-card');
     cards.forEach(function (card) {
-      var h = card.getAttribute('data-handle');
-      var isSel = selectedCreatorHandles.has(h);
+      var h = card.getAttribute('data-creator-key');
+      var isSel = selectedCreatorKeys.has(h);
       card.classList.toggle('selected', isSel);
       var cb = card.querySelector('input[type="checkbox"]');
       if (cb) cb.checked = isSel;
     });
 
     if (selectionCount) {
-      selectionCount.textContent = tf('feedAccountsSelected', '{count} comptes sélectionnés', { count: selectedCreatorHandles.size });
+      selectionCount.textContent = tf('feedAccountsSelected', '{count} comptes sélectionnés', { count: selectedCreatorKeys.size });
     }
 
     if (downloadSelectedButton) {
-      downloadSelectedButton.disabled = selectedCreatorHandles.size === 0;
+      downloadSelectedButton.disabled = selectedCreatorKeys.size === 0;
       var span = downloadSelectedButton.querySelector('span');
       if (span) {
-        span.textContent = replaceCount(t('feedSendAccounts', 'Envoyer {count} comptes'), selectedCreatorHandles.size);
+        span.textContent = replaceCount(t('feedSendAccounts', 'Envoyer {count} comptes'), selectedCreatorKeys.size);
       }
     }
   }
 
   function downloadSelectedCreators() {
     var creators = getDetectedCreators().filter(function (c) {
-      return selectedCreatorHandles.has(c.handle) && c.profileUrl;
+      return selectedCreatorKeys.has(c.key) && c.profileUrl;
     });
 
     if (creators.length === 0) {
@@ -1878,7 +1880,7 @@
       }).then(function (res) {
         if (res && res.ok) {
           completed++;
-          var card = feedList.querySelector('.creator-card[data-handle="' + c.handle + '"]');
+          var card = feedList.querySelector('.creator-card[data-creator-key="' + c.key + '"]');
           if (card) {
             var dlBtn = card.querySelector('.creator-card-btn.secondary');
             if (dlBtn) {
@@ -1939,26 +1941,26 @@
     });
   }
 
-  function copyCreatorUrls(customHandles) {
-    var handles = customHandles || Array.from(selectedCreatorHandles);
-    if (handles.length === 0) {
-      var allCreators = getDetectedCreators();
-      handles = allCreators.map(function (c) { return c.handle; });
-    }
-    if (handles.length === 0) {
-      setStatus(t('feedNoAccountsToCopy', 'Aucun compte à copier.'), 'error');
-      return;
-    }
+  // Profile URLs of the selected creators (all creators when none is selected), each on its own platform.
+  function selectedCreatorUrls() {
+    var creators = getDetectedCreators();
+    var picked = creators.filter(function (c) { return selectedCreatorKeys.has(c.key); });
+    return (picked.length ? picked : creators).map(function (c) { return c.profileUrl; }).filter(Boolean);
+  }
 
-    var urls = handles.map(handleProfileUrl).filter(Boolean).join('\n');
-    if (!urls) {
-      setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
+  function copyCreatorUrls() {
+    var urlList = selectedCreatorUrls();
+    if (urlList.length === 0) {
+      setStatus(getDetectedCreators().length
+        ? t('profileUnavailable', 'Profil indisponible sur cette plateforme')
+        : t('feedNoAccountsToCopy', 'Aucun compte à copier.'), 'error');
       return;
     }
+    var urls = urlList.join('\n');
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(urls).then(function () {
-        setStatus(tf('feedAccountsCopied', '{count} URL(s) de profil copiée(s) dans le presse-papier !', { count: handles.length }), 'success');
+        setStatus(tf('feedAccountsCopied', '{count} URL(s) de profil copiée(s) dans le presse-papier !', { count: urlList.length }), 'success');
       }).catch(function () {
         setStatus('Impossible de copier dans le presse-papier.', 'error');
       });
@@ -1967,22 +1969,15 @@
     }
   }
 
-  function exportCreatorUrls(customHandles) {
-    var handles = customHandles || Array.from(selectedCreatorHandles);
-    if (handles.length === 0) {
-      var allCreators = getDetectedCreators();
-      handles = allCreators.map(function (c) { return c.handle; });
-    }
-    if (handles.length === 0) {
-      setStatus(t('feedNoAccountsToExport', 'Aucun compte à exporter.'), 'error');
+  function exportCreatorUrls() {
+    var urlList = selectedCreatorUrls();
+    if (urlList.length === 0) {
+      setStatus(getDetectedCreators().length
+        ? t('profileUnavailable', 'Profil indisponible sur cette plateforme')
+        : t('feedNoAccountsToExport', 'Aucun compte à exporter.'), 'error');
       return;
     }
-
-    var lines = handles.map(handleProfileUrl).filter(Boolean).join('\r\n');
-    if (!lines) {
-      setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
-      return;
-    }
+    var lines = urlList.join('\r\n');
 
     try {
       var blob = new Blob([lines], { type: 'text/plain;charset=utf-8' });
@@ -1994,7 +1989,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setStatus(tf('feedAccountsExported', '{count} compte(s) exporté(s) dans comptes_tiktok.txt', { count: handles.length }), 'success');
+      setStatus(tf('feedAccountsExported', '{count} compte(s) exporté(s) dans comptes_tiktok.txt', { count: urlList.length }), 'success');
     } catch (e) {
       setStatus('Échec de l\'export du fichier.', 'error');
     }
@@ -2341,7 +2336,7 @@
         e.stopPropagation();
         setViewMode('creators');
         var cardForCreator = Array.from(feedList.querySelectorAll('.creator-card')).find(function (card) {
-          return card.getAttribute('data-handle') === String(item.author || '').replace(/^@/, '');
+          return card.getAttribute('data-creator-key') === itemCreatorKey(item);
         });
         if (cardForCreator) cardForCreator.scrollIntoView({ block: 'center' });
       });
@@ -2660,6 +2655,7 @@
         }
       }
       activeCreatorFilter = 'all';
+      activeCreatorPlatform = '';
       feedItems = [];
       selectedIds.clear();
       renderItems();
@@ -2912,7 +2908,7 @@
     if (currentViewMode === 'creators') {
       var creators = getDetectedCreators();
       creators.forEach(function (c) {
-        selectedCreatorHandles.add(c.handle);
+        selectedCreatorKeys.add(c.key);
       });
       syncCreatorsSelection();
     } else {
@@ -2922,7 +2918,7 @@
   clearSelectionButton.addEventListener('click', function () {
     if (busy) return;
     if (currentViewMode === 'creators') {
-      selectedCreatorHandles.clear();
+      selectedCreatorKeys.clear();
       syncCreatorsSelection();
     } else {
       selectedIds.clear();
@@ -2998,7 +2994,7 @@
       closeRecoverAccountsModal();
       var creators = getDetectedCreators();
       creators.forEach(function (c) {
-        selectedCreatorHandles.add(c.handle);
+        selectedCreatorKeys.add(c.key);
       });
       setViewMode('creators');
       downloadSelectedCreators();

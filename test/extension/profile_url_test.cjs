@@ -48,3 +48,14 @@ test('supportsProfile mirrors profileUrl', () => {
   assert.equal(p.supportsProfile('generic', 'alice'), false);
   assert.equal(p.supportsProfile('youtube', 'alice'), true);
 });
+
+test('creatorKey separates the same handle on different platforms and normalises casing', () => {
+  const p = load();
+  const x = p.creatorKey('x', 'Bob');
+  const tiktok = p.creatorKey('tiktok', '@bob ');
+  assert.equal(x, 'x:bob');
+  assert.equal(tiktok, 'tiktok:bob');
+  assert.notEqual(x, tiktok);
+  assert.equal(p.creatorKey('x', '@BOB'), x);
+  assert.notEqual(p.profileUrl('x', 'bob'), p.profileUrl('tiktok', 'bob'));
+});

@@ -34,5 +34,10 @@
     return profileUrl(platform, handle) !== null;
   }
 
-  global.MDProfile = { normalizeHandle: normalizeHandle, profileUrl: profileUrl, supportsProfile: supportsProfile };
+  // Identity of a creator: the same handle on two platforms is two creators.
+  function creatorKey(platform, handle) {
+    return String(platform || '') + ':' + String(handle || '').trim().replace(/^@/, '').toLowerCase();
+  }
+
+  global.MDProfile = { normalizeHandle: normalizeHandle, profileUrl: profileUrl, supportsProfile: supportsProfile, creatorKey: creatorKey };
 })(typeof self !== 'undefined' ? self : this);
