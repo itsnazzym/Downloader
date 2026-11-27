@@ -230,3 +230,117 @@ test('perform rejects an invalid op or tweet id without any request', async () =
   assert.equal(plain(await load().perform('FavoriteTweet', 'abc', e)).ok, false);
   assert.equal(e.calls.length, 0);
 });
+
+// ---- Wiring -------------------------------------------------------------
+
+test('x_actions.js loads before content.js everywhere content.js is injected', () => {
+  const list = '"url_policy.js", "theme.js", "x_actions.js", "content.js"';
+  assert.ok(read('manifest.chrome.json').includes(list));
+  assert.ok(read('manifest.firefox.json').includes(list));
+  assert.ok(read('connection.js').includes("files: ['url_policy.js', 'theme.js', 'x_actions.js', 'content.js']"));
+  const root = path.join(__dirname, '../..');
+  const build = fs.readFileSync(path.join(root, 'tool/build_extension.dart'), 'utf8');
+  const contract = fs.readFileSync(path.join(root, 'tool/check_extension_contract.dart'), 'utf8');
+  assert.match(build, /'x_actions\.js',/);
+  assert.equal((contract.match(/'x_actions\.js'/g) || []).length, 2);
+});
+
+test('content.js only accepts MD_X_ACTION from the background, in the top frame of an X page', () => {
+  const content = read('content.js');
+  const start = content.indexOf("message.type === 'MD_X_ACTION'");
+  assert.ok(start > 0);
+  const block = content.slice(start, content.indexOf("message.type === 'MD_CLEAR_CACHE'", start));
+  assert.match(block, /window !== window\.top/);
+  assert.match(block, /isXPage\(\)/);
+  assert.match(block, /sender\.id !== api\.runtime\.id/);
+  assert.match(block, /sender\.tab/);
+  assert.match(block, /MDXActions\.perform\(/);
+  assert.match(block, /return true;/);
+});
+
+// Loads the background script with stubbed browser APIs (same harness as download_relay_test).
+const EXT_ID = 'abcdefghijklmnopabcdefghijklmnop';
+const EXT_ORIGIN = 'chrome-extension://' + EXT_ID + '/';
+const PANEL = { id: EXT_ID, url: EXT_ORIGIN + 'feed_panel.html' };
+
+function loadBackground(tabs) {
+  const listeners = [];
+  const forwarded = [];
+  const noop = () => {};
+  const chrome = {
+    runtime: {
+      id: EXT_ID,
+      getURL: (p) => EXT_ORIGIN + p,
+      getManifest: () => ({ version: '9.9.9' }),
+      onMessage: { addListener: (fn) => listeners.push(fn) },
+      onInstalled: { addListener: noop },
+      sendMessage: () => Promise.resolve(),
+    },
+    tabs: {
+      get: async (id) => { const t = tabs.find((x) => x.id === id); if (!t) throw new Error('no tab'); return t; },
+      query: async () => tabs,
+      sendMessage: async (tabId, msg) => { forwarded.push({ tabId, msg: plain(msg) }); return { ok: true, code: 'ok', message: 'done' }; },
+    },
+    storage: { local: { get: () => Promise.resolve({}), set: () => Promise.resolve(), remove: () => Promise.resolve() } },
+    action: {},
+  };
+  class FakeSocket { constructor() { this.readyState = 0; } send() {} close() {} }
+  FakeSocket.OPEN = 1;
+  const context = {
+    chrome,
+    WebSocket: FakeSocket,
+    MDUrl: {
+      SUPPORTED_DOMAINS: [], ADULT_DOMAINS: [],
+      hostMatchesDomain: (h, d) => h === d || h.endsWith('.' + d),
+      isSupportedDomain: () => false,
+      isSafeHttpUrl: (u) => /^https?:\/\//.test(u), isRestrictedPageUrl: () => false,
+    },
+    MDBadge: { setConnected: noop, updateActiveBadge: noop },
+    navigator: { userAgent: 'test' },
+    console: { log: noop, warn: noop, debug: noop, error: noop },
+    setTimeout: () => 0, clearTimeout: noop, setInterval: () => 0, clearInterval: noop,
+    URL,
+  };
+  vm.createContext(context);
+  vm.runInContext(read('connection.js'), context);
+  // Resolves undefined when no listener keeps the channel open, so a missing handler fails fast.
+  const ask = (msg, sender) => new Promise((resolve) => {
+    let async = false;
+    listeners.forEach((fn) => { if (fn(msg, sender, (r) => resolve(plain(r))) === true) async = true; });
+    if (!async) setImmediate(() => resolve(undefined));
+  });
+  return { ask, forwarded };
+}
+
+const X_TABS = [
+  { id: 1, url: 'https://example.com/' },
+  { id: 2, url: 'https://x.com/home' },
+  { id: 3, url: 'https://twitter.com/u/status/5' },
+];
+
+test('background rejects MD_X_ACTION from anything but an extension page', async () => {
+  const bg = loadBackground(X_TABS);
+  const msg = { type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '123' };
+  assert.deepEqual(await bg.ask(msg, { id: EXT_ID, url: 'https://x.com/home', tab: { id: 2 } }), { ok: false, error: 'forbidden' });
+  assert.deepEqual(await bg.ask(msg, { id: 'other', url: 'chrome-extension://other/feed_panel.html' }), { ok: false, error: 'forbidden' });
+  assert.deepEqual(bg.forwarded, []);
+});
+
+test('background relays to the hooked x.com tab, else the first x.com tab', async () => {
+  const bg = loadBackground(X_TABS);
+  const r = await bg.ask({ type: 'MD_X_ACTION', op: 'CreateBookmark', tweetId: '123', tabId: 3, extra: 'dropped' }, PANEL);
+  assert.equal(r.ok, true);
+  assert.deepEqual(bg.forwarded[0], { tabId: 3, msg: { type: 'MD_X_ACTION', op: 'CreateBookmark', tweetId: '123' } });
+  await bg.ask({ type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '123', tabId: 1 }, PANEL);
+  assert.equal(bg.forwarded[1].tabId, 2);
+});
+
+test('background answers no_tab without an x.com tab and refuses bad input', async () => {
+  const bg = loadBackground([{ id: 1, url: 'https://example.com/' }]);
+  const r = await bg.ask({ type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '123' }, PANEL);
+  assert.equal(r.ok, false);
+  assert.equal(r.code, 'no_tab');
+  const bad = await bg.ask({ type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '1; drop' }, PANEL);
+  assert.equal(bad.ok, false);
+  assert.deepEqual(bg.forwarded, []);
+});

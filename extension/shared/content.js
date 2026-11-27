@@ -2718,6 +2718,29 @@
   if (api.runtime && api.runtime.onMessage) {
     api.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       if (!message || typeof message.type !== 'string') return false;
+      if (message.type === 'MD_X_ACTION') {
+        if (window !== window.top || !isXPage()) return false;
+        // Only the extension's background relays X actions (tabs.sendMessage has no sender.tab).
+        if (!sender || sender.id !== api.runtime.id || sender.tab) {
+          sendResponse({ ok: false, error: 'forbidden' });
+          return false;
+        }
+        if (!self.MDXActions) {
+          sendResponse({ ok: false, code: 'unknown', message: 'Rechargez l’onglet x.com.' });
+          return false;
+        }
+        self.MDXActions.perform(message.op, message.tweetId, {
+          // Firefox: content.fetch sends the request as the page (x.com origin), like Chrome's fetch does.
+          fetch: typeof content === 'object' && content && typeof content.fetch === 'function'
+            ? content.fetch.bind(content) : window.fetch.bind(window),
+          document: document,
+          now: Date.now,
+          sleep: function (ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); },
+        }).then(sendResponse, function () {
+          sendResponse({ ok: false, code: 'unknown', message: 'Action impossible pour le moment.' });
+        });
+        return true;
+      }
       if (message.type === 'MD_CLEAR_CACHE') {
         stopDeepScan();
         X_FEED_CACHE = [];

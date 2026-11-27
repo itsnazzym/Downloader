@@ -943,6 +943,43 @@
     }
   }
 
+  var X_ACTION_OPS = ['FavoriteTweet', 'UnfavoriteTweet', 'CreateBookmark', 'DeleteBookmark'];
+
+  // Like/bookmark run in an x.com tab with the user's own session: the hooked tab, else the first x.com tab.
+  async function relayXAction(message) {
+    var op = message.op;
+    var tweetId = String(message.tweetId || '');
+    if (X_ACTION_OPS.indexOf(op) === -1 || !/^\d{1,25}$/.test(tweetId)) {
+      return { ok: false, code: 'unknown', message: 'Action invalide.' };
+    }
+    var noTab = { ok: false, code: 'no_tab', message: 'Ouvrez x.com dans ce navigateur.' };
+    if (!api.tabs || !api.tabs.query || !api.tabs.sendMessage) return noTab;
+    var tab = null;
+    if (typeof message.tabId === 'number') {
+      try {
+        var hooked = await api.tabs.get(message.tabId);
+        if (hooked && isXPageUrl(hooked.url || '')) tab = hooked;
+      } catch (e) { /* closed tab */ }
+    }
+    if (!tab) {
+      try {
+        var tabs = await api.tabs.query({
+          url: ['*://x.com/*', '*://*.x.com/*', '*://twitter.com/*', '*://*.twitter.com/*'],
+        });
+        tab = (tabs || []).find(function (t) {
+          return typeof t.id === 'number' && isXPageUrl(t.url || '');
+        }) || null;
+      } catch (e) { /* tabs.query unavailable */ }
+    }
+    if (!tab) return noTab;
+    try {
+      var response = await api.tabs.sendMessage(tab.id, { type: 'MD_X_ACTION', op: op, tweetId: tweetId });
+      return response || { ok: false, code: 'unknown', message: 'Rechargez l’onglet x.com.' };
+    } catch (e) {
+      return { ok: false, code: 'no_tab', message: 'Rechargez l’onglet x.com.' };
+    }
+  }
+
   async function extractActiveXFeed(maxItems) {
     if (!api.tabs || !api.tabs.query || !api.tabs.sendMessage) {
       return { ok: false, error: 'tabs_unavailable' };
@@ -1099,7 +1136,7 @@
       try {
         await api.scripting.executeScript({
           target: { tabId: tabId, frameIds: [0] },
-          files: ['url_policy.js', 'theme.js', 'content.js'],
+          files: ['url_policy.js', 'theme.js', 'x_actions.js', 'content.js'],
         });
         return await api.tabs.sendMessage(tabId, request);
       } catch (injectionError) {
@@ -1270,8 +1307,9 @@
       return true;
     }
 
-    if (message.type === 'MD_DOWNLOAD_COMMAND' || message.type === 'MD_QUEUE_SNAPSHOT_REQUEST') {
-      // Queue control belongs to the extension's own pages, never to content scripts.
+    if (message.type === 'MD_DOWNLOAD_COMMAND' || message.type === 'MD_QUEUE_SNAPSHOT_REQUEST' ||
+        message.type === 'MD_X_ACTION') {
+      // Queue control and X actions belong to the extension's own pages, never to content scripts.
       if (!isExtensionPage(sender)) {
         sendResponse({ ok: false, error: 'forbidden' });
         return false;
@@ -1281,6 +1319,11 @@
     if (message.type === 'MD_DOWNLOAD_COMMAND') {
       sendResponse(sendDownloadCommand(message.command, message.id));
       return false;
+    }
+
+    if (message.type === 'MD_X_ACTION') {
+      relayXAction(message).then(sendResponse);
+      return true;
     }
 
     if (message.type === 'MD_QUEUE_SNAPSHOT_REQUEST') {

@@ -31,6 +31,7 @@
             "js": [
                 "url_policy.js",
                 "theme.js",
+                "x_actions.js",
                 "content.js"
             ],
             "run_at": "document_idle",
