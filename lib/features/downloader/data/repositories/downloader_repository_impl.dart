@@ -1013,13 +1013,9 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   Future<void> pauseDownload(String id) async {
     await _source.cancel(id);
     await _galleryDlSource.cancel(id);
-    if (_activeDownloads.containsKey(id)) {
-      _update(
-        _activeDownloads[id]!.copyWith(
-          status: DownloadStatus.paused,
-          speed: 'Paused',
-        ),
-      );
+    final current = _activeDownloads[id];
+    if (current != null && !_hasFinishedFile(current)) {
+      _update(current.copyWith(status: DownloadStatus.paused, speed: 'Paused'));
     }
   }
 
@@ -1027,15 +1023,19 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   Future<void> cancelDownload(String id) async {
     await _source.cancel(id);
     await _galleryDlSource.cancel(id);
-    if (_activeDownloads.containsKey(id)) {
+    final current = _activeDownloads[id];
+    if (current != null && !_hasFinishedFile(current)) {
       _update(
-        _activeDownloads[id]!.copyWith(
-          status: DownloadStatus.canceled,
-          speed: 'Canceled',
-        ),
+        current.copyWith(status: DownloadStatus.canceled, speed: 'Canceled'),
       );
     }
   }
+
+  // Read after the awaits above: the download may have finished meanwhile, and
+  // a canceled/paused label on it would offer Retry, which deletes the file.
+  bool _hasFinishedFile(DownloadItem item) =>
+      item.status == DownloadStatus.completed ||
+      item.status == DownloadStatus.duplicate;
 
   @override
   Future<void> deleteDownload(String id, {bool deleteFiles = true}) async {

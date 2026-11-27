@@ -411,24 +411,35 @@ Ready for Extension Connection
     if (invalid != null) return reply(error: invalid);
 
     try {
-      final items = _ref
-          .read(downloaderRepositoryProvider)
-          .getCurrentDownloads();
+      final repo = _ref.read(downloaderRepositoryProvider);
       final list = _ref.read(downloadListProvider.notifier);
+      // Fresh lookup each time: an item can finish during an earlier await.
+      DownloadItem? current(Object? itemId) {
+        for (final item in repo.getCurrentDownloads()) {
+          if (item.id == itemId) return item;
+        }
+        return null;
+      }
 
       if (command == 'cancel_all') {
-        for (final item in items.where(
-          (i) => ExtensionQueueContract.isActive(i.status),
-        )) {
-          await list.cancelDownload(item.id);
+        final ids = repo
+            .getCurrentDownloads()
+            .where((i) => ExtensionQueueContract.isActive(i.status))
+            .map((i) => i.id)
+            .toList();
+        for (final itemId in ids) {
+          final item = current(itemId);
+          if (item == null || !ExtensionQueueContract.isActive(item.status)) {
+            continue;
+          }
+          await list.cancelDownload(itemId);
         }
         return reply();
       }
 
       // Only ids the desktop really knows are acted on.
-      final matches = items.where((item) => item.id == id);
-      if (matches.isEmpty) return reply(error: 'unknown_id');
-      final item = matches.first;
+      final item = current(id);
+      if (item == null) return reply(error: 'unknown_id');
       // A command that does not fit the status could delete or rewrite a
       // finished download (retry deletes the file first).
       if (!ExtensionQueueContract.allows(command as String, item.status)) {

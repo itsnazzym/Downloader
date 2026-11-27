@@ -109,8 +109,14 @@ class _RecordingList extends DownloadListNotifier {
 
   final List<String> calls = [];
 
+  /// Runs inside cancel, like the real awaits during which a download can end.
+  void Function(String id)? onCancel;
+
   @override
-  Future<void> cancelDownload(String id) async => calls.add('cancel:$id');
+  Future<void> cancelDownload(String id) async {
+    calls.add('cancel:$id');
+    onCancel?.call(id);
+  }
 
   @override
   Future<void> pauseDownload(String id) async => calls.add('pause:$id');
@@ -645,6 +651,32 @@ void main() {
         'cancel:processing',
       ]);
     });
+
+    test(
+      'cancel_all skips an item that finished while the previous one was canceled',
+      () async {
+        await openWith([
+          _item('a', DownloadStatus.downloading),
+          _item('b', DownloadStatus.downloading),
+          _item('c', DownloadStatus.queued),
+        ]);
+        list.onCancel = (id) {
+          if (id != 'a') return;
+          repo.items = [
+            repo.items[0],
+            _item('b', DownloadStatus.completed, filePath: r'C:\keep\b.mp4'),
+            repo.items[2],
+          ];
+        };
+        final res = await send('cancel_all');
+        expect(res['ok'], isTrue);
+        expect(list.calls, ['cancel:a', 'cancel:c']);
+        // Retry on the finished item stays refused: it would delete its file.
+        final retry = await send('retry', 'b');
+        expect(retry['error'], 'invalid_state');
+        expect(list.calls, ['cancel:a', 'cancel:c']);
+      },
+    );
 
     test('unknown command and missing id are refused', () async {
       await openWith([_item('a', DownloadStatus.downloading)]);

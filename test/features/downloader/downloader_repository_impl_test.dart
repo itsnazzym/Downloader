@@ -145,6 +145,17 @@ class _FakeYtDlp extends YtDlpSource {
   Future<void> cancel(String id) async => cancelled.add(id);
 }
 
+/// Stopping the process takes a while: the download can finish meanwhile.
+class _SlowCancelYtDlp extends _FakeYtDlp {
+  final release = Completer<void>();
+
+  @override
+  Future<void> cancel(String id) async {
+    cancelled.add(id);
+    await release.future;
+  }
+}
+
 /// TikTok refuses the first [refusals] downloads, then serves the video.
 class _FlakyTikTok extends _FakeYtDlp {
   _FlakyTikTok(this.refusals);
@@ -561,6 +572,38 @@ void main() {
     expect(gallery.downloadCalls, 0);
     expect(item.error, isNull);
   });
+
+  for (final op in ['cancel', 'pause']) {
+    test(
+      '$op on a download that finishes meanwhile keeps it completed',
+      () async {
+        final source = _SlowCancelYtDlp();
+        final repo = buildRepo(source);
+        await loaded.future.timeout(const Duration(seconds: 3));
+        final done = Completer<void>();
+        repo.downloadUpdateStream.listen((item) {
+          if (item.status == DownloadStatus.completed && !done.isCompleted) {
+            done.complete();
+          }
+        });
+        final id = await repo.startDownload(
+          const DownloadRequest(
+            url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          ),
+        );
+
+        final stopping = op == 'cancel'
+            ? repo.cancelDownload(id)
+            : repo.pauseDownload(id);
+        await done.future.timeout(const Duration(seconds: 5));
+        source.release.complete();
+        await stopping;
+
+        final item = repo.getCurrentDownloads().firstWhere((e) => e.id == id);
+        expect(item.status, DownloadStatus.completed);
+      },
+    );
+  }
 
   test(
     'the library is saved while a download keeps reporting progress',
