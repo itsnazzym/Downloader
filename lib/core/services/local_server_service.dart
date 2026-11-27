@@ -254,6 +254,7 @@ Ready for Extension Connection
       final label = ExtensionOrigin.browserLabel(
         agents?.length == 1 ? agents!.single : null,
       );
+      // shortcut: one global cap, so a local flood can 503 paired browsers.
       final unauthenticated = _connections.values.where((c) => !c.authorized);
       if (unauthenticated.length + _upgrading >= maxUnauthenticatedSockets) {
         LoggerService.w('WebSocket refused: too many unauthenticated sockets');
@@ -529,6 +530,7 @@ Ready for Extension Connection
         if (c.closed) return;
         // Before authentication only small JSON text is read; anything else
         // closes the socket, logged without its payload.
+        // shortcut: dart:io has already buffered the whole frame (local DoS).
         if (!c.authorized &&
             (message is! String || message.length > _maxUnauthenticatedFrame)) {
           LoggerService.w('WebSocket closed: unauthenticated frame refused');
