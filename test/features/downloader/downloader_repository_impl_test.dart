@@ -13,6 +13,7 @@ import 'package:modern_downloader/features/downloader/data/repositories/download
 import 'package:modern_downloader/features/downloader/data/services/library_scanner_service.dart';
 import 'package:modern_downloader/features/downloader/data/sources/fallback_media_resolver.dart';
 import 'package:modern_downloader/features/downloader/data/sources/gallery_dl_source.dart';
+import 'package:modern_downloader/features/downloader/data/sources/tiktok_photo_post_source.dart';
 import 'package:modern_downloader/features/downloader/data/sources/yt_dlp_source.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
@@ -164,6 +165,21 @@ class _FlakyTikTok extends _FakeYtDlp {
   }
 }
 
+class _FakePhotoPosts extends TikTokPhotoPostSource {
+  final requests = <DownloadRequest>[];
+
+  @override
+  Future<({String filePath, String title})> download(
+    DownloadRequest request,
+    String folder,
+  ) async {
+    requests.add(request);
+    final file = File('$folder/Cheese [7235285015339257089].mp4')
+      ..writeAsStringSync('mp4');
+    return (filePath: file.path, title: 'Cheese');
+  }
+}
+
 class _NoSpread implements Random {
   @override
   double nextDouble() => 0;
@@ -235,6 +251,7 @@ void main() {
     FallbackMediaResolver? fallbackResolver,
     LibraryScannerService? scanner,
     Future<void> Function(Duration)? sleep,
+    TikTokPhotoPostSource? photoPosts,
   }) {
     return DownloaderRepositoryImpl(
       source,
@@ -247,6 +264,7 @@ void main() {
       fallbackResolver: fallbackResolver,
       siteBackoff: SiteBackoff(random: _NoSpread()),
       sleep: sleep ?? (_) async {},
+      photoPostSource: photoPosts,
       mediaFingerprintService: MediaFingerprintService(persistence),
       waitForLibraryScan: () async {
         if (!loaded.isCompleted) loaded.complete();
@@ -752,5 +770,36 @@ void main() {
     await done.future.timeout(const Duration(seconds: 5));
 
     expect(source.lastRequest?.cookiesFilePath, isNull);
+  });
+
+  test('a TikTok photo post is saved as a slideshow, not failed', () async {
+    final photos = _FakePhotoPosts();
+    final source = _FakeYtDlp(
+      metadataError: TikTokPhotoPostException(log: 'no formats'),
+    );
+    final repo = buildRepo(source, photoPosts: photos);
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final done = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if ((item.status == DownloadStatus.completed ||
+              item.status == DownloadStatus.failed) &&
+          !done.isCompleted) {
+        done.complete(item);
+      }
+    });
+
+    await repo.startDownload(
+      DownloadRequest(
+        url: 'https://www.tiktokv.com/share/video/7235285015339257089/',
+        outputFolder: tmp.path,
+      ),
+    );
+    final item = await done.future.timeout(const Duration(seconds: 5));
+
+    expect(item.status, DownloadStatus.completed);
+    expect(item.filePath, endsWith('[7235285015339257089].mp4'));
+    expect(item.title, 'Cheese');
+    expect(photos.requests, hasLength(1));
+    expect(source.downloadCalls, 0);
   });
 }

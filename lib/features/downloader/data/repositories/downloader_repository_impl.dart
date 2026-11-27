@@ -11,6 +11,7 @@ import '../../domain/exceptions/yt_dlp_exception.dart';
 import '../sources/fallback_media_resolver.dart';
 import '../sources/yt_dlp_source.dart';
 import '../sources/gallery_dl_source.dart';
+import '../sources/tiktok_photo_post_source.dart';
 import '../sources/kick_source.dart';
 import '../sources/kick/kick_hls.dart';
 import '../services/library_scanner_service.dart';
@@ -48,6 +49,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
   /// data). Checked once per download, before the disk-space check.
   final Future<void> Function()? _networkPreflight;
   final SiteBackoff _siteBackoff;
+  final TikTokPhotoPostSource _photoPosts;
   final Future<void> Function(Duration) _sleep;
 
   /// Used when yt-dlp cannot read a link (X posts that need a login, players
@@ -85,8 +87,10 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
     FallbackMediaResolver? fallbackResolver,
     SiteBackoff? siteBackoff,
     Future<void> Function(Duration)? sleep,
+    TikTokPhotoPostSource? photoPostSource,
   }) : _networkPreflight = networkPreflight,
        _siteBackoff = siteBackoff ?? SiteBackoff(),
+       _photoPosts = photoPostSource ?? TikTokPhotoPostSource(),
        _sleep = sleep ?? Future<void>.delayed,
        _fallbackResolver = fallbackResolver ?? FallbackMediaResolver(),
        _kickSource = kickSource ?? KickSource(),
@@ -801,6 +805,14 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           _markDownloadFailed(id, e, notify: false);
           return;
         }
+        if (e is TikTokPhotoPostException && !request.audioOnly) {
+          try {
+            await _downloadTikTokPhotoPost(id, request);
+            return;
+          } catch (pe) {
+            LoggerService.w('TikTok photo post failed: $pe');
+          }
+        }
         if (!DownloadStatusGuard.isNonRetryableError(e) &&
             GalleryDlSource.shouldUseFallback(request.url)) {
           try {
@@ -935,6 +947,35 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
         message,
       ),
     );
+  }
+
+  /// yt-dlp has no format for a photo slideshow: it becomes one MP4.
+  Future<void> _downloadTikTokPhotoPost(
+    String id,
+    DownloadRequest request,
+  ) async {
+    _update(
+      _activeDownloads[id]!.copyWith(
+        status: DownloadStatus.downloading,
+        speed: 'Slideshow...',
+      ),
+    );
+    final folder = await _source.outputFolderFor(request);
+    final result = await _photoPosts.download(request, folder);
+    _siteBackoff.recordSuccess(request.url);
+    _update(
+      _withCompletedFileSize(
+        _activeDownloads[id]!.copyWith(
+          status: DownloadStatus.completed,
+          progress: 1.0,
+          speed: 'Terminé',
+          clearError: true,
+          title: result.title,
+          filePath: result.filePath,
+        ),
+      ),
+    );
+    await _deduplicateFinalFile(id);
   }
 
   Future<void> _tryGalleryDlFallback(String id, DownloadRequest request) async {

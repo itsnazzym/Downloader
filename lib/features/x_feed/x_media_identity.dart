@@ -1,3 +1,5 @@
+import '../../core/download/tiktok_video_url.dart';
+
 /// Produces stable identities for media URLs without using display metadata.
 class XMediaIdentity {
   XMediaIdentity._();
@@ -60,7 +62,12 @@ class XMediaIdentity {
 
   /// Returns a stable key suitable for equality checks, or null for invalid
   /// URLs. The key intentionally contains no title, author, or thumbnail data.
-  static String? mediaKey(String value) => normalizedUrl(value);
+  /// TikTok links of one post (share, web, photo URLs) share its ID.
+  static String? mediaKey(String value) {
+    final tikTokId = TikTokVideoUrl.extractVideoId(value);
+    if (tikTokId != null) return 'tiktok:$tikTokId';
+    return normalizedUrl(value);
+  }
 
   static bool sameMedia(String first, String second) {
     final firstKey = mediaKey(first);

@@ -28,5 +28,16 @@ void main() {
       expect(XMediaIdentity.mediaKey(second), isNull);
       expect(XMediaIdentity.sameMedia(first, second), isFalse);
     });
+
+    test('every link to one TikTok post is the same media', () {
+      const share = 'https://www.tiktokv.com/share/video/7235285015339257089/';
+      const web = 'https://www.tiktok.com/@chef/video/7235285015339257089';
+      const photo = 'https://www.tiktok.com/@chef/photo/7235285015339257089';
+      const other = 'https://www.tiktok.com/@chef/video/7235285015339257090';
+
+      expect(XMediaIdentity.sameMedia(share, web), isTrue);
+      expect(XMediaIdentity.sameMedia(web, photo), isTrue);
+      expect(XMediaIdentity.sameMedia(share, other), isFalse);
+    });
   });
 }

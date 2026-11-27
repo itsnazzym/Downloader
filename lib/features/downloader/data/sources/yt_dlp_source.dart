@@ -377,7 +377,12 @@ class YtDlpSource {
 
     // Native multi-fragment downloader scales beyond aria2c's 16-connection cap.
     // Max speed stays on; the global fragment budget only shares 64 across jobs.
-    if (Platform.isAndroid || concurrentFragments >= 16 || maxSpeedMode) {
+    // TikTok files are small single files: aria2c's parallel connections to
+    // one file only draw the CDN's throttling.
+    if (Platform.isAndroid ||
+        concurrentFragments >= 16 ||
+        maxSpeedMode ||
+        _isTikTokUrl(request.url)) {
       LoggerService.i(
         'Native high-speed downloader: $concurrentFragments parallel fragments'
         '${maxSpeedMode ? ' (max speed mode)' : ''} '
@@ -419,52 +424,7 @@ class YtDlpSource {
 
     // Output template - Use platform path separators
     String outputPath;
-    String baseFolder = request.outputFolder ?? '';
-
-    // Standard User Downloads directory if none provided
-    if (baseFolder.isEmpty) {
-      if (Platform.isWindows) {
-        final userProfile = Platform.environment['USERPROFILE'];
-        if (userProfile != null) {
-          baseFolder = '$userProfile\\Downloads';
-        }
-      } else if (Platform.isAndroid) {
-        try {
-          baseFolder =
-              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
-        } catch (_) {}
-      }
-      baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
-    }
-
-    if (Platform.isWindows) {
-      baseFolder = baseFolder.replaceAll('/', '\\');
-    }
-
-    // Organize by site: Add subfolder
-    if (request.organizeBySite) {
-      // Use DownloadItem.source logic but for the request URL
-      final siteFolder = _getSiteName(request.url);
-      baseFolder = p.join(baseFolder, siteFolder);
-    }
-
-    try {
-      final downloadsDir = Directory(baseFolder);
-      if (!downloadsDir.existsSync()) {
-        downloadsDir.createSync(recursive: true);
-      }
-    } catch (e) {
-      LoggerService.w(
-        'YtDlpSource: Could not create baseFolder $baseFolder: $e',
-      );
-      if (Platform.isAndroid) {
-        try {
-          baseFolder =
-              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
-          Directory(baseFolder).createSync(recursive: true);
-        } catch (_) {}
-      }
-    }
+    final baseFolder = await outputFolderFor(request);
 
     // Include %(id)s in the filename to prevent false duplicates when
     // yt-dlp extracts the same generic title for different videos on unknown sites.
@@ -975,6 +935,60 @@ class YtDlpSource {
         lower.contains('xvideos') ||
         lower.contains('instagram.com') ||
         lower.contains('tiktok.com');
+  }
+
+  /// The folder a download of [request] lands in (default folder, site
+  /// subfolder), created when missing. The creator subfolder is not included:
+  /// yt-dlp fills it from the metadata.
+  Future<String> outputFolderFor(DownloadRequest request) async {
+    String baseFolder = request.outputFolder ?? '';
+
+    // Standard User Downloads directory if none provided
+    if (baseFolder.isEmpty) {
+      if (Platform.isWindows) {
+        final userProfile = Platform.environment['USERPROFILE'];
+        if (userProfile != null) {
+          baseFolder = '$userProfile\\Downloads';
+        }
+      } else if (Platform.isAndroid) {
+        try {
+          baseFolder =
+              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+        } catch (_) {}
+      }
+      baseFolder = baseFolder.isEmpty ? 'Downloads' : baseFolder;
+    }
+
+    if (Platform.isWindows) {
+      baseFolder = baseFolder.replaceAll('/', '\\');
+    }
+
+    // Organize by site: Add subfolder
+    if (request.organizeBySite) {
+      // Use DownloadItem.source logic but for the request URL
+      final siteFolder = _getSiteName(request.url);
+      baseFolder = p.join(baseFolder, siteFolder);
+    }
+
+    try {
+      final downloadsDir = Directory(baseFolder);
+      if (!downloadsDir.existsSync()) {
+        downloadsDir.createSync(recursive: true);
+      }
+    } catch (e) {
+      LoggerService.w(
+        'YtDlpSource: Could not create baseFolder $baseFolder: $e',
+      );
+      if (Platform.isAndroid) {
+        try {
+          baseFolder =
+              await DefaultLibraryPathResolver.resolveDefaultOutputFolder();
+          Directory(baseFolder).createSync(recursive: true);
+        } catch (_) {}
+      }
+    }
+
+    return baseFolder;
   }
 
   String _getSiteName(String url) {
