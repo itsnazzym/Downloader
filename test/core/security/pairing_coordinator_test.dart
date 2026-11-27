@@ -29,6 +29,27 @@ class _FakeTimer implements Timer {
   int get tick => fired ? 1 : 0;
 }
 
+/// A store whose [pair] waits for [gate] and can fail, to hold an approve
+/// in flight.
+class _GatedStore extends PairedBrowsersStore {
+  _GatedStore(SharedPreferences prefs, {required DateTime Function() clock})
+    : super(prefs, clock: clock, random: Random(7));
+
+  Completer<void>? gate;
+  Object? failWith;
+
+  @override
+  Future<(PairedBrowser, String)> pair({
+    required String origin,
+    required String label,
+  }) async {
+    await gate?.future;
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return super.pair(origin: origin, label: label);
+  }
+}
+
 void main() {
   late DateTime now;
   late PairedBrowsersStore store;
@@ -347,6 +368,94 @@ void main() {
         await store.pair(origin: 'chrome-extension://full$i', label: 'x');
       }
       expect(submit().request?.id, first.request!.id);
+    });
+  });
+
+  group('approve in flight', () {
+    late _GatedStore gated;
+
+    setUp(() async {
+      coordinator.dispose();
+      store.dispose();
+      gated = _GatedStore(
+        await SharedPreferences.getInstance(),
+        clock: () => now,
+      );
+      store = gated;
+      coordinator = newCoordinator();
+    });
+
+    test('the expiry timer firing meanwhile does not cancel it', () async {
+      final s = submit();
+      gated.gate = Completer<void>();
+      final approving = coordinator.approve(s.request!.id);
+      timers.single.fire();
+      await Future<void>.delayed(Duration.zero);
+      expect(coordinator.state, s.request); // still pending, not expired
+
+      gated.gate!.complete();
+      expect(await approving, isTrue);
+      expect(await s.outcome!, isA<PairingApproved>());
+      expect(gated.state.browsers, hasLength(1));
+    });
+
+    test('same origin adopts the identical outcome, others are busy, '
+        'deny is a no-op', () async {
+      final s = submit();
+      gated.gate = Completer<void>();
+      final approving = coordinator.approve(s.request!.id);
+
+      final again = submit();
+      expect(again.request!.id, s.request!.id);
+      expect(identical(again.outcome, s.outcome), isTrue);
+      expect(submit(_other).refusal, PairingRefusal.busy);
+      await coordinator.deny(s.request!.id);
+      await coordinator.deny(s.request!.id, always: true);
+      expect(coordinator.state, s.request);
+      expect(gated.pauseRemaining(_origin), isNull);
+      expect(gated.isBlocked(_origin), isFalse);
+
+      gated.gate!.complete();
+      expect(await approving, isTrue);
+      expect(await again.outcome!, isA<PairingApproved>());
+    });
+
+    test('dispose meanwhile resolves expired and approve is false', () async {
+      final s = submit();
+      gated.gate = Completer<void>();
+      final approving = coordinator.approve(s.request!.id);
+      coordinator.dispose();
+      expect(await s.outcome!, isA<PairingExpired>());
+
+      gated.gate!.complete();
+      expect(await approving, isFalse);
+    });
+
+    test('any store failure resolves denied, false, state cleared', () async {
+      final s = submit();
+      gated.failWith = StateError('disk full');
+
+      expect(await coordinator.approve(s.request!.id), isFalse);
+      final outcome = await s.outcome!;
+      expect(outcome, isA<PairingDenied>());
+      expect(
+        (outcome as PairingDenied).retryAfter,
+        const Duration(minutes: 10),
+      );
+      expect(coordinator.state, isNull);
+      expect(gated.state.browsers, isEmpty);
+      expect(submit(_other).request, isNotNull);
+    });
+  });
+
+  group('expiresIn', () {
+    test('counts down by the coordinator clock and stops at zero', () {
+      final r = submit().request!;
+      expect(coordinator.expiresIn(r), const Duration(minutes: 2));
+      now = now.add(const Duration(seconds: 90));
+      expect(coordinator.expiresIn(r), const Duration(seconds: 30));
+      now = now.add(const Duration(minutes: 5));
+      expect(coordinator.expiresIn(r), Duration.zero);
     });
   });
 

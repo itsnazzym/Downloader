@@ -156,6 +156,13 @@ class PairingCoordinator extends StateNotifier<PairingRequest?> {
     return PairingSubmit(request: p.request, outcome: p.completer.future);
   }
 
+  /// Time left before [request] expires by this coordinator's clock (zero once
+  /// over), for the countdown relayed to the extension.
+  Duration expiresIn(PairingRequest request) {
+    final left = request.createdAt.add(_expiry).difference(_clock());
+    return left.isNegative ? Duration.zero : left;
+  }
+
   /// True only if THIS call issued a token: the request must still be the
   /// pending one, unexpired and not already being approved.
   Future<bool> approve(String requestId) async {
