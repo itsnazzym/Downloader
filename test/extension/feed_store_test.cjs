@@ -145,3 +145,60 @@ test('5000 items merged in batches of 50 take under 500 ms', () => {
   assert.equal(s.size(), 5000);
   assert.ok(Date.now() - t0 < 500, 'took ' + (Date.now() - t0) + ' ms');
 });
+
+// Applies domMoves to a plain array the way insertBefore would.
+function applyMoves(current, moves) {
+  const arr = current.slice();
+  for (const m of moves) {
+    arr.splice(arr.indexOf(m.id), 1);
+    arr.splice(m.beforeId === null ? arr.length : arr.indexOf(m.beforeId), 0, m.id);
+  }
+  return arr;
+}
+const moves = (cur, tgt) => Array.from(load().domMoves(cur, tgt), (m) => ({ id: m.id, beforeId: m.beforeId }));
+
+test('domMoves: identical order needs no move', () => {
+  assert.deepEqual(moves(['a', 'b', 'c'], ['a', 'b', 'c']), []);
+});
+
+test('domMoves: one item moved up costs a single move', () => {
+  const m = moves(['a', 'b', 'c', 'd'], ['a', 'd', 'b', 'c']);
+  assert.deepEqual(m, [{ id: 'd', beforeId: 'b' }]);
+});
+
+test('domMoves: a new card appended at the end is moved to the top with one move', () => {
+  const m = moves(['a', 'b', 'c', 'x'], ['x', 'a', 'b', 'c']);
+  assert.deepEqual(m, [{ id: 'x', beforeId: 'a' }]);
+});
+
+test('domMoves: a reversed list ends in the target order', () => {
+  const cur = ['a', 'b', 'c', 'd', 'e'];
+  const tgt = ['e', 'd', 'c', 'b', 'a'];
+  const m = moves(cur, tgt);
+  assert.equal(m.length, 4);
+  assert.deepEqual(applyMoves(cur, m), tgt);
+});
+
+test('domMoves: an item sent to the very end uses beforeId null', () => {
+  const m = moves(['a', 'b', 'c'], ['b', 'c', 'a']);
+  assert.deepEqual(m, [{ id: 'a', beforeId: null }]);
+});
+
+test('domMoves: ids missing from either list are ignored', () => {
+  const cur = ['a', 'gone', 'b', 'c'];
+  const tgt = ['c', 'a', 'fresh', 'b'];
+  const m = moves(cur, tgt);
+  assert.ok(m.every((x) => x.id !== 'gone' && x.id !== 'fresh' && x.beforeId !== 'gone' && x.beforeId !== 'fresh'));
+  assert.deepEqual(applyMoves(cur, m).filter((id) => id !== 'gone'), ['c', 'a', 'b']);
+});
+
+test('remove drops an item and its order slot', () => {
+  const s = load().create();
+  s.merge(batch('a', 'b', 'c'), 'dom');
+  s.remove('b');
+  assert.deepEqual(ids(s), ['a', 'c']);
+  assert.equal(s.size(), 2);
+  assert.equal(s.get('b'), undefined);
+  s.remove('nope');
+  assert.equal(s.size(), 2);
+});
