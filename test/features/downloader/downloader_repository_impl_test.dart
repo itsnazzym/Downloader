@@ -697,30 +697,33 @@ void main() {
     expect(order.map((e) => e.id), ['b', 'a', 'c']);
   });
 
-  test('a TikTok refusal is retried after a growing wait, then succeeds', () async {
-    final source = _FlakyTikTok(3);
-    final waits = <Duration>[];
-    final repo = buildRepo(source, sleep: (d) async => waits.add(d));
-    await loaded.future.timeout(const Duration(seconds: 3));
+  test(
+    'a TikTok refusal is retried after a growing wait, then succeeds',
+    () async {
+      final source = _FlakyTikTok(3);
+      final waits = <Duration>[];
+      final repo = buildRepo(source, sleep: (d) async => waits.add(d));
+      await loaded.future.timeout(const Duration(seconds: 3));
 
-    final done = Completer<DownloadItem>();
-    repo.downloadUpdateStream.listen((item) {
-      if (item.status == DownloadStatus.completed && !done.isCompleted) {
-        done.complete(item);
-      }
-    });
-    await repo.startDownload(
-      const DownloadRequest(
-        url: 'https://www.tiktokv.com/share/video/7666139547880770848/',
-      ),
-    );
+      final done = Completer<DownloadItem>();
+      repo.downloadUpdateStream.listen((item) {
+        if (item.status == DownloadStatus.completed && !done.isCompleted) {
+          done.complete(item);
+        }
+      });
+      await repo.startDownload(
+        const DownloadRequest(
+          url: 'https://www.tiktokv.com/share/video/7666139547880770848/',
+        ),
+      );
 
-    final item = await done.future.timeout(const Duration(seconds: 5));
-    expect(item.status, DownloadStatus.completed);
-    expect(source.downloadCalls, 4);
-    // Retry delays 5 s, 20 s, 80 s; the site pause never waits longer.
-    expect(waits.map((d) => d.inSeconds), [5, 20, 80]);
-  });
+      final item = await done.future.timeout(const Duration(seconds: 5));
+      expect(item.status, DownloadStatus.completed);
+      expect(source.downloadCalls, 4);
+      // Retry delays 5 s, 20 s, 80 s; the site pause never waits longer.
+      expect(waits.map((d) => d.inSeconds), [5, 20, 80]);
+    },
+  );
 
   test('each job reads its own copy of the shared cookies file', () async {
     final shared = File('${tmp.path}/heartbeat_cookies_example.txt')
@@ -750,27 +753,30 @@ void main() {
     expect(shared.existsSync(), isTrue);
   });
 
-  test('a cookies file gone since queueing is dropped, not passed on', () async {
-    final source = _FakeYtDlp();
-    final repo = buildRepo(source);
-    await loaded.future.timeout(const Duration(seconds: 3));
-    final done = Completer<void>();
-    repo.downloadUpdateStream.listen((item) {
-      if (item.status == DownloadStatus.completed && !done.isCompleted) {
-        done.complete();
-      }
-    });
+  test(
+    'a cookies file gone since queueing is dropped, not passed on',
+    () async {
+      final source = _FakeYtDlp();
+      final repo = buildRepo(source);
+      await loaded.future.timeout(const Duration(seconds: 3));
+      final done = Completer<void>();
+      repo.downloadUpdateStream.listen((item) {
+        if (item.status == DownloadStatus.completed && !done.isCompleted) {
+          done.complete();
+        }
+      });
 
-    await repo.startDownload(
-      DownloadRequest(
-        url: 'https://www.example.org/v/2',
-        cookiesFilePath: '${tmp.path}/gone_cookies.txt',
-      ),
-    );
-    await done.future.timeout(const Duration(seconds: 5));
+      await repo.startDownload(
+        DownloadRequest(
+          url: 'https://www.example.org/v/2',
+          cookiesFilePath: '${tmp.path}/gone_cookies.txt',
+        ),
+      );
+      await done.future.timeout(const Duration(seconds: 5));
 
-    expect(source.lastRequest?.cookiesFilePath, isNull);
-  });
+      expect(source.lastRequest?.cookiesFilePath, isNull);
+    },
+  );
 
   test('a TikTok photo post is saved as a slideshow, not failed', () async {
     final photos = _FakePhotoPosts();
