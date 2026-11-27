@@ -3,6 +3,7 @@
 // pixels: it writes images and fails only on a crash.
 //
 //   flutter test test/visual/desktop_screens_test.dart --no-pub
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -386,6 +387,46 @@ void main() {
       expect(tester.takeException(), isNull);
       await reveal(find.byType(DesignMiniature));
       await shot(tester, key, 'vitrine_${id}_${size.width.toInt()}');
+    });
+  }
+
+  // The mouse wheel over the Appearance page scrolls it, in every design
+  // (the Vitrine's list is long: the designs below it must stay reachable).
+  for (final id in const [
+    'signal',
+    'porcelaine',
+    'pastille',
+    'studio',
+    'terminal',
+    'nocturne',
+    'oled',
+    'ios',
+  ]) {
+    testWidgets('design $id appearance scrolls with the wheel', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.getById(id),
+        size: const Size(1000, 720),
+      );
+      router.go('/settings/appearance');
+      await settle(tester);
+      final vitrine = find.byType(DesignVitrine);
+      final before = tester.getTopLeft(vitrine).dy;
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      // The middle of the visible scroll area: the Vitrine itself may
+      // reach below the window.
+      final at = tester.getCenter(
+        find.ancestor(of: vitrine, matching: find.byType(Scrollable)).first,
+      );
+      await tester.sendEventToBinding(pointer.hover(at));
+      await tester.sendEventToBinding(pointer.scroll(const Offset(0, 400)));
+      await settle(tester);
+      expect(tester.getTopLeft(vitrine).dy, lessThan(before), reason: id);
     });
   }
 
