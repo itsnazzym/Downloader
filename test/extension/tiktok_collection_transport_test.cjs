@@ -61,7 +61,7 @@ test('sync injects the missing TikTok content script and retries the same tab', 
   assert.equal(sendCount, 2);
   assert.deepEqual(JSON.parse(JSON.stringify(injection)), {
     target: { tabId: 42, frameIds: [0] },
-    files: ['url_policy.js', 'content.js'],
+    files: ['url_policy.js', 'theme.js', 'content.js'],
   });
   assert.equal(result.sentCollections.length, 1);
   assert.equal(result.sentCollections[0][2], 73);

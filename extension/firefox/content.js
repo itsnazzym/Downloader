@@ -2781,10 +2781,26 @@
       }
       if (message.type === 'MD_SYNC_TIKTOK_COLLECTIONS') {
         if (window !== window.top) return false;
-        extractTikTokCollections().then(function (res) {
+        if (syncCard.running) {
+          sendResponse({ ok: false, error: 'sync_already_running' });
+          return false;
+        }
+        syncCard.running = true;
+        syncCardRunning(null);
+        extractTikTokCollections({
+          update: function (_message, info) { syncCardRunning(info || null); },
+        }).then(function (res) {
+          if (res && res.ok && res.collections && res.collections.length) {
+            syncCardDone(res, countRecoveredVideos(res.collections));
+          } else {
+            syncCardError(syncCardReason(res, null));
+          }
           sendResponse(res);
         }).catch(function (err) {
+          syncCardError(syncCardReason(null, err));
           sendResponse({ ok: false, error: (err && err.message) || String(err) });
+        }).finally(function () {
+          syncCard.running = false;
         });
         return true;
       }
@@ -3196,7 +3212,7 @@
         now.forEach(function (value, key) { found.set(key, value); });
         stagnant = found.size > (progress.lastFound || 0) ? 0 : stagnant + 1;
         progress.lastFound = found.size;
-        if (progress.update) progress.update(t('contentSyncDiscovering', 'Collections repérées') + ' : ' + found.size + (declared ? '/' + declared : ''));
+        if (progress.update) progress.update(t('contentSyncDiscovering', 'Collections repérées') + ' : ' + found.size + (declared ? '/' + declared : ''), { phase: 'discover', found: found.size, declared: declared });
       }
       // Virtualized grids can skip cards while loading. Sweep back through
       // the visible list before declaring folders absent.
@@ -3311,8 +3327,9 @@
         try {
           data = await fetchTikTokJson(url);
         } catch (fetchErr) {
+          // Ids already read are real memberships, but the folder is not whole.
           if (allIds.size > 0) {
-            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: false, error: (fetchErr && fetchErr.message) || 'item_fetch_failed' };
           }
           throw fetchErr;
         }
@@ -3351,10 +3368,10 @@
         }
         if (hasMore === true) {
           if (!next || next === cursor) {
-            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: false, error: 'item_cursor_stuck' };
           }
           if (page === 499) {
-            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
+            return { ids: Array.from(allIds), videoUrls: videoUrls, complete: false, error: 'item_page_limit' };
           }
           cursor = next;
           await waitForTikTok(200);
@@ -3369,9 +3386,6 @@
       }
       return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
     } catch (e) {
-      if (allIds.size > 0) {
-        return { ids: Array.from(allIds), videoUrls: videoUrls, complete: true, error: null };
-      }
       return { ids: Array.from(allIds), videoUrls: videoUrls, complete: false, error: (e && e.message) || 'fetch_failed' };
     }
   }
@@ -3415,12 +3429,14 @@
     var collections = new Array(descriptors.length);
     var failed = 0;
     var completed = 0;
+    var videosSeen = 0;
     var nextIndex = 0;
     async function worker() {
       while (nextIndex < descriptors.length) {
         var index = nextIndex++;
         var col = descriptors[index];
         var result = await fetchCollectionItemsRecursive(col.id, col.total);
+        videosSeen += result.ids.length;
         if (!result.complete) failed++;
         collections[index] = {
           id: col.id,
@@ -3434,7 +3450,7 @@
         };
         completed++;
         if (progress.update) {
-          progress.update(t('contentSyncProgress', 'Collections traitées') + ' : ' + completed + '/' + descriptors.length);
+          progress.update(t('contentSyncProgress', 'Collections traitées') + ' : ' + completed + '/' + descriptors.length, { phase: 'items', done: completed, total: descriptors.length, videos: videosSeen });
         }
         await waitForTikTok(100);
       }
@@ -3464,93 +3480,224 @@
     }, delayMs == null ? 150 : delayMs);
   }
 
+  // In-page sync card (shadow DOM, so TikTok's CSS cannot touch it).
+  var syncCard = { host: null, root: null, running: false };
+
+  var SYNC_CARD_CSS =
+    ':host{all:initial;--a:#f4b3cb;--on-a:#151515;--b:#f2da7e;--on-b:#151515;--c:#b9a8f2;--on-c:#151515;--ok:#a9c98b;--on-ok:#151515;--bad:#f08a8a;--on-bad:#151515;--r-card:26px;--r-ctl:999px}' +
+    '.wrap{position:fixed;right:20px;bottom:20px;z-index:2147483647;font:13px/1.4 "Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}' +
+    '.chip,.card{--t:var(--c);--on:var(--on-c);background:var(--t);color:var(--on)}' +
+    '.card.done{--t:var(--ok);--on:var(--on-ok)}.card.error{--t:var(--bad);--on:var(--on-bad)}' +
+    '.chip{display:flex;align-items:center;gap:10px;height:48px;padding:0 20px 0 8px;border:0;border-radius:var(--r-ctl);font:800 14px "Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;letter-spacing:-.02em;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .15s}' +
+    '.chip:hover{transform:translateY(-2px)}' +
+    '.chip i{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--on) 14%,transparent)}' +
+    '.card{width:320px;padding:18px;border-radius:var(--r-card);box-shadow:0 14px 40px rgba(0,0,0,.4)}' +
+    '.title{margin:0 0 10px;font-size:13px;font-weight:700;opacity:.8}' +
+    '.big{margin:0;font:800 44px/1 "Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;letter-spacing:-.05em;font-variant-numeric:tabular-nums}' +
+    '.big small{font-size:22px;font-weight:700;opacity:.55;letter-spacing:-.03em}' +
+    '.label{margin:6px 0 0;font-size:14px;font-weight:600}' +
+    '.bar{height:8px;margin:14px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--on) 18%,transparent);overflow:hidden}' +
+    '.bar b{display:block;height:100%;width:0;border-radius:999px;background:var(--on);transition:width .3s ease}' +
+    '.note{margin:12px 0 0;padding:10px 14px;border-radius:calc(var(--r-card) * .6);background:color-mix(in srgb,var(--on) 14%,transparent);font-size:12px;font-weight:600}' +
+    '.hint{margin:0;font-size:12px;opacity:.75}' +
+    '.row{display:flex;gap:8px;margin-top:14px}' +
+    '.btn{flex:1;height:40px;border:0;border-radius:var(--r-ctl);background:var(--on);color:var(--t);font:700 13px "Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;cursor:pointer}' +
+    '.btn.ghost{background:color-mix(in srgb,var(--on) 16%,transparent);color:var(--on)}' +
+    '.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--on);outline-offset:2px}' +
+    '@media (prefers-reduced-motion:reduce){*{transition:none!important}}';
+
+  // The card wears the desktop app's design (stored by connection.js).
+  var syncCardThemeWatching = false;
+  function syncCardWearTheme() {
+    if (typeof MD_THEME === 'undefined' || !api.storage || !api.storage.local) return;
+    function wear(theme) {
+      if (theme && syncCard.host && syncCard.host.isConnected) MD_THEME.apply(theme, syncCard.host);
+    }
+    api.storage.local.get(['appTheme']).then(function (res) { wear(res && res.appTheme); }).catch(function () {});
+    if (!syncCardThemeWatching && api.storage.onChanged) {
+      syncCardThemeWatching = true;
+      api.storage.onChanged.addListener(function (changes, area) {
+        if (area === 'local' && changes.appTheme) wear(changes.appTheme.newValue);
+      });
+    }
+  }
+
+  function syncCardEl(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function syncCardFormat(message, values) {
+    return String(message).replace(/\{(\w+)\}/g, function (_, key) {
+      return values && values[key] != null ? values[key] : '';
+    });
+  }
+
+  function syncCardMount() {
+    if (syncCard.host && syncCard.host.isConnected) return true;
+    if (!document.body) return false;
+    var host = document.createElement('div');
+    host.id = 'md-tiktok-sync-pill';
+    var root = host.attachShadow({ mode: 'open' });
+    var style = document.createElement('style');
+    style.textContent = SYNC_CARD_CSS;
+    root.appendChild(style);
+    root.appendChild(syncCardEl('div', 'wrap'));
+    syncCard.host = host;
+    syncCard.root = root;
+    document.body.appendChild(host);
+    syncCardWearTheme();
+    return true;
+  }
+
+  function syncCardShow(node, live) {
+    if (!syncCardMount()) return;
+    var wrap = syncCard.root.querySelector('.wrap');
+    wrap.textContent = '';
+    wrap.setAttribute('role', 'status');
+    wrap.setAttribute('aria-live', live ? 'polite' : 'off');
+    wrap.appendChild(node);
+  }
+
+  function syncCardIdle() {
+    var chip = syncCardEl('button', 'chip');
+    chip.type = 'button';
+    var icon = syncCardEl('i');
+    icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7a8 8 0 0 0-14-1M4 3v4h4M4 17a8 8 0 0 0 14 1m2 3v-4h-4"></path></svg>';
+    chip.appendChild(icon);
+    chip.appendChild(syncCardEl('span', '', t('contentSyncButton', 'Classer mes favoris')));
+    chip.addEventListener('click', function () { runTikTokSyncFromPage(); });
+    syncCardShow(chip, false);
+  }
+
+  function syncCardRunning(info) {
+    var card = syncCardEl('div', 'card');
+    card.appendChild(syncCardEl('p', 'title', t('contentSyncRunningTitle', 'Synchro en cours')));
+    var big = syncCardEl('p', 'big');
+    var bar = syncCardEl('div', 'bar');
+    var fill = syncCardEl('b');
+    bar.appendChild(fill);
+    if (info && info.phase === 'items') {
+      big.textContent = info.done + '';
+      big.appendChild(syncCardEl('small', '', '/' + info.total));
+      card.appendChild(big);
+      card.appendChild(syncCardEl('p', 'label', t('contentSyncItemsLabel', 'collections lues')));
+      fill.style.width = Math.round((info.done / Math.max(1, info.total)) * 100) + '%';
+      card.appendChild(bar);
+      card.appendChild(syncCardEl('p', 'hint', syncCardFormat(t('contentSyncVideosFound', '{n} vidéos retrouvées'), { n: info.videos || 0 })));
+    } else {
+      big.textContent = (info && info.found) || '…';
+      card.appendChild(big);
+      card.appendChild(syncCardEl('p', 'label', t('contentSyncDiscoverLabel', 'collections repérées')));
+      card.appendChild(bar);
+    }
+    card.appendChild(syncCardEl('p', 'hint', t('contentSyncKeepOpen', 'Garde cet onglet TikTok ouvert.')));
+    syncCardShow(card, true);
+  }
+
+  function syncCardDone(res, recovered) {
+    var collections = res.collections || [];
+    var synced = collections.filter(function (c) { return c.complete; }).length;
+    var incomplete = Math.max(0, collections.length - synced);
+    var card = syncCardEl('div', 'card done');
+    card.appendChild(syncCardEl('p', 'title', t('contentSyncDoneTitle', 'Favoris classés')));
+    card.appendChild(syncCardEl('p', 'big', String(recovered)));
+    card.appendChild(syncCardEl('p', 'label', syncCardFormat(t('contentSyncDoneLabel', 'vidéos rangées dans {n} collections'), { n: collections.length })));
+    var partial = incomplete > 0;
+    if (partial) {
+      card.appendChild(syncCardEl('p', 'note', syncCardFormat(t('contentSyncPartialNote', '{n} collections incomplètes : TikTok n’a pas tout renvoyé. Relance pour compléter.'), { n: incomplete })));
+    } else if (res.collectionListComplete === false) {
+      card.appendChild(syncCardEl('p', 'note', t('contentSyncListPartial', 'Certaines collections n’ont peut-être pas été repérées. Relance pour vérifier.')));
+      partial = true;
+    }
+    var row = syncCardEl('div', 'row');
+    if (partial) {
+      var retry = syncCardEl('button', 'btn', t('contentSyncRetry', 'Relancer'));
+      retry.type = 'button';
+      retry.addEventListener('click', function () { runTikTokSyncFromPage(); });
+      row.appendChild(retry);
+    }
+    var close = syncCardEl('button', 'btn ghost', t('contentSyncClose', 'Fermer'));
+    close.type = 'button';
+    close.addEventListener('click', syncCardIdle);
+    row.appendChild(close);
+    card.appendChild(row);
+    syncCardShow(card, true);
+  }
+
+  function syncCardError(message) {
+    var card = syncCardEl('div', 'card error');
+    card.appendChild(syncCardEl('p', 'title', t('contentSyncErrorTitle', 'Synchro impossible')));
+    card.appendChild(syncCardEl('p', 'label', message));
+    var row = syncCardEl('div', 'row');
+    var retry = syncCardEl('button', 'btn', t('contentSyncRetry', 'Relancer'));
+    retry.type = 'button';
+    retry.addEventListener('click', function () { runTikTokSyncFromPage(); });
+    var close = syncCardEl('button', 'btn ghost', t('contentSyncClose', 'Fermer'));
+    close.type = 'button';
+    close.addEventListener('click', syncCardIdle);
+    row.appendChild(retry);
+    row.appendChild(close);
+    card.appendChild(row);
+    syncCardShow(card, true);
+  }
+
+  function syncCardReason(res, err) {
+    if (err && err.message === 'app_offline') {
+      return t('contentSyncAppOffline', 'TapLoad n’est pas ouvert ou pas relié. Ouvre l’application, puis relance.');
+    }
+    if (res && res.found) {
+      return t('contentSyncNoVideos', 'Collections visibles, mais TikTok n’a renvoyé aucune vidéo. Recharge la page et relance.');
+    }
+    if (res && res.error && res.error !== 'no_collections') {
+      return t('contentSyncFailed', 'Synchronisation impossible') + ' (' + res.error + ')';
+    }
+    if (err) return t('contentSyncFailed', 'Synchronisation impossible') + ' (' + (err.message || err) + ')';
+    return t('contentSyncNoCollections', 'Aucune collection visible. Ouvre Favoris, puis Collections sur TikTok.');
+  }
+
+  function countRecoveredVideos(collections) {
+    var ids = new Set();
+    (collections || []).forEach(function (c) {
+      (c.videoIds || []).forEach(function (id) { ids.add(id); });
+    });
+    return ids.size;
+  }
+
+  // One run, whether started from the card or from the app/popup.
+  function runTikTokSyncFromPage() {
+    if (syncCard.running) return Promise.resolve();
+    syncCard.running = true;
+    syncCardRunning(null);
+    return extractTikTokCollections({
+      update: function (_message, info) { syncCardRunning(info || null); },
+    }).then(function (res) {
+      if (!(res && res.ok && Array.isArray(res.collections) && res.collections.length > 0)) {
+        syncCardError(syncCardReason(res, null));
+        return;
+      }
+      return api.runtime.sendMessage({
+        type: 'MD_TIKTOK_COLLECTIONS_DATA',
+        collections: res.collections,
+        collectionListComplete: res.collectionListComplete,
+      }).then(function (ack) {
+        if (!ack || !ack.ok) throw new Error('app_offline');
+        syncCardDone(res, countRecoveredVideos(res.collections));
+      });
+    }).catch(function (err) {
+      syncCardError(syncCardReason(null, err));
+    }).finally(function () {
+      syncCard.running = false;
+    });
+  }
+
   function injectTikTokSyncBanner() {
     if (window !== window.top) return;
     if (window.location.hostname.indexOf('tiktok.com') === -1) return;
     if (document.getElementById('md-tiktok-sync-pill')) return;
-
-    var pill = document.createElement('button');
-    pill.type = 'button';
-    pill.id = 'md-tiktok-sync-pill';
-    pill.style.position = 'fixed';
-    pill.style.bottom = '16px';
-    pill.style.right = '16px';
-    pill.style.zIndex = '9999999';
-    pill.style.background = '#1f1f23';
-    pill.style.color = '#fafafa';
-    pill.style.border = '1px solid #6a6a70';
-    pill.style.padding = '9px 12px';
-    pill.style.minHeight = '44px';
-    pill.style.borderRadius = '8px';
-    pill.style.boxShadow = '0 4px 14px rgba(0,0,0,0.3)';
-    pill.style.cursor = 'pointer';
-    pill.style.fontSize = '12px';
-    pill.style.fontWeight = '600';
-    pill.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-    pill.style.display = 'flex';
-    pill.style.alignItems = 'center';
-    pill.style.gap = '8px';
-    pill.style.maxWidth = 'min(360px, calc(100vw - 32px))';
-    pill.style.textAlign = 'start';
-    pill.style.lineHeight = '1.35';
-    pill.setAttribute('aria-live', 'polite');
-    pill.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 7a8 8 0 0 0-14-1M4 3v4h4M4 17a8 8 0 0 0 14 1m2 3v-4h-4"></path></svg><span></span>';
-    pill.querySelector('span').textContent = t('contentSyncButton', 'Synchroniser les collections');
-    pill.addEventListener('click', function () {
-      if (pill.dataset.syncing === 'true') return;
-      pill.dataset.syncing = 'true';
-      pill.setAttribute('aria-busy', 'true');
-      pill.textContent = t('contentSyncInProgress', 'Synchronisation des collections…');
-      extractTikTokCollections({ update: function (message) { pill.textContent = message; } }).then(function (res) {
-        if (res && res.ok && Array.isArray(res.collections) && res.collections.length > 0) {
-          return api.runtime.sendMessage({
-            type: 'MD_TIKTOK_COLLECTIONS_DATA',
-            collections: res.collections,
-            collectionListComplete: res.collectionListComplete,
-          }).then(function (ack) {
-            if (!ack || !ack.ok) throw new Error(t('appOffline', 'Application hors ligne'));
-            var synced = res.collections.filter(function (collection) { return collection.complete; }).length;
-            var recovered = new Set();
-            res.collections.forEach(function (collection) {
-              (collection.videoIds || []).forEach(function (id) { recovered.add(id); });
-            });
-            var expected = Math.max(res.found || 0, res.declaredTotal || 0);
-            if (res.failed || !res.collectionListComplete) {
-              var incomplete = Math.max(0, res.found - synced);
-              var missing = Math.max(0, expected - res.found);
-              pill.textContent = recovered.size + ' ' + t('contentSyncVideosSent', 'vidéos transmises') + ' · ' + synced + '/' + expected + ' ' + t('contentSyncComplete', 'complètes') +
-                (incomplete ? ' (' + incomplete + ' ' + t('contentSyncIncomplete', 'incomplètes') : '') +
-                (missing ? (incomplete ? ', ' : ' (') + missing + ' ' + t('contentSyncMissing', 'absentes') : '') +
-                (incomplete || missing ? ')' : '');
-              var errorCounts = {};
-              res.collections.forEach(function (collection) {
-                if (collection.complete || !collection.error) return;
-                errorCounts[collection.error] = (errorCounts[collection.error] || 0) + 1;
-              });
-              pill.title = Object.keys(errorCounts).sort().map(function (error) {
-                return error + ': ' + errorCounts[error];
-              }).join(' · ');
-            } else {
-              pill.textContent = recovered.size + ' ' + t('contentSyncVideosSent', 'vidéos transmises') + ' · ' + synced + ' ' + t('contentSyncCollections', 'collections');
-              setTimeout(function () { pill.remove(); }, 4000);
-            }
-          });
-        } else {
-          pill.textContent = res && res.found
-            ? t('contentSyncNoVideos', 'Collections visibles, vidéos indisponibles') + ' (' + res.found + ')'
-            : t('contentSyncNoCollections', 'Ouvrez vos Favoris TikTok puis Collections.');
-        }
-      }).catch(function (err) {
-        pill.textContent = t('contentSyncFailed', 'Synchronisation impossible') + ': ' + ((err && err.message) || '');
-      }).finally(function () {
-        pill.dataset.syncing = 'false';
-        pill.setAttribute('aria-busy', 'false');
-      });
-    });
-
-    try {
-      document.body.appendChild(pill);
-    } catch (e) {}
+    syncCardIdle();
   }
 
   start();

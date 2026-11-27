@@ -73,8 +73,12 @@ class TikTokCollectionReconciliationService {
                   item.name == name,
             )
             .toList();
-        if (sameName.length == 1) {
-          collectionIndex = collections.indexOf(sameName.single);
+        // The export lists some names twice (e.g. 127 entries, 123 names).
+        // Id-less entries are empty placeholders, so any of them can take the
+        // id; provisional `legacy:` entries may hold memberships, so they must
+        // stay unambiguous.
+        if (sameName.length == 1 || (sameName.isNotEmpty && sameName.every((item) => item.id == null))) {
+          collectionIndex = collections.indexOf(sameName.first);
         }
       }
       final previous = collectionIndex >= 0
@@ -193,6 +197,15 @@ class TikTokCollectionReconciliationService {
       final currentIds = processed.map((snapshot) => snapshot.id).toSet();
       final removed = collections.where((collection) {
         if (_isSpecialCollection(collection.name)) return false;
+        // An empty placeholder from the export whose name now has a real id
+        // is a surplus duplicate (the account has fewer folders of that name).
+        if (collection.id == null &&
+            collection.videoCount == 0 &&
+            collections.any(
+              (other) => other.id != null && other.name == collection.name,
+            )) {
+          return true;
+        }
         return collection.id != null
             ? !currentIds.contains(collection.id) &&
                   !observedNames.contains(collection.name)
@@ -507,6 +520,19 @@ class TikTokCollectionReconciliationService {
       keptSharedCount: keptShared,
     );
   }
+
+  /// Recomputes counts, totals and the special collections after a merge.
+  TikTokArchiveCatalog recount(
+    TikTokArchiveCatalog original, {
+    required List<TikTokArchiveItem> videos,
+    required List<TikTokCollectionItem> collections,
+    required List<TikTokCollectionSuggestion> suggestions,
+  }) => _recountCatalog(
+    original,
+    videos: videos,
+    collections: collections,
+    suggestions: suggestions,
+  );
 
   static void _addSuggestion(
     List<TikTokCollectionSuggestion> suggestions,

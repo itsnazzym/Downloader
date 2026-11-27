@@ -50,6 +50,7 @@ Future<void> main(List<String> args) async {
     final commonFiles = [
       'browser_api.js',
       'url_policy.js',
+      'theme.js',
       'badge.js',
       'stream_sniffer.js',
       'connection.js',

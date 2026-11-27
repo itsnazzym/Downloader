@@ -251,6 +251,13 @@
       return;
     }
 
+    if (message.type === 'THEME') {
+      var theme = Object.assign({}, message);
+      delete theme.type;
+      api.storage.local.set({ appTheme: theme }).catch(function () {});
+      return;
+    }
+
     if (message.type === 'LIBRARY_KEYS_RESULT') {
       if (message.ok !== false) {
         mergeDownloadedKeys(message.tweetIds, message.mediaIds, message.tikTokIds);
@@ -1022,7 +1029,7 @@
       try {
         await api.scripting.executeScript({
           target: { tabId: tabId, frameIds: [0] },
-          files: ['url_policy.js', 'content.js'],
+          files: ['url_policy.js', 'theme.js', 'content.js'],
         });
         return await api.tabs.sendMessage(tabId, request);
       } catch (injectionError) {

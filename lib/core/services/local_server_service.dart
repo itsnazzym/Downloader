@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show WidgetsBinding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
@@ -11,6 +12,7 @@ import 'package:modern_downloader/features/downloader/presentation/providers/dow
 import 'package:modern_downloader/core/download/extension_download_batcher.dart';
 import 'package:modern_downloader/core/download/progress_throttle.dart';
 import '../logger/logger_service.dart';
+import '../theme/extension_theme.dart';
 import 'heartbeat_cookie_locator.dart';
 import '../services/notification_service.dart';
 import '../security/local_server_auth.dart';
@@ -57,6 +59,7 @@ class LocalServerService {
 
   StreamSubscription<DownloadItem>? _repoStreamSub;
   ProviderSubscription<IDownloaderRepository>? _repoProviderSub;
+  ProviderSubscription<(String, int, String)>? _themeSub;
   Future<void>? _startFuture;
 
   Future<void> start() {
@@ -93,6 +96,15 @@ class LocalServerService {
     final repo = _ref.read(downloaderRepositoryProvider);
     _repoStreamSub = repo.downloadUpdateStream.listen(_broadcastProgress);
 
+    // The extension wears the desktop design: push it again when it changes.
+    _themeSub?.close();
+    _themeSub = _ref.listen<(String, int, String)>(
+      settingsProvider.select(
+        (s) => (s.themePreset, s.customAccentColor, s.themeMode),
+      ),
+      (previous, next) => _broadcastTheme(),
+    );
+
     try {
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
       LoggerService.i('''
@@ -116,6 +128,8 @@ Ready for Extension Connection
     _repoStreamSub = null;
     _repoProviderSub?.close();
     _repoProviderSub = null;
+    _themeSub?.close();
+    _themeSub = null;
 
     try {
       _downloadBatcher.flush();
@@ -211,6 +225,7 @@ Ready for Extension Connection
               helloTimer?.cancel();
               _acceptClient(socket);
               socket.add(jsonEncode({'type': 'HELLO_OK'}));
+              _sendTheme(socket);
               _sendLibraryKeys(socket);
             } else {
               helloTimer?.cancel();
@@ -288,6 +303,34 @@ Ready for Extension Connection
             _clients.length;
       },
     );
+  }
+
+  Map<String, dynamic>? _themeMessage() {
+    try {
+      return ExtensionTheme.fromSettings(
+        _ref.read(settingsProvider),
+        platformBrightness:
+            WidgetsBinding.instance.platformDispatcher.platformBrightness,
+      );
+    } catch (e) {
+      LoggerService.w('Could not build the extension theme: $e');
+      return null;
+    }
+  }
+
+  void _sendTheme(WebSocket socket) {
+    final message = _themeMessage();
+    if (message == null || socket.readyState != WebSocket.open) return;
+    socket.add(jsonEncode(message));
+  }
+
+  void _broadcastTheme() {
+    final message = _themeMessage();
+    if (message == null) return;
+    final payload = jsonEncode(message);
+    for (final client in _clients) {
+      if (client.readyState == WebSocket.open) client.add(payload);
+    }
   }
 
   void _sendLibraryKeys(WebSocket socket) {
@@ -532,10 +575,12 @@ Ready for Extension Connection
             .toSet()
             .length;
         final partial = incompleteCount > 0 || !listComplete;
+        final summary = notifier.classificationSummary;
+        final overview = summary == null ? '' : ' $summary.';
         final message = partial
             ? '$verifiedVideoCount vidéos retrouvées dans ${snapshots.length} collections. '
-                  '$incompleteCount collections incomplètes ; leurs vidéos retrouvées sont enregistrées.'
-            : '${snapshots.length} collections et $verifiedVideoCount vidéos synchronisées.';
+                  '$incompleteCount collections incomplètes ; leurs vidéos retrouvées sont enregistrées.$overview'
+            : '${snapshots.length} collections et $verifiedVideoCount vidéos synchronisées.$overview';
         notifier.setExtensionSyncResult(
           ok: true,
           partial: partial,
