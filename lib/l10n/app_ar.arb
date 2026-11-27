@@ -1808,5 +1808,9 @@
   "nocturneSuggestionsApplied": "{count, plural, =1{أُضيف اقتراح واحد إلى المجموعات.} other{أُضيفت {count} اقتراحات إلى المجموعات.}}",
   "nocturneSuggestionsFailed": "تعذّر تطبيق هذه الاقتراحات: {error}",
   "nocturneClose": "إغلاق",
-  "nocturneArchiveLoadingHint": "تتم القراءة في الخلفية: يبقى التطبيق قابلًا للاستخدام."
+  "nocturneArchiveLoadingHint": "تتم القراءة في الخلفية: يبقى التطبيق قابلًا للاستخدام.",
+  "nocturneLogInit": "تم تجهيز التنزيل: {id}",
+  "nocturneLogStarted": "بدأ التنزيل…",
+  "nocturneLogCompleted": "اكتمل التنزيل.",
+  "nocturneLogCanceled": "أُلغي التنزيل."
 }

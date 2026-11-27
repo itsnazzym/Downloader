@@ -488,16 +488,17 @@ class _Log extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final l10n = context.l10n;
     final lines = [
-      'Initialized download for ${item.id}',
-      if (item.status != DownloadStatus.queued) 'Download started...',
+      l10n.nocturneLogInit(item.id),
+      if (item.status != DownloadStatus.queued) l10n.nocturneLogStarted,
       if (item.step.isNotEmpty) '[STEP] ${item.step}',
       if (item.speed.isNotEmpty && !item.speed.toLowerCase().contains('retry'))
         '[SPEED] ${item.speed}',
       if (item.error != null) '[ERROR] ${item.error}',
       if (item.status == DownloadStatus.completed && item.error == null)
-        'Download completed successfully.',
-      if (item.status == DownloadStatus.canceled) 'Download canceled.',
+        l10n.nocturneLogCompleted,
+      if (item.status == DownloadStatus.canceled) l10n.nocturneLogCanceled,
     ];
     return Container(
       constraints: const BoxConstraints(maxHeight: 200),

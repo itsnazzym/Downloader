@@ -239,6 +239,7 @@ class _NocturneDownloadRowState extends ConsumerState<NocturneDownloadRow> {
                 duration: nocturneMotion(context, 180),
                 child: _RowActions(
                   item: item,
+                  onRetry: widget.onRetry,
                   onDelete: widget.onDelete,
                   enabled: show,
                 ),
@@ -254,11 +255,13 @@ class _NocturneDownloadRowState extends ConsumerState<NocturneDownloadRow> {
 class _RowActions extends ConsumerWidget {
   const _RowActions({
     required this.item,
+    required this.onRetry,
     required this.onDelete,
     required this.enabled,
   });
 
   final DownloadItem item;
+  final VoidCallback onRetry;
   final VoidCallback onDelete;
   final bool enabled;
 
@@ -284,6 +287,12 @@ class _RowActions extends ConsumerWidget {
               tooltip: l10n.openFolder,
               ghost: true,
               onTap: () => revealDownload(item),
+            ),
+            NocturneIconButton(
+              icon: Icons.restart_alt_rounded,
+              tooltip: l10n.restartDownload,
+              ghost: true,
+              onTap: onRetry,
             ),
           ],
           if (finished)
@@ -479,6 +488,14 @@ class _NocturneDownloadCardState extends ConsumerState<NocturneDownloadCard> {
                         size: 30,
                         ghost: true,
                         onTap: () => revealDownload(item),
+                      ),
+                      const SizedBox(width: 6),
+                      NocturneIconButton(
+                        icon: Icons.restart_alt_rounded,
+                        tooltip: l10n.restartDownload,
+                        size: 30,
+                        ghost: true,
+                        onTap: widget.onRetry,
                       ),
                     ],
                     const Spacer(),

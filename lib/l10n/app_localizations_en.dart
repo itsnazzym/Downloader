@@ -5343,4 +5343,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get nocturneArchiveLoadingHint =>
       'Reading in the background: the app stays usable.';
+
+  @override
+  String nocturneLogInit(String id) {
+    return 'Download prepared: $id';
+  }
+
+  @override
+  String get nocturneLogStarted => 'Download started…';
+
+  @override
+  String get nocturneLogCompleted => 'Download completed.';
+
+  @override
+  String get nocturneLogCanceled => 'Download canceled.';
 }

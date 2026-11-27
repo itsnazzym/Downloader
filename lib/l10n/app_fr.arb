@@ -1808,5 +1808,9 @@
   "nocturneSuggestionsApplied": "{count, plural, =1{1 proposition ajoutée aux collections.} other{{count} propositions ajoutées aux collections.}}",
   "nocturneSuggestionsFailed": "Impossible d’appliquer ces propositions : {error}",
   "nocturneClose": "Fermer",
-  "nocturneArchiveLoadingHint": "Lecture en arrière-plan : l’application reste utilisable."
+  "nocturneArchiveLoadingHint": "Lecture en arrière-plan : l’application reste utilisable.",
+  "nocturneLogInit": "Téléchargement préparé : {id}",
+  "nocturneLogStarted": "Téléchargement démarré…",
+  "nocturneLogCompleted": "Téléchargement terminé.",
+  "nocturneLogCanceled": "Téléchargement annulé."
 }

@@ -79,7 +79,7 @@ class NocturneChrome extends ConsumerWidget {
         else if (d.id != 'settings')
           d,
     ];
-    return Row(
+    final frame = Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
@@ -146,15 +146,17 @@ class NocturneChrome extends ConsumerWidget {
                       ),
                     ),
                   ),
-                // The pages draw their own filters and settings sections;
-                // the shared dialogs and menus they open take Nocturne's look.
-                NocturneTheme(child: child),
+                // The pages draw their own filters and settings sections.
+                child,
               ],
             ),
           ),
         ),
       ],
     );
+    // The shared dialogs, menus and fields opened from the rail or the pages
+    // take Nocturne's look.
+    return NocturneTheme(child: frame);
   }
 }
 

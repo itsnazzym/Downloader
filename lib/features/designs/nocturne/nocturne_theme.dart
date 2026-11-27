@@ -3,9 +3,10 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 
 import 'nocturne_widgets.dart';
 
-/// Nocturne's Material overrides, scoped to its pages: the dialogs, menus,
+/// Nocturne's Material overrides, scoped to its chrome: the dialogs, menus,
 /// fields, buttons, switches and sheets the shared views still open (rule
 /// editor, confirmations, context menu) come out in the night palette.
+/// Snackbars are drawn by the shell above it and keep the app-wide toast.
 class NocturneTheme extends StatelessWidget {
   const NocturneTheme({super.key, required this.child});
 
@@ -58,8 +59,8 @@ class NocturneTheme extends StatelessWidget {
         popupMenuTheme: PopupMenuThemeData(
           color: c.surfaceHighlight,
           surfaceTintColor: Colors.transparent,
-          elevation: 12,
-          shadowColor: Colors.black,
+          elevation: 6,
+          shadowColor: Colors.black.withValues(alpha: 0.5),
           shape: round(14, side: c.primary.withValues(alpha: 0.12)),
           textStyle: nocturneText(c, size: 13),
           labelTextStyle: WidgetStatePropertyAll(nocturneText(c, size: 13)),
@@ -80,13 +81,6 @@ class NocturneTheme extends StatelessWidget {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
           ),
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: c.surfaceHighlight,
-          contentTextStyle: nocturneText(c, size: 13),
-          actionTextColor: c.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: round(14, side: c.primary.withValues(alpha: 0.14)),
         ),
         tooltipTheme: TooltipThemeData(
           decoration: BoxDecoration(

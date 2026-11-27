@@ -5350,4 +5350,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get nocturneArchiveLoadingHint =>
       'تتم القراءة في الخلفية: يبقى التطبيق قابلًا للاستخدام.';
+
+  @override
+  String nocturneLogInit(String id) {
+    return 'تم تجهيز التنزيل: $id';
+  }
+
+  @override
+  String get nocturneLogStarted => 'بدأ التنزيل…';
+
+  @override
+  String get nocturneLogCompleted => 'اكتمل التنزيل.';
+
+  @override
+  String get nocturneLogCanceled => 'أُلغي التنزيل.';
 }

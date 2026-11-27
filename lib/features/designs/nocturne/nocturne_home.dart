@@ -1188,8 +1188,16 @@ class _LibraryRow extends ConsumerWidget {
         selected: selected,
         onTap: () => ref.read(selectedDownloadIdProvider.notifier).state =
             selected ? null : item.id,
-        // Failed rows have no file to lose: retry at once.
-        onRetry: () => notifier.retryDownload(item),
+        // Restarting a finished download removes its file: ask first.
+        onRetry: () async {
+          if (await confirmFileDeletion(
+            context,
+            item,
+            actionLabel: context.l10n.restartDownload,
+          )) {
+            await notifier.retryDownload(item);
+          }
+        },
         onDelete: () async {
           if (await confirmFileDeletion(
             context,

@@ -358,10 +358,18 @@ class _Card extends StatelessWidget {
 
 /// `.row`: label and description on the left, a control on the right.
 class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.control, this.description});
+  const _Row({
+    required this.label,
+    required this.control,
+    this.description,
+    this.error,
+  });
 
   final String label;
   final String? description;
+
+  /// A problem shown under the description (a plugin that failed).
+  final String? error;
   final Widget control;
 
   @override
@@ -381,6 +389,13 @@ class _Row extends StatelessWidget {
                   Text(
                     description!,
                     style: nocturneText(c, size: 12.5, color: c.textDisabled),
+                  ),
+                ],
+                if (error != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    error!,
+                    style: nocturneText(c, size: 12.5, color: c.error),
                   ),
                 ],
               ],
@@ -1142,8 +1157,10 @@ class _PluginsPage extends ConsumerWidget {
                       entry.plugin.description,
                   'v${entry.plugin.version}'
                       '${entry.plugin.isBuiltIn ? ' · ${l10n.builtIn}' : ''}',
-                  if (entry.error != null) l10n.pluginError('${entry.error}'),
                 ].join('\n'),
+                error: entry.error == null
+                    ? null
+                    : l10n.pluginError('${entry.error}'),
                 control: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

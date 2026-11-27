@@ -44,9 +44,10 @@ void main() {
 
   Future<(ProviderContainer, GlobalKey)> pump(
     WidgetTester tester,
-    List<Override> extra,
-  ) async {
-    tester.view.physicalSize = const Size(1280, 800) * 2;
+    List<Override> extra, {
+    Size size = const Size(1280, 800),
+  }) async {
+    tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -192,6 +193,83 @@ void main() {
     archive.setViewMode(TikTokViewMode.hub);
     await settle(tester);
     await shot(tester, key, 'nocturne_archive_hub');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('sort, view and more menus act, confirmations are themed', (
+    tester,
+  ) async {
+    final (container, key) = await pump(tester, []);
+    await tester.ensureVisible(find.byType(NocturneLibraryToolbar));
+    await settle(tester);
+
+    await tester.tap(find.byTooltip('Tri et affichage'));
+    await settle(tester);
+    await shot(tester, key, 'nocturne_sort_menu');
+    await tester.tap(find.text('Nom').last);
+    await settle(tester);
+    expect(container.read(downloadSortProvider), DownloadSort.nameAsc);
+
+    await tester.tap(find.byTooltip('Tri et affichage'));
+    await settle(tester);
+    await tester.tap(find.text('Détaillé').last);
+    await settle(tester);
+    expect(container.read(downloadViewModeProvider), DownloadViewMode.detailed);
+
+    await tester.tap(find.byTooltip("Plus d'actions"));
+    await settle(tester);
+    await tester.tap(find.textContaining('Effacer les terminés').last);
+    await settle(tester);
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await shot(tester, key, 'nocturne_confirm');
+    await tester.tap(find.text('Annuler').last);
+    await settle(tester);
+    expect(find.byType(AlertDialog), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('the smart organizer rule dialog takes the night theme', (
+    tester,
+  ) async {
+    final (container, key) = await pump(tester, []);
+    container.read(routerProvider).go('/settings/smart_organizer');
+    await settle(tester);
+    await tester.tap(find.byTooltip('Ajouter une règle'));
+    await settle(tester);
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await shot(tester, key, 'nocturne_rule_dialog');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  for (final (name, size) in const [
+    ('compact', Size(640, 800)),
+    ('very_compact', Size(560, 800)),
+  ]) {
+    testWidgets('the toolbar folds into its menu ($name)', (tester) async {
+      final (_, key) = await pump(tester, [], size: size);
+      await tester.ensureVisible(find.byType(NocturneLibraryToolbar));
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await shot(tester, key, 'nocturne_toolbar_$name');
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  testWidgets('an opened collection in a narrow window', (tester) async {
+    final (container, key) = await pump(tester, [], size: const Size(820, 800));
+    container.read(routerProvider).go('/archive');
+    await settle(tester);
+    final archive = container.read(tikTokArchiveProvider.notifier);
+    archive.setViewMode(TikTokViewMode.collections);
+    final first = container
+        .read(tikTokArchiveProvider)
+        .catalog!
+        .collections
+        .first;
+    archive.selectCollection(first.id ?? first.name);
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+    await shot(tester, key, 'nocturne_collection_narrow');
     await tester.pumpWidget(const SizedBox());
   });
 }

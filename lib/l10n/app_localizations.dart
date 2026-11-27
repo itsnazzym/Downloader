@@ -9063,6 +9063,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reading in the background: the app stays usable.'**
   String get nocturneArchiveLoadingHint;
+
+  /// No description provided for @nocturneLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Download prepared: {id}'**
+  String nocturneLogInit(String id);
+
+  /// No description provided for @nocturneLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get nocturneLogStarted;
+
+  /// No description provided for @nocturneLogCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get nocturneLogCompleted;
+
+  /// No description provided for @nocturneLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get nocturneLogCanceled;
 }
 
 class _AppLocalizationsDelegate

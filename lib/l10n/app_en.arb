@@ -2139,5 +2139,10 @@
   "nocturneSuggestionsFailed": "Couldn’t apply these suggestions: {error}",
   "@nocturneSuggestionsFailed": {"placeholders":{"error":{"type":"String"}}},
   "nocturneClose": "Close",
-  "nocturneArchiveLoadingHint": "Reading in the background: the app stays usable."
+  "nocturneArchiveLoadingHint": "Reading in the background: the app stays usable.",
+  "nocturneLogInit": "Download prepared: {id}",
+  "@nocturneLogInit": {"placeholders":{"id":{"type":"String"}}},
+  "nocturneLogStarted": "Download started…",
+  "nocturneLogCompleted": "Download completed.",
+  "nocturneLogCanceled": "Download canceled."
 }

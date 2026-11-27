@@ -5406,4 +5406,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get nocturneArchiveLoadingHint =>
       'Lecture en arrière-plan : l’application reste utilisable.';
+
+  @override
+  String nocturneLogInit(String id) {
+    return 'Téléchargement préparé : $id';
+  }
+
+  @override
+  String get nocturneLogStarted => 'Téléchargement démarré…';
+
+  @override
+  String get nocturneLogCompleted => 'Téléchargement terminé.';
+
+  @override
+  String get nocturneLogCanceled => 'Téléchargement annulé.';
 }

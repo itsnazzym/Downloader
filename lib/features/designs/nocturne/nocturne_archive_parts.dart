@@ -794,149 +794,171 @@ class NocturneCollectionDetail extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            NocturneButton(
-              label: l10n.nocturneAllCollections,
-              icon: Directionality.of(context) == TextDirection.rtl
-                  ? Icons.arrow_forward_rounded
-                  : Icons.arrow_back_rounded,
-              kind: NocturneButtonKind.ghost,
-              onTap: () => notifier.selectCollection(null),
-            ),
-            const SizedBox(width: 10),
-            NocturneMonogram(text: name, size: 34),
-            const SizedBox(width: 12),
-            Flexible(
-              child: Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: nocturneText(c, size: 17, weight: FontWeight.w700),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              l10n.nocturneCountVideos(videos.length),
-              style: nocturneMono(c, color: c.textDisabled),
-            ),
-            const Spacer(),
-            if (canEdit)
-              PopupMenuButton<String>(
-                tooltip: l10n.moreActions,
-                onSelected: (v) async {
-                  switch (v) {
-                    case 'reset':
-                      if (await nocturneConfirm(
-                        context,
-                        title: l10n.archiveCollResetTitle,
-                        body: Text(
-                          l10n.archiveCollResetBody(videos.length, name),
-                        ),
-                        action: l10n.archiveCollResetConfirm,
-                        icon: Icons.layers_clear_outlined,
-                      )) {
-                        await notifier.resetCollectionToUnclassified(
-                          collectionKey,
-                        );
-                        if (context.mounted) {
-                          nocturneNotice(
+        LayoutBuilder(
+          builder: (context, box) {
+            final title = Row(
+              children: [
+                NocturneButton(
+                  label: l10n.nocturneAllCollections,
+                  icon: Directionality.of(context) == TextDirection.rtl
+                      ? Icons.arrow_forward_rounded
+                      : Icons.arrow_back_rounded,
+                  kind: NocturneButtonKind.ghost,
+                  onTap: () => notifier.selectCollection(null),
+                ),
+                const SizedBox(width: 10),
+                NocturneMonogram(text: name, size: 34),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: nocturneText(c, size: 17, weight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  l10n.nocturneCountVideos(videos.length),
+                  style: nocturneMono(c, color: c.textDisabled),
+                ),
+              ],
+            );
+            final actions = Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (canEdit)
+                  PopupMenuButton<String>(
+                    tooltip: l10n.moreActions,
+                    onSelected: (v) async {
+                      switch (v) {
+                        case 'reset':
+                          if (await nocturneConfirm(
                             context,
-                            l10n.archiveCollResetDone(name),
-                          );
-                        }
+                            title: l10n.archiveCollResetTitle,
+                            body: Text(
+                              l10n.archiveCollResetBody(videos.length, name),
+                            ),
+                            action: l10n.archiveCollResetConfirm,
+                            icon: Icons.layers_clear_outlined,
+                          )) {
+                            await notifier.resetCollectionToUnclassified(
+                              collectionKey,
+                            );
+                            if (context.mounted) {
+                              nocturneNotice(
+                                context,
+                                l10n.archiveCollResetDone(name),
+                              );
+                            }
+                          }
+                        case 'purge':
+                          if (context.mounted) {
+                            await nocturnePurge(context, ref, {collectionKey});
+                          }
+                        case 'delete':
+                          if (context.mounted) {
+                            await nocturneDeleteCollection(
+                              context,
+                              ref,
+                              collectionKey,
+                              name,
+                              videos.length,
+                            );
+                          }
                       }
-                    case 'purge':
-                      if (context.mounted) {
-                        await nocturnePurge(context, ref, {collectionKey});
-                      }
-                    case 'delete':
-                      if (context.mounted) {
-                        await nocturneDeleteCollection(
-                          context,
-                          ref,
-                          collectionKey,
-                          name,
-                          videos.length,
-                        );
-                      }
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'reset',
-                    child: Text(
-                      l10n.archiveCollReset,
-                      style: nocturneText(c, size: 13),
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'reset',
+                        child: Text(
+                          l10n.archiveCollReset,
+                          style: nocturneText(c, size: 13),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'purge',
+                        child: Text(
+                          l10n.archivePurgeMenu,
+                          style: nocturneText(c, size: 13, color: c.error),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          l10n.archiveCollDelete,
+                          style: nocturneText(c, size: 13, color: c.error),
+                        ),
+                      ),
+                    ],
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: c.surfaceHighlight,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.more_horiz_rounded,
+                        size: 18,
+                        color: c.textPrimary,
+                      ),
                     ),
                   ),
-                  PopupMenuItem(
-                    value: 'purge',
-                    child: Text(
-                      l10n.archivePurgeMenu,
-                      style: nocturneText(c, size: 13, color: c.error),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Text(
-                      l10n.archiveCollDelete,
-                      style: nocturneText(c, size: 13, color: c.error),
+                if (videos.isNotEmpty && !showcase) ...[
+                  const SizedBox(width: 8),
+                  NocturneIconButton(
+                    icon: Icons.play_arrow_rounded,
+                    tooltip: l10n.archiveMobilePlayFullscreen,
+                    size: 38,
+                    onTap: () => showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => Dialog.fullscreen(
+                        child: TikTokFeedView(
+                          videos: videos,
+                          onClose: () => Navigator.of(dialogContext).pop(),
+                        ),
+                      ),
                     ),
                   ),
                 ],
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: c.surfaceHighlight,
-                    borderRadius: BorderRadius.circular(12),
+                if (videos.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  NocturneButton(
+                    label: l10n.archiveCollDownloadAll(videos.length),
+                    icon: Icons.download_rounded,
+                    kind: NocturneButtonKind.primary,
+                    onTap: state.isBatchDownloading
+                        ? null
+                        : () async {
+                            nocturneNotice(
+                              context,
+                              l10n.nocturneFolderDownloading(videos.length),
+                            );
+                            await notifier.downloadBatch(
+                              videos,
+                              limit: videos.length,
+                            );
+                          },
                   ),
-                  child: Icon(
-                    Icons.more_horiz_rounded,
-                    size: 18,
-                    color: c.textPrimary,
-                  ),
-                ),
-              ),
-            if (videos.isNotEmpty && !showcase) ...[
-              const SizedBox(width: 8),
-              NocturneIconButton(
-                icon: Icons.play_arrow_rounded,
-                tooltip: l10n.archiveMobilePlayFullscreen,
-                size: 38,
-                onTap: () => showDialog<void>(
-                  context: context,
-                  builder: (dialogContext) => Dialog.fullscreen(
-                    child: TikTokFeedView(
-                      videos: videos,
-                      onClose: () => Navigator.of(dialogContext).pop(),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            if (videos.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              NocturneButton(
-                label: l10n.archiveCollDownloadAll(videos.length),
-                icon: Icons.download_rounded,
-                kind: NocturneButtonKind.primary,
-                onTap: state.isBatchDownloading
-                    ? null
-                    : () async {
-                        nocturneNotice(
-                          context,
-                          l10n.nocturneFolderDownloading(videos.length),
-                        );
-                        await notifier.downloadBatch(
-                          videos,
-                          limit: videos.length,
-                        );
-                      },
-              ),
-            ],
-          ],
+                ],
+              ],
+            );
+            // Narrow windows: the actions go under the title.
+            if (box.maxWidth < 820) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [title, const SizedBox(height: 10), actions],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(child: title),
+                const SizedBox(width: 12),
+                actions,
+              ],
+            );
+          },
         ),
         const SizedBox(height: 16),
         Expanded(
