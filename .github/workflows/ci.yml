@@ -330,6 +330,9 @@ jobs:
           } else {
             Write-Host "AMO signing failed (exit $LASTEXITCODE). Keeping unsigned zip XPI."
           }
+          # Signing is best effort (e.g. 409 "Version already exists"): web-ext's
+          # exit code must not become the step's, or the release is lost.
+          exit 0
 
       - name: Generate Checksums
         shell: pwsh
@@ -377,8 +380,10 @@ jobs:
             extension_version.json
           git commit -m "chore(release): ${{ needs.version.outputs.tag }}" || true
           git tag "${{ needs.version.outputs.tag }}" || true
-          # No "|| true": a release must not be published for a tag that never reached origin.
-          git push origin "HEAD:${{ github.ref_name }}" "refs/tags/${{ needs.version.outputs.tag }}"
+          # No "|| true", and --atomic: if main moved meanwhile (a merge landed
+          # during the build) neither the bump commit nor the tag is pushed, so
+          # no release is published for a commit main will never contain.
+          git push --atomic origin "HEAD:${{ github.ref_name }}" "refs/tags/${{ needs.version.outputs.tag }}"
 
       - name: Write release notes
         if: ${{ needs.version.outputs.publish == 'true' }}
