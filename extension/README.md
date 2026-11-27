@@ -53,8 +53,10 @@ extension itself.
   (queued), retry (failed) and cancel all. The **Downloads** tab lists them.
 - **X like / bookmark.** Each X card has Like and Bookmark buttons (see below).
 - **Theme.** Colours, radii and shadows follow the design chosen in the desktop
-  app and update live when it changes; the extension defines no colours of its
-  own. The extension icons are the desktop app logo.
+  app and update live when it changes. The stylesheets only add fallback values
+  on `:root` (used until the app sends its theme), translucent `rgba()`
+  shadows and overlays, and white on video thumbnails; a test rejects any other
+  hard-coded colour. The extension icons are the desktop app logo.
 - **Offline.** When the desktop app is not running the panel says so and
   reconnects by itself when the app comes back.
 - **Languages.** English, French and Arabic (right-to-left layout included).
