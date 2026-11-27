@@ -29,11 +29,11 @@ app asks the user whether to allow this browser:
 its socket at once, deletes its token, and pauses invitations from that browser for 10 minutes. After a revocation
 the extension falls back to pairing: it never loops.
 
-**Pauses.** Deny pauses the browser for 10 minutes, Always deny for 24 hours, no answer within 2 minutes expires the
-request and pauses for 10 minutes, and a fourth request within an hour pauses for 30 minutes. After a refusal or a revocation the
-popup only shows the remaining time (the app's pause would refuse an earlier retry), and the extension asks again
-by itself once the pause is over. After an expiry or a busy answer the popup offers a **Try again** button, which
-asks the background script to start over immediately.
+**Pauses.** Deny pauses the browser for 10 minutes, Always deny for 24 hours, and a fourth request within an hour is paused by the app.
+If nobody answers within 2 minutes the request expires; the app sets no pause, and the extension waits 30 minutes before asking again by itself
+(after a busy answer it waits 30 seconds). After a refusal or a revocation the popup only shows the remaining time
+(the app's pause would refuse an earlier retry) and the extension asks again once the pause is over. Only after an expiry or a busy answer does the
+popup offer a **Try again** button, which asks the background script to start over immediately.
 
 **Security.**
 
