@@ -165,6 +165,15 @@ class _OledTextLinkState extends State<OledTextLink> {
   Widget build(BuildContext context) {
     final on = widget.selected;
     final color = on || _hover || _focus ? OledInk.ink : OledInk.mute;
+    final style =
+        oledText(
+          size: widget.size,
+          weight: on ? widget.selectedWeight : FontWeight.w500,
+          color: color,
+        ).copyWith(
+          decoration: _focus ? TextDecoration.underline : null,
+          decorationColor: OledInk.ion,
+        );
     return Semantics(
       button: true,
       selected: on,
@@ -182,27 +191,19 @@ class _OledTextLinkState extends State<OledTextLink> {
           onTap: widget.onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text.rich(
-              TextSpan(
-                text: widget.label,
-                children: [
-                  if (widget.trailing != null) ...[
-                    const TextSpan(text: ' '),
-                    widget.trailing!,
-                  ],
-                ],
-              ),
-              maxLines: 1,
-              style:
-                  oledText(
-                    size: widget.size,
-                    weight: on ? widget.selectedWeight : FontWeight.w500,
-                    color: color,
-                  ).copyWith(
-                    decoration: _focus ? TextDecoration.underline : null,
-                    decorationColor: OledInk.ion,
+            child: widget.trailing == null
+                ? Text(widget.label, maxLines: 1, style: style)
+                : Text.rich(
+                    TextSpan(
+                      text: widget.label,
+                      children: [
+                        const TextSpan(text: ' '),
+                        widget.trailing!,
+                      ],
+                    ),
+                    maxLines: 1,
+                    style: style,
                   ),
-            ),
           ),
         ),
       ),
