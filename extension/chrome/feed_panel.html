@@ -35,6 +35,10 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
             <span><span data-i18n="feedVideos">Vidéos</span> (<span id="view-mode-videos-count">0</span>)</span>
         </button>
+        <button type="button" class="view-mode-pill" id="view-mode-downloads-btn" data-mode="downloads" aria-pressed="false" title="Suivre les téléchargements de l'application" data-i18n-title="feedViewDownloadsTitle">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span><span data-i18n="tabDownloads">Téléchargements</span> (<span id="view-mode-downloads-count">0</span>)</span>
+        </button>
         <button type="button" class="view-mode-pill" id="view-mode-creators-btn" data-mode="creators" aria-pressed="false" title="Récupérer tous les comptes créateurs au lieu des vidéos" data-i18n-title="feedViewCreatorsTitle">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span><span data-i18n="feedAccounts">Comptes</span> (<span id="view-mode-creators-count">0</span>)</span>
@@ -191,6 +195,8 @@
                 Aucune vidéo détectée pour le moment.
             </div>
         </div>
+
+        <div id="downloads-view" class="downloads-view"></div>
     </main>
 
     <footer class="panel-footer">

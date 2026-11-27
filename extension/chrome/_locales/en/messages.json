@@ -850,5 +850,77 @@
     },
     "feedOptions": {
         "message": "Display options"
+    },
+    "tabDownloads": {
+        "message": "Downloads"
+    },
+    "feedViewDownloadsTitle": {
+        "message": "Follow the app’s downloads"
+    },
+    "dlQueuedLine": {
+        "message": "Queued · #{pos} in line"
+    },
+    "dlEtaLeft": {
+        "message": "≈ {eta} left"
+    },
+    "dlPaused": {
+        "message": "Paused"
+    },
+    "dlFailed": {
+        "message": "Failed"
+    },
+    "dlCanceled": {
+        "message": "Canceled"
+    },
+    "dlSectionRunning": {
+        "message": "In progress"
+    },
+    "dlSectionQueued": {
+        "message": "Queued"
+    },
+    "dlSectionFailed": {
+        "message": "Failed"
+    },
+    "dlSectionDone": {
+        "message": "Finished"
+    },
+    "dlClearDone": {
+        "message": "Clear"
+    },
+    "dlCancelAll": {
+        "message": "Cancel all"
+    },
+    "dlSummaryCounts": {
+        "message": "{running} in progress · {queued} queued"
+    },
+    "dlEmpty": {
+        "message": "No downloads yet."
+    },
+    "dlCmdCancel": {
+        "message": "Cancel"
+    },
+    "dlCmdRemove": {
+        "message": "Remove"
+    },
+    "dlCmdPause": {
+        "message": "Pause"
+    },
+    "dlCmdResume": {
+        "message": "Resume"
+    },
+    "dlCmdRetry": {
+        "message": "Retry"
+    },
+    "dlErrInvalidState": {
+        "message": "This action is not possible in the download’s current state."
+    },
+    "dlErrUnknownId": {
+        "message": "This download no longer exists in the app."
+    },
+    "dlErrCommandFailed": {
+        "message": "The app could not run this action."
+    },
+    "dlErrNotConnected": {
+        "message": "The TapLoad app is not connected."
     }
 }

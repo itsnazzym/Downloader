@@ -261,3 +261,29 @@ body[data-view-mode="creators"] .download-btn { flex: 1 1 100%; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 [dir="rtl"] .creator-action-card { text-align: right; }
+
+/* Download tracking: card state line, single button modes, Downloads tab */
+.card-dl-state { color: var(--sub); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.feed-card[data-dl-state="error"] .card-dl-state { color: var(--bad); }
+.feed-card[data-dl-state="done"] .card-dl-state { color: var(--ok); }
+.card-single-dl-btn[data-mode="cancel"] { background: var(--panel-2); color: var(--ink); }
+.card-single-dl-btn[data-mode="retry"] { background: var(--panel-2); color: var(--bad); }
+.card-single-dl-btn[data-mode="resume"] { background: var(--a); color: var(--on-a); }
+body[data-view-mode="downloads"] :is(.platform-filters, .hook-banner, .toolbar, .playlist-banner, .creator-profile-banner, .feed-options, .selection-toolbar, .new-videos-anchor, .feed-list, .panel-footer) { display: none; }
+body:not([data-view-mode="downloads"]) .downloads-view { display: none; }
+.downloads-view { display: flex; flex-direction: column; gap: 14px; }
+.dl-summary { display: grid; gap: 8px; padding: 12px 14px; border-radius: var(--r-card); background: var(--panel); }
+.dl-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dl-summary-text { color: var(--ink); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dl-summary-counts { color: var(--sub); font-size: 12px; }
+.dl-section { display: grid; gap: 6px; }
+.dl-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 4px; color: var(--mute); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.dl-row { display: grid; gap: 6px; padding: 10px 12px; border-radius: var(--r-card); background: var(--panel); }
+.dl-row-title { overflow: hidden; color: var(--ink); font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+.dl-row-meta { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--sub); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.dl-row-state { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dl-row[data-dl-state="error"] .dl-row-state, .dl-row[data-dl-state="canceled"] .dl-row-state { color: var(--bad); }
+.dl-row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.dl-cmd-btn { flex: none; height: 28px; padding: 0 12px; border-radius: var(--r-ctl); background: var(--panel-2); color: var(--ink); font-size: 12px; font-weight: 700; letter-spacing: normal; text-transform: none; }
+.dl-cmd-btn:hover { background: var(--line); }
+.dl-cmd-btn.primary { background: var(--a); color: var(--on-a); }

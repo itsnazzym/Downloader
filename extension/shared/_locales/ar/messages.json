@@ -748,5 +748,77 @@
     },
     "feedCollectionVideosLoaded": {
         "message": "{count} فيديو في هذه المجموعة · انقر لتحميل جميع الفيديوهات المنشورة من @{name}"
+    },
+    "tabDownloads": {
+        "message": "التنزيلات"
+    },
+    "feedViewDownloadsTitle": {
+        "message": "متابعة تنزيلات التطبيق"
+    },
+    "dlQueuedLine": {
+        "message": "في الانتظار · المركز {pos}"
+    },
+    "dlEtaLeft": {
+        "message": "≈ {eta} متبقية"
+    },
+    "dlPaused": {
+        "message": "متوقف مؤقتًا"
+    },
+    "dlFailed": {
+        "message": "فشل"
+    },
+    "dlCanceled": {
+        "message": "أُلغي"
+    },
+    "dlSectionRunning": {
+        "message": "قيد التنزيل"
+    },
+    "dlSectionQueued": {
+        "message": "في الانتظار"
+    },
+    "dlSectionFailed": {
+        "message": "فشلت"
+    },
+    "dlSectionDone": {
+        "message": "اكتملت"
+    },
+    "dlClearDone": {
+        "message": "مسح"
+    },
+    "dlCancelAll": {
+        "message": "إلغاء الكل"
+    },
+    "dlSummaryCounts": {
+        "message": "{running} قيد التنزيل · {queued} في الانتظار"
+    },
+    "dlEmpty": {
+        "message": "لا توجد تنزيلات حاليًا."
+    },
+    "dlCmdCancel": {
+        "message": "إلغاء"
+    },
+    "dlCmdRemove": {
+        "message": "إزالة"
+    },
+    "dlCmdPause": {
+        "message": "إيقاف مؤقت"
+    },
+    "dlCmdResume": {
+        "message": "استئناف"
+    },
+    "dlCmdRetry": {
+        "message": "إعادة المحاولة"
+    },
+    "dlErrInvalidState": {
+        "message": "لا يمكن تنفيذ هذا الإجراء في الحالة الحالية للتنزيل."
+    },
+    "dlErrUnknownId": {
+        "message": "لم يعد هذا التنزيل موجودًا في التطبيق."
+    },
+    "dlErrCommandFailed": {
+        "message": "تعذّر على التطبيق تنفيذ هذا الإجراء."
+    },
+    "dlErrNotConnected": {
+        "message": "تطبيق TapLoad غير متصل."
     }
 }

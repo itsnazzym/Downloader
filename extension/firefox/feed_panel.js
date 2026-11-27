@@ -203,8 +203,14 @@
   var gobirdFallbackErrorCode = '';
   var gobirdFallbackError = '';
 
-  var currentViewMode = 'videos'; // 'videos' or 'creators'
+  var currentViewMode = 'videos'; // 'videos', 'downloads' or 'creators'
   var selectedCreatorKeys = new Set();
+  var downloads = MDDownloads.create();
+  var downloadsClock = 0;
+  var appConnected = false;
+  var viewModeDownloadsBtn = document.getElementById('view-mode-downloads-btn');
+  var viewModeDownloadsCount = document.getElementById('view-mode-downloads-count');
+  var downloadsView = document.getElementById('downloads-view');
 
   var viewModeBar = document.getElementById('view-mode-bar');
   var viewModeVideosBtn = document.getElementById('view-mode-videos-btn');
@@ -555,6 +561,308 @@
       unitIndex++;
     }
     return size.toFixed(unitIndex === 0 ? 0 : 1) + ' ' + units[unitIndex];
+  }
+
+  // --- Download tracking (desktop queue mirrored by MDDownloads) ---
+
+  // Receive time for the tracker: it must never go backwards.
+  function downloadsNow() {
+    downloadsClock = Math.max(downloadsClock, Date.now());
+    return downloadsClock;
+  }
+
+  function formatUnit(value, unit) {
+    try {
+      return new Intl.NumberFormat(document.documentElement.lang || undefined, {
+        style: 'unit', unit: unit, unitDisplay: 'short', maximumFractionDigits: value < 10 ? 1 : 0,
+      }).format(value);
+    } catch (e) {
+      return (Math.round(value * 10) / 10) + ' ' + unit;
+    }
+  }
+
+  function formatPct(pct) {
+    try {
+      return new Intl.NumberFormat(document.documentElement.lang || undefined, { style: 'percent' }).format(pct / 100);
+    } catch (e) {
+      return pct + ' %';
+    }
+  }
+
+  function formatSpeed(bps) {
+    if (!(bps > 0)) return null;
+    var units = ['byte', 'kilobyte', 'megabyte', 'gigabyte'];
+    var i = 0;
+    while (bps >= 1024 && i < units.length - 1) { bps /= 1024; i++; }
+    return formatUnit(bps, units[i] + '-per-second');
+  }
+
+  function formatEta(seconds) {
+    if (typeof seconds !== 'number' || !isFinite(seconds) || seconds < 0) return null;
+    if (seconds < 60) return formatUnit(Math.max(1, Math.round(seconds)), 'second');
+    if (seconds < 3600) return formatUnit(Math.round(seconds / 60), 'minute');
+    return formatUnit(Math.floor(seconds / 3600), 'hour') + ' ' + formatUnit(Math.round((seconds % 3600) / 60), 'minute');
+  }
+
+  // "47 % · 3,2 Mo/s · ≈ 12 s restantes", "En attente · 2ᵉ position", error text...
+  function downloadStateLine(dl) {
+    if (dl.status === 'queued') {
+      return tf('dlQueuedLine', 'En attente · position {pos}', { pos: downloads.groups().queued.indexOf(dl) + 1 });
+    }
+    if (dl.status === 'running') {
+      var parts = [formatPct(dl.pct)];
+      var speed = formatSpeed(dl.speedBps);
+      var eta = formatEta(dl.etaSeconds);
+      if (speed) parts.push(speed);
+      if (eta) parts.push(tf('dlEtaLeft', '≈ {eta} restantes', { eta: eta }));
+      return parts.join(' · ');
+    }
+    if (dl.status === 'paused') return t('dlPaused', 'En pause') + ' · ' + formatPct(dl.pct);
+    if (dl.status === 'error') return dl.error ? String(dl.error).slice(0, 90) : t('dlFailed', 'Échec');
+    if (dl.status === 'canceled') return t('dlCanceled', 'Annulé');
+    return t('downloaded', 'Téléchargée');
+  }
+
+  // Same identifiers the card sends with DOWNLOAD_BTN_CLICK.
+  function cardDownloadKey(item) {
+    return {
+      tweetId: item.tweetId ? String(item.tweetId) : (item.platform === 'x' ? (String(item.id || '').split('-')[0] || null) : null),
+      tikTokId: extractTikTokIdFromItem(item),
+      url: downloadUrlForFeedItem(item),
+    };
+  }
+
+  function hasLiveDownload(item) {
+    var dl = downloads.findByCardKey(cardDownloadKey(item));
+    return !!dl && dl.status !== 'done' && dl.status !== 'duplicate';
+  }
+
+  var SINGLE_BTN_ICONS = {
+    download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+    cancel: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+    retry: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>',
+    resume: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>',
+  };
+
+  function setSingleBtnMode(btn, mode, downloaded) {
+    delete btn.dataset.pendingAt;
+    btn.disabled = false;
+    btn.classList.remove('downloading');
+    if (btn.dataset.mode !== mode) {
+      btn.dataset.mode = mode;
+      btn.innerHTML = SINGLE_BTN_ICONS[mode];
+    }
+    btn.title = mode === 'cancel' ? t('dlCmdCancel', 'Annuler')
+      : mode === 'retry' ? t('dlCmdRetry', 'Réessayer')
+      : mode === 'resume' ? t('dlCmdResume', 'Reprendre')
+      : downloaded ? t('feedAlreadyDownloadedRetry', 'Déjà téléchargé (cliquez pour re-télécharger)')
+      : t('downloadSingle', 'Télécharger cette vidéo');
+    btn.setAttribute('aria-label', btn.title);
+  }
+
+  // Card states: idle / queued / running / paused / done / error, read from the tracker.
+  var CARD_COMMAND = { queued: 'cancel', running: 'cancel', paused: 'resume', error: 'retry' };
+  function applyCardDownloadState(card, item) {
+    var dl = downloads.findByCardKey(cardDownloadKey(item));
+    var btn = card.querySelector('.card-single-dl-btn');
+    var pendingAt = btn ? Number(btn.dataset.pendingAt || 0) : 0;
+    // Just sent: keep the spinner until the app reports on this download.
+    if (pendingAt && (!dl || dl.updatedAt <= pendingAt)) return;
+    var state = !dl || dl.status === 'canceled' ? 'idle' : dl.status === 'duplicate' ? 'done' : dl.status;
+    card.dataset.dlState = state;
+    var wrap = card.querySelector('.card-progress-bar-wrap');
+    var fill = card.querySelector('.card-progress-bar-fill');
+    if (wrap) wrap.style.display = state === 'running' || state === 'paused' ? 'block' : 'none';
+    if (fill && dl) fill.style.width = Math.max(2, dl.pct) + '%';
+    var line = card.querySelector('.card-dl-state');
+    if (line) {
+      line.textContent = state === 'idle' ? '' : downloadStateLine(dl);
+      line.hidden = state === 'idle';
+    }
+    if (btn) setSingleBtnMode(btn, CARD_COMMAND[state] || 'download', state === 'done' || isItemDownloaded(item));
+  }
+
+  var DL_ERROR_TEXT = {
+    invalid_state: ['dlErrInvalidState', 'Action impossible dans l’état actuel du téléchargement.'],
+    unknown_id: ['dlErrUnknownId', 'Ce téléchargement n’existe plus dans l’application.'],
+    not_connected: ['dlErrNotConnected', 'Application TapLoad non connectée.'],
+    command_failed: ['dlErrCommandFailed', 'L’application n’a pas pu exécuter l’action.'],
+  };
+  function showDownloadCommandError(code) {
+    var entry = Object.prototype.hasOwnProperty.call(DL_ERROR_TEXT, code) ? DL_ERROR_TEXT[code] : DL_ERROR_TEXT.command_failed;
+    setStatus(t(entry[0], entry[1]), 'error');
+  }
+
+  // Success needs no feedback: the next PROGRESS updates the state.
+  function sendDownloadCommand(command, id) {
+    var message = { type: 'MD_DOWNLOAD_COMMAND', command: command };
+    if (id) message.id = id;
+    sendRuntimeMessage(message).then(function (res) {
+      if (!res || res.ok === false) showDownloadCommandError(res && res.error);
+    }).catch(function () {
+      showDownloadCommandError('not_connected');
+    });
+  }
+
+  function requestQueueSnapshot() {
+    sendRuntimeMessage({ type: 'MD_QUEUE_SNAPSHOT_REQUEST' }).catch(function () {});
+  }
+
+  // PROGRESS can arrive ~20 times per second: repaint at most every DL_RENDER_MS,
+  // always with the latest state (trailing render).
+  var DL_RENDER_MS = 250;
+  var downloadRenderTimer = 0;
+  var downloadRenderAt = 0;
+  var downloadStatusChanged = false;
+  function scheduleDownloadRender() {
+    if (downloadRenderTimer) return;
+    downloadRenderTimer = setTimeout(function () {
+      downloadRenderTimer = 0;
+      downloadRenderAt = Date.now();
+      renderDownloadState();
+    }, Math.max(0, DL_RENDER_MS - (Date.now() - downloadRenderAt)));
+  }
+
+  function renderDownloadState() {
+    var groups = downloads.groups();
+    if (viewModeDownloadsCount) {
+      viewModeDownloadsCount.textContent = String(groups.running.length + groups.queued.length + groups.paused.length);
+    }
+    if (currentViewMode === 'downloads') {
+      renderDownloadsView(groups);
+    } else if (currentViewMode === 'videos') {
+      // A status change may hide a finished download or show a failed one again.
+      if (hideDownloadedEnabled && downloadStatusChanged) renderItems();
+      downloadStatusChanged = false;
+      feedList.querySelectorAll('.feed-card').forEach(function (card) {
+        var item = store.get(card.dataset.feedId);
+        if (item) applyCardDownloadState(card, item);
+      });
+    }
+  }
+
+  function dlElement(tag, className, text) {
+    var el = document.createElement(tag);
+    el.className = className;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  function dlProgressBar(pct) {
+    var wrap = dlElement('div', 'card-progress-bar-wrap');
+    var fill = dlElement('div', 'card-progress-bar-fill');
+    fill.style.width = Math.max(2, pct) + '%';
+    wrap.appendChild(fill);
+    return wrap;
+  }
+
+  function dlCommandButton(command, dl, label) {
+    var btn = dlElement('button', 'dl-cmd-btn' + (command === 'retry' || command === 'resume' ? ' primary' : ''), label);
+    btn.type = 'button';
+    btn.dataset.cmd = command;
+    if (dl) btn.dataset.id = dl.id;
+    btn.dataset.focusKey = command + ':' + (dl ? dl.id : '');
+    return btn;
+  }
+
+  var DL_COMMAND_LABELS = {
+    cancel: ['dlCmdCancel', 'Annuler'],
+    pause: ['dlCmdPause', 'Pause'],
+    resume: ['dlCmdResume', 'Reprendre'],
+    retry: ['dlCmdRetry', 'Réessayer'],
+  };
+
+  function createDownloadRow(dl) {
+    var row = dlElement('div', 'dl-row');
+    row.dataset.dlState = dl.status;
+    row.appendChild(dlElement('div', 'dl-row-title', dl.title || dl.url || dl.id));
+    var meta = dlElement('div', 'dl-row-meta');
+    if (dl.url) meta.appendChild(dlElement('span', 'card-platform-pill', itemPlatform({ url: dl.url }).toUpperCase()));
+    meta.appendChild(dlElement('span', 'dl-row-state', downloadStateLine(dl)));
+    row.appendChild(meta);
+    if (dl.status === 'running' || dl.status === 'paused') row.appendChild(dlProgressBar(dl.pct));
+    var commands = MDDownloads.allowedCommands(dl.status);
+    if (commands.length) {
+      var actions = dlElement('div', 'dl-row-actions');
+      commands.forEach(function (command) {
+        var label = command === 'cancel' && dl.status === 'queued'
+          ? t('dlCmdRemove', 'Retirer')
+          : t(DL_COMMAND_LABELS[command][0], DL_COMMAND_LABELS[command][1]);
+        actions.appendChild(dlCommandButton(command, dl, label));
+      });
+      row.appendChild(actions);
+    }
+    return row;
+  }
+
+  function renderDownloadsView(groups) {
+    if (!downloadsView) return;
+    // Rebuilding must not steal keyboard focus from the button the user is on.
+    var focused = document.activeElement;
+    var focusKey = focused && downloadsView.contains(focused) ? focused.dataset.focusKey : null;
+    downloadsView.textContent = '';
+    var active = groups.running.length + groups.queued.length + groups.paused.length;
+    if (active + groups.error.length + groups.done.length === 0) {
+      downloadsView.appendChild(dlElement('div', 'empty-state', t('dlEmpty', 'Aucun téléchargement pour le moment.')));
+      return;
+    }
+    if (active) {
+      var s = downloads.summary(downloadsNow());
+      var summary = dlElement('div', 'dl-summary');
+      var top = dlElement('div', 'dl-summary-row');
+      var parts = [];
+      var eta = formatEta(s.etaSeconds);
+      var speed = formatSpeed(s.speedBps);
+      if (eta) parts.push(tf('dlEtaLeft', '≈ {eta} restantes', { eta: eta }));
+      if (speed) parts.push(speed);
+      parts.push(formatPct(s.pct));
+      top.appendChild(dlElement('span', 'dl-summary-text', parts.join(' · ')));
+      top.appendChild(dlCommandButton('cancel_all', null, t('dlCancelAll', 'Tout annuler')));
+      summary.appendChild(top);
+      summary.appendChild(dlProgressBar(s.pct));
+      summary.appendChild(dlElement('span', 'dl-summary-counts', tf('dlSummaryCounts', '{running} en cours · {queued} en attente', { running: s.running, queued: s.queued })));
+      downloadsView.appendChild(summary);
+    }
+    [
+      ['dlSectionRunning', 'En cours', groups.running.concat(groups.paused)],
+      ['dlSectionQueued', 'En attente', groups.queued],
+      ['dlSectionFailed', 'Échecs', groups.error],
+      ['dlSectionDone', 'Terminés', groups.done],
+    ].forEach(function (section) {
+      if (!section[2].length) return;
+      var box = dlElement('section', 'dl-section');
+      var head = dlElement('div', 'dl-section-head');
+      head.appendChild(dlElement('span', '', t(section[0], section[1]) + ' (' + section[2].length + ')'));
+      if (section[0] === 'dlSectionDone') {
+        var clear = dlElement('button', 'dl-cmd-btn', t('dlClearDone', 'Vider'));
+        clear.type = 'button';
+        clear.dataset.action = 'clear-done';
+        clear.dataset.focusKey = 'clear-done';
+        head.appendChild(clear);
+      }
+      box.appendChild(head);
+      section[2].forEach(function (dl) { box.appendChild(createDownloadRow(dl)); });
+      downloadsView.appendChild(box);
+    });
+    if (focusKey) {
+      var again = Array.prototype.find.call(downloadsView.querySelectorAll('button'), function (b) {
+        return b.dataset.focusKey === focusKey;
+      });
+      if (again) again.focus();
+    }
+  }
+
+  if (downloadsView) {
+    downloadsView.addEventListener('click', function (e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      if (btn.dataset.action === 'clear-done') {
+        downloads.clearDone();
+        renderDownloadState();
+      } else if (btn.dataset.cmd) {
+        sendDownloadCommand(btn.dataset.cmd, btn.dataset.id);
+      }
+    });
   }
 
   function openVideoPreview(item) {
@@ -1295,8 +1603,11 @@
     }
 
     if (hideDownloadedEnabled) {
+      // Keep a "downloaded" card visible while the app still works on it (or it failed).
+      var tracked = downloads.groups();
+      var anyTracked = tracked.running.length + tracked.queued.length + tracked.paused.length + tracked.error.length > 0;
       items = items.filter(function (item) {
-        return !isItemDownloaded(item);
+        return !isItemDownloaded(item) || (anyTracked && hasLiveDownload(item));
       });
     }
 
@@ -1605,8 +1916,10 @@
     document.body.dataset.viewMode = mode;
     if (viewModeVideosBtn) viewModeVideosBtn.classList.toggle('active', mode === 'videos');
     if (viewModeCreatorsBtn) viewModeCreatorsBtn.classList.toggle('active', mode === 'creators');
+    if (viewModeDownloadsBtn) viewModeDownloadsBtn.classList.toggle('active', mode === 'downloads');
     if (viewModeVideosBtn) viewModeVideosBtn.setAttribute('aria-pressed', String(mode === 'videos'));
     if (viewModeCreatorsBtn) viewModeCreatorsBtn.setAttribute('aria-pressed', String(mode === 'creators'));
+    if (viewModeDownloadsBtn) viewModeDownloadsBtn.setAttribute('aria-pressed', String(mode === 'downloads'));
     if (layoutSwitch) layoutSwitch.hidden = mode !== 'videos';
     if (orderButton) orderButton.hidden = mode !== 'videos';
     updateNewVideosChip();
@@ -1646,9 +1959,14 @@
         exportCreatorsBtn.setAttribute('hidden', '');
         exportCreatorsBtn.style.setProperty('display', 'none', 'important');
       }
+      if (mode === 'downloads') {
+        renderDownloadState();
+        return;
+      }
       renderItems();
       updateFeedCountStatus();
       syncCardSelection();
+      renderDownloadState(); // cards kept while hidden missed the updates
     }
   }
 
@@ -2131,6 +2449,8 @@
       btn.disabled = true;
       btn.classList.add('downloading');
       btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
+      btn.dataset.mode = 'pending';
+      btn.dataset.pendingAt = String(downloadsNow());
     }
     if (card) {
       var pWrap = card.querySelector('.card-progress-bar-wrap');
@@ -2153,8 +2473,7 @@
         setStatus(t('itemSent', 'Téléchargement envoyé à l’application…'), 'success');
       } else {
         if (btn) {
-          btn.disabled = false;
-          btn.classList.remove('downloading');
+          setSingleBtnMode(btn, 'download', isItemDownloaded(item));
           btn.classList.add('error');
           setTimeout(function () { btn.classList.remove('error'); }, 3000);
         }
@@ -2166,8 +2485,7 @@
       }
     }).catch(function () {
       if (btn) {
-        btn.disabled = false;
-        btn.classList.remove('downloading');
+        setSingleBtnMode(btn, 'download', isItemDownloaded(item));
         btn.classList.add('error');
         setTimeout(function () { btn.classList.remove('error'); }, 3000);
       }
@@ -2391,6 +2709,10 @@
     progressFill.style.width = '0%';
     progressWrap.appendChild(progressFill);
     body.appendChild(progressWrap);
+    var stateLine = document.createElement('div');
+    stateLine.className = 'card-dl-state';
+    stateLine.hidden = true;
+    body.appendChild(stateLine);
 
     // Individual action column ("1 par 1")
     var actionCol = document.createElement('div');
@@ -2400,9 +2722,17 @@
     singleBtn.className = 'card-single-dl-btn';
     singleBtn.title = downloaded ? t('feedAlreadyDownloadedRetry', 'Déjà téléchargé (cliquez pour re-télécharger)') : t('downloadSingle', 'Télécharger cette vidéo');
     singleBtn.setAttribute('aria-label', singleBtn.title);
-    singleBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+    singleBtn.innerHTML = SINGLE_BTN_ICONS.download;
+    singleBtn.dataset.mode = 'download';
     singleBtn.addEventListener('click', function (e) {
       e.stopPropagation();
+      // The tracker state at click time decides: cancel / resume / retry, else a new download.
+      var dl = downloads.findByCardKey(cardDownloadKey(item));
+      var command = singleBtn.dataset.mode;
+      if (dl && MDDownloads.allowedCommands(dl.status).indexOf(command) !== -1) {
+        sendDownloadCommand(command, dl.id);
+        return;
+      }
       downloadSingleItem(item, card, singleBtn);
     });
     actionCol.appendChild(singleBtn);
@@ -2411,6 +2741,7 @@
     card.appendChild(thumbnail);
     card.appendChild(body);
     card.appendChild(actionCol);
+    applyCardDownloadState(card, item);
     return card;
   }
 
@@ -2706,10 +3037,33 @@
       return;
     }
 
+    if (message.type === 'MD_QUEUE_SNAPSHOT') {
+      downloads.ingestSnapshot(message.items, downloadsNow());
+      downloadStatusChanged = true;
+      scheduleDownloadRender();
+      return;
+    }
+
+    if (message.type === 'MD_DOWNLOAD_COMMAND_RESULT') {
+      if (message.ok === false) showDownloadCommandError(message.error);
+      return;
+    }
+
+    if (message.type === 'MD_CONNECTION_STATE') {
+      // Republished on every PROGRESS: only a reconnect needs a fresh snapshot.
+      if (message.connected && !appConnected) requestQueueSnapshot();
+      appConnected = !!message.connected;
+      return;
+    }
+
     if (message.type === 'MD_DOWNLOAD_PROGRESS' && message.data) {
       var d = message.data;
-      // status 4 = DownloadStatus.completed, status 8 = DownloadStatus.duplicate
-      if (d.status === 4 || d.status === 8) {
+      var before = downloads.get(String(d.id));
+      var beforeStatus = before && before.status;
+      var after = downloads.ingest(message.data, downloadsNow());
+      if ((after && after.status) !== beforeStatus) downloadStatusChanged = true;
+      var dStatus = MDDownloads.statusFromIndex(d.status);
+      if (dStatus === 'done' || dStatus === 'duplicate') {
         if (d.tikTokId) downloadedTikTokSet.add(String(d.tikTokId));
         if (d.tweetId) downloadedTweetSet.add(String(d.tweetId));
         if (d.mediaId) downloadedMediaSet.add(String(d.mediaId));
@@ -2723,42 +3077,11 @@
           if (mCard) {
             mCard.classList.add('is-downloaded');
             mCard.dataset.isDownloaded = 'true';
-            var sBtn = mCard.querySelector('.card-single-dl-btn');
-            if (sBtn) {
-              sBtn.classList.remove('downloading');
-              sBtn.title = t('feedAlreadyDownloadedRetry', 'Déjà téléchargé (cliquez pour re-télécharger)');
-              sBtn.setAttribute('aria-label', sBtn.title);
-            }
-          }
-        }
-      } else if (d.status === 5) {
-        // status 5 = DownloadStatus.failed
-        var failId = d.tikTokId ? ('tt-' + d.tikTokId) : (d.tweetId || d.url || d.id);
-        var errCard = feedList.querySelector('.feed-card[data-feed-id="' + failId + '"]');
-        if (errCard) {
-          var sBtn = errCard.querySelector('.card-single-dl-btn');
-          if (sBtn) {
-            sBtn.disabled = false;
-            sBtn.classList.remove('downloading');
-            sBtn.classList.add('error');
-          }
-          var pWrap = errCard.querySelector('.card-progress-bar-wrap');
-          if (pWrap) pWrap.style.display = 'none';
-        }
-      } else if (d.status === 2 || d.status === 3) {
-        // Extracting or downloading progress
-        var pId = d.tikTokId ? ('tt-' + d.tikTokId) : (d.tweetId || d.url || d.id);
-        var pCard = feedList.querySelector('.feed-card[data-feed-id="' + pId + '"]');
-        if (pCard) {
-          var wrap = pCard.querySelector('.card-progress-bar-wrap');
-          var fill = pCard.querySelector('.card-progress-bar-fill');
-          if (wrap && fill) {
-            wrap.style.display = 'block';
-            var pct = Math.round((d.progress || 0) * 100);
-            fill.style.width = Math.max(5, pct) + '%';
           }
         }
       }
+      // Button, progress bar and state line of every card come from the tracker.
+      scheduleDownloadRender();
       return;
     }
 
@@ -3084,6 +3407,11 @@
       setViewMode('creators');
     });
   }
+  if (viewModeDownloadsBtn) {
+    viewModeDownloadsBtn.addEventListener('click', function () {
+      setViewMode('downloads');
+    });
+  }
 
   function setVideoLayout(layout, persist) {
     videoLayout = layout === 'cards' ? 'cards' : 'compact';
@@ -3179,6 +3507,7 @@
   syncOrderButton();
   setSource('dom');
   renderItems();
+  requestQueueSnapshot();
   // gobird only runs on Analyze. Request it as soon as the panel opens so
   // the badge is not stuck on "local" while the user only scrolls.
   setTimeout(analyzeLoadedFeed, 400);

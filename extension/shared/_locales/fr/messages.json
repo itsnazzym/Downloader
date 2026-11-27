@@ -850,5 +850,77 @@
     },
     "feedOptions": {
         "message": "Options d’affichage"
+    },
+    "tabDownloads": {
+        "message": "Téléchargements"
+    },
+    "feedViewDownloadsTitle": {
+        "message": "Suivre les téléchargements de l’application"
+    },
+    "dlQueuedLine": {
+        "message": "En attente · position {pos}"
+    },
+    "dlEtaLeft": {
+        "message": "≈ {eta} restantes"
+    },
+    "dlPaused": {
+        "message": "En pause"
+    },
+    "dlFailed": {
+        "message": "Échec"
+    },
+    "dlCanceled": {
+        "message": "Annulé"
+    },
+    "dlSectionRunning": {
+        "message": "En cours"
+    },
+    "dlSectionQueued": {
+        "message": "En attente"
+    },
+    "dlSectionFailed": {
+        "message": "Échecs"
+    },
+    "dlSectionDone": {
+        "message": "Terminés"
+    },
+    "dlClearDone": {
+        "message": "Vider"
+    },
+    "dlCancelAll": {
+        "message": "Tout annuler"
+    },
+    "dlSummaryCounts": {
+        "message": "{running} en cours · {queued} en attente"
+    },
+    "dlEmpty": {
+        "message": "Aucun téléchargement pour le moment."
+    },
+    "dlCmdCancel": {
+        "message": "Annuler"
+    },
+    "dlCmdRemove": {
+        "message": "Retirer"
+    },
+    "dlCmdPause": {
+        "message": "Pause"
+    },
+    "dlCmdResume": {
+        "message": "Reprendre"
+    },
+    "dlCmdRetry": {
+        "message": "Réessayer"
+    },
+    "dlErrInvalidState": {
+        "message": "Action impossible dans l’état actuel du téléchargement."
+    },
+    "dlErrUnknownId": {
+        "message": "Ce téléchargement n’existe plus dans l’application."
+    },
+    "dlErrCommandFailed": {
+        "message": "L’application n’a pas pu exécuter l’action."
+    },
+    "dlErrNotConnected": {
+        "message": "Application TapLoad non connectée."
     }
 }
