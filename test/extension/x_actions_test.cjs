@@ -223,6 +223,21 @@ test('perform without a ct0 cookie reports auth and sends no API request', async
   assert.equal(e.calls.filter((c) => c.url.includes('/i/api/')).length, 0);
 });
 
+test('perform refuses a burst beyond the 70 s wait instead of firing it early', async () => {
+  const doc = fakeDocument({ scripts: [MAIN] });
+  const responses = Array.from({ length: 60 }, () => ({ status: 200, body: { data: {} } }));
+  const e = env(doc, responses);
+  e.sleep = async (ms) => { e.sleeps.push(ms); }; // fixed clock: every call is requested at once
+  const X = load();
+  const results = (await Promise.all(Array.from({ length: 50 }, () => X.perform('FavoriteTweet', '123', e)))).map(plain);
+  const refused = results.filter((r) => r.code === 'rate').length;
+  const api = e.calls.filter((c) => c.url.includes('/i/api/')).length;
+  assert.ok(refused > 0);
+  assert.equal(api + refused, 50);
+  assert.ok(e.sleeps.every((ms) => ms <= 70000));
+  assert.equal(e.calls.filter((c) => c.url === MAIN).length, 1);
+});
+
 test('perform rejects an invalid op or tweet id without any request', async () => {
   const e = env(fakeDocument({ scripts: [MAIN] }), []);
   const r = plain(await load().perform('DeleteTweet', '123', e));

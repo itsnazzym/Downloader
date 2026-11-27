@@ -103,7 +103,7 @@
   }
 
   var limiter = null;
-  var idsCache = null;
+  var idsPromise = null;
 
   function readCookie(doc, name) {
     var m = String((doc && doc.cookie) || '').match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
@@ -123,8 +123,16 @@
       .slice(0, 8);
   }
 
-  async function loadIds(op, env) {
-    if (idsCache && idsCache[op] && idsCache.bearer) return idsCache;
+  // One shared load for concurrent actions; dropped again when it lacks what an action needs.
+  function loadIds(op, env) {
+    var pending = idsPromise || (idsPromise = fetchIds(env));
+    return pending.then(function (ids) {
+      if ((!ids[op] || !ids.bearer) && idsPromise === pending) idsPromise = null;
+      return ids;
+    });
+  }
+
+  async function fetchIds(env) {
     var urls = bundleUrls(env.document);
     var ids = {};
     for (var i = 0; i < urls.length; i++) {
@@ -138,9 +146,7 @@
       }
       Object.keys(found).forEach(function (k) { if (!ids[k]) ids[k] = found[k]; });
       if (OPS.every(function (o) { return ids[o]; }) && ids.bearer) break;
-      if (ids[op] && ids.bearer) break;
     }
-    if (ids[op] && ids.bearer) idsCache = ids;
     return ids;
   }
 
@@ -179,7 +185,9 @@
     if (!isOp(op) || !TWEET_ID.test(tweetId)) return result(false, 'unknown');
     if (!limiter) limiter = createLimiter({ minGapMs: 1500, perMinute: 30 }, env.now);
     var waitMs = limiter.next().waitMs;
-    if (waitMs > 0) await env.sleep(Math.min(waitMs, MAX_WAIT_MS));
+    // Refuse rather than fire early: a capped sleep would let a burst go out all at once.
+    if (waitMs > MAX_WAIT_MS) return result(false, 'rate');
+    if (waitMs > 0) await env.sleep(waitMs);
 
     var ct0 = readCookie(env.document, 'ct0');
     if (!ct0) return result(false, 'auth');
