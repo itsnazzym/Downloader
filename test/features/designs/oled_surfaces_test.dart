@@ -26,6 +26,7 @@ import 'package:modern_downloader/features/designs/oled/oled_stats.dart';
 import 'package:modern_downloader/features/designs/oled/oled_transfer.dart';
 import 'package:modern_downloader/features/designs/oled/oled_widgets.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/download_view.dart';
@@ -175,6 +176,35 @@ void main() {
     expect(find.byType(OledDownloadRow), findsWidgets);
     await tester.pumpWidget(const SizedBox());
   });
+
+  for (final width in const [1280.0, 1000.0, 820.0]) {
+    testWidgets('home: detailed cards and an opened folder at $width px', (
+      tester,
+    ) async {
+      final (container, key) = await pump(tester, [
+        downloadViewModeProvider.overrideWith(
+          (ref) => DownloadViewMode.detailed,
+        ),
+        selectedDownloadIdProvider.overrideWith((ref) => failedItemId),
+      ], size: Size(width, 900));
+      expect(find.byType(OledDownloadRow), findsWidgets);
+      expect(tester.takeException(), isNull);
+      await shot(tester, key, 'oled_detailed_${width.round()}');
+
+      container.read(downloadViewModeProvider.notifier).state =
+          DownloadViewMode.folders;
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      final folder = container.read(creatorFoldersProvider).folders.first;
+      container.read(openedCreatorFolderKeyProvider.notifier).state =
+          folder.key;
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(OledDownloadRow), findsWidgets);
+      await shot(tester, key, 'oled_folder_${width.round()}');
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
 
   testWidgets('phones keep the mobile shell, rows and theme with OLED', (
     tester,

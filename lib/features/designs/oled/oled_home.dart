@@ -535,9 +535,10 @@ class _LibraryHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final counts = ref.watch(downloadLibraryCountsProvider);
-    final kind = ref.watch(oledKindFilterProvider);
     final status = ref.watch(downloadStatusFilterProvider);
     final list = ref.watch(downloadViewModeProvider) == DownloadViewMode.list;
+    // Kinds narrow the list view only: elsewhere no kind is applied.
+    final kind = list ? ref.watch(oledKindFilterProvider) : null;
     final failedOnly = status == DownloadStatusFilter.failed;
     void pick(MediaKind? k, {bool failed = false}) {
       ref.read(downloadSourceFilterProvider.notifier).state = null;

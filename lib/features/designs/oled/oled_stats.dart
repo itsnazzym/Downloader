@@ -133,9 +133,7 @@ class _OledStatsState extends ConsumerState<OledStats> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            (days == null
-                    ? l10n.designFilterAll
-                    : DateFormat.MMMM(l10n.localeName).format(today))
+            (days == null ? l10n.designFilterAll : l10n.oledLastDays(days))
                 .toUpperCase(),
             style: oledEyebrow(),
           ),

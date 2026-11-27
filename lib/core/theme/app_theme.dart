@@ -19,11 +19,12 @@ class AppTheme {
     final isDark = brightness == Brightness.dark;
     final fieldRadius = palette.isIosChrome ? 14.0 : 8.0;
     final spec = DesignSpec.forId(palette.id);
-    // The desktop designs restyle shared Material pieces (dialogs, toasts,
-    // menus, toggles) and their page transitions; iOS, and OLED on phones,
-    // keep the platform look they were built with.
+    // The six desktop designs restyle shared Material pieces (dialogs,
+    // toasts, menus, toggles) and their page transitions; OLED and iOS keep
+    // the platform look they were built with.
     final designed =
         spec.nav != DesignNav.sidebar &&
+        // OLED has its own desktop design; phones keep its platform look.
         !(palette.id == 'oled' && PlatformInfo.isMobile);
     final panel = BorderRadius.circular(
       spec.cardRadius.clamp(0, 24).toDouble(),
