@@ -306,9 +306,9 @@ void main() {
       spaceAtCap,
       '${'x' * 199}\u{1F600}tail',
       '${'y' * 79} z',
-      'a\u0000b‮c​d﻿',
+      'a\u0000b\u202Ec\u200Bd\uFEFF',
       'lone \uD800 surrogate',
-      '   \t mixed \r\n',
+      '\u2028\u2029 \t mixed \r\n',
       'w' * 5000,
       '${' ' * 300}inner${' ' * 300}',
     ];
@@ -321,13 +321,13 @@ void main() {
 
     test('cleanPairingOrigin strips control and invisible chars', () {
       expect(
-        cleanPairingOrigin(' chrome-extension://ab\ncd‮ '),
+        cleanPairingOrigin(' chrome-extension://ab\ncd\u202E '),
         'chrome-extension://abcd',
       );
     });
 
     test('cleanPairingLabel caps, collapses and falls back', () {
-      expect(cleanPairingLabel('  Chro​me \r\n Edge  '), 'Chrome Edge');
+      expect(cleanPairingLabel('  Chro\u200Bme \r\n Edge  '), 'Chrome Edge');
       expect(cleanPairingLabel(' \u0000 '), 'Navigateur');
       expect(cleanPairingLabel('l' * 500).runes.length, 80);
     });

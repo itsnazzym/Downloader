@@ -32,8 +32,8 @@ class _FakeTimer implements Timer {
 /// A store whose [pair] waits for [gate] and can fail, to hold an approve
 /// in flight.
 class _GatedStore extends PairedBrowsersStore {
-  _GatedStore(SharedPreferences prefs, {required DateTime Function() clock})
-    : super(prefs, clock: clock, random: Random(7));
+  _GatedStore(super.prefs, {required DateTime Function() clock})
+    : super(clock: clock, random: Random(7));
 
   Completer<void>? gate;
   Object? failWith;
