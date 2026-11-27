@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/design_system/components/glass_card.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/design_system/components/glass_card.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart';
 
 class GlassSettingSection extends StatelessWidget {
   final String title;

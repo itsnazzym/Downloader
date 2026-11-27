@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:modern_downloader/core/download/temp_file_cleanup.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:tapload/core/download/temp_file_cleanup.dart';
+import 'package:tapload/core/logger/logger_service.dart';
 
 /// Deletes a finished media file plus sidecar thumbs and yt-dlp temp fragments.
 class DownloadFileCleanup {

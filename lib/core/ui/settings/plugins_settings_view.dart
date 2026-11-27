@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/design_system/design_skin.dart';
+import 'package:tapload/core/design_system/design_skin.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,10 +29,10 @@ import '../../providers/settings_provider.dart';
 import '../../services/browser_extension_installer.dart';
 import 'widgets/extension_install_guide_dialog.dart';
 
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'widgets/settings_app_bar.dart';
 import '../../../showcase/showcase_mode.dart';

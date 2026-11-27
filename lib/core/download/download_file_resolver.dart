@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:modern_downloader/core/download/temp_file_cleanup.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/core/utils/format_utils.dart';
+import 'package:tapload/core/download/temp_file_cleanup.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/core/utils/format_utils.dart';
 
 /// Resolves the real on-disk video file after yt-dlp finishes.
 ///

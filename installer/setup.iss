@@ -1,6 +1,7 @@
 [Setup]
-; Keep this ID equal to the original AppName: older installers relied on AppName as
-; Inno Setup's default AppId, so changing it would create a second installation.
+; Keep this ID equal to the original AppName ("Modern Downloader", the pre-TapLoad name):
+; older installers relied on AppName as Inno Setup's default AppId, so changing it would
+; create a second installation. Existing installs keep their folder (UsePreviousAppDir).
 AppId=Modern Downloader
 AppName=TapLoad
 AppVersion={#AppVersion}
@@ -12,7 +13,7 @@ AppPublisherURL=https://github.com/itsnazzym/Downloader
 AppSupportURL=https://github.com/itsnazzym/Downloader/issues
 AppUpdatesURL=https://github.com/itsnazzym/Downloader/releases
 AppReadmeFile=https://github.com/itsnazzym/Downloader#readme
-DefaultDirName={autopf}\ModernDownloader
+DefaultDirName={autopf}\TapLoad
 UsePreviousAppDir=yes
 DisableDirPage=auto
 DefaultGroupName=TapLoad
@@ -20,8 +21,8 @@ DisableProgramGroupPage=yes
 AlwaysShowDirOnReadyPage=yes
 LicenseFile=..\LICENSE
 UninstallDisplayName=TapLoad
-UninstallDisplayIcon={app}\modern_downloader.exe
-OutputBaseFilename=ModernDownloader-Setup-{#AppVersion}
+UninstallDisplayIcon={app}\tapload.exe
+OutputBaseFilename=TapLoad-Setup-{#AppVersion}
 OutputDir=..\release
 Compression=lzma2
 SolidCompression=yes
@@ -34,7 +35,7 @@ ChangesAssociations=yes
 ; Restart Manager finds processes using these installation files and force closes
 ; them before replacing the executable or its loaded native libraries.
 CloseApplications=force
-CloseApplicationsFilter=modern_downloader.exe,*.dll,*.chm
+CloseApplicationsFilter=tapload.exe,modern_downloader.exe,*.dll,*.chm
 RestartApplications=no
 UpdateUninstallLogAppName=yes
 
@@ -61,6 +62,8 @@ Source: "..\README.md"; DestDir: "{app}\Documentation"; Flags: ignoreversion
 Source: "..\CHANGELOG.md"; DestDir: "{app}\Documentation"; Flags: ignoreversion
 
 [InstallDelete]
+; Executable of the pre-TapLoad name, left behind by an in-place upgrade
+Type: files; Name: "{app}\modern_downloader.exe"
 ; Raccourcis de l'ancien nom (Modern Downloader) remplacés par ceux de TapLoad
 Type: files; Name: "{group}\Modern Downloader.lnk"
 Type: files; Name: "{group}\Uninstall Modern Downloader.lnk"
@@ -68,20 +71,25 @@ Type: files; Name: "{autodesktop}\Modern Downloader.lnk"
 Type: files; Name: "{autostartup}\Modern Downloader.lnk"
 
 [Icons]
-Name: "{group}\TapLoad"; Filename: "{app}\modern_downloader.exe"
+Name: "{group}\TapLoad"; Filename: "{app}\tapload.exe"
 Name: "{group}\Uninstall TapLoad"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\TapLoad"; Filename: "{app}\modern_downloader.exe"; Tasks: desktopicon
-Name: "{autostartup}\TapLoad"; Filename: "{app}\modern_downloader.exe"; Tasks: startup
+Name: "{autodesktop}\TapLoad"; Filename: "{app}\tapload.exe"; Tasks: desktopicon
+Name: "{autostartup}\TapLoad"; Filename: "{app}\tapload.exe"; Tasks: startup
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:DesktopShortcutTask}"; GroupDescription: "{cm:ShortcutsGroup}"
 Name: "startup"; Description: "{cm:StartupTask}"; GroupDescription: "{cm:StartupGroup}"; Flags: unchecked
 
 [Run]
-Filename: "{app}\modern_downloader.exe"; Description: "{cm:LaunchApplication}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\tapload.exe"; Description: "{cm:LaunchApplication}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
+Root: HKCU; Subkey: "Software\Classes\tapload"; ValueType: string; ValueName: ""; ValueData: "URL:TapLoad Protocol"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\tapload"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\tapload\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\tapload.exe,0"
+Root: HKCU; Subkey: "Software\Classes\tapload\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\tapload.exe"" ""%1"""
+; Legacy scheme, still emitted by older site pages and extensions
 Root: HKCU; Subkey: "Software\Classes\moderndownloader"; ValueType: string; ValueName: ""; ValueData: "URL:TapLoad Protocol"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\moderndownloader"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
-Root: HKCU; Subkey: "Software\Classes\moderndownloader\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\modern_downloader.exe,0"
-Root: HKCU; Subkey: "Software\Classes\moderndownloader\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\modern_downloader.exe"" ""%1"""
+Root: HKCU; Subkey: "Software\Classes\moderndownloader\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\tapload.exe,0"
+Root: HKCU; Subkey: "Software\Classes\moderndownloader\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\tapload.exe"" ""%1"""

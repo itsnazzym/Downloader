@@ -54,7 +54,7 @@ $releaseDir = Join-Path $repoRoot 'release'
 if (-not (Test-Path $releaseDir)) {
     New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
 }
-$zipPath = Join-Path $releaseDir "ModernDownloader-Windows-Portable-$appVersion.zip"
+$zipPath = Join-Path $releaseDir "TapLoad-Windows-Portable-$appVersion.zip"
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 Compress-Archive -Path "$release\*" -DestinationPath $zipPath -CompressionLevel Optimal
 Write-Host "Portable ZIP created at: $zipPath"
@@ -70,5 +70,5 @@ if (-not (Test-Path $iscc)) {
     $iscc = "C:\Users\entre\AppData\Local\Programs\Antigravity IDE\resources\app\node_modules\innosetup\bin\ISCC.exe"
 }
 & $iscc /DAppVersion="$appVersion" "installer\setup.iss"
-$setupExe = Join-Path $releaseDir "ModernDownloader-Setup-$appVersion.exe"
+$setupExe = Join-Path $releaseDir "TapLoad-Setup-$appVersion.exe"
 Write-Host "Setup Installer created at: $setupExe"

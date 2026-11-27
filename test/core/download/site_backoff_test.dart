@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/site_backoff.dart';
+import 'package:tapload/core/download/site_backoff.dart';
 
 class _NoSpread implements Random {
   @override

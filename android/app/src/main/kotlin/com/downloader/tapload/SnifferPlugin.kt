@@ -1,4 +1,4 @@
-package com.downloader.modern_downloader
+package com.downloader.tapload
 
 import android.graphics.Bitmap
 import android.net.http.SslError
@@ -131,7 +131,7 @@ class SnifferPlugin(private val engine: FlutterEngine) : MethodChannel.MethodCal
             val plugin = SnifferPlugin(engine)
             MethodChannel(
                 engine.dartExecutor.binaryMessenger,
-                "com.downloader.modern_downloader/sniffer",
+                "com.downloader.tapload/sniffer",
             ).setMethodCallHandler(plugin)
         }
     }

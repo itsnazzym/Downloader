@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/design_system/components/app_toast.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
-import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_view.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/mobile/already_downloaded_sheet.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/mobile/mobile_add_download_sheet.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/components/app_toast.dart';
+import 'package:tapload/core/plugins/feature_activation.dart';
+import 'package:tapload/core/ui/mobile/back_navigation.dart';
+import 'package:tapload/core/ui/media_player/media_player_provider.dart';
+import 'package:tapload/core/ui/media_player/media_player_view.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/features/downloader/presentation/providers/download_library_counts.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/downloader/presentation/views/mobile/already_downloaded_sheet.dart';
+import 'package:tapload/features/downloader/presentation/views/mobile/mobile_add_download_sheet.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Android shell: pure black ground with a dot grid, and a docked bottom bar
 /// with a central "add" action. Statistics and the TikTok archive are reached

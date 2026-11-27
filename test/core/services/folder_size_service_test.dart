@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/folder_size_service.dart';
+import 'package:tapload/core/services/folder_size_service.dart';
 
 void main() {
   late Directory tempRoot;

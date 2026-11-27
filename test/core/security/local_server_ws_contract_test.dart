@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/security/local_server_auth.dart';
+import 'package:tapload/core/security/local_server_auth.dart';
 
 /// Lightweight contract checks mirroring LocalServerService auth rules
 /// without spinning up the full Riverpod app.

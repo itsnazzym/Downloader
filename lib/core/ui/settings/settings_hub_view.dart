@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
+import 'package:tapload/core/plugins/feature_activation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show NumberFormat;
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import 'package:universal_disk_space/universal_disk_space.dart';
 
 import '../../android/android_engine_bridge.dart';

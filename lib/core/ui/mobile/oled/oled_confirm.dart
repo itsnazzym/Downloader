@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Bottom-sheet confirmation in the OLED language. Resolves to `true` only
 /// when the user taps the confirm button.

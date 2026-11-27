@@ -128,7 +128,7 @@ String _svg() {
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" '
       'width="1024" height="1024">',
     )
-    ..writeln('  <title>Modern Downloader</title>')
+    ..writeln('  <title>TapLoad</title>')
     ..writeln(
       '  <rect width="1024" height="1024" rx="224" fill="${_hex(_black)}"/>',
     );

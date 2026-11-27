@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/utils/browser_launch.dart';
+import 'package:tapload/core/utils/browser_launch.dart';
 
 void main() {
   test('a URL with & reaches the browser whole, with no shell', () {

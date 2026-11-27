@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
 
 /// The logo's dot-matrix "download" glyph: an arrow dropping into a tray.
 /// `#` lit, `*` live (red), `.` unlit.

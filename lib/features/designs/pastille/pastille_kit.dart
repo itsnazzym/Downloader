@@ -5,8 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
 import '../shared/local_thumb.dart';
 
 /// Pastille's building blocks, measured on the Pastille*.dc.html mockups.

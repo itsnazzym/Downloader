@@ -2,16 +2,16 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/features/archive/data/services/tiktok_video_cache_service.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/archive/data/services/tiktok_video_cache_service.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../visual/visual_fakes.dart';

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
 
 /// The Espace's widgets: what they are, their size, their order, saved in
 /// SharedPreferences under [kPorcelaineWorkspaceKey].

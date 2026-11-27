@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
-import 'package:modern_downloader/features/browser/sniff/stream_probe.dart';
+import 'package:tapload/features/browser/sniff/sniffed_media.dart';
+import 'package:tapload/features/browser/sniff/stream_probe.dart';
 
 // Shaped like what x.com serves: portrait variants, absolute paths.
 const _master = '''#EXTM3U

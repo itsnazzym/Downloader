@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/design_system/design_skin.dart';
+import 'package:tapload/core/design_system/design_skin.dart';
 import '../../../../../core/design_system/foundation/colors.dart';
 import '../../../../../core/platform/platform_info.dart';
 import '../../../domain/entities/download_item.dart';
@@ -12,7 +12,7 @@ import '../../widgets/download_item_card.dart';
 import '../../widgets/download_item_context_menu.dart';
 import '../../widgets/download_item_grid_card.dart';
 import '../../widgets/confirm_file_deletion.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import '../../widgets/mobile_download_card.dart';
 
 class DownloadRowHost extends ConsumerWidget {

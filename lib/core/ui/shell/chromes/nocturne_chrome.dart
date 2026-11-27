@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/features/designs/nocturne/nocturne_theme.dart';
-import 'package:modern_downloader/features/designs/nocturne/nocturne_widgets.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/features/designs/nocturne/nocturne_theme.dart';
+import 'package:tapload/features/designs/nocturne/nocturne_widgets.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../desktop_destinations.dart';
 

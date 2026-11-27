@@ -1,4 +1,4 @@
-import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
+import 'package:tapload/features/downloader/presentation/models/creator_folder.dart';
 
 class TransferCreatorQuery {
   const TransferCreatorQuery._();

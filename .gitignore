@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════
-# Modern Downloader — .gitignore
+# TapLoad — .gitignore
 # Keep source, manifests, and installer scripts tracked.
 # Ignore build artifacts, secrets, local data, and AI scratch files.
 # ═══════════════════════════════════════════════════════════════════════
@@ -251,6 +251,11 @@ history_export_*.json
 *.crx
 *.apk
 *.aab
+TapLoad-*
+release/TapLoad-*/
+tapload_firefox.xpi
+tapload_chrome/
+# Artifacts built before the TapLoad rename
 ModernDownloader-*
 release/ModernDownloader-*/
 modern_downloader_firefox.xpi

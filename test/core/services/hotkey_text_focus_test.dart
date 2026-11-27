@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/hotkey_service.dart';
+import 'package:tapload/core/services/hotkey_service.dart';
 
 void main() {
   testWidgets('Esc is left to a focused text field', (tester) async {

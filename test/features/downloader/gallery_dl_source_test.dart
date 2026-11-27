@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/data/sources/gallery_dl_source.dart';
+import 'package:tapload/features/downloader/data/sources/gallery_dl_source.dart';
 
 void main() {
   group('GalleryDlSource.shouldUseFallback', () {

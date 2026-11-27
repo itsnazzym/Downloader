@@ -103,7 +103,7 @@ jobs:
       - name: Package Chrome extension ZIP
         run: |
           cd extension/chrome
-          zip -r ../../modern_downloader_chrome.zip .
+          zip -r ../../tapload_chrome.zip .
           cd ../..
 
       - name: Upload extensions artifacts
@@ -111,7 +111,7 @@ jobs:
         with:
           name: browser-extensions
           path: |
-            modern_downloader_chrome.zip
+            tapload_chrome.zip
             extension/firefox/
           retention-days: 7
 
@@ -265,8 +265,8 @@ jobs:
       - name: Create Portable Zip
         shell: pwsh
         run: |
-          $zip = "ModernDownloader-Windows-Portable.zip"
-          if (-not (Test-Path "build/windows/x64/runner/Release/modern_downloader.exe")) { throw "modern_downloader.exe missing from the Release bundle" }
+          $zip = "TapLoad-Windows-Portable.zip"
+          if (-not (Test-Path "build/windows/x64/runner/Release/tapload.exe")) { throw "tapload.exe missing from the Release bundle" }
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath $zip -CompressionLevel Optimal
 
@@ -276,12 +276,12 @@ jobs:
           $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           & $iscc /DAppVersion="${{ needs.version.outputs.tag }}" "installer/setup.iss"
           # setup.iss writes to release/; the steps below expect the repo root.
-          Move-Item -Force "release/ModernDownloader-Setup-${{ needs.version.outputs.tag }}.exe" .
+          Move-Item -Force "release/TapLoad-Setup-${{ needs.version.outputs.tag }}.exe" .
 
       - name: Package Chrome ZIP
         shell: pwsh
         run: |
-          $zip = "modern_downloader_chrome.zip"
+          $zip = "tapload_chrome.zip"
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Push-Location extension/chrome
           Compress-Archive -Path * -DestinationPath "../../$zip" -CompressionLevel Optimal
@@ -297,7 +297,7 @@ jobs:
           $ErrorActionPreference = 'Continue'
           $PSNativeCommandUseErrorActionPreference = $false
           function New-UnsignedXpi {
-            $dest = Join-Path (Get-Location) "modern_downloader_firefox.xpi"
+            $dest = Join-Path (Get-Location) "tapload_firefox.xpi"
             if (Test-Path $dest) { Remove-Item $dest -Force }
             Push-Location extension/firefox
             Compress-Archive -Path * -DestinationPath $dest -CompressionLevel Optimal
@@ -324,7 +324,7 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             $signed = Get-ChildItem $artifacts -Filter *.xpi -ErrorAction SilentlyContinue | Select-Object -First 1
             if ($signed) {
-              Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
+              Copy-Item $signed.FullName tapload_firefox.xpi -Force
               Write-Host "Using AMO-signed XPI."
             }
           } else {
@@ -339,10 +339,10 @@ jobs:
         run: |
           $tag = "${{ needs.version.outputs.tag }}"
           $files = @(
-            "ModernDownloader-Windows-Portable.zip",
-            "ModernDownloader-Setup-$tag.exe",
-            "modern_downloader_firefox.xpi",
-            "modern_downloader_chrome.zip"
+            "TapLoad-Windows-Portable.zip",
+            "TapLoad-Setup-$tag.exe",
+            "tapload_firefox.xpi",
+            "tapload_chrome.zip"
           )
           $lines = foreach ($f in $files) {
             if (Test-Path $f) {
@@ -357,10 +357,10 @@ jobs:
         with:
           name: windows-release
           path: |
-            ModernDownloader-Windows-Portable.zip
-            ModernDownloader-Setup-${{ needs.version.outputs.tag }}.exe
-            modern_downloader_firefox.xpi
-            modern_downloader_chrome.zip
+            TapLoad-Windows-Portable.zip
+            TapLoad-Setup-${{ needs.version.outputs.tag }}.exe
+            tapload_firefox.xpi
+            tapload_chrome.zip
             CHECKSUMS.txt
           retention-days: 14
           if-no-files-found: error
@@ -402,10 +402,10 @@ jobs:
           body_path: RELEASE_NOTES.md
           fail_on_unmatched_files: true
           files: |
-            ModernDownloader-Windows-Portable.zip
-            ModernDownloader-Setup-${{ needs.version.outputs.tag }}.exe
-            modern_downloader_firefox.xpi
-            modern_downloader_chrome.zip
+            TapLoad-Windows-Portable.zip
+            TapLoad-Setup-${{ needs.version.outputs.tag }}.exe
+            tapload_firefox.xpi
+            tapload_chrome.zip
             CHECKSUMS.txt
             extension_version.json
 
@@ -453,16 +453,16 @@ jobs:
           out="build/app/outputs/flutter-apk"
           test -f "$out/app-arm64-v8a-release.apk"
           test -f "$out/app-armeabi-v7a-release.apk"
-          cp "$out/app-arm64-v8a-release.apk" ModernDownloader-Android.apk
-          cp "$out/app-armeabi-v7a-release.apk" ModernDownloader-Android-armv7.apk
+          cp "$out/app-arm64-v8a-release.apk" TapLoad-Android.apk
+          cp "$out/app-armeabi-v7a-release.apk" TapLoad-Android-armv7.apk
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
           path: |
-            ModernDownloader-Android.apk
-            ModernDownloader-Android-armv7.apk
+            TapLoad-Android.apk
+            TapLoad-Android-armv7.apk
           retention-days: 14
           if-no-files-found: error
 
@@ -488,6 +488,6 @@ jobs:
           tag_name: ${{ needs.version.outputs.tag }}
           fail_on_unmatched_files: true
           files: |
-            dist/ModernDownloader-Android.apk
-            dist/ModernDownloader-Android-armv7.apk
+            dist/TapLoad-Android.apk
+            dist/TapLoad-Android-armv7.apk
 

@@ -4,10 +4,10 @@ library;
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/binary/binary_locator.dart';
-import 'package:modern_downloader/core/services/binary/process_runner.dart';
-import 'package:modern_downloader/features/downloader/data/sources/yt_dlp_source.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/core/services/binary/binary_locator.dart';
+import 'package:tapload/core/services/binary/process_runner.dart';
+import 'package:tapload/features/downloader/data/sources/yt_dlp_source.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
 
 /// Public metadata probe (YouTube) and a small direct file (~800 KB) for the
 /// real download path. yt-dlp's BaW_jenozKc test video is no longer served.

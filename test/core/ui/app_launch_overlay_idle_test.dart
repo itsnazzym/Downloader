@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/bootstrap/app_warmup_provider.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/core/ui/setup/app_launch_overlay.dart';
+import 'package:tapload/core/bootstrap/app_warmup_provider.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_provider.dart';
+import 'package:tapload/core/ui/setup/app_launch_overlay.dart';
 
 void main() {
   testWidgets('the launch overlay stops scheduling frames once dismissed', (

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/archive/data/services/tiktok_video_cache_service.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/data/services/tiktok_video_cache_service.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:path/path.dart' as p;
 
 void main() {

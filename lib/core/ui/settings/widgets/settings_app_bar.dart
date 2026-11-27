@@ -1,9 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/core/design_system/foundation/colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
 
 import 'settings_app_bar_leading.dart';
 import 'settings_tiles.dart';

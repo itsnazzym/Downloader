@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/router/app_router.dart';
-import 'package:modern_downloader/core/services/download_stats_service.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/features/designs/studio/studio_home.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/router/app_router.dart';
+import 'package:tapload/core/services/download_stats_service.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_provider.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/features/designs/studio/studio_home.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/onboarding/data/onboarding_store.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 import '../../visual/visual_fakes.dart';
 import '../../visual/visual_harness.dart';
-import 'package:modern_downloader/features/designs/shared/design_data.dart';
+import 'package:tapload/features/designs/shared/design_data.dart';
 
 void main() {
   test('downloadErrorReason keeps the readable part of a yt-dlp error', () {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/app_typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_typography.dart';
 import '../../../providers/download_library_counts.dart';
 import '../../../providers/filtered_downloads_provider.dart';
 

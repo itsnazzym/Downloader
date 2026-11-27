@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/transfer/data/payload_scanner.dart';
-import 'package:modern_downloader/features/transfer/data/send_memory_store.dart';
-import 'package:modern_downloader/features/transfer/domain/content_hash.dart';
-import 'package:modern_downloader/features/transfer/domain/send_memory.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/data/payload_scanner.dart';
+import 'package:tapload/features/transfer/data/send_memory_store.dart';
+import 'package:tapload/features/transfer/domain/content_hash.dart';
+import 'package:tapload/features/transfer/domain/send_memory.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 
 void main() {
   late Directory tempDir;

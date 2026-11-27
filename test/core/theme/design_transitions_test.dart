@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/theme/design_transitions.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/design_transitions.dart';
 
 void main() {
   Future<Widget> build(

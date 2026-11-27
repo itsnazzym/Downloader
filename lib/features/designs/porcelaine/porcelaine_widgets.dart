@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/app_palette.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_palette.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
 import '../shared/local_thumb.dart';
 
 /// Porcelaine's building blocks, measured on Espace.dc.html and the

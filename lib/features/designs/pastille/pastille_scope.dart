@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_palette.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:tapload/core/theme/app_palette.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
 
 import 'pastille_kit.dart';
 

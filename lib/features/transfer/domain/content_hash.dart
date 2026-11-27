@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:modern_downloader/features/transfer/data/payload_scanner.dart';
-import 'package:modern_downloader/features/transfer/data/send_memory_store.dart';
+import 'package:tapload/features/transfer/data/payload_scanner.dart';
+import 'package:tapload/features/transfer/data/send_memory_store.dart';
 
 class ContentHash {
   const ContentHash._();

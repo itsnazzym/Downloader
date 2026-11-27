@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'oled_theme.dart';
 import 'oled_widgets.dart';

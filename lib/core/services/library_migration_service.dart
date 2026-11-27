@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/features/downloader/data/datasources/persistence_service.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/core/download/media_source_resolver.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/features/downloader/data/datasources/persistence_service.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/media_source_resolver.dart';
 
 class MigrationProgress {
   final String status;

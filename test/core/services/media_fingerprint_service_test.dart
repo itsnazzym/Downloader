@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/media_fingerprint_service.dart';
-import 'package:modern_downloader/features/downloader/data/datasources/persistence_service.dart';
+import 'package:tapload/core/services/media_fingerprint_service.dart';
+import 'package:tapload/features/downloader/data/datasources/persistence_service.dart';
 
 class _InMemoryPersistenceService extends PersistenceService {
   Map<String, dynamic>? index;

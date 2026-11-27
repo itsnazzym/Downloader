@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/core/utils/format_utils.dart';
-import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
-import 'package:modern_downloader/features/browser/sniff/stream_probe.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/core/utils/format_utils.dart';
+import 'package:tapload/features/browser/sniff/sniffed_media.dart';
+import 'package:tapload/features/browser/sniff/stream_probe.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Lists what the in-app browser's page loaded so the user can pick the
 /// stream to download, with the session of that browser.

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/metadata_probe_limiter.dart';
+import 'package:tapload/core/download/metadata_probe_limiter.dart';
 
 void main() {
   group('MetadataProbeLimiter', () {

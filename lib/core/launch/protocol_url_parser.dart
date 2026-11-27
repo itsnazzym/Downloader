@@ -1,4 +1,11 @@
 class ProtocolUrlParser {
+  /// `moderndownloader` is the scheme from before the TapLoad rename; links
+  /// emitted by older site pages and extensions still use it.
+  static const schemes = ['tapload', 'moderndownloader'];
+
+  static bool isProtocolUrl(String value) =>
+      schemes.any((scheme) => value.contains('$scheme://'));
+
   static String? extractPluginId(String uriString) {
     try {
       if (uriString.contains('%') ||
@@ -6,7 +13,7 @@ class ProtocolUrlParser {
         return null;
       }
       final uri = Uri.parse(uriString);
-      if (uri.scheme != 'moderndownloader' ||
+      if (!schemes.contains(uri.scheme) ||
           uri.host != 'plugin' ||
           uri.query.isNotEmpty ||
           uri.fragment.isNotEmpty ||

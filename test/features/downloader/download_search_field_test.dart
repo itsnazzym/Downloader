@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/features/downloader/data/downloader_data_providers.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/features/downloader/data/downloader_data_providers.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/repositories/i_downloader_repository.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/features/downloader/presentation/views/widgets/download_search_field.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 class _EmptyRepo implements IDownloaderRepository {
   @override

@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_palette.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/core/theme/theme_resolver.dart';
+import 'package:tapload/core/theme/app_palette.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/core/theme/theme_resolver.dart';
 
 void main() {
   group('ThemeResolver.resolve', () {

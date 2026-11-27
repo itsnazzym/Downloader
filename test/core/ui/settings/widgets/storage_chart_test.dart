@@ -5,11 +5,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/folder_size_service.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/storage_chart.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/services/folder_size_service.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/core/ui/settings/widgets/storage_chart.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

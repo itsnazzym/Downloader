@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:local_notifier/local_notifier.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 import '../logger/logger_service.dart';
 import '../platform/platform_info.dart';
 import '../providers/settings_provider.dart';

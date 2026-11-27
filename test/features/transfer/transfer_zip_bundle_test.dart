@@ -2,14 +2,14 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_api.dart';
-import 'package:modern_downloader/features/transfer/data/payload_scanner.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_lan_server.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_zip_bundle.dart';
-import 'package:modern_downloader/features/transfer/domain/library_manifest.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/transfer/data/localsend_api.dart';
+import 'package:tapload/features/transfer/data/payload_scanner.dart';
+import 'package:tapload/features/transfer/data/transfer_lan_server.dart';
+import 'package:tapload/features/transfer/data/transfer_zip_bundle.dart';
+import 'package:tapload/features/transfer/domain/library_manifest.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 
 void main() {
   late Directory temp;

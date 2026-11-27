@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/archive/presentation/views/mobile/archive_collection_label.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/features/archive/presentation/views/mobile/archive_collection_label.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 void main() {
   test('system collections are shown translated, user ones as typed', () {

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/media_source_resolver.dart';
-import 'package:modern_downloader/core/services/library_stats_builder.dart';
-import 'package:modern_downloader/core/utils/format_utils.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/media_source_resolver.dart';
+import 'package:tapload/core/services/library_stats_builder.dart';
+import 'package:tapload/core/utils/format_utils.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 void main() {
   group('MediaSourceResolver', () {

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/utils/browser_launch.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/core/services/local_server_service.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/showcase/showcase_mode.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/utils/browser_launch.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/core/services/local_server_service.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/showcase/showcase_mode.dart';
 
 import 'signal_controls.dart';
 import 'signal_states.dart';

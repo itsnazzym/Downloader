@@ -1,7 +1,7 @@
 import '../enums/download_status.dart';
 import 'download_request.dart';
-import 'package:modern_downloader/core/download/media_source_resolver.dart';
-import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:tapload/core/download/media_source_resolver.dart';
+import 'package:tapload/core/download/x_download_url.dart';
 
 class DownloadItem {
   final String id;

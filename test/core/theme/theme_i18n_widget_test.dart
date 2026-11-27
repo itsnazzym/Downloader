@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/app_palette.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_palette.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

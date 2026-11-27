@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/live_activity.dart';
+import 'package:tapload/features/downloader/presentation/views/widgets/download_search_field.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/core/ui/shell/desktop_destinations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 import 'porcelaine_library.dart';
 import 'porcelaine_states.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
-import 'package:modern_downloader/features/onboarding/domain/onboarding_step.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
+import 'package:tapload/features/onboarding/data/onboarding_store.dart';
+import 'package:tapload/features/onboarding/domain/onboarding_step.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_controller.dart';
 
 void main() {
   test('does not start on non-desktop', () {

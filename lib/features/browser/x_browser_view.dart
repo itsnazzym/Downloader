@@ -3,31 +3,31 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/utils/browser_launch.dart';
+import 'package:tapload/core/utils/browser_launch.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/android/media_sniffer_bridge.dart';
-import 'package:modern_downloader/core/android/netscape_cookie_codec.dart';
-import 'package:modern_downloader/core/android/overlay_download_message.dart';
-import 'package:modern_downloader/core/download/download_url_policy.dart';
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/design_system/components/app_toast.dart';
-import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
-import 'package:modern_downloader/features/browser/sniff/sniffed_media_sheet.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/mobile/mobile_add_download_sheet.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/android/media_sniffer_bridge.dart';
+import 'package:tapload/core/android/netscape_cookie_codec.dart';
+import 'package:tapload/core/android/overlay_download_message.dart';
+import 'package:tapload/core/download/download_url_policy.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/components/app_toast.dart';
+import 'package:tapload/core/ui/mobile/back_navigation.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/features/browser/sniff/sniffed_media.dart';
+import 'package:tapload/features/browser/sniff/sniffed_media_sheet.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
+import 'package:tapload/features/downloader/presentation/views/mobile/mobile_add_download_sheet.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
-import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:tapload/core/platform/platform_info.dart';
 import 'package:go_router/go_router.dart';
 
 class XBrowserView extends ConsumerStatefulWidget {
@@ -882,7 +882,7 @@ class _XBrowserViewState extends ConsumerState<XBrowserView> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'L’extension Modern Downloader supprime toutes les publicités et place les boutons de téléchargement dans une zone protégée sur vos Reels & Shorts.',
+                  'L’extension TapLoad supprime toutes les publicités et place les boutons de téléchargement dans une zone protégée sur vos Reels & Shorts.',
                   style: TextStyle(
                     color: colors.textSecondary,
                     fontSize: 11,

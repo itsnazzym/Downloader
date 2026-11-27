@@ -30,15 +30,15 @@ import 'features/onboarding/presentation/mobile/mobile_onboarding.dart';
 import 'l10n/app_localizations.dart';
 
 /// Root application widget configuring routing, themes, locales, window lifecycle, and post-bootstrap services.
-class ModernDownloaderApp extends ConsumerStatefulWidget {
-  const ModernDownloaderApp({super.key});
+class TapLoadApp extends ConsumerStatefulWidget {
+  const TapLoadApp({super.key});
 
   @override
-  ConsumerState<ModernDownloaderApp> createState() =>
-      _ModernDownloaderAppState();
+  ConsumerState<TapLoadApp> createState() =>
+      _TapLoadAppState();
 }
 
-class _ModernDownloaderAppState extends ConsumerState<ModernDownloaderApp>
+class _TapLoadAppState extends ConsumerState<TapLoadApp>
     with WindowListener, TrayListener {
   bool _postBootstrapStarted = false;
   ProviderSubscription<AppWarmupState>? _warmupSub;

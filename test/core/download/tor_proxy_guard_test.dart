@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/tor_proxy_guard.dart';
+import 'package:tapload/core/download/tor_proxy_guard.dart';
 
 void main() {
   group('TorProxyGuard.resolveProxyUrl', () {

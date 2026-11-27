@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/download_url_policy.dart';
+import 'package:tapload/core/download/download_url_policy.dart';
 
 Set<String> _jsStringList(String source, String varName) {
   final match = RegExp('var $varName = \\[([\\s\\S]*?)\\];').firstMatch(source);

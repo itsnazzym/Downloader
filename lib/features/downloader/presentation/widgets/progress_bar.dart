@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/design_system/components/design_progress_bar.dart';
+import 'package:tapload/core/design_system/components/design_progress_bar.dart';
 
 /// Download progress in the active design's style (see [DesignProgressBar]).
 class ProgressBar extends StatelessWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/theme/design_transitions.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/design_transitions.dart';
 
 /// Switching page must never show the old and the new page at once: the old
 /// page has left before the new one appears (pages have no backdrop of their

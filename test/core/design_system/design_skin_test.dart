@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/design_system/design_skin.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
+import 'package:tapload/core/design_system/design_skin.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart';
 
 Widget _app(String preset, Widget child) => MaterialApp(
   theme: AppTheme.fromPalette(ThemePresets.getById(preset), Brightness.dark),

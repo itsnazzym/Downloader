@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:tapload/core/logger/logger_service.dart';
 
 /// Resolves unpackaged MV3 folders and opens the browser install pages.
 ///
@@ -16,10 +16,10 @@ class BrowserExtensionInstaller {
   BrowserExtensionInstaller._();
 
   static const firefoxXpiUrl =
-      'https://github.com/itsnazzym/Downloader/releases/latest/download/modern_downloader_firefox.xpi';
+      'https://github.com/itsnazzym/Downloader/releases/latest/download/tapload_firefox.xpi';
 
   static const chromeZipUrl =
-      'https://github.com/itsnazzym/Downloader/releases/latest/download/modern_downloader_chrome.zip';
+      'https://github.com/itsnazzym/Downloader/releases/latest/download/tapload_chrome.zip';
 
   static Directory? resolveChromeDir() {
     return _firstExistingDir(_candidateRoots(), 'chrome');
@@ -80,7 +80,7 @@ class BrowserExtensionInstaller {
   static Future<File?> saveChromeZipToDownloads() async {
     return _downloadUrlToDownloads(
       chromeZipUrl,
-      'modern_downloader_chrome.zip',
+      'tapload_chrome.zip',
     );
   }
 
@@ -88,7 +88,7 @@ class BrowserExtensionInstaller {
   static Future<File?> downloadFirefoxXpiToTemp() async {
     try {
       final temp = await getTemporaryDirectory();
-      final xpi = File(p.join(temp.path, 'modern_downloader_firefox.xpi'));
+      final xpi = File(p.join(temp.path, 'tapload_firefox.xpi'));
       final ok = await _downloadUrlToFile(firefoxXpiUrl, xpi);
       return ok ? xpi : null;
     } catch (e) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:tapload/core/platform/platform_info.dart';
 import 'app_palette.dart';
 import 'app_typography.dart';
 import 'design_spec.dart';

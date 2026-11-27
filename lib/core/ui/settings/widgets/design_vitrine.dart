@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'design_miniature.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_tooltip_placement.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_tooltip_placement.dart';
 
 void main() {
   const viewport = Size(1280, 800);

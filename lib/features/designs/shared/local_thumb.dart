@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/video_thumbnail_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/video_thumbnail_provider.dart';
 
 /// The preview taken from the downloaded file itself, for a tile whose
 /// remote thumbnail is missing or no longer loads (expired CDN address);

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/fragment_budget.dart';
+import 'package:tapload/core/download/fragment_budget.dart';
 
 void main() {
   group('computeConcurrentFragments', () {

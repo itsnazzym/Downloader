@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_glyph.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_glyph.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Phone launch screen: the logo's dot-matrix glyph ignites from the centre,
 /// the red dot breathes while the engine warms up, and a segmented bar with a

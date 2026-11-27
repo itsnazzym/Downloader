@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart'
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/core/ui/settings/widgets/output_folder_picker.dart';
+import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart'
     show qualityOptionLabels;
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'ios_glass.dart';
 import 'ios_skin.dart';

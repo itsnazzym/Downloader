@@ -4,22 +4,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
-import 'package:modern_downloader/core/plugins/feature_catalog.dart';
-import 'package:modern_downloader/core/services/clipboard_service.dart';
-import 'package:modern_downloader/core/services/local_server_service.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/core/ui/app_shell.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart'
+import 'package:tapload/core/plugins/feature_activation.dart';
+import 'package:tapload/core/plugins/feature_catalog.dart';
+import 'package:tapload/core/services/clipboard_service.dart';
+import 'package:tapload/core/services/local_server_service.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_provider.dart';
+import 'package:tapload/core/ui/app_shell.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/repositories/i_downloader_repository.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/core/ui/media_player/media_player_provider.dart';
+import 'package:tapload/core/providers/settings_provider.dart'
     as settings_util;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 // --- MOCKS ---
 

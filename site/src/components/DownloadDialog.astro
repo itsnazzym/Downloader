@@ -200,8 +200,8 @@ const text = copy[lang];
       options.forEach((option) => {
         const asset = release.assets.find((item) => typeof item?.name === 'string' && (
           option.value === 'installer'
-            ? /^ModernDownloader-Setup-.+\.exe$/i.test(item.name)
-            : item.name.toLowerCase() === 'moderndownloader-windows-portable.zip'
+            ? /^(TapLoad|ModernDownloader)-Setup-.+\.exe$/i.test(item.name)
+            : ['tapload-windows-portable.zip', 'moderndownloader-windows-portable.zip'].includes(item.name.toLowerCase())
         ));
         const url = asset && safeAssetUrl(asset);
         const detail = dialog.querySelector<HTMLElement>('[data-download-file-detail="' + option.value + '"]');

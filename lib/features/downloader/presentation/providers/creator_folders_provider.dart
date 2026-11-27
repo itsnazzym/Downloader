@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/download/creator_folder_key.dart';
-import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/core/download/creator_folder_key.dart';
+import 'package:tapload/features/downloader/presentation/models/creator_folder.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 
 final openedCreatorFolderKeyProvider = StateProvider<String?>((ref) => null);
 

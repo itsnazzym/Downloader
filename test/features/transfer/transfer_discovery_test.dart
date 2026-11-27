@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_api.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_client.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_discovery.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_security.dart';
-import 'package:modern_downloader/features/transfer/data/trusted_devices_store.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/data/localsend_api.dart';
+import 'package:tapload/features/transfer/data/localsend_client.dart';
+import 'package:tapload/features/transfer/data/transfer_discovery.dart';
+import 'package:tapload/features/transfer/data/transfer_security.dart';
+import 'package:tapload/features/transfer/data/trusted_devices_store.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 
 void main() {
   group('TransferDiscovery & Mutual Peer Recognition Tests', () {
@@ -42,7 +42,7 @@ void main() {
       expect(id2.deviceId, id1.deviceId);
     });
 
-    test('Two Modern Downloader peers with same certificate fingerprint discover each other via HTTP probe', () async {
+    test('Two TapLoad peers with same certificate fingerprint discover each other via HTTP probe', () async {
       final serverCtx = TransferSecurity.createSecurityContext();
       final secureServer = await HttpServer.bindSecure(
         InternetAddress.loopbackIPv4,

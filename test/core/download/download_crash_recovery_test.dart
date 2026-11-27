@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/download_crash_recovery.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/download_crash_recovery.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 DownloadItem _item(DownloadStatus status) {
   return DownloadItem(

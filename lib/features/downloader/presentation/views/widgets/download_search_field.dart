@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/foundation/spacing.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../../providers/downloader_provider.dart';
 import '../../providers/filtered_downloads_provider.dart';

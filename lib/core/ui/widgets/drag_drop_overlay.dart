@@ -1,12 +1,12 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/platform/platform_info.dart';
 
 class DragDropOverlay extends ConsumerStatefulWidget {
   final Widget child;

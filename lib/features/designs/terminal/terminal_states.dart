@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../shared/empty_art.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_colors.dart';
 
 import 'terminal_widgets.dart';
 

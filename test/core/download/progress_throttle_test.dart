@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/progress_throttle.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/progress_throttle.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 class _ManualTimer implements Timer {
   bool _active = true;

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import '../bootstrap/app_bootstrap.dart';
+import '../launch/protocol_url_parser.dart';
 import '../logger/logger_service.dart';
 import 'windows_desktop_window_probe.dart';
 
@@ -167,10 +168,10 @@ class SingleInstanceService {
     String data,
     ProviderContainer container,
   ) async {
-    if (data.contains('moderndownloader://')) {
+    if (ProtocolUrlParser.isProtocolUrl(data)) {
       final parts = data.split(' ');
       final protocolUrl = parts.firstWhere(
-        (p) => p.contains('moderndownloader://'),
+        (p) => ProtocolUrlParser.isProtocolUrl(p),
         orElse: () => '',
       );
 

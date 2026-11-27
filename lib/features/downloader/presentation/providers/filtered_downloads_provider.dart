@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/download/creator_folder_key.dart';
-import 'package:modern_downloader/core/utils/format_utils.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/core/download/creator_folder_key.dart';
+import 'package:tapload/core/utils/format_utils.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 
 /// Compares formatted size strings (`"10 MB"` vs `"2 GB"`) by parsed bytes.
 int compareDownloadSize(DownloadItem a, DownloadItem b) {

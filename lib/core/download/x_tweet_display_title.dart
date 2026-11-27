@@ -1,4 +1,4 @@
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
 
 /// Builds the same Twitter display title used during a live download.
 class XTweetDisplayTitle {

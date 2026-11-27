@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/yt_dlp_cookie_args.dart';
+import 'package:tapload/core/download/yt_dlp_cookie_args.dart';
 
 void main() {
   group('YtDlpCookieArgs', () {

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
-import 'package:modern_downloader/features/downloader/data/datasources/persistence_service.dart';
+import 'package:tapload/features/downloader/data/datasources/persistence_service.dart';
 
 class MediaFingerprintMatch {
   final String originalPath;

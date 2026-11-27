@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
 
 class AnimatedInputField extends StatefulWidget {
   final TextEditingController controller;

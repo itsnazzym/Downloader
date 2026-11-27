@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import '../../../../domain/enums/download_status.dart';
 import '../../../providers/download_library_counts.dart';
 import '../../../providers/downloader_provider.dart';

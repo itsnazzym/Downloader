@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
 
 /// OLED's desktop look, "Émission" (mockups Main, OLED-*.dc.html): pure
 /// black, only what is alive lights up, in a single "ion" colour.

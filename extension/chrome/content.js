@@ -1,5 +1,5 @@
 /**
- * Modern Downloader content script — limited to video platform pages.
+ * TapLoad content script — limited to video platform pages.
  * Debounced MutationObserver (no 1s interval). Overlay via Shadow DOM.
  */
 (function () {

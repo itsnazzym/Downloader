@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
 
 /// Radar made of three dotted rings that rotate slowly, with the local device
 /// in the centre and up to four nearby devices drawn as small outlined nodes.

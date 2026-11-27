@@ -1,6 +1,6 @@
 # gobird — experimental risk notice
 
-Modern Downloader may optionally bundle [gobird](https://github.com/mudrii/gobird)
+TapLoad may optionally bundle [gobird](https://github.com/mudrii/gobird)
 (MIT License) as an **experimental**, **opt-in**, **read-only** engine for the
 X feed panel on Windows.
 
@@ -11,7 +11,7 @@ X feed panel on Windows.
 - Upstream behaviour can break **without notice**.
 - The feature is **OFF by default**. Enabling it in Advanced settings requires
   explicit consent.
-- Modern Downloader only allows the read-only `home` command with
+- TapLoad only allows the read-only `home` command with
   `--json --quiet --count 1..10000 --max-pages 500`. When no local heartbeat credentials are
   available, the configured `--browser chrome|firefox` fallback is used.
 - No write commands, free-form arguments, account rotation, or proxy settings

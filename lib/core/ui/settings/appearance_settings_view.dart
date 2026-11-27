@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/design_spec.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../design_system/foundation/colors.dart' as ds;
@@ -7,12 +7,12 @@ import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
 import '../../theme/theme_presets.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/core/platform/platform_info.dart';
 import 'widgets/design_vitrine.dart';
 import 'widgets/settings_tiles.dart';
 import '../widgets/glass_setting_section.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import 'widgets/settings_app_bar.dart';
 
 class AppearanceSettingsView extends ConsumerStatefulWidget {

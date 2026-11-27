@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
+import 'package:tapload/features/browser/sniff/sniffed_media.dart';
 
 /// What a detected stream turns out to be, read from its own manifest: the
 /// name in the address ("i6CYFRr8Omivno_A.m3u8") says nothing.

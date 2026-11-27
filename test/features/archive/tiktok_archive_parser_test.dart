@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/archive/data/datasources/tiktok_archive_parser.dart';
+import 'package:tapload/features/archive/data/datasources/tiktok_archive_parser.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

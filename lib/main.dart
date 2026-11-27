@@ -102,7 +102,7 @@ void main(List<String> args) async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: const ModernDownloaderApp(),
+      child: const TapLoadApp(),
     ),
   );
 

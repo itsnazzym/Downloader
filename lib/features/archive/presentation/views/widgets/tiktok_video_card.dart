@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/core/utils/browser_launch.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/utils/browser_launch.dart';
 import 'package:flutter/services.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
 
 class TikTokVideoCard extends StatefulWidget {
   final TikTokArchiveItem item;

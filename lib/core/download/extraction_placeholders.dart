@@ -1,6 +1,6 @@
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 /// Placeholder titles set before yt-dlp metadata arrives.
 class ExtractionPlaceholders {

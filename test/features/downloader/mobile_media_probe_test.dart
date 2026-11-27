@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/mobile/media_probe.dart';
+import 'package:tapload/features/downloader/presentation/views/mobile/media_probe.dart';
 
 void main() {
   const mo = 1024 * 1024;

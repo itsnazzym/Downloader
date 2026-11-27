@@ -2,10 +2,10 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:archive/archive_io.dart';
-import 'package:modern_downloader/features/transfer/domain/library_manifest.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_media_filter.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_path_guard.dart';
+import 'package:tapload/features/transfer/domain/library_manifest.dart';
+import 'package:tapload/features/transfer/domain/transfer_media_filter.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/domain/transfer_path_guard.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -31,7 +31,7 @@ class TransferZipBundle {
     if (tops.length == 1) {
       return _safeZipStem(tops.first);
     }
-    return 'ModernDownloader';
+    return 'TapLoad';
   }
 
   static bool shouldArchive({
@@ -112,7 +112,7 @@ class TransferZipBundle {
   static String _safeZipStem(String raw) {
     final cleaned = raw.replaceAll(RegExp(r'[<>:"|?*\\/]'), '_').trim();
     if (cleaned.isEmpty || cleaned == '.' || cleaned == '..') {
-      return 'ModernDownloader';
+      return 'TapLoad';
     }
     return cleaned;
   }

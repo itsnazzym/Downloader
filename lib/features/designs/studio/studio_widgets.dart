@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
 
 /// Studio's building blocks, measured on the Studio*.dc.html mockups: ink on
 /// paper, hairline rings instead of borders, one recording red for what runs.

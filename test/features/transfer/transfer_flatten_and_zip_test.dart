@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/transfer/data/payload_scanner.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_zip_bundle.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/data/payload_scanner.dart';
+import 'package:tapload/features/transfer/data/transfer_zip_bundle.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 
 void main() {
   late Directory temp;

@@ -1,5 +1,5 @@
 /**
- * Stream Sniffer for Modern Downloader.
+ * Stream Sniffer for TapLoad.
  * Intercepts video network streams (.m3u8, .mpd, .mp4, video/*)
  * passively via webRequest API. Zero DOM dependencies, infallible detection.
  */

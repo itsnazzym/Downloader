@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/temp_file_cleanup.dart';
+import 'package:tapload/core/download/temp_file_cleanup.dart';
 
 void main() {
   group('TempFileCleanup.isFragmentOrTemp', () {

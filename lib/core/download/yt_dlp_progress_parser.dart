@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:modern_downloader/core/download/download_file_resolver.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
+import 'package:tapload/core/download/download_file_resolver.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
 
 /// One progress / status update emitted while parsing a yt-dlp output line.
 class YtDlpProgressUpdate {

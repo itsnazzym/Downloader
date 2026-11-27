@@ -1,4 +1,4 @@
-import 'package:modern_downloader/core/download/creator_metadata_parser.dart';
+import 'package:tapload/core/download/creator_metadata_parser.dart';
 
 /// Identity used to group downloads into a creator folder.
 class CreatorIdentity {

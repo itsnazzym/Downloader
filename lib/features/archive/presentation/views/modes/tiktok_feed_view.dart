@@ -3,11 +3,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_video_card_player.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
+import 'package:tapload/features/archive/presentation/views/widgets/tiktok_video_card_player.dart';
 
 class TikTokFeedView extends ConsumerStatefulWidget {
   final List<TikTokArchiveItem> videos;

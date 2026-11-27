@@ -3,7 +3,7 @@ import '../foundation/colors.dart';
 import '../foundation/spacing.dart';
 import '../foundation/typography.dart';
 import '../../../../features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 String downloadStatusLabel(BuildContext context, DownloadStatus status) {
   final l10n = context.l10n;

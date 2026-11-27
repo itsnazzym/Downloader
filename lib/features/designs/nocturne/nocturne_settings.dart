@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
-import 'package:modern_downloader/core/plugins/feature_catalog.dart';
-import 'package:modern_downloader/core/plugins/plugin_manager.dart';
-import 'package:modern_downloader/core/services/browser_extension_installer.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/extension_install_guide_dialog.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart'
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_provider.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/core/ui/settings/widgets/design_vitrine.dart';
+import 'package:tapload/core/ui/settings/widgets/output_folder_picker.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/plugins/feature_activation.dart';
+import 'package:tapload/core/plugins/feature_catalog.dart';
+import 'package:tapload/core/plugins/plugin_manager.dart';
+import 'package:tapload/core/services/browser_extension_installer.dart';
+import 'package:tapload/core/ui/settings/widgets/extension_install_guide_dialog.dart';
+import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart'
     show languageOptionLabels, qualityOptionLabels, themeModeOptionLabels;
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/showcase/showcase_mode.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/showcase/showcase_mode.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_controller.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'nocturne_widgets.dart';
 

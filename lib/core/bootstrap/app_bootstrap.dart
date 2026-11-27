@@ -67,7 +67,7 @@ class AppBootstrap {
   static void handleLaunchArgs(List<String> args, ProviderContainer container) {
     if (args.isEmpty) return;
     final protocolArg = args.firstWhere(
-      (arg) => arg.contains('moderndownloader://'),
+      ProtocolUrlParser.isProtocolUrl,
       orElse: () => '',
     );
     if (protocolArg.isNotEmpty) {
@@ -120,7 +120,9 @@ class AppBootstrap {
     }
 
     try {
-      await protocolHandler.register('moderndownloader');
+      for (final scheme in ProtocolUrlParser.schemes) {
+        await protocolHandler.register(scheme);
+      }
     } catch (e) {
       debugPrint('Protocol handler register skipped: $e');
     }

@@ -38,7 +38,7 @@ class PROCESS_INFORMATION(ctypes.Structure):
 
 def launch():
     # Kill any dangling background processes
-    subprocess.run(["taskkill", "/F", "/IM", "modern_downloader.exe"], capture_output=True)
+    subprocess.run(["taskkill", "/F", "/IM", "tapload.exe"], capture_output=True)
 
     si = STARTUPINFO()
     si.cb = ctypes.sizeof(STARTUPINFO)
@@ -51,7 +51,7 @@ def launch():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
     flavor = "Release" if "--release" in sys.argv else "Debug"
-    app_path = os.path.join(project_root, "build", "windows", "x64", "runner", flavor, "modern_downloader.exe")
+    app_path = os.path.join(project_root, "build", "windows", "x64", "runner", flavor, "tapload.exe")
 
     if not os.path.exists(app_path):
         print(f"Error: binary not found at {app_path}. Please run flutter build windows first.")
@@ -72,7 +72,7 @@ def launch():
     )
 
     if res:
-        print(f"Successfully launched Modern Downloader on user desktop (WinSta0\\Default)! PID={pi.dwProcessId}")
+        print(f"Successfully launched TapLoad on user desktop (WinSta0\\Default)! PID={pi.dwProcessId}")
         kernel32.CloseHandle(pi.hProcess)
         kernel32.CloseHandle(pi.hThread)
     else:

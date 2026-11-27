@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
+import 'package:tapload/core/ui/mobile/back_navigation.dart';
 
 void main() {
   group('mobileBackTarget', () {

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:modern_downloader/core/download/creator_folder_key.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/core/download/creator_folder_key.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
 
 /// A creator vault: username + the downloads that belong to it.
 @immutable

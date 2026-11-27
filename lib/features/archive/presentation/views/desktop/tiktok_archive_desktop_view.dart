@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/showcase/showcase_mode.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/showcase/showcase_mode.dart';
 import '../widgets/tiktok_filter_pane.dart';
 import '../widgets/tiktok_video_card.dart';
 import '../modes/tiktok_collections_view.dart';

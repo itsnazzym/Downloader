@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/theme/extension_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:tapload/core/theme/extension_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
 
 Color _color(String hex) => Color(int.parse('FF${hex.substring(1)}', radix: 16));
 

@@ -25,7 +25,7 @@ export default function ActionLink({ href, label, kind = 'primary', mark, arrow,
         href={target}
         data-download-open={downloadDialog ? '' : undefined}
         aria-haspopup={downloadDialog ? 'dialog' : undefined}
-        data-astro-reload={!downloadDialog && target.startsWith('moderndownloader:') ? '' : undefined}
+        data-astro-reload={!downloadDialog && target.startsWith('tapload:') ? '' : undefined}
       >
         {mark === 'windows' && <span className="windows-mark" aria-hidden="true"><i /><i /><i /><i /></span>}
         {label}

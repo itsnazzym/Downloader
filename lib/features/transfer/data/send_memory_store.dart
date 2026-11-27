@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/features/transfer/domain/send_memory.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/features/transfer/domain/send_memory.dart';
 import 'package:path/path.dart' as p;
 
 class HashCacheEntry {

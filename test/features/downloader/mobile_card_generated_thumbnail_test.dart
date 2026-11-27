@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/video_thumbnail_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/widgets/mobile_download_card.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/presentation/providers/video_thumbnail_provider.dart';
+import 'package:tapload/features/downloader/presentation/widgets/mobile_download_card.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 void main() {
   testWidgets(

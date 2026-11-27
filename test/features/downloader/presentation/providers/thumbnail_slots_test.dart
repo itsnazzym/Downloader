@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/video_thumbnail_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/video_thumbnail_provider.dart';
 
 void main() {
   test('runs at most two tasks at once and every task in turn', () async {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
 
 class Palette {
   const Palette._();

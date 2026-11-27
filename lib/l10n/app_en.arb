@@ -2098,7 +2098,7 @@
   "archiveDeskPickJson": "Choose a JSON file",
   "archiveDeskSyncTitle": "Sync collections",
   "archiveDeskSyncConnected": "The extension fetches the videos of your collections from an open TikTok page.",
-  "archiveDeskSyncDisconnected": "Open TikTok in a browser where the Modern Downloader extension is installed, then come back here.",
+  "archiveDeskSyncDisconnected": "Open TikTok in a browser where the TapLoad extension is installed, then come back here.",
   "archiveDeskSyncing": "Syncing…",
   "archiveDeskSyncAction": "Sync my collections",
   "archiveDeskSyncManual": "Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.",

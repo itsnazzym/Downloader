@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
 
 /// One library row as the shared list hands it to a design: the item, its
 /// selection and the actions the shared row would offer (retry and delete

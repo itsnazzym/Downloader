@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/heartbeat_cookie_locator.dart';
+import 'package:tapload/core/services/heartbeat_cookie_locator.dart';
 
 void main() {
   test('finds the cookie file of the host or a parent domain', () async {

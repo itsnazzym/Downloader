@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:modern_downloader/features/archive/data/services/tiktok_video_cache_service.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
+import 'package:tapload/features/archive/data/services/tiktok_video_cache_service.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
 
 class TikTokVideoCardPlayer extends ConsumerStatefulWidget {
   final TikTokArchiveItem video;

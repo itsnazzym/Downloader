@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/core/design_system/components/app_button.dart';
-import 'package:modern_downloader/core/design_system/components/app_text_field.dart';
-import 'package:modern_downloader/core/design_system/components/app_toast.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/download/download_url_policy.dart';
-import 'package:modern_downloader/core/utils/download_url_validator.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/core/ui/widgets/animated_input_field.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:tapload/core/design_system/components/app_button.dart';
+import 'package:tapload/core/design_system/components/app_text_field.dart';
+import 'package:tapload/core/design_system/components/app_toast.dart';
+import 'package:tapload/core/design_system/foundation/colors.dart';
+import 'package:tapload/core/design_system/foundation/spacing.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/download/download_url_policy.dart';
+import 'package:tapload/core/utils/download_url_validator.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/widgets/animated_input_field.dart';
+import 'package:tapload/core/platform/platform_info.dart';
 import 'quality_selection_dialog.dart';
 
 class AddDownloadDialog extends ConsumerStatefulWidget {

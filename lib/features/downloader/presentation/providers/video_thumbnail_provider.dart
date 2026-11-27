@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/services/binary/service_providers.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/services/binary/service_providers.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:tapload/core/logger/logger_service.dart';
 
 /// Service to organize downloaded files by source and manage thumbnails
 class FileOrganizationService {

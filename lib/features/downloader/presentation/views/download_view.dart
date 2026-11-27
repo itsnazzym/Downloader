@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
-import 'package:modern_downloader/core/ui/widgets/resizable_width_pane.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/ui/layout/pane_layout_provider.dart';
+import 'package:tapload/core/ui/widgets/resizable_width_pane.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
 import '../providers/filtered_downloads_provider.dart';
 import 'inspector/collapsed_inspector_rail.dart';
 import 'inspector/download_inspector.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/design_spec.dart';
 
 /// Download progress drawn the way the active design draws it: a sheen
 /// (Signal, Porcelaine), dots (Pastille), segments (Terminal), a hairline

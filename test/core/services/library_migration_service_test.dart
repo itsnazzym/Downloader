@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/library_migration_service.dart';
-import 'package:modern_downloader/features/downloader/data/datasources/persistence_service.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/services/library_migration_service.dart';
+import 'package:tapload/features/downloader/data/datasources/persistence_service.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 import 'package:path/path.dart' as p;
 
 class FakePersistenceService extends PersistenceService {

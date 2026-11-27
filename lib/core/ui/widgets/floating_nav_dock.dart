@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/plugins/feature_activation.dart';
+import 'package:tapload/core/design_system/foundation/spacing.dart';
+import 'package:tapload/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 class FloatingNavDock extends ConsumerWidget {
   final String currentLocation;

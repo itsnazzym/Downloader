@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import 'package:universal_disk_space/universal_disk_space.dart';
 
 import '../../../design_system/design_skin.dart';

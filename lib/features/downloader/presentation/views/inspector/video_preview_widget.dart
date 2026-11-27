@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'dart:ui';
-import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 class VideoPreviewWidget extends StatefulWidget {
   final String filePath;

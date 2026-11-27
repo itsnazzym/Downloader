@@ -27,7 +27,7 @@ TapLoad enregistre des vidéos et des pistes audio depuis la page d'un navigateu
 ## Fonctionnalités
 
 - **Téléchargement** : choix de la qualité ou de l'audio seul, file d'attente, accélération `aria2c`, remuxage `ffmpeg`.
-- **Android** : partage depuis une autre application, navigateur intégré avec barre de capture, fichiers enregistrés dans `Download/ModernDownloader/`.
+- **Android** : partage depuis une autre application, navigateur intégré avec barre de capture, fichiers enregistrés dans `Download/TapLoad/`.
 - **Extension navigateur** (Chrome, Brave, Edge, Firefox ; Manifest V3) : envoie l'onglet courant à l'application. La liaison passe par WebSocket sur `127.0.0.1:6969`, authentifiée par jeton.
 - **Envoi local** : transfert entre PC et téléphone sur le réseau local, par QR code ou adresse IP.
 - **Archive TikTok** : import de l'export JSON de TikTok, collections synchronisées depuis le navigateur, lecteur vertical intégré.

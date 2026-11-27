@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/design_system/design_skin.dart';
-import 'package:modern_downloader/core/download/download_status_guard.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/design_skin.dart';
+import 'package:tapload/core/download/download_status_guard.dart';
+import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/presentation/providers/live_activity.dart';
+import 'package:tapload/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import 'pastille_kit.dart';

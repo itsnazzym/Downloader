@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/shell/desktop_destinations.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import 'ios_glass.dart';
