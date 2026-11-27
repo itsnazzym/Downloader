@@ -9807,6 +9807,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'free'**
   String get oledFreeWord;
+
+  /// No description provided for @oledPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a YouTube, TikTok, Instagram, X link…'**
+  String get oledPasteHint;
+
+  /// No description provided for @oledActiveOf.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress · {index} of {count}'**
+  String oledActiveOf(int index, int count);
+
+  /// No description provided for @oledEtaLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{eta} left'**
+  String oledEtaLeft(String eta);
+
+  /// No description provided for @oledNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get oledNext;
 }
 
 class _AppLocalizationsDelegate

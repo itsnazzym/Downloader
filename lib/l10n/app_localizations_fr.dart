@@ -5864,4 +5864,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get oledFreeWord => 'libres';
+
+  @override
+  String get oledPasteHint => 'Colle un lien YouTube, TikTok, Instagram, X…';
+
+  @override
+  String oledActiveOf(int index, int count) {
+    return 'En cours · $index sur $count';
+  }
+
+  @override
+  String oledEtaLeft(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String get oledNext => 'Ensuite';
 }

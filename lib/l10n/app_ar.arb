@@ -1932,5 +1932,9 @@
   "designLogCanceled": "أُلغي التنزيل.",
   "oledNavHome": "الرئيسية",
   "oledMainNavigation": "التنقل الرئيسي",
-  "oledFreeWord": "متاحة"
+  "oledFreeWord": "متاحة",
+  "oledPasteHint": "الصق رابط YouTube أو TikTok أو Instagram أو X…",
+  "oledActiveOf": "قيد التنزيل · {index} من {count}",
+  "oledEtaLeft": "متبقٍ {eta}",
+  "oledNext": "التالي"
 }

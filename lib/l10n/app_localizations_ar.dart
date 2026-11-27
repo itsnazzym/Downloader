@@ -5803,4 +5803,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get oledFreeWord => 'متاحة';
+
+  @override
+  String get oledPasteHint => 'الصق رابط YouTube أو TikTok أو Instagram أو X…';
+
+  @override
+  String oledActiveOf(int index, int count) {
+    return 'قيد التنزيل · $index من $count';
+  }
+
+  @override
+  String oledEtaLeft(String eta) {
+    return 'متبقٍ $eta';
+  }
+
+  @override
+  String get oledNext => 'التالي';
 }

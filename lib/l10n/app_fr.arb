@@ -1932,5 +1932,9 @@
   "designLogCanceled": "Téléchargement annulé.",
   "oledNavHome": "Accueil",
   "oledMainNavigation": "Navigation principale",
-  "oledFreeWord": "libres"
+  "oledFreeWord": "libres",
+  "oledPasteHint": "Colle un lien YouTube, TikTok, Instagram, X…",
+  "oledActiveOf": "En cours · {index} sur {count}",
+  "oledEtaLeft": "reste {eta}",
+  "oledNext": "Ensuite"
 }

@@ -2301,5 +2301,11 @@
   "designLogCanceled": "Download canceled.",
   "oledNavHome": "Home",
   "oledMainNavigation": "Main navigation",
-  "oledFreeWord": "free"
+  "oledFreeWord": "free",
+  "oledPasteHint": "Paste a YouTube, TikTok, Instagram, X link…",
+  "oledActiveOf": "In progress · {index} of {count}",
+  "@oledActiveOf": {"placeholders": {"index": {"type": "int"}, "count": {"type": "int"}}},
+  "oledEtaLeft": "{eta} left",
+  "@oledEtaLeft": {"placeholders": {"eta": {"type": "String"}}},
+  "oledNext": "Up next"
 }
