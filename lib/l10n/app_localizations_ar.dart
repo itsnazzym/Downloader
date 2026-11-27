@@ -5225,4 +5225,110 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
+
+  @override
+  String get pastilleArcFilters => 'المرشحات';
+
+  @override
+  String get pastilleArcClear => 'مسح';
+
+  @override
+  String get pastilleArcType => 'نوع الفيديو';
+
+  @override
+  String get pastilleArcAll => 'الكل';
+
+  @override
+  String get pastilleArcLikes => 'الإعجابات';
+
+  @override
+  String get pastilleArcYear => 'السنة';
+
+  @override
+  String pastilleArcCollections(int count) {
+    return 'المجموعات ($count)';
+  }
+
+  @override
+  String get pastilleArcCollectionSearch => 'ابحث عن مجموعة';
+
+  @override
+  String get pastilleArcFavoriteTag => 'مفضلة';
+
+  @override
+  String get pastilleArcLikeTag => 'إعجاب';
+
+  @override
+  String get pastilleArcCopyLink => 'نسخ الرابط';
+
+  @override
+  String get pastilleArcLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get pastilleArcOpenBrowser => 'فتح في المتصفح';
+
+  @override
+  String pastilleArcDemoClip(String film, int number) {
+    return '$film · مقطع $number';
+  }
+
+  @override
+  String get pastilleArcAllCollections => 'كل المجموعات';
+
+  @override
+  String get pastilleArcRemoveFromCollection =>
+      'إزالة الفيديوهات من هذه المجموعة';
+
+  @override
+  String get pastilleArcResetTitle => 'إعادة تعيين المجموعة';
+
+  @override
+  String pastilleArcResetBody(int count, String name) {
+    return 'إزالة $count فيديو من «$name»؟ ستبقى الفيديوهات وتصنيفاتها الأخرى.';
+  }
+
+  @override
+  String get pastilleArcResetAction => 'إعادة تعيين';
+
+  @override
+  String pastilleArcResetDone(String name) {
+    return 'أُزيل التصنيف من «$name». الفيديوهات محفوظة.';
+  }
+
+  @override
+  String get pastilleArcDeleteMenu => 'حذف نهائي';
+
+  @override
+  String get pastilleArcDeleteTitle => 'حذف المجموعة';
+
+  @override
+  String pastilleArcDeleteBody(String name, int count) {
+    return 'حذف المجموعة «$name» نهائيًا؟ لن تُحذف الفيديوهات الـ$count من القرص لكنها لن تبقى في هذا المجلد.';
+  }
+
+  @override
+  String pastilleArcDeleteDone(String name) {
+    return 'حُذفت المجموعة «$name».';
+  }
+
+  @override
+  String get pastilleArcPlayFeed => 'تشغيل الفيديوهات بملء الشاشة عموديًا';
+
+  @override
+  String pastilleArcDownloadAll(int count) {
+    return 'تنزيل الكل ($count)';
+  }
+
+  @override
+  String pastilleArcDownloadingFolder(int count) {
+    return 'جارٍ تنزيل $count فيديو من المجلد…';
+  }
+
+  @override
+  String pastilleArcDownloadStarted(String id) {
+    return 'بدأ التنزيل: $id';
+  }
+
+  @override
+  String get pastilleArcEmptyCollection => 'لا يوجد فيديو في هذه المجموعة';
 }

@@ -5281,4 +5281,111 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.';
+
+  @override
+  String get pastilleArcFilters => 'Filtres';
+
+  @override
+  String get pastilleArcClear => 'Effacer';
+
+  @override
+  String get pastilleArcType => 'Type de vidéos';
+
+  @override
+  String get pastilleArcAll => 'Toutes';
+
+  @override
+  String get pastilleArcLikes => 'Mentions J’aime';
+
+  @override
+  String get pastilleArcYear => 'Année';
+
+  @override
+  String pastilleArcCollections(int count) {
+    return 'Collections ($count)';
+  }
+
+  @override
+  String get pastilleArcCollectionSearch => 'Rechercher une collection';
+
+  @override
+  String get pastilleArcFavoriteTag => 'Favori';
+
+  @override
+  String get pastilleArcLikeTag => 'Like';
+
+  @override
+  String get pastilleArcCopyLink => 'Copier le lien';
+
+  @override
+  String get pastilleArcLinkCopied => 'Lien copié';
+
+  @override
+  String get pastilleArcOpenBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String pastilleArcDemoClip(String film, int number) {
+    return '$film · extrait $number';
+  }
+
+  @override
+  String get pastilleArcAllCollections => 'Toutes les collections';
+
+  @override
+  String get pastilleArcRemoveFromCollection =>
+      'Retirer les vidéos de cette collection';
+
+  @override
+  String get pastilleArcResetTitle => 'Réinitialiser la collection';
+
+  @override
+  String pastilleArcResetBody(int count, String name) {
+    return 'Retirer les $count vidéos de « $name » ? Les vidéos et leurs autres classements seront conservés.';
+  }
+
+  @override
+  String get pastilleArcResetAction => 'Réinitialiser';
+
+  @override
+  String pastilleArcResetDone(String name) {
+    return 'Classement retiré pour « $name ». Les vidéos sont conservées.';
+  }
+
+  @override
+  String get pastilleArcDeleteMenu => 'Supprimer définitivement';
+
+  @override
+  String get pastilleArcDeleteTitle => 'Supprimer la collection';
+
+  @override
+  String pastilleArcDeleteBody(String name, int count) {
+    return 'Supprimer définitivement la collection « $name » ? Les $count vidéos ne seront pas supprimées de votre disque, mais elles ne feront plus partie de ce dossier.';
+  }
+
+  @override
+  String pastilleArcDeleteDone(String name) {
+    return 'Collection « $name » supprimée.';
+  }
+
+  @override
+  String get pastilleArcPlayFeed =>
+      'Lire les vidéos en plein écran, verticalement';
+
+  @override
+  String pastilleArcDownloadAll(int count) {
+    return 'Tout télécharger ($count)';
+  }
+
+  @override
+  String pastilleArcDownloadingFolder(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String pastilleArcDownloadStarted(String id) {
+    return 'Téléchargement lancé : $id';
+  }
+
+  @override
+  String get pastilleArcEmptyCollection => 'Aucune vidéo dans cette collection';
 }

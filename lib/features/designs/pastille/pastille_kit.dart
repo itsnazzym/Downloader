@@ -1013,17 +1013,27 @@ class PCheck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // On the dark page: a cream ring, a butter disc with an ink tick.
+    final dark = PTileScope.darkOf(context);
+    final fill = dark ? PTones.of(context).butter : pInk;
     return AnimatedContainer(
       duration: pMotion(context, 200),
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: on ? pInk : Colors.transparent,
+        color: on ? fill : Colors.transparent,
         shape: BoxShape.circle,
-        border: Border.all(color: pInk, width: 2.5),
+        border: Border.all(
+          color: on ? fill : (dark ? pCream.withValues(alpha: 0.45) : pInk),
+          width: 2.5,
+        ),
       ),
       child: on
-          ? Icon(Icons.check_rounded, size: size * 0.5, color: pCream)
+          ? Icon(
+              Icons.check_rounded,
+              size: size * 0.5,
+              color: dark ? pInk : pCream,
+            )
           : null,
     );
   }

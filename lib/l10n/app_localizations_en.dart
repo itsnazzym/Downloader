@@ -5218,4 +5218,110 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.';
+
+  @override
+  String get pastilleArcFilters => 'Filters';
+
+  @override
+  String get pastilleArcClear => 'Clear';
+
+  @override
+  String get pastilleArcType => 'Video type';
+
+  @override
+  String get pastilleArcAll => 'All';
+
+  @override
+  String get pastilleArcLikes => 'Likes';
+
+  @override
+  String get pastilleArcYear => 'Year';
+
+  @override
+  String pastilleArcCollections(int count) {
+    return 'Collections ($count)';
+  }
+
+  @override
+  String get pastilleArcCollectionSearch => 'Search a collection';
+
+  @override
+  String get pastilleArcFavoriteTag => 'Favorite';
+
+  @override
+  String get pastilleArcLikeTag => 'Like';
+
+  @override
+  String get pastilleArcCopyLink => 'Copy link';
+
+  @override
+  String get pastilleArcLinkCopied => 'Link copied';
+
+  @override
+  String get pastilleArcOpenBrowser => 'Open in browser';
+
+  @override
+  String pastilleArcDemoClip(String film, int number) {
+    return '$film · clip $number';
+  }
+
+  @override
+  String get pastilleArcAllCollections => 'All collections';
+
+  @override
+  String get pastilleArcRemoveFromCollection =>
+      'Remove the videos from this collection';
+
+  @override
+  String get pastilleArcResetTitle => 'Reset the collection';
+
+  @override
+  String pastilleArcResetBody(int count, String name) {
+    return 'Remove the $count videos from “$name”? The videos and their other collections are kept.';
+  }
+
+  @override
+  String get pastilleArcResetAction => 'Reset';
+
+  @override
+  String pastilleArcResetDone(String name) {
+    return '“$name” is cleared. The videos are kept.';
+  }
+
+  @override
+  String get pastilleArcDeleteMenu => 'Delete permanently';
+
+  @override
+  String get pastilleArcDeleteTitle => 'Delete the collection';
+
+  @override
+  String pastilleArcDeleteBody(String name, int count) {
+    return 'Delete the collection “$name” for good? The $count videos stay on your disk but leave this folder.';
+  }
+
+  @override
+  String pastilleArcDeleteDone(String name) {
+    return 'Collection “$name” deleted.';
+  }
+
+  @override
+  String get pastilleArcPlayFeed => 'Play the videos full screen, vertically';
+
+  @override
+  String pastilleArcDownloadAll(int count) {
+    return 'Download all ($count)';
+  }
+
+  @override
+  String pastilleArcDownloadingFolder(int count) {
+    return 'Downloading the $count videos of this folder…';
+  }
+
+  @override
+  String pastilleArcDownloadStarted(String id) {
+    return 'Download started: $id';
+  }
+
+  @override
+  String get pastilleArcEmptyCollection => 'No video in this collection';
 }

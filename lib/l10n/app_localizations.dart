@@ -8895,6 +8895,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
   String get archiveDeskSyncManual;
+
+  /// No description provided for @pastilleArcFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get pastilleArcFilters;
+
+  /// No description provided for @pastilleArcClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get pastilleArcClear;
+
+  /// No description provided for @pastilleArcType.
+  ///
+  /// In en, this message translates to:
+  /// **'Video type'**
+  String get pastilleArcType;
+
+  /// No description provided for @pastilleArcAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get pastilleArcAll;
+
+  /// No description provided for @pastilleArcLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get pastilleArcLikes;
+
+  /// No description provided for @pastilleArcYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get pastilleArcYear;
+
+  /// No description provided for @pastilleArcCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections ({count})'**
+  String pastilleArcCollections(int count);
+
+  /// No description provided for @pastilleArcCollectionSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a collection'**
+  String get pastilleArcCollectionSearch;
+
+  /// No description provided for @pastilleArcFavoriteTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get pastilleArcFavoriteTag;
+
+  /// No description provided for @pastilleArcLikeTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get pastilleArcLikeTag;
+
+  /// No description provided for @pastilleArcCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get pastilleArcCopyLink;
+
+  /// No description provided for @pastilleArcLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get pastilleArcLinkCopied;
+
+  /// No description provided for @pastilleArcOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get pastilleArcOpenBrowser;
+
+  /// No description provided for @pastilleArcDemoClip.
+  ///
+  /// In en, this message translates to:
+  /// **'{film} · clip {number}'**
+  String pastilleArcDemoClip(String film, int number);
+
+  /// No description provided for @pastilleArcAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get pastilleArcAllCollections;
+
+  /// No description provided for @pastilleArcRemoveFromCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the videos from this collection'**
+  String get pastilleArcRemoveFromCollection;
+
+  /// No description provided for @pastilleArcResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the collection'**
+  String get pastilleArcResetTitle;
+
+  /// No description provided for @pastilleArcResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {count} videos from “{name}”? The videos and their other collections are kept.'**
+  String pastilleArcResetBody(int count, String name);
+
+  /// No description provided for @pastilleArcResetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get pastilleArcResetAction;
+
+  /// No description provided for @pastilleArcResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is cleared. The videos are kept.'**
+  String pastilleArcResetDone(String name);
+
+  /// No description provided for @pastilleArcDeleteMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get pastilleArcDeleteMenu;
+
+  /// No description provided for @pastilleArcDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection'**
+  String get pastilleArcDeleteTitle;
+
+  /// No description provided for @pastilleArcDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection “{name}” for good? The {count} videos stay on your disk but leave this folder.'**
+  String pastilleArcDeleteBody(String name, int count);
+
+  /// No description provided for @pastilleArcDeleteDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection “{name}” deleted.'**
+  String pastilleArcDeleteDone(String name);
+
+  /// No description provided for @pastilleArcPlayFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Play the videos full screen, vertically'**
+  String get pastilleArcPlayFeed;
+
+  /// No description provided for @pastilleArcDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all ({count})'**
+  String pastilleArcDownloadAll(int count);
+
+  /// No description provided for @pastilleArcDownloadingFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the {count} videos of this folder…'**
+  String pastilleArcDownloadingFolder(int count);
+
+  /// No description provided for @pastilleArcDownloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started: {id}'**
+  String pastilleArcDownloadStarted(String id);
+
+  /// No description provided for @pastilleArcEmptyCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'No video in this collection'**
+  String get pastilleArcEmptyCollection;
 }
 
 class _AppLocalizationsDelegate
