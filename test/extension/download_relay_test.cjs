@@ -8,6 +8,10 @@ const source = fs.readFileSync(path.join(__dirname, '../../extension/shared/conn
 const plain = (v) => JSON.parse(JSON.stringify(v));
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
+const EXT_ID = 'abcdefghijklmnopabcdefghijklmnop';
+const EXT_ORIGIN = 'chrome-extension://' + EXT_ID + '/';
+const PANEL_SENDER = { id: EXT_ID, url: EXT_ORIGIN + 'feed_panel.html' };
+
 // Loads the whole background script with stubbed browser APIs, a fake socket and inert timers.
 async function load() {
   const sockets = [];
@@ -22,6 +26,8 @@ async function load() {
   const noop = () => {};
   const chrome = {
     runtime: {
+      id: EXT_ID,
+      getURL: (p) => EXT_ORIGIN + p,
       getManifest: () => ({ version: '9.9.9' }),
       onMessage: { addListener: (fn) => listeners.push(fn) },
       onInstalled: { addListener: noop },
@@ -50,9 +56,9 @@ async function load() {
   assert.equal(sockets.length, 1, 'connect() opened one socket');
   const ws = sockets[0];
   const fromApp = (msg) => ws.onmessage({ data: JSON.stringify(msg) });
-  const ask = (msg) => {
+  const ask = (msg, sender = PANEL_SENDER) => {
     let response;
-    listeners.forEach((fn) => fn(msg, {}, (r) => { response = plain(r); }));
+    listeners.forEach((fn) => fn(msg, sender, (r) => { response = plain(r); }));
     return response;
   };
   const sentOfType = (type) => ws.sent.filter((m) => m.type === type);
@@ -156,4 +162,23 @@ test('progress, snapshot and command results reach the panel in arrival order', 
   assert.deepEqual(order, ['MD_DOWNLOAD_PROGRESS', 'MD_QUEUE_SNAPSHOT', 'MD_DOWNLOAD_COMMAND_RESULT', 'MD_DOWNLOAD_PROGRESS']);
   const progress = bg.relayed.find((m) => m.type === 'MD_DOWNLOAD_PROGRESS');
   assert.equal(progress.data.filePath, undefined);
+});
+
+test('queue messages from a content script are refused and nothing reaches the socket', async () => {
+  const bg = await loadReady();
+  const contentScript = { id: EXT_ID, tab: { id: 7, url: 'https://evil.example/' }, frameId: 0, url: 'https://evil.example/' };
+  assert.deepEqual(bg.ask({ type: 'MD_DOWNLOAD_COMMAND', command: 'cancel_all' }, contentScript), { ok: false, error: 'forbidden' });
+  assert.deepEqual(bg.ask({ type: 'MD_QUEUE_SNAPSHOT_REQUEST' }, contentScript), { ok: false, error: 'forbidden' });
+  assert.deepEqual(bg.ask({ type: 'MD_DOWNLOAD_COMMAND', command: 'cancel', id: 'd1' }, { id: 'other-extension', url: 'chrome-extension://other-extension/x.html' }), { ok: false, error: 'forbidden' });
+  assert.deepEqual(bg.ask({ type: 'MD_DOWNLOAD_COMMAND', command: 'cancel', id: 'd1' }, {}), { ok: false, error: 'forbidden' });
+  assert.deepEqual(bg.sentOfType('DOWNLOAD_COMMAND'), []);
+  assert.equal(bg.sentOfType('QUEUE_SNAPSHOT_REQUEST').length, 1); // only the HELLO_OK one
+});
+
+test('extension pages are accepted, also when opened in a tab', async () => {
+  const bg = await loadReady();
+  const panelInTab = { id: EXT_ID, tab: { id: 3 }, url: EXT_ORIGIN + 'feed_panel.html' };
+  assert.deepEqual(bg.ask({ type: 'MD_DOWNLOAD_COMMAND', command: 'pause', id: 'd2' }, panelInTab), { ok: true, sent: true });
+  assert.deepEqual(bg.ask({ type: 'MD_DOWNLOAD_COMMAND', command: 'retry', id: 'd3' }), { ok: true, sent: true });
+  assert.deepEqual(bg.sentOfType('DOWNLOAD_COMMAND').map((m) => m.command), ['pause', 'retry']);
 });

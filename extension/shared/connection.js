@@ -586,6 +586,17 @@
     }
   }
 
+  // A content script's sender.url is the page URL, so it never matches the extension origin.
+  function isExtensionPage(sender) {
+    try {
+      var origin = api.runtime.getURL('');
+      return !!sender && !!origin && sender.id === api.runtime.id &&
+        typeof sender.url === 'string' && sender.url.indexOf(origin) === 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function requestQueueSnapshot() {
     return sendToApp({ type: 'QUEUE_SNAPSHOT_REQUEST' });
   }
@@ -1257,6 +1268,14 @@
         thumbnailUrl: message.thumbnailUrl,
       }).then(sendResponse);
       return true;
+    }
+
+    if (message.type === 'MD_DOWNLOAD_COMMAND' || message.type === 'MD_QUEUE_SNAPSHOT_REQUEST') {
+      // Queue control belongs to the extension's own pages, never to content scripts.
+      if (!isExtensionPage(sender)) {
+        sendResponse({ ok: false, error: 'forbidden' });
+        return false;
+      }
     }
 
     if (message.type === 'MD_DOWNLOAD_COMMAND') {
