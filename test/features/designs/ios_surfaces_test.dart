@@ -154,6 +154,36 @@ void main() {
     });
   }
 
+  for (final mode in Brightness.values) {
+    testWidgets('archive and transfer options frame the shared views '
+        '(${mode.name})', (tester) async {
+      final (container, key) = await pump(tester, brightness: mode);
+      final router = container.read(routerProvider);
+      for (final route in ['/archive', '/transfer']) {
+        router.go(route);
+        await settle(tester);
+        // A round button (archive) or a labelled capsule (transfer).
+        final byTip = find.byTooltip('Toutes les options');
+        await tester.tap(
+          (byTip.evaluate().isNotEmpty
+                  ? byTip
+                  : find.text('Toutes les options'))
+              .hitTestable()
+              .first,
+        );
+        await settle(tester);
+        expect(tester.takeException(), isNull, reason: route);
+        expect(find.text('Vue simple'), findsWidgets, reason: route);
+        await capture(
+          tester,
+          key,
+          'ios_options${route.replaceAll('/', '_')}_${mode.name}',
+        );
+      }
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
   testWidgets('the sidebar filters the library and opens settings', (
     tester,
   ) async {

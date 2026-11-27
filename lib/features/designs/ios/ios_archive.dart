@@ -260,7 +260,10 @@ class _Header extends ConsumerWidget {
               fontSize: 13.5,
               onChanged: (v) {
                 if (v == _Tab.collections) {
+                  // No hidden filter on « Dans … »: it has no search.
                   notifier.setStatusFilter(TikTokStatusFilter.all);
+                  notifier.setSearchQuery('');
+                  notifier.selectYear(null);
                   notifier.setViewMode(TikTokViewMode.collections);
                   return;
                 }
@@ -531,13 +534,14 @@ class _VideosBar extends ConsumerWidget {
             ],
           ],
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        // Wraps in narrow windows instead of overflowing.
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            if (title == null) ...[
+            if (title == null)
               const SizedBox(width: 240, child: _ArchiveSearch()),
-              const SizedBox(width: 10),
-            ],
             if (chosen == 0)
               IosButton(
                 label: l10n.nocturneSelectAll,
@@ -550,7 +554,6 @@ class _VideosBar extends ConsumerWidget {
                 height: 36,
                 onTap: notifier.clearSelection,
               ),
-              const SizedBox(width: 8),
               IosButton(
                 label: state.isBatchDownloading
                     ? '${state.batchCompletedCount} / ${state.batchTotalCount}'

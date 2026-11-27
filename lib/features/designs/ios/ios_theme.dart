@@ -241,7 +241,8 @@ class IosFramed extends StatelessWidget {
       name: p.name,
       primary: p.primary,
       accent: p.accent,
-      background: Colors.transparent,
+      // Transparent but of the page's tone: blends stay light in light.
+      background: t.base.withValues(alpha: 0),
       surface: t.dark ? const Color(0x14FFFFFF) : const Color(0x8CFFFFFF),
       surfaceHighlight: t.dark
           ? const Color(0x24FFFFFF)
@@ -258,9 +259,9 @@ class IosFramed extends StatelessWidget {
       inputBackground: t.dark
           ? const Color(0x1FFFFFFF)
           : const Color(0xB3FFFFFF),
-      chrome: p.chrome,
-      useMeshBackground: p.useMeshBackground,
-      useFloatingDock: p.useFloatingDock,
+      // Solid: the shared glass cards would each run a BackdropFilter
+      // inside a scrolling view; here they are flat translucent panels.
+      chrome: ThemeChrome.solid,
     );
     return Theme(
       data: base.copyWith(

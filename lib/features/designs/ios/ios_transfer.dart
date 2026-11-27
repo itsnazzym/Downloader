@@ -9,6 +9,7 @@ import 'package:modern_downloader/features/transfer/presentation/transfer_contro
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
+import '../shared/local_thumb.dart';
 import 'ios_glass.dart';
 import 'ios_theme.dart';
 
@@ -600,6 +601,7 @@ class _Files extends ConsumerWidget {
         _Row(
           seed: path.hashCode,
           icon: Icons.insert_drive_file_rounded,
+          file: path,
           title: path,
           action: (
             Icons.close_rounded,
@@ -729,6 +731,7 @@ class _Row extends StatelessWidget {
     required this.seed,
     required this.title,
     this.icon,
+    this.file,
     this.bar,
     this.barColor,
     this.state,
@@ -738,6 +741,9 @@ class _Row extends StatelessWidget {
 
   final int seed;
   final IconData? icon;
+
+  /// A file whose own preview replaces the tint.
+  final String? file;
   final String title;
   final double? bar;
   final Color? barColor;
@@ -758,7 +764,11 @@ class _Row extends StatelessWidget {
             child: SizedBox(
               width: 56,
               height: 40,
-              child: IosArt(seed: seed, icon: icon),
+              child: LocalVideoThumb(
+                filePath: file,
+                cacheWidth: 112,
+                placeholder: IosArt(seed: seed, icon: icon),
+              ),
             ),
           ),
           const SizedBox(width: 12),

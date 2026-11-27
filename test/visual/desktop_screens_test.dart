@@ -643,11 +643,13 @@ void main() {
   }
 
   // iOS (Liquid Glass) follows the light/dark setting: every page in both
-  // modes and a narrow window, then its surfaces and states in dark
+  // modes at three widths, its surfaces in both, its states in dark
   // (build/visual/design_ios_*.png, surface_ios_*.png, state_ios_*.png).
   for (final mode in Brightness.values) {
-    for (final page in {...pages, 'narrow': '/'}.entries) {
-      testWidgets('design ios ${page.key} ${mode.name}', (tester) async {
+    for (final page in pages.entries) {
+      for (final width in const [1280.0, 1000.0, 820.0]) {
+        final name = '${page.key}_${mode.name}${width == 1280 ? '' : '_${width.round()}'}';
+        testWidgets('design ios $name', (tester) async {
         final container = ProviderContainer();
         addTearDown(container.dispose);
         final router = container.read(routerProvider);
@@ -657,9 +659,7 @@ void main() {
           router: router,
           preset: ThemePresets.ios,
           brightness: mode,
-          size: page.key == 'narrow'
-              ? const Size(820, 900)
-              : const Size(1280, 900),
+          size: Size(width, 900),
           extra: [
             ...archive(),
             transferControllerProvider.overrideWith(
@@ -670,15 +670,18 @@ void main() {
         router.go(page.value);
         await settle(tester);
         expect(tester.takeException(), isNull);
-        await shot(tester, key, 'design_ios_${page.key}_${mode.name}');
-      });
+        await shot(tester, key, 'design_ios_$name');
+        });
+      }
     }
   }
   for (final surface in surfaces.entries) {
-    // Output's disk chart starts a real disk probe (a process) that this
-    // render cannot finish; it is today's view, drawn by the iOS skin.
+    // Output's disk chart starts a real disk probe (a process) whose timer
+    // outlives this render under iOS, though the other designs finish it:
+    // a race in the shared StorageChart. Its tiles are the iOS skin's.
     if (surface.key == 'output') continue;
-    testWidgets('surface ios ${surface.key}', (tester) async {
+    for (final mode in Brightness.values) {
+    testWidgets('surface ios ${surface.key} ${mode.name}', (tester) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final router = container.read(routerProvider);
@@ -688,6 +691,7 @@ void main() {
         () => const SizedBox(),
         router: router,
         preset: ThemePresets.ios,
+        brightness: mode,
         items: items,
         extra: [
           ...archive(),
@@ -700,8 +704,9 @@ void main() {
       router.go(surface.value);
       await settle(tester);
       expect(tester.takeException(), isNull);
-      await shot(tester, key, 'surface_ios_${surface.key}');
+      await shot(tester, key, 'surface_ios_${surface.key}_${mode.name}');
     });
+    }
   }
   for (final state in states.entries) {
     testWidgets('state ios ${state.key}', (tester) async {

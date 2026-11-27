@@ -165,7 +165,12 @@ class _HomeScrollState extends ConsumerState<_HomeScroll>
             SliverPadding(
               padding: pad(22, 0),
               sliver: SliverToBoxAdapter(
-                child: _Header(title: title, narrow: inner < 620),
+                child: _Header(
+                  title: title,
+                  narrow: inner < 620,
+                  // No filters while empty: onboarding points at the title.
+                  markLibrary: phase == _Phase.empty || phase == _Phase.error,
+                ),
               ),
             ),
             SliverPadding(
@@ -231,10 +236,15 @@ class _HomeScrollState extends ConsumerState<_HomeScroll>
 // ── Header ──────────────────────────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
-  const _Header({required this.title, required this.narrow});
+  const _Header({
+    required this.title,
+    required this.narrow,
+    required this.markLibrary,
+  });
 
   final String title;
   final bool narrow;
+  final bool markLibrary;
 
   @override
   Widget build(BuildContext context) {
@@ -273,7 +283,14 @@ class _Header extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: IosTitle(title)),
+            Expanded(
+              child: markLibrary
+                  ? KeyedSubtree(
+                      key: OnboardingTargets.library,
+                      child: IosTitle(title),
+                    )
+                  : IosTitle(title),
+            ),
             const SizedBox(width: 12),
             actions,
           ],

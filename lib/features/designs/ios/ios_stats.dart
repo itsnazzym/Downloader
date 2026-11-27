@@ -297,7 +297,8 @@ class _Bar extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: today
-                ? [Colors.white, light]
+                // White glows on the dark glass; on the pale one, full blue.
+                ? (t.dark ? [Colors.white, light] : [light, t.blueFill])
                 : [
                     light.withValues(alpha: 0.85),
                     t.blueFill.withValues(alpha: 0.55),
