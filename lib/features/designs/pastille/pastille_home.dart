@@ -28,6 +28,7 @@ import '../shared/design_data.dart';
 import '../signal/signal_home.dart' show designFreeSpaceProvider;
 import 'pastille_kit.dart';
 import 'pastille_library.dart';
+import 'pastille_scope.dart';
 import 'pastille_states.dart';
 
 /// Pastille's `/` route: the bento home (mockup Pastille.dc.html), or the
@@ -1360,7 +1361,13 @@ class _LibraryView extends ConsumerWidget {
       _Phase.ready => Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: DownloadList(key: OnboardingTargets.creatorList)),
+          // Rows are drawn by pastilleSkin; the scope covers the creator
+          // folder tiles of the folders view.
+          Expanded(
+            child: PastilleScope(
+              child: DownloadList(key: OnboardingTargets.creatorList),
+            ),
+          ),
           if (!narrow) const PastilleInspectorPane(),
         ],
       ),
