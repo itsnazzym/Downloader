@@ -44,6 +44,7 @@ void main() {
     Size size = const Size(1280, 800),
     List<Override> extra = const [],
     Future<void> Function(ProviderContainer c)? then,
+    Future<void> Function(WidgetTester tester)? act,
   }) async {
     tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
@@ -117,6 +118,10 @@ void main() {
         tester.element(find.byType(MaterialApp)),
       );
       await then(c);
+      await settle(tester);
+    }
+    if (act != null) {
+      await act(tester);
       await settle(tester);
     }
     await capture(tester, key, 'surface_pastille_$name');
@@ -205,4 +210,33 @@ void main() {
           .setViewMode(TikTokViewMode.hub),
     );
   });
+
+  testWidgets('pastille archive detailed collections', (tester) async {
+    await render(
+      tester,
+      'archive_detailed',
+      '/archive',
+      size: const Size(1280, 1500),
+      then: (c) async => c
+          .read(tikTokArchiveProvider.notifier)
+          .setViewMode(TikTokViewMode.collections),
+      act: (tester) async {
+        await tester.tap(find.byIcon(Icons.more_horiz_rounded).last);
+        await settle(tester);
+        await tester.tap(find.byType(CheckedPopupMenuItem<bool>));
+      },
+    );
+  });
+
+  // The settings pages in full, to see every tile and custom part.
+  for (final page in ['advanced', 'plugins', 'performance', 'system']) {
+    testWidgets('pastille settings $page tall', (tester) async {
+      await render(
+        tester,
+        'settings_${page}_tall',
+        '/settings/$page',
+        size: const Size(1280, 2600),
+      );
+    });
+  }
 }

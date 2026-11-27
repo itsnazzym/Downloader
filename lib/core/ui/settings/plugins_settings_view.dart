@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -260,7 +261,7 @@ class _PluginCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.of(context).surface,
 
-        borderRadius: AppRadius.panelOf(context),
+        borderRadius: _cardRadius(context),
 
         border: Border.all(
           color: entry.isEnabled
@@ -475,7 +476,7 @@ class _FeatureModuleCard extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: AppRadius.panelOf(context),
+        borderRadius: _cardRadius(context),
         border: Border.all(color: colors.border.withValues(alpha: 0.7)),
       ),
       child: Row(
@@ -600,7 +601,7 @@ class _PluginInstallRequestCard extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.m),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: AppRadius.panelOf(context),
+        borderRadius: _cardRadius(context),
         border: Border.all(color: colors.border),
       ),
       child: Column(
@@ -708,7 +709,7 @@ class _BrowserExtensionsPanel extends ConsumerWidget {
           decoration: BoxDecoration(
             color: colors.surface,
 
-            borderRadius: AppRadius.panelOf(context),
+            borderRadius: _cardRadius(context),
 
             border: Border.all(color: colors.border),
           ),
@@ -823,7 +824,7 @@ class _BrowserInstallCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
 
-        borderRadius: AppRadius.panelOf(context),
+        borderRadius: _cardRadius(context),
 
         border: Border.all(color: colors.border),
       ),
@@ -872,3 +873,9 @@ class _BrowserInstallCard extends StatelessWidget {
     );
   }
 }
+
+/// A desktop design that draws the shared settings tiles also rounds these
+/// cards like its panels; everywhere else they keep 12 px.
+BorderRadius _cardRadius(BuildContext context) => DesignSkin.of(context) != null
+    ? AppRadius.panelOf(context)
+    : BorderRadius.circular(12);

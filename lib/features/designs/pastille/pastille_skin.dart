@@ -438,7 +438,26 @@ class _SettingTile extends StatelessWidget {
                   ),
                   if (trailing != null) ...[
                     const SizedBox(width: 14),
-                    trailing!,
+                    // A view's own trailing (copy icon, text button) reads
+                    // in ink on the pastel tile.
+                    Theme(
+                      data: Theme.of(context).copyWith(
+                        iconButtonTheme: const IconButtonThemeData(
+                          style: ButtonStyle(
+                            foregroundColor: WidgetStatePropertyAll(pInk),
+                          ),
+                        ),
+                        textButtonTheme: const TextButtonThemeData(
+                          style: ButtonStyle(
+                            foregroundColor: WidgetStatePropertyAll(pInk),
+                          ),
+                        ),
+                      ),
+                      child: IconTheme.merge(
+                        data: const IconThemeData(color: pInk),
+                        child: trailing!,
+                      ),
+                    ),
                   ],
                 ],
               ),
