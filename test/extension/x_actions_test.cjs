@@ -1,0 +1,232 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = require('node:path');
+
+const shared = path.join(__dirname, '../../extension/shared');
+const read = (name) => fs.readFileSync(path.join(shared, name), 'utf8');
+const plain = (v) => JSON.parse(JSON.stringify(v));
+
+function load() {
+  const context = {};
+  context.self = context;
+  vm.createContext(context);
+  vm.runInContext(read('x_actions.js'), context);
+  return context.MDXActions;
+}
+
+// Obviously fake: the real web-app bearer is read from X's bundle at runtime.
+const BEARER = 'AAAAAAAAAAAAAAAAAAAAFAKEtestTOKEN%3Dfake0123456789';
+const BUNDLE = [
+  'e.exports={queryId:"fav111",operationName:"FavoriteTweet",operationType:"mutation",metadata:{}}',
+  'e.exports={queryId:"folder999",operationName:"CreateBookmarkFolder",operationType:"mutation"}',
+  "e.exports={ operationName : 'UnfavoriteTweet', queryId : 'unfav222', operationType:'mutation'}",
+  'e.exports={queryId:"other000",operationName:"HomeTimeline"}',
+  'e.exports={"queryId":"bm333","operationName":"CreateBookmark"}',
+  'e.exports={queryId:"del444",operationName:"DeleteBookmark"}',
+  'const t="Bearer",n="' + BEARER + '";',
+].join(';');
+const IDS = { FavoriteTweet: 'fav111', UnfavoriteTweet: 'unfav222', CreateBookmark: 'bm333', DeleteBookmark: 'del444', bearer: BEARER };
+
+test('parseQueryIds reads the four operations and the bearer from a bundle', () => {
+  assert.deepEqual(plain(load().parseQueryIds(BUNDLE)), IDS);
+});
+
+test('parseQueryIds leaves missing operations undefined', () => {
+  const ids = load().parseQueryIds('queryId:"x1",operationName:"FavoriteTweet"; queryId:"f",operationName:"CreateBookmarkFolder"');
+  assert.equal(ids.FavoriteTweet, 'x1');
+  assert.equal(ids.CreateBookmark, undefined);
+  assert.equal(ids.UnfavoriteTweet, undefined);
+  assert.equal(ids.DeleteBookmark, undefined);
+  assert.equal(ids.bearer, undefined);
+});
+
+test('buildRequest builds the GraphQL POST with session headers', () => {
+  const req = load().buildRequest('FavoriteTweet', IDS, '1234567890', 'csrf42');
+  assert.equal(req.url, 'https://x.com/i/api/graphql/fav111/FavoriteTweet');
+  assert.equal(req.init.method, 'POST');
+  assert.equal(req.init.credentials, 'include');
+  assert.deepEqual(plain(req.init.headers), {
+    authorization: 'Bearer ' + BEARER,
+    'x-csrf-token': 'csrf42',
+    'content-type': 'application/json',
+    'x-twitter-auth-type': 'OAuth2Session',
+    'x-twitter-active-user': 'yes',
+  });
+  assert.deepEqual(JSON.parse(req.init.body), { variables: { tweet_id: '1234567890' }, queryId: 'fav111' });
+  const bm = load().buildRequest('DeleteBookmark', IDS, '99', 'c');
+  assert.equal(bm.url, 'https://x.com/i/api/graphql/del444/DeleteBookmark');
+  assert.deepEqual(JSON.parse(bm.init.body), { variables: { tweet_id: '99' }, queryId: 'del444' });
+});
+
+test('buildRequest rejects a bad tweet id or an unknown operation', () => {
+  const X = load();
+  assert.throws(() => X.buildRequest('FavoriteTweet', IDS, '12/../34', 'c'));
+  assert.throws(() => X.buildRequest('FavoriteTweet', IDS, '', 'c'));
+  assert.throws(() => X.buildRequest('FavoriteTweet', IDS, '1'.repeat(26), 'c'));
+  assert.throws(() => X.buildRequest('DeleteTweet', IDS, '123', 'c'));
+  assert.throws(() => X.buildRequest('toString', IDS, '123', 'c'));
+});
+
+test('mapResult maps statuses and X errors to short codes', () => {
+  const X = load();
+  const code = (s, b) => plain(X.mapResult(s, b));
+  assert.deepEqual(code(200, { data: { favorite_tweet: 'Done' } }).code, 'ok');
+  assert.equal(code(200, { data: {} }).ok, true);
+  const already = code(200, { errors: [{ message: 'Authorization: Actor (uid: 1) has already favorited tweet (tid: 2)', code: 139 }] });
+  assert.equal(already.code, 'already');
+  assert.equal(already.ok, true);
+  assert.equal(code(200, { errors: [{ message: 'You have already bookmarked this post' }] }).code, 'already');
+  assert.equal(code(200, { errors: [{ message: 'Cannot query field "x" on type "Mutation"' }] }).code, 'stale');
+  assert.equal(code(200, { errors: [{ message: 'Something odd' }] }).code, 'unknown');
+  assert.equal(code(200, { errors: [{ message: 'Something odd' }] }).ok, false);
+  assert.equal(code(401, null).code, 'auth');
+  assert.equal(code(403, {}).code, 'auth');
+  assert.equal(code(429, null).code, 'rate');
+  assert.equal(code(400, null).code, 'stale');
+  assert.equal(code(404, null).code, 'stale');
+  assert.equal(code(500, null).code, 'unknown');
+  const r = code(500, { errors: [{ message: 'secret raw body' }] });
+  assert.equal(r.ok, false);
+  assert.ok(r.message && !r.message.includes('secret'));
+});
+
+test('limiter: two immediate calls wait at least minGapMs, a third waits for its own slot', () => {
+  let t = 1000;
+  const lim = load().createLimiter({ minGapMs: 1500, perMinute: 30 }, () => t);
+  assert.equal(lim.next().waitMs, 0);
+  assert.ok(lim.next().waitMs >= 1500);
+  assert.ok(lim.next().waitMs >= 3000);
+});
+
+test('limiter: the 31st call within a minute waits until the oldest leaves the window', () => {
+  let t = 0;
+  const lim = load().createLimiter({ minGapMs: 1500, perMinute: 30 }, () => t);
+  for (let i = 0; i < 30; i++) {
+    t = i * 1500;
+    assert.equal(lim.next().waitMs, 0);
+  }
+  t = 45000;
+  assert.equal(lim.next().waitMs, 15000);
+});
+
+// Fake page: script tags, cookie, optional articles with action buttons.
+function fakeDocument({ scripts = [], cookie = 'ct0=csrf42; lang=en', articles = [] } = {}) {
+  const clicks = [];
+  const arts = articles.map(({ permalink, buttons }) => ({
+    querySelector(sel) {
+      if (sel === 'time') return { closest: () => ({ getAttribute: () => permalink, href: 'https://x.com' + permalink }) };
+      const m = sel.match(/data-testid="(\w+)"/);
+      if (m && buttons.includes(m[1])) return { click: () => clicks.push(m[1]) };
+      return null;
+    },
+  }));
+  return {
+    clicks,
+    cookie,
+    querySelectorAll(sel) {
+      if (sel === 'script[src]') return scripts.map((src) => ({ src }));
+      if (sel === 'article') return arts;
+      return [];
+    },
+  };
+}
+
+const MAIN = 'https://abs.twimg.com/responsive-web/client-web/main.abc123.js';
+
+function env(doc, responses) {
+  const calls = [];
+  const sleeps = [];
+  let t = 0;
+  return {
+    calls,
+    sleeps,
+    fetch: async (url, init) => {
+      calls.push({ url, init });
+      if (url === MAIN) return { ok: true, status: 200, text: async () => BUNDLE };
+      const next = responses.shift();
+      if (next instanceof Error) throw next;
+      return { ok: next.status === 200, status: next.status, json: async () => next.body };
+    },
+    document: doc,
+    now: () => t,
+    sleep: async (ms) => { sleeps.push(ms); t += ms; },
+  };
+}
+
+test('perform fetches the bundle, sends one API request and maps success', async () => {
+  const X = load();
+  const e = env(fakeDocument({ scripts: ['https://x.com/other.js', MAIN] }), [{ status: 200, body: { data: {} } }, { status: 200, body: { data: {} } }]);
+  const r = plain(await X.perform('FavoriteTweet', '123', e));
+  assert.deepEqual(r.ok, true);
+  assert.equal(r.code, 'ok');
+  assert.equal(e.calls.length, 2);
+  assert.equal(e.calls[0].url, MAIN);
+  assert.equal(e.calls[0].init && e.calls[0].init.credentials, 'omit');
+  assert.equal(e.calls[1].url, 'https://x.com/i/api/graphql/fav111/FavoriteTweet');
+  assert.equal(e.calls[1].init.headers['x-csrf-token'], 'csrf42');
+  // The bundle is cached: a second action does not fetch it again, and waits its turn.
+  assert.equal(plain(await X.perform('CreateBookmark', '123', e)).code, 'ok');
+  assert.equal(e.calls.filter((c) => c.url === MAIN).length, 1);
+  assert.equal(e.calls[2].url, 'https://x.com/i/api/graphql/bm333/CreateBookmark');
+  assert.ok(e.sleeps[0] >= 1500);
+});
+
+test('perform on 429 reports rate and makes no second attempt or DOM click', async () => {
+  const doc = fakeDocument({ scripts: [MAIN], articles: [{ permalink: '/u/status/123', buttons: ['like'] }] });
+  const e = env(doc, [{ status: 429, body: null }]);
+  const r = plain(await load().perform('FavoriteTweet', '123', e));
+  assert.equal(r.code, 'rate');
+  assert.equal(r.ok, false);
+  assert.equal(e.calls.length, 2);
+  assert.deepEqual(doc.clicks, []);
+});
+
+test('perform falls back to clicking the real button once when identifiers are stale', async () => {
+  const doc = fakeDocument({
+    scripts: [MAIN],
+    articles: [
+      { permalink: '/u/status/1234', buttons: ['like'] },
+      { permalink: '/u/status/123', buttons: ['like', 'bookmark'] },
+    ],
+  });
+  const e = env(doc, [{ status: 404, body: null }]);
+  const r = plain(await load().perform('FavoriteTweet', '123', e));
+  assert.equal(r.ok, true);
+  assert.equal(r.code, 'ok');
+  assert.deepEqual(doc.clicks, ['like']);
+  assert.equal(e.calls.length, 2);
+});
+
+test('perform DOM fallback does not toggle back when the post is already in the wanted state', async () => {
+  const doc = fakeDocument({ scripts: [MAIN], articles: [{ permalink: '/u/status/123', buttons: ['unlike'] }] });
+  const e = env(doc, [new Error('network')]);
+  const r = plain(await load().perform('FavoriteTweet', '123', e));
+  assert.equal(r.code, 'already');
+  assert.equal(r.ok, true);
+  assert.deepEqual(doc.clicks, []);
+});
+
+test('perform without a bundle reports stale and sends no API request', async () => {
+  const e = env(fakeDocument({ scripts: ['https://x.com/a.js'] }), []);
+  const r = plain(await load().perform('UnfavoriteTweet', '123', e));
+  assert.equal(r.code, 'stale');
+  assert.equal(r.ok, false);
+  assert.equal(e.calls.length, 0);
+});
+
+test('perform without a ct0 cookie reports auth and sends no API request', async () => {
+  const e = env(fakeDocument({ scripts: [MAIN], cookie: 'lang=en' }), []);
+  const r = plain(await load().perform('FavoriteTweet', '123', e));
+  assert.equal(r.code, 'auth');
+  assert.equal(e.calls.filter((c) => c.url.includes('/i/api/')).length, 0);
+});
+
+test('perform rejects an invalid op or tweet id without any request', async () => {
+  const e = env(fakeDocument({ scripts: [MAIN] }), []);
+  const r = plain(await load().perform('DeleteTweet', '123', e));
+  assert.equal(r.ok, false);
+  assert.equal(plain(await load().perform('FavoriteTweet', 'abc', e)).ok, false);
+  assert.equal(e.calls.length, 0);
+});
