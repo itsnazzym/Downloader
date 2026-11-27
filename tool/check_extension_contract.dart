@@ -25,6 +25,8 @@ Future<void> main(List<String> args) async {
       "type: 'HEARTBEAT_COOKIES'",
       "error: 'unsupported_url'",
       "error: 'need_tweet_url'",
+      "type: 'QUEUE_SNAPSHOT_REQUEST'",
+      "type: 'DOWNLOAD_COMMAND'",
     ];
     for (final token in requiredTokens) {
       if (!source.contains(token)) {

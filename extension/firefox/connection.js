@@ -60,6 +60,7 @@
   var DOWNLOAD_STATUS_FAILED = 5;
   var DOWNLOAD_STATUS_CANCELED = 6;
   var DOWNLOAD_STATUS_DUPLICATE = 8;
+  var DOWNLOAD_COMMANDS = ['cancel', 'pause', 'resume', 'retry', 'cancel_all'];
 
   function scheduleReconnect() {
     if (reconnectTimer) return;
@@ -205,6 +206,7 @@
       logDiag('HELLO_OK', 'Connected successfully');
       console.log('Connected to TapLoad App');
       requestLibraryKeys();
+      requestQueueSnapshot();
       api.storage.local.get(['autoSendCookies']).then(function (cookieRes) {
         if (cookieRes.autoSendCookies !== false) {
           setTimeout(sendCurrentTabCookies, 2000);
@@ -283,24 +285,28 @@
       return;
     }
 
+    if (message.type === 'QUEUE_SNAPSHOT') {
+      relayToPanel({
+        type: 'MD_QUEUE_SNAPSHOT',
+        items: Array.isArray(message.items) ? message.items.map(sanitizeProgress) : [],
+      });
+      return;
+    }
+
+    if (message.type === 'DOWNLOAD_COMMAND_RESULT') {
+      relayToPanel({
+        type: 'MD_DOWNLOAD_COMMAND_RESULT',
+        ok: message.ok === true,
+        command: message.command,
+        id: message.id,
+        error: message.error,
+      });
+      return;
+    }
+
     if (message.type === 'PROGRESS') {
       var item = message.data || {};
-      // Persist only sanitized fields (no cookies / paths).
-      var sanitized = {
-        id: item.id,
-        title: item.title,
-        status: item.status,
-        progress: item.progress,
-        speed: item.speed,
-        totalSize: item.totalSize,
-        downloadedSize: item.downloadedSize,
-        eta: item.eta,
-        error: item.error,
-        url: item.url,
-        tweetId: item.tweetId,
-        mediaId: item.mediaId,
-        tikTokId: item.tikTokId,
-      };
+      var sanitized = sanitizeProgress(item);
       updateBadgeFromProgress(sanitized);
       recordProgressDownloadKeys(item);
 
@@ -536,6 +542,59 @@
     } catch (e) {
       /* ignore */
     }
+  }
+
+  // Only these progress fields ever leave the background (no cookies / paths).
+  function sanitizeProgress(item) {
+    item = item || {};
+    return {
+      id: item.id,
+      title: item.title,
+      status: item.status,
+      progress: item.progress,
+      speed: item.speed,
+      totalSize: item.totalSize,
+      downloadedSize: item.downloadedSize,
+      eta: item.eta,
+      error: item.error,
+      url: item.url,
+      tweetId: item.tweetId,
+      mediaId: item.mediaId,
+      tikTokId: item.tikTokId,
+    };
+  }
+
+  function relayToPanel(payload) {
+    try {
+      var pending = api.runtime.sendMessage(payload);
+      if (pending && typeof pending.catch === 'function') {
+        pending.catch(function () { /* No feed panel is open. */ });
+      }
+    } catch (e) {
+      /* Ignore messages while the extension is reloading. */
+    }
+  }
+
+  // Returns false when the app is not connected and authenticated.
+  function sendToApp(payload) {
+    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) return false;
+    try {
+      socket.send(JSON.stringify(payload));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function requestQueueSnapshot() {
+    return sendToApp({ type: 'QUEUE_SNAPSHOT_REQUEST' });
+  }
+
+  function sendDownloadCommand(command, id) {
+    if (DOWNLOAD_COMMANDS.indexOf(command) === -1) return { ok: false, error: 'unknown_command' };
+    var payload = { type: 'DOWNLOAD_COMMAND', command: command };
+    if (command !== 'cancel_all') payload.id = String(id || '');
+    return sendToApp(payload) ? { ok: true, sent: true } : { ok: false, error: 'not_connected' };
   }
 
   function updateBadgeFromProgress(item) {
@@ -1198,6 +1257,16 @@
         thumbnailUrl: message.thumbnailUrl,
       }).then(sendResponse);
       return true;
+    }
+
+    if (message.type === 'MD_DOWNLOAD_COMMAND') {
+      sendResponse(sendDownloadCommand(message.command, message.id));
+      return false;
+    }
+
+    if (message.type === 'MD_QUEUE_SNAPSHOT_REQUEST') {
+      sendResponse(requestQueueSnapshot() ? { ok: true, sent: true } : { ok: false, error: 'not_connected' });
+      return false;
     }
 
     if (message.type === 'SEND_CURRENT_TAB') {
