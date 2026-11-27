@@ -238,6 +238,39 @@ test('perform refuses a burst beyond the 70 s wait instead of firing it early', 
   assert.equal(e.calls.filter((c) => c.url === MAIN).length, 1);
 });
 
+test('mapResult never reports a missing post or user as already done', () => {
+  const X = load();
+  for (const message of ['Tweet not found', 'User not found']) {
+    const r = plain(X.mapResult(200, { errors: [{ message }] }));
+    assert.equal(r.ok, false, message);
+    assert.equal(r.code, 'unknown', message);
+  }
+  const already = plain(X.mapResult(200, { errors: [{ message: 'has already favorited tweet' }] }));
+  assert.equal(already.code, 'already');
+  assert.equal(already.ok, true);
+});
+
+test('mapResult treats an unparseable 200 body as unknown', () => {
+  const r = plain(load().mapResult(200, null));
+  assert.equal(r.ok, false);
+  assert.equal(r.code, 'unknown');
+});
+
+test('parseQueryIds skips A-padding runs and needs the full bearer shape', () => {
+  const X = load();
+  const padding = 'data:image/png;base64,' + 'A'.repeat(40) + '==";';
+  assert.equal(X.parseQueryIds(padding + BUNDLE).bearer, BEARER);
+  assert.equal(X.parseQueryIds(padding + 'n="AAAAAAAAAAAAAAAAAAAAnoSeparatorHere"').bearer, undefined);
+});
+
+test('perform rediscovers identifiers after an auth or stale result', async () => {
+  const X = load();
+  const e = env(fakeDocument({ scripts: [MAIN] }), [{ status: 401, body: null }, { status: 200, body: { data: {} } }]);
+  assert.equal(plain(await X.perform('FavoriteTweet', '123', e)).code, 'auth');
+  assert.equal(plain(await X.perform('FavoriteTweet', '123', e)).code, 'ok');
+  assert.equal(e.calls.filter((c) => c.url === MAIN).length, 2);
+});
+
 test('perform rejects an invalid op or tweet id without any request', async () => {
   const e = env(fakeDocument({ scripts: [MAIN] }), []);
   const r = plain(await load().perform('DeleteTweet', '123', e));
@@ -348,6 +381,22 @@ test('background relays to the hooked x.com tab, else the first x.com tab', asyn
   assert.deepEqual(bg.forwarded[0], { tabId: 3, msg: { type: 'MD_X_ACTION', op: 'CreateBookmark', tweetId: '123' } });
   await bg.ask({ type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '123', tabId: 1 }, PANEL);
   assert.equal(bg.forwarded[1].tabId, 2);
+});
+
+test('background prefers a main x.com tab over help/ads subdomains, including a hooked one', async () => {
+  const tabs = [
+    { id: 7, url: 'https://help.x.com/en' },
+    { id: 8, url: 'https://ads.twitter.com/' },
+    { id: 9, url: 'https://x.com/home' },
+  ];
+  const bg = loadBackground(tabs);
+  await bg.ask({ type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '1' }, PANEL);
+  assert.equal(bg.forwarded[0].tabId, 9);
+  await bg.ask({ type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '1', tabId: 7 }, PANEL);
+  assert.equal(bg.forwarded[1].tabId, 9);
+  const only = loadBackground([{ id: 7, url: 'https://help.x.com/en' }]);
+  await only.ask({ type: 'MD_X_ACTION', op: 'FavoriteTweet', tweetId: '1' }, PANEL);
+  assert.equal(only.forwarded[0].tabId, 7);
 });
 
 test('background answers no_tab without an x.com tab and refuses bad input', async () => {

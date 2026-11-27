@@ -945,6 +945,11 @@
 
   var X_ACTION_OPS = ['FavoriteTweet', 'UnfavoriteTweet', 'CreateBookmark', 'DeleteBookmark'];
 
+  function isMainXUrl(value) {
+    if (!isXPageUrl(value)) return false;
+    return /^(www\.|mobile\.)?(x|twitter)\.com$/i.test(new URL(value).hostname);
+  }
+
   // Like/bookmark run in an x.com tab with the user's own session: the hooked tab, else the first x.com tab.
   async function relayXAction(message) {
     var op = message.op;
@@ -958,7 +963,7 @@
     if (typeof message.tabId === 'number') {
       try {
         var hooked = await api.tabs.get(message.tabId);
-        if (hooked && isXPageUrl(hooked.url || '')) tab = hooked;
+        if (hooked && isMainXUrl(hooked.url || '')) tab = hooked;
       } catch (e) { /* closed tab */ }
     }
     if (!tab) {
@@ -966,9 +971,11 @@
         var tabs = await api.tabs.query({
           url: ['*://x.com/*', '*://*.x.com/*', '*://twitter.com/*', '*://*.twitter.com/*'],
         });
-        tab = (tabs || []).find(function (t) {
+        var xTabs = (tabs || []).filter(function (t) {
           return typeof t.id === 'number' && isXPageUrl(t.url || '');
-        }) || null;
+        });
+        // help.x.com / ads.x.com have no web-app bundle: only use them when nothing better is open.
+        tab = xTabs.find(function (t) { return isMainXUrl(t.url); }) || xTabs[0] || null;
       } catch (e) { /* tabs.query unavailable */ }
     }
     if (!tab) return noTab;

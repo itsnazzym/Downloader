@@ -44,7 +44,8 @@
         text.match(new RegExp(key('operationName') + name + '\\s*,\\s*' + key('queryId') + value));
       if (m) ids[op] = m[1];
     });
-    var bearer = text.match(/AAAAAAAAAAAAAAAAAAAA[A-Za-z0-9%_-]+/);
+    // Full web-app token shape (body, %3D, tail) so base64 'A' padding never passes for it.
+    var bearer = text.match(/AAAAAAAAAAAAAAAAAAAA[A-Za-z0-9]+%3D[A-Za-z0-9]+/);
     if (bearer) ids.bearer = bearer[0];
     return ids;
   }
@@ -76,12 +77,14 @@
     if (status === 429) return result(false, 'rate');
     if (status === 400 || status === 404) return result(false, 'stale');
     if (status !== 200) return result(false, 'unknown');
-    var errors = body && Array.isArray(body.errors) ? body.errors : [];
+    if (!body || typeof body !== 'object') return result(false, 'unknown');
+    var errors = Array.isArray(body.errors) ? body.errors : [];
     if (errors.length === 0) return result(true, 'ok');
     var text = errors.map(function (e) { return String((e && e.message) || ''); }).join(' | ');
     // Stale patterns first: "operation not found" must not read as "already done".
     if (/query ?id|cannot query field|unknown operation|operation[^|]*not found/i.test(text)) return result(false, 'stale');
-    if (/already (favorited|bookmarked)|not found/i.test(text)) return result(true, 'already');
+    // Only an explicit "already ..." is success; "Tweet/User not found" is a real failure.
+    if (/already (favorited|bookmarked)/i.test(text)) return result(true, 'already');
     return result(false, 'unknown');
   }
 
@@ -207,6 +210,8 @@
     } catch (e) {
       apiResult = result(false, 'unknown');
     }
+    // A wrong bearer (auth) or outdated ids (stale) must not stick for the page's lifetime.
+    if (apiResult.code === 'auth' || apiResult.code === 'stale') idsPromise = null;
     if (apiResult.code === 'stale' || apiResult.code === 'unknown') {
       return domFallback(op, tweetId, env.document, apiResult);
     }
