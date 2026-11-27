@@ -51,6 +51,7 @@
   var unreachableSince = 0;
   var pairingState = { phase: 'idle' };
   var pairRequested = false; // a PAIR_REQUEST went out on the current socket
+  var authRefused = false; // the app refused the current socket: retrying fast cannot help
   var cookieDebounce = null;
   var cookieDebounceByDomain = {};
   var pendingDownloadAcks = [];
@@ -69,8 +70,9 @@
     if (reconnectTimer) return;
     var now = Date.now();
     if (!unreachableSince) unreachableSince = now;
-    // During a pause or with an old app there is nothing to ask: always the slow pace.
-    var elapsed = MDPairing.shouldRequestPairing(pairingState, now) ? now - unreachableSince : Infinity;
+    // After a refusal, during a pause or with an old app there is nothing to ask: always the slow pace.
+    var slow = authRefused || !MDPairing.shouldRequestPairing(pairingState, now);
+    var elapsed = slow ? Infinity : now - unreachableSince;
     reconnectTimer = setTimeout(function () {
       reconnectTimer = null;
       connect();
@@ -188,6 +190,7 @@
 
       closeSocketQuietly();
       pairRequested = false;
+      authRefused = false;
       logDiag('CONNECT_START', 'port=' + serverPort + ' tokenLen=' + apiToken.length);
       console.log('Connecting to TapLoad on 127.0.0.1:' + serverPort + '...');
 
@@ -299,6 +302,7 @@
       } else {
         console.warn('Auth failed — check token in extension popup');
       }
+      authRefused = true;
       try { if (socket) socket.close(); } catch (e) { /* ignore */ }
       return;
     }

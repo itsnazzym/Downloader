@@ -270,3 +270,18 @@ test('pairing.js loads before the connection client in Chrome and Firefox, and i
   const contract = fs.readFileSync(path.join(root, 'tool/check_extension_contract.dart'), 'utf8');
   assert.equal((contract.match(/'pairing\.js'/g) || []).length, 2);
 });
+
+test('a stored token refused by an old app reconnects at the slow pace, not every 3 s', async () => {
+  const bg = await load({ apiToken: 'stale' });
+  for (let i = 0; i < 2; i++) {
+    bg.open();
+    bg.fromApp({ type: 'AUTH_FAILED' });
+    await flush();
+    assert.equal(bg.ws().closed, true);
+    bg.ws().onclose({ code: 1000 });
+    assert.deepEqual(bg.reconnectDelays(), [10000]);
+    await bg.fireReconnect();
+  }
+  assert.deepEqual(bg.sentOfType('PAIR_REQUEST'), []);
+  assert.equal(bg.storage.apiToken, 'stale', 'an old app cannot mean revoked: the token stays');
+});
