@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:tapload/core/providers/settings_provider.dart';
 import 'package:tapload/features/downloader/domain/repositories/i_downloader_repository.dart';
 import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:tapload/core/download/extension_download_batcher.dart';
 import 'package:tapload/core/download/progress_throttle.dart';
@@ -18,6 +19,7 @@ import '../services/notification_service.dart';
 import '../security/local_server_auth.dart';
 import '../security/local_server_download_intake.dart';
 import '../../features/x_feed/gobird_x_feed_service.dart';
+import 'extension_queue_contract.dart';
 import '../../features/x_feed/library_keys_snapshot.dart';
 import '../../features/x_feed/x_feed_ws_contract.dart';
 import '../../features/archive/domain/entities/tiktok_archive_catalog.dart';
@@ -283,6 +285,10 @@ Ready for Extension Connection
             unawaited(_handleXFeedRequest(socket, data));
           } else if (type == 'TIKTOK_COLLECTIONS_SYNC') {
             unawaited(_handleTikTokCollectionsSync(socket, data));
+          } else if (type == ExtensionQueueContract.snapshotRequest) {
+            _sendQueueSnapshot(socket);
+          } else if (type == ExtensionQueueContract.command) {
+            unawaited(_handleDownloadCommand(socket, data));
           }
         } catch (e) {
           LoggerService.e('Error parsing WS message', e);
@@ -352,6 +358,99 @@ Ready for Extension Connection
       LoggerService.w('Failed to send LIBRARY_KEYS_RESULT: $e');
     }
   }
+
+  void _sendQueueSnapshot(WebSocket socket) {
+    try {
+      if (socket.readyState != WebSocket.open) return;
+      final items = _ref
+          .read(downloaderRepositoryProvider)
+          .getCurrentDownloads()
+          .map((item) => item.toExtensionProgressJson())
+          .toList();
+      if (items.any(
+        (i) =>
+            i.containsKey('filePath') ||
+            i.containsKey('cookies') ||
+            i.containsKey('request'),
+      )) {
+        LoggerService.w('QUEUE_SNAPSHOT rejected: unsanitized fields');
+        return;
+      }
+      socket.add(
+        jsonEncode({'type': ExtensionQueueContract.snapshot, 'items': items}),
+      );
+    } catch (e) {
+      LoggerService.w('Failed to send QUEUE_SNAPSHOT: $e');
+    }
+  }
+
+  Future<void> _handleDownloadCommand(
+    WebSocket socket,
+    Map<String, dynamic> data,
+  ) async {
+    final command = data['command'];
+    final id = data['id'];
+
+    void reply({String? error}) {
+      if (socket.readyState != WebSocket.open) return;
+      try {
+        socket.add(
+          jsonEncode({
+            'type': ExtensionQueueContract.commandResult,
+            'ok': error == null,
+            'command': command is String ? command : '',
+            if (id is String) 'id': id,
+            if (error != null) 'error': error,
+          }),
+        );
+      } catch (e) {
+        LoggerService.w('Failed to send DOWNLOAD_COMMAND_RESULT: $e');
+      }
+    }
+
+    final invalid = ExtensionQueueContract.validateCommand(data);
+    if (invalid != null) return reply(error: invalid);
+
+    try {
+      final items = _ref
+          .read(downloaderRepositoryProvider)
+          .getCurrentDownloads();
+      final list = _ref.read(downloadListProvider.notifier);
+
+      if (command == 'cancel_all') {
+        for (final item in items.where(_isActive)) {
+          await list.cancelDownload(item.id);
+        }
+        return reply();
+      }
+
+      // Only ids the desktop really knows are acted on.
+      final matches = items.where((item) => item.id == id);
+      if (matches.isEmpty) return reply(error: 'unknown_id');
+      final item = matches.first;
+
+      switch (command) {
+        case 'cancel':
+          await list.cancelDownload(item.id);
+        case 'pause':
+          await list.pauseDownload(item.id);
+        case 'resume':
+          await list.resumeDownload(item.id);
+        case 'retry':
+          await list.retryDownload(item);
+      }
+      reply();
+    } catch (e) {
+      LoggerService.w('DOWNLOAD_COMMAND $command failed: $e');
+      reply(error: 'command_failed');
+    }
+  }
+
+  static bool _isActive(DownloadItem item) =>
+      item.status == DownloadStatus.queued ||
+      item.status == DownloadStatus.extracting ||
+      item.status == DownloadStatus.downloading ||
+      item.status == DownloadStatus.processing;
 
   void _broadcastProgress(DownloadItem item) {
     if (_clients.isEmpty) return;

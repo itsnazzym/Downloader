@@ -6,16 +6,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tapload/core/download/extension_download_batcher.dart';
 import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/services/download_stats_service.dart';
 import 'package:tapload/core/services/local_server_service.dart';
 import 'package:tapload/core/theme/extension_theme.dart';
 import 'package:tapload/features/downloader/domain/entities/download_item.dart';
 import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 import 'package:tapload/features/downloader/domain/repositories/i_downloader_repository.dart';
 import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:tapload/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
 import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../visual/visual_fakes.dart';
 
 class _MemoryTikTokArchiveRepository implements ITikTokArchiveRepository {
   TikTokArchiveCatalog? catalog;
@@ -39,6 +43,7 @@ class _MemoryTikTokArchiveRepository implements ITikTokArchiveRepository {
 }
 
 class _FakeRepo implements IDownloaderRepository {
+  List<DownloadItem> items = [];
   final _controller = StreamController<DownloadItem>.broadcast();
 
   @override
@@ -75,7 +80,7 @@ class _FakeRepo implements IDownloaderRepository {
   }
 
   @override
-  List<DownloadItem> getCurrentDownloads() => [];
+  List<DownloadItem> getCurrentDownloads() => items;
 
   @override
   Future<void> importHistory(String path) async {}
@@ -98,6 +103,41 @@ class _FakeRepo implements IDownloaderRepository {
   Future<void> dispose() => _controller.close();
 }
 
+/// Records the commands the server forwards instead of running them.
+class _RecordingList extends DownloadListNotifier {
+  _RecordingList(super.repository, super.ref);
+
+  final List<String> calls = [];
+
+  @override
+  Future<void> cancelDownload(String id) async => calls.add('cancel:$id');
+
+  @override
+  Future<void> pauseDownload(String id) async => calls.add('pause:$id');
+
+  @override
+  Future<void> resumeDownload(String id) async => calls.add('resume:$id');
+
+  @override
+  Future<void> retryDownload(DownloadItem item) async =>
+      calls.add('retry:${item.id}');
+}
+
+DownloadItem _item(
+  String id,
+  DownloadStatus status, {
+  String? filePath,
+  String? cookies,
+}) => DownloadItem(
+  id: id,
+  request: DownloadRequest(
+    url: 'https://www.youtube.com/watch?v=$id',
+    rawCookies: cookies,
+  ),
+  status: status,
+  filePath: filePath,
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -107,6 +147,7 @@ void main() {
   late ProviderContainer container;
   late LocalServerService server;
   late List<List<ExtensionDownloadIngest>> flushed;
+  late _RecordingList list;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({
@@ -123,6 +164,14 @@ void main() {
         downloaderRepositoryProvider.overrideWithValue(repo),
         tikTokArchiveRepositoryProvider.overrideWithValue(
           _MemoryTikTokArchiveRepository(),
+        ),
+        persistenceServiceProvider.overrideWith((ref) => FakePersistence()),
+        downloadStatsProvider.overrideWith((ref) => FakeStatsNotifier()),
+        downloadListProvider.overrideWith(
+          (ref) => list = _RecordingList(
+            ref.read(downloaderRepositoryProvider),
+            ref,
+          ),
         ),
         localServerServiceProvider.overrideWith(
           (ref) => LocalServerService(ref, onExtensionFlush: flushed.add),
@@ -173,32 +222,39 @@ void main() {
     await ws.close();
   });
 
-  test('the extension receives the desktop design after HELLO and on change', () async {
-    final ws = await connect();
-    final themes = <Map<String, dynamic>>[];
-    final firstTheme = Completer<void>();
-    ws.listen((event) {
-      final data = jsonDecode(event as String) as Map<String, dynamic>;
-      if (data['type'] == ExtensionTheme.messageType) {
-        themes.add(data);
-        if (!firstTheme.isCompleted) firstTheme.complete();
-      }
-    });
-    ws.add(
-      jsonEncode({'type': 'HELLO', 'token': expectedToken, 'version': '2.1.0'}),
-    );
-    await firstTheme.future.timeout(const Duration(seconds: 2));
-    final current = ExtensionTheme.effectivePreset(
-      container.read(settingsProvider),
-    ).id;
-    expect(themes.first['id'], current);
+  test(
+    'the extension receives the desktop design after HELLO and on change',
+    () async {
+      final ws = await connect();
+      final themes = <Map<String, dynamic>>[];
+      final firstTheme = Completer<void>();
+      ws.listen((event) {
+        final data = jsonDecode(event as String) as Map<String, dynamic>;
+        if (data['type'] == ExtensionTheme.messageType) {
+          themes.add(data);
+          if (!firstTheme.isCompleted) firstTheme.complete();
+        }
+      });
+      ws.add(
+        jsonEncode({
+          'type': 'HELLO',
+          'token': expectedToken,
+          'version': '2.1.0',
+        }),
+      );
+      await firstTheme.future.timeout(const Duration(seconds: 2));
+      final current = ExtensionTheme.effectivePreset(
+        container.read(settingsProvider),
+      ).id;
+      expect(themes.first['id'], current);
 
-    container.read(settingsProvider.notifier).setThemePreset('pastille');
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-    expect(themes.last['id'], 'pastille');
-    expect(themes.last['tiles'], hasLength(3));
-    await ws.close();
-  });
+      container.read(settingsProvider.notifier).setThemePreset('pastille');
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(themes.last['id'], 'pastille');
+      expect(themes.last['tiles'], hasLength(3));
+      await ws.close();
+    },
+  );
 
   test('HELLO with wrong token returns AUTH_FAILED', () async {
     final ws = await connect();
@@ -472,5 +528,128 @@ void main() {
     expect(ack['ok'], isFalse);
     expect(ack['error'], 'collection_items_unavailable');
     await ws.close();
+  });
+
+  group('extension queue', () {
+    late WebSocket ws;
+    late List<Map<String, dynamic>> inbox;
+
+    Future<Map<String, dynamic>> next(String type) async {
+      for (var i = 0; i < 100; i++) {
+        final found = inbox.indexWhere((m) => m['type'] == type);
+        if (found >= 0) return inbox.removeAt(found);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      fail('no $type received');
+    }
+
+    Future<void> openWith(List<DownloadItem> items) async {
+      // Let the notifier finish its start-up while the repository is empty.
+      container.read(downloadListProvider.notifier);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      repo.items = items;
+      ws = await connect();
+      inbox = [];
+      ws.listen(
+        (e) => inbox.add(jsonDecode(e as String) as Map<String, dynamic>),
+      );
+      ws.add(jsonEncode({'type': 'HELLO', 'token': expectedToken}));
+      await next('HELLO_OK');
+    }
+
+    Future<Map<String, dynamic>> send(String command, [String? id]) async {
+      ws.add(
+        jsonEncode({
+          'type': 'DOWNLOAD_COMMAND',
+          'command': command,
+          if (id != null) 'id': id,
+        }),
+      );
+      return next('DOWNLOAD_COMMAND_RESULT');
+    }
+
+    tearDown(() => ws.close());
+
+    test('cancel on an existing id cancels it once and answers ok', () async {
+      await openWith([_item('a', DownloadStatus.downloading)]);
+      final res = await send('cancel', 'a');
+      expect(res['ok'], isTrue);
+      expect(res['command'], 'cancel');
+      expect(res['id'], 'a');
+      expect(list.calls, ['cancel:a']);
+    });
+
+    test('unknown id is refused without calling the provider', () async {
+      await openWith([_item('a', DownloadStatus.downloading)]);
+      final res = await send('cancel', 'nope');
+      expect(res['ok'], isFalse);
+      expect(res['error'], 'unknown_id');
+      expect(list.calls, isEmpty);
+    });
+
+    test('pause, resume and retry reach the matching provider call', () async {
+      await openWith([_item('a', DownloadStatus.failed)]);
+      expect((await send('pause', 'a'))['ok'], isTrue);
+      expect((await send('resume', 'a'))['ok'], isTrue);
+      expect((await send('retry', 'a'))['ok'], isTrue);
+      expect(list.calls, ['pause:a', 'resume:a', 'retry:a']);
+    });
+
+    test('cancel_all cancels only the active items', () async {
+      await openWith([
+        _item('queued', DownloadStatus.queued),
+        _item('extracting', DownloadStatus.extracting),
+        _item('downloading', DownloadStatus.downloading),
+        _item('processing', DownloadStatus.processing),
+        _item('done', DownloadStatus.completed),
+        _item('failed', DownloadStatus.failed),
+        _item('paused', DownloadStatus.paused),
+      ]);
+      final res = await send('cancel_all');
+      expect(res['ok'], isTrue);
+      expect(list.calls, [
+        'cancel:queued',
+        'cancel:extracting',
+        'cancel:downloading',
+        'cancel:processing',
+      ]);
+    });
+
+    test('unknown command and missing id are refused', () async {
+      await openWith([_item('a', DownloadStatus.downloading)]);
+      final unknown = await send('explode', 'a');
+      expect(unknown['ok'], isFalse);
+      expect(unknown['error'], 'unknown_command');
+      final missing = await send('cancel');
+      expect(missing['ok'], isFalse);
+      expect(missing['error'], 'missing_id');
+      expect(list.calls, isEmpty);
+    });
+
+    test(
+      'snapshot returns the queue without paths, cookies or request',
+      () async {
+        await openWith([
+          _item(
+            'a',
+            DownloadStatus.completed,
+            filePath: r'C:\secret\a.mp4',
+            cookies: 'sid=SECRET',
+          ),
+        ]);
+        ws.add(jsonEncode({'type': 'QUEUE_SNAPSHOT_REQUEST'}));
+        final res = await next('QUEUE_SNAPSHOT');
+        final items = res['items'] as List;
+        expect(items, hasLength(1));
+        final item = items.single as Map<String, dynamic>;
+        expect(item['id'], 'a');
+        expect(item['status'], DownloadStatus.completed.index);
+        expect(item.containsKey('filePath'), isFalse);
+        expect(item.containsKey('cookies'), isFalse);
+        expect(item.containsKey('request'), isFalse);
+        expect(jsonEncode(res), isNot(contains('SECRET')));
+        expect(jsonEncode(res), isNot(contains('secret')));
+      },
+    );
   });
 }
