@@ -5314,4 +5314,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String porcelaineSuggestionsFailed(String error) {
     return 'تعذّر تطبيق هذه الاقتراحات: $error';
   }
+
+  @override
+  String porcelaineEta(String eta) {
+    return 'متبقٍ $eta';
+  }
+
+  @override
+  String porcelaineLogInit(String id) {
+    return 'تم تجهيز التنزيل: $id';
+  }
+
+  @override
+  String get porcelaineLogStarted => 'بدأ التنزيل…';
+
+  @override
+  String porcelaineLogStep(String step) {
+    return 'المرحلة: $step';
+  }
+
+  @override
+  String porcelaineLogSpeed(String speed) {
+    return 'السرعة: $speed';
+  }
+
+  @override
+  String porcelaineLogError(String error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get porcelaineLogDone => 'اكتمل التنزيل.';
+
+  @override
+  String get porcelaineLogCanceled => 'أُلغي التنزيل.';
 }

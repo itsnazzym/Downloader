@@ -1804,5 +1804,13 @@
   "porcelaineSuggestionsSelected": "{count} sélectionnées",
   "porcelaineSuggestionsApply": "Appliquer",
   "porcelaineSuggestionsDone": "{count} propositions ajoutées aux collections.",
-  "porcelaineSuggestionsFailed": "Impossible d’appliquer ces propositions : {error}"
+  "porcelaineSuggestionsFailed": "Impossible d’appliquer ces propositions : {error}",
+  "porcelaineEta": "reste {eta}",
+  "porcelaineLogInit": "Téléchargement préparé : {id}",
+  "porcelaineLogStarted": "Téléchargement démarré…",
+  "porcelaineLogStep": "Étape : {step}",
+  "porcelaineLogSpeed": "Débit : {speed}",
+  "porcelaineLogError": "Erreur : {error}",
+  "porcelaineLogDone": "Téléchargement terminé.",
+  "porcelaineLogCanceled": "Téléchargement annulé."
 }

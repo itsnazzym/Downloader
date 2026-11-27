@@ -1,6 +1,9 @@
 // Renders Porcelaine's own library (toolbar, rows, folders, inspector) and
 // archive states to build/visual/surface_porcelaine_*.png, to check by eye
 // that none of today's look is left. Fails only on a crash.
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -171,15 +174,21 @@ void main() {
   });
 
   testWidgets('porcelaine library reorder', (tester) async {
-    await render(
-      tester,
-      'library_reorder',
-      '/',
-      extra: [
-        ...library,
-        downloadSortProvider.overrideWith((ref) => DownloadSort.dateAsc),
-      ],
-    );
+    // Desktop drag handles only show on a desktop platform.
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    try {
+      await render(
+        tester,
+        'library_reorder',
+        '/',
+        extra: [
+          ...library,
+          downloadSortProvider.overrideWith((ref) => DownloadSort.dateAsc),
+        ],
+      );
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('porcelaine library narrow', (tester) async {
@@ -188,9 +197,32 @@ void main() {
       'library_narrow',
       '/',
       size: const Size(820, 640),
-      extra: library,
+      extra: [...library, selectFirst()],
     );
   });
+
+  // Whole settings pages, below the fold too.
+  for (final page in ['plugins', 'advanced', 'smart_organizer']) {
+    testWidgets('porcelaine settings $page tall', (tester) async {
+      await prefs.setStringList('smart_organizer_rules', [
+        jsonEncode({
+          'id': 'rule-1',
+          'name': 'Musique',
+          'pattern': 'mp3',
+          'isRegex': false,
+          'targetFolder': 'Musique',
+          'active': true,
+        }),
+      ]);
+      addTearDown(() => prefs.remove('smart_organizer_rules'));
+      await render(
+        tester,
+        'settings_${page}_tall',
+        '/settings/$page',
+        size: const Size(1280, 2400),
+      );
+    });
+  }
 
   testWidgets('porcelaine archive hub', (tester) async {
     await render(

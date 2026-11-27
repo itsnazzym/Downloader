@@ -40,6 +40,7 @@ class DesignSkin {
     this.dropdownTile,
     this.actionTile,
     this.statusTile,
+    this.toggle,
   });
 
   final Widget Function(BuildContext context, DesignRow row)? row;
@@ -49,6 +50,14 @@ class DesignSkin {
   final Widget Function(BuildContext context, DropdownTile tile)? dropdownTile;
   final Widget Function(BuildContext context, ActionTile tile)? actionTile;
   final Widget Function(BuildContext context, StatusTile tile)? statusTile;
+
+  /// A bare on/off switch inside a shared view (the Plugins page).
+  final Widget Function(
+    BuildContext context,
+    bool value,
+    ValueChanged<bool>? onChanged,
+  )?
+  toggle;
 
   static final _byId = <String, DesignSkin>{};
 

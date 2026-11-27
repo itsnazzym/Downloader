@@ -550,19 +550,23 @@ class PCollectionDetail extends ConsumerWidget {
 
     Future<void> menu(BuildContext button) async {
       final action = await pShowMenu<String>(button, [
-        pMenuItem(
-          button,
-          value: 'reset',
-          label: l10n.archiveCollReset,
-          icon: Icons.remove_circle_outline_rounded,
-        ),
-        pMenuItem(
-          button,
-          value: 'purge',
-          label: l10n.archivePurgeMenu,
-          icon: Icons.delete_forever_rounded,
-          danger: true,
-        ),
+        // An empty collection can still be deleted; there is nothing to
+        // remove from it or purge.
+        if (videos.isNotEmpty) ...[
+          pMenuItem(
+            button,
+            value: 'reset',
+            label: l10n.archiveCollReset,
+            icon: Icons.remove_circle_outline_rounded,
+          ),
+          pMenuItem(
+            button,
+            value: 'purge',
+            label: l10n.archivePurgeMenu,
+            icon: Icons.delete_forever_rounded,
+            danger: true,
+          ),
+        ],
         pMenuItem(
           button,
           value: 'delete',
@@ -632,7 +636,7 @@ class PCollectionDetail extends ConsumerWidget {
                 style: pMono(colors),
               ),
               const Spacer(),
-              if (videos.isNotEmpty && !special)
+              if (!special)
                 Builder(
                   builder: (button) => PIconBtn(
                     icon: Icons.more_horiz_rounded,

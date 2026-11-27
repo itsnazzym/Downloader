@@ -9039,6 +9039,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not apply these suggestions: {error}'**
   String porcelaineSuggestionsFailed(String error);
+
+  /// No description provided for @porcelaineEta.
+  ///
+  /// In en, this message translates to:
+  /// **'ETA {eta}'**
+  String porcelaineEta(String eta);
+
+  /// No description provided for @porcelaineLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Download set up: {id}'**
+  String porcelaineLogInit(String id);
+
+  /// No description provided for @porcelaineLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get porcelaineLogStarted;
+
+  /// No description provided for @porcelaineLogStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step: {step}'**
+  String porcelaineLogStep(String step);
+
+  /// No description provided for @porcelaineLogSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed: {speed}'**
+  String porcelaineLogSpeed(String speed);
+
+  /// No description provided for @porcelaineLogError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String porcelaineLogError(String error);
+
+  /// No description provided for @porcelaineLogDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get porcelaineLogDone;
+
+  /// No description provided for @porcelaineLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get porcelaineLogCanceled;
 }
 
 class _AppLocalizationsDelegate

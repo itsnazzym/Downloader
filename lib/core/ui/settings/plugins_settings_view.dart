@@ -17,6 +17,7 @@ import '../../design_system/foundation/typography.dart';
 import '../../design_system/components/app_button.dart';
 
 import '../../design_system/components/app_toast.dart';
+import '../../design_system/design_skin.dart';
 
 import '../../plugins/plugin_manager.dart';
 import '../../plugins/feature_activation.dart';
@@ -418,17 +419,20 @@ class _PluginCard extends StatelessWidget {
             const Gap(AppSpacing.s),
           ],
 
-          Switch(
-            value: entry.isEnabled,
+          DesignSkin.of(
+                context,
+              )?.toggle?.call(context, entry.isEnabled, onToggle) ??
+              Switch(
+                value: entry.isEnabled,
 
-            onChanged: onToggle,
+                onChanged: onToggle,
 
-            activeThumbColor: AppColors.of(context).success,
+                activeThumbColor: AppColors.of(context).success,
 
-            inactiveThumbColor: AppColors.of(context).textDisabled,
+                inactiveThumbColor: AppColors.of(context).textDisabled,
 
-            inactiveTrackColor: AppColors.of(context).surfaceHighlight,
-          ),
+                inactiveTrackColor: AppColors.of(context).surfaceHighlight,
+              ),
         ],
       ),
     );
@@ -529,13 +533,14 @@ class _FeatureModuleCard extends StatelessWidget {
           if (plugin.isCore)
             Icon(Icons.lock_outline_rounded, color: colors.textSecondary)
           else
-            Switch(
-              value: enabled,
-              onChanged: onToggle,
-              activeThumbColor: colors.success,
-              inactiveThumbColor: colors.textDisabled,
-              inactiveTrackColor: colors.surfaceHighlight,
-            ),
+            DesignSkin.of(context)?.toggle?.call(context, enabled, onToggle) ??
+                Switch(
+                  value: enabled,
+                  onChanged: onToggle,
+                  activeThumbColor: colors.success,
+                  inactiveThumbColor: colors.textDisabled,
+                  inactiveTrackColor: colors.surfaceHighlight,
+                ),
         ],
       ),
     );

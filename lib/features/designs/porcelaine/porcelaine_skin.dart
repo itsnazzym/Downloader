@@ -18,7 +18,14 @@ const porcelaineSkin = DesignSkin(
   dropdownTile: _dropdownTile,
   actionTile: _actionTile,
   statusTile: _statusTile,
+  toggle: _toggle,
 );
+
+Widget _toggle(
+  BuildContext context,
+  bool value,
+  ValueChanged<bool>? onChanged,
+) => PSwitch(value: value, onChanged: onChanged);
 
 Widget _sectionTitle(BuildContext context, SectionTitle tile) {
   final colors = AppColors.of(context);

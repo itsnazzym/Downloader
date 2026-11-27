@@ -5371,4 +5371,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String porcelaineSuggestionsFailed(String error) {
     return 'Impossible d’appliquer ces propositions : $error';
   }
+
+  @override
+  String porcelaineEta(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String porcelaineLogInit(String id) {
+    return 'Téléchargement préparé : $id';
+  }
+
+  @override
+  String get porcelaineLogStarted => 'Téléchargement démarré…';
+
+  @override
+  String porcelaineLogStep(String step) {
+    return 'Étape : $step';
+  }
+
+  @override
+  String porcelaineLogSpeed(String speed) {
+    return 'Débit : $speed';
+  }
+
+  @override
+  String porcelaineLogError(String error) {
+    return 'Erreur : $error';
+  }
+
+  @override
+  String get porcelaineLogDone => 'Téléchargement terminé.';
+
+  @override
+  String get porcelaineLogCanceled => 'Téléchargement annulé.';
 }

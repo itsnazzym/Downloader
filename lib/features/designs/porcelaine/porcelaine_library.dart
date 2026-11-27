@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,7 +88,8 @@ String _meta(BuildContext context, DownloadItem item) {
     else if (item.downloadedSize.isNotEmpty)
       item.downloadedSize,
     if (downloading && item.speed.isNotEmpty) item.speed,
-    if (downloading && item.eta.isNotEmpty) 'ETA ${item.eta}',
+    if (downloading && item.eta.isNotEmpty)
+      context.l10n.porcelaineEta(item.eta),
   ].where((s) => s.isNotEmpty).join(' · ');
 }
 
@@ -103,20 +105,37 @@ Color _statusTint(AppColors colors, DownloadStatus s) => switch (s) {
 // ── Rows ───────────────────────────────────────────────────────────────────
 
 /// The skin's row builder: a list row or, in the detailed view, a card.
-Widget porcelaineRow(BuildContext context, DesignRow row) =>
-    row.grid ? _PGridCard(row: row) : _PRow(row: row);
+Widget porcelaineRow(BuildContext context, DesignRow row) {
+  if (row.grid) return _PGridCard(row: row);
+  // A reorderable list puts its drag handle over the row's end on desktop:
+  // keep the actions clear of it.
+  final handle =
+      SliverReorderableList.maybeOf(context) != null &&
+      switch (defaultTargetPlatform) {
+        TargetPlatform.windows ||
+        TargetPlatform.macOS ||
+        TargetPlatform.linux => true,
+        _ => false,
+      };
+  final card = _PRow(row: row);
+  return handle
+      ? Padding(padding: const EdgeInsetsDirectional.only(end: 28), child: card)
+      : card;
+}
 
-/// The status as a tinted pill with its dot.
+/// The status as a tinted pill with its dot; the full error as its tooltip,
+/// like today's status badge.
 class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.status});
+  const _StatusPill({required this.status, this.error});
 
   final DownloadStatus status;
+  final String? error;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final tint = _statusTint(colors, status);
-    return Container(
+    final pill = Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 9),
       decoration: BoxDecoration(
@@ -145,6 +164,10 @@ class _StatusPill extends StatelessWidget {
         ],
       ),
     );
+    final e = error;
+    return e == null || e.trim().isEmpty
+        ? pill
+        : Tooltip(message: e, child: pill);
   }
 }
 
@@ -413,7 +436,7 @@ class _PRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            _StatusPill(status: item.status),
+            _StatusPill(status: item.status, error: item.error),
             ..._rowActions(context, row),
           ],
         ),
@@ -453,7 +476,7 @@ class _PGridCard extends StatelessWidget {
                   PositionedDirectional(
                     top: 8,
                     start: 8,
-                    child: _StatusPill(status: item.status),
+                    child: _StatusPill(status: item.status, error: item.error),
                   ),
                 ],
               ),
@@ -1727,15 +1750,15 @@ class PInspector extends ConsumerWidget {
     ];
 
     final logs = [
-      'Initialized download for ${item.id}',
-      if (item.status != DownloadStatus.queued) 'Download started...',
-      if (item.step.isNotEmpty) '[STEP] ${item.step}',
+      l10n.porcelaineLogInit(item.id),
+      if (item.status != DownloadStatus.queued) l10n.porcelaineLogStarted,
+      if (item.step.isNotEmpty) l10n.porcelaineLogStep(item.step),
       if (item.speed.isNotEmpty && !item.speed.toLowerCase().contains('retry'))
-        '[SPEED] ${item.speed}',
-      if (item.error != null) '[ERROR] ${item.error}',
+        l10n.porcelaineLogSpeed(item.speed),
+      if (item.error != null) l10n.porcelaineLogError(item.error!),
       if (item.status == DownloadStatus.completed && item.error == null)
-        'Download completed successfully.',
-      if (item.status == DownloadStatus.canceled) 'Download canceled.',
+        l10n.porcelaineLogDone,
+      if (item.status == DownloadStatus.canceled) l10n.porcelaineLogCanceled,
     ];
     final rtl = Directionality.of(context) == TextDirection.rtl;
 
@@ -1831,7 +1854,7 @@ class PInspector extends ConsumerWidget {
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      _StatusPill(status: item.status),
+                      _StatusPill(status: item.status, error: item.error),
                       const SizedBox(width: 10),
                       Text(
                         '${(item.progress * 100).toStringAsFixed(1)} %',

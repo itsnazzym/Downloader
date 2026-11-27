@@ -1804,5 +1804,13 @@
   "porcelaineSuggestionsSelected": "{count} محددة",
   "porcelaineSuggestionsApply": "تطبيق",
   "porcelaineSuggestionsDone": "أُضيفت {count} اقتراحات إلى المجموعات.",
-  "porcelaineSuggestionsFailed": "تعذّر تطبيق هذه الاقتراحات: {error}"
+  "porcelaineSuggestionsFailed": "تعذّر تطبيق هذه الاقتراحات: {error}",
+  "porcelaineEta": "متبقٍ {eta}",
+  "porcelaineLogInit": "تم تجهيز التنزيل: {id}",
+  "porcelaineLogStarted": "بدأ التنزيل…",
+  "porcelaineLogStep": "المرحلة: {step}",
+  "porcelaineLogSpeed": "السرعة: {speed}",
+  "porcelaineLogError": "خطأ: {error}",
+  "porcelaineLogDone": "اكتمل التنزيل.",
+  "porcelaineLogCanceled": "أُلغي التنزيل."
 }
