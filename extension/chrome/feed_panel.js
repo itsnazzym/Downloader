@@ -204,6 +204,7 @@
   var gobirdFallbackError = '';
 
   var currentViewMode = 'videos'; // 'videos', 'downloads' or 'creators'
+  document.body.dataset.viewMode = currentViewMode; // the docks' CSS reads it before the first switch
   var selectedCreatorKeys = new Set();
   var downloads = MDDownloads.create();
   var downloadsClock = 0;
@@ -520,6 +521,17 @@
     feedStatus.textContent = message;
   }
 
+  // Short-lived feedback for an action the user just took (the status line keeps the last message).
+  var toastEl = document.getElementById('toast');
+  var toastTimer = 0;
+  function showToast(message) {
+    if (!toastEl || !message) return;
+    toastEl.textContent = message;
+    toastEl.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.hidden = true; }, 2400);
+  }
+
   function setBusy(value) {
     busy = value;
     analyzeButton.disabled = value;
@@ -638,19 +650,24 @@
   }
 
   var SINGLE_BTN_ICONS = {
-    download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
-    cancel: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
-    retry: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>',
-    resume: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>',
+    download: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7 11l5 5 5-5"></path><path d="M5 20h14"></path></svg>',
+    cancel: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>',
+    retry: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"></path><path d="M20 4v5h-5"></path></svg>',
+    resume: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"></path></svg>',
+    done: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
+    pending: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>',
   };
 
   function setSingleBtnMode(btn, mode, downloaded) {
     delete btn.dataset.pendingAt;
     btn.disabled = false;
     btn.classList.remove('downloading');
-    if (btn.dataset.mode !== mode) {
+    // An already downloaded video shows a check; a click still downloads it again.
+    var icon = mode === 'download' && downloaded ? 'done' : mode;
+    if (btn.dataset.mode !== mode || btn.dataset.icon !== icon) {
       btn.dataset.mode = mode;
-      btn.innerHTML = SINGLE_BTN_ICONS[mode];
+      btn.dataset.icon = icon;
+      btn.innerHTML = SINGLE_BTN_ICONS[icon];
     }
     btn.title = mode === 'cancel' ? t('dlCmdCancel', 'Annuler')
       : mode === 'retry' ? t('dlCmdRetry', 'Réessayer')
@@ -691,6 +708,7 @@
   function showDownloadCommandError(code) {
     var entry = Object.prototype.hasOwnProperty.call(DL_ERROR_TEXT, code) ? DL_ERROR_TEXT[code] : DL_ERROR_TEXT.command_failed;
     setStatus(t(entry[0], entry[1]), 'error');
+    showToast(t(entry[0], entry[1]));
   }
 
   // Success needs no feedback: the next PROGRESS updates the state.
@@ -723,11 +741,34 @@
     }, Math.max(0, DL_RENDER_MS - (Date.now() - downloadRenderAt)));
   }
 
+  var activityDock = document.getElementById('activity-dock');
+  var activityDockFill = document.getElementById('activity-dock-fill');
+  var activityDockCount = document.getElementById('activity-dock-count');
+  var activityDockSpeed = document.getElementById('activity-dock-speed');
+  var activityDockEta = document.getElementById('activity-dock-eta');
+
+  // "2 en cours · 1 en attente · 3 Mo/s      ≈ 12 s restantes ›" above the list; CSS hides it outside Videos.
+  function renderActivityDock(active) {
+    if (!activityDock) return;
+    activityDock.hidden = active === 0;
+    if (!active) return;
+    var s = downloads.summary(downloadsNow());
+    var eta = formatEta(s.etaSeconds);
+    setText(activityDockCount, tf('dlSummaryCounts', '{running} en cours · {queued} en attente', { running: s.running, queued: s.queued }));
+    setText(activityDockSpeed, formatSpeed(s.speedBps) || '');
+    setText(activityDockEta, eta ? tf('dlEtaLeft', '≈ {eta} restantes', { eta: eta }) : '');
+    activityDockFill.style.width = Math.max(0, Math.min(100, s.pct)) + '%';
+  }
+  if (activityDock) activityDock.addEventListener('click', function () { setViewMode('downloads'); });
+
   function renderDownloadState() {
     var groups = downloads.groups();
+    var activeCount = groups.running.length + groups.queued.length + groups.paused.length;
     if (viewModeDownloadsCount) {
-      viewModeDownloadsCount.textContent = String(groups.running.length + groups.queued.length + groups.paused.length);
+      viewModeDownloadsCount.textContent = String(activeCount);
+      viewModeDownloadsCount.classList.toggle('is-active', activeCount > 0);
     }
+    renderActivityDock(activeCount);
     if (currentViewMode === 'downloads') {
       renderDownloadsView(groups);
     } else if (currentViewMode === 'videos') {
@@ -794,7 +835,7 @@
     var rec = { el: row, title: dlElement('div', 'dl-row-title'), state: dlElement('span', 'dl-row-state'), fill: null };
     row.appendChild(rec.title);
     var meta = dlElement('div', 'dl-row-meta');
-    if (dl.url) meta.appendChild(dlElement('span', 'card-platform-pill', itemPlatform({ url: dl.url }).toUpperCase()));
+    if (dl.url) meta.appendChild(dlElement('span', 'card-platform-pill', platformLabel(itemPlatform({ url: dl.url }))));
     meta.appendChild(rec.state);
     row.appendChild(meta);
     if (dl.status === 'running' || dl.status === 'paused') {
@@ -831,17 +872,17 @@
     var view = { sections: {} };
     view.empty = dlElement('div', 'empty-state', t('dlEmpty', 'Aucun téléchargement pour le moment.'));
     view.summary = dlElement('div', 'dl-summary');
-    var top = dlElement('div', 'dl-summary-row');
     view.summaryText = dlElement('span', 'dl-summary-text');
     view.cancelAll = dlCommandButton('cancel_all', null, t('dlCancelAll', 'Tout annuler'));
-    top.appendChild(view.summaryText);
-    top.appendChild(view.cancelAll);
     var bar = dlProgressBar(0);
     view.summaryFill = bar.firstChild;
+    var foot = dlElement('div', 'dl-summary-row');
     view.summaryCounts = dlElement('span', 'dl-summary-counts');
-    view.summary.appendChild(top);
+    foot.appendChild(view.summaryCounts);
+    foot.appendChild(view.cancelAll);
+    view.summary.appendChild(view.summaryText);
     view.summary.appendChild(bar);
-    view.summary.appendChild(view.summaryCounts);
+    view.summary.appendChild(foot);
     downloadsView.appendChild(view.empty);
     downloadsView.appendChild(view.summary);
     DL_SECTIONS.forEach(function (s) {
@@ -1713,42 +1754,58 @@
     if (tiktokCountEl) {
       tiktokCountEl.textContent = String(platforms['tiktok'] || 0);
     }
+    var xCountEl = document.getElementById('x-count');
+    if (xCountEl) xCountEl.textContent = String(platforms['x'] || 0);
 
     var staticBtns = Array.prototype.slice.call(
-      container.querySelectorAll('[data-filter="all"], [data-filter="current"], [data-filter="tiktok"], [data-filter="sniffed"]'),
+      container.querySelectorAll('[data-filter="all"], [data-filter="x"], [data-filter="tiktok"]'),
     );
     container.innerHTML = '';
     staticBtns.forEach(function (b) {
-      b.classList.toggle('active', b.dataset.filter === activePlatformFilter);
       container.appendChild(b);
     });
 
     updateSniffedCount();
 
     Object.keys(platforms).sort().forEach(function (p) {
-      if (p === 'tiktok' || p === 'all' || p === 'current' || p === 'sniffed') return;
+      if (p === 'tiktok' || p === 'x' || p === 'all' || p === 'current' || p === 'sniffed') return;
       var pill = document.createElement('button');
       pill.type = 'button';
-      pill.className = 'platform-pill' + (activePlatformFilter === p ? ' active' : '');
+      pill.className = 'platform-pill';
       pill.dataset.filter = p;
-      pill.textContent = p.toUpperCase() + ' (' + platforms[p] + ')';
+      pill.textContent = platformLabel(p) + ' ';
+      var count = document.createElement('span');
+      count.className = 'pill-count';
+      count.textContent = String(platforms[p]);
+      pill.appendChild(count);
       pill.addEventListener('click', function () {
         selectPlatformFilter(p);
       });
       container.appendChild(pill);
     });
+    syncPlatformPillState();
+  }
+
+  // The toolbar pills and the extra filters of the settings menu share one state.
+  function syncPlatformPillState() {
+    document.querySelectorAll('.platform-pill').forEach(function (pill) {
+      var on = pill.dataset.filter === activePlatformFilter;
+      pill.classList.toggle('active', on);
+      pill.setAttribute('aria-pressed', String(on));
+    });
   }
 
   function selectPlatformFilter(filter) {
     activePlatformFilter = filter;
-    var container = document.getElementById('platform-filters');
-    if (container) {
-      container.querySelectorAll('.platform-pill').forEach(function (pill) {
-        pill.classList.toggle('active', pill.dataset.filter === filter);
-      });
-    }
+    syncPlatformPillState();
     renderItems();
     updateFeedCountStatus();
+  }
+
+  var PLATFORM_LABELS = { x: 'X', tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube', facebook: 'Facebook', twitch: 'Twitch' };
+  function platformLabel(platform) {
+    if (platform === 'network') return t('feedNetwork', 'Réseau');
+    return PLATFORM_LABELS[platform] || String(platform || 'web');
   }
 
   function selectCreatorFilter(filter, platform) {
@@ -2123,57 +2180,27 @@
 
       var metaRow = document.createElement('div');
       metaRow.className = 'creator-card-meta';
-      var badge = document.createElement('span');
-      badge.className = 'creator-card-badge';
-      badge.textContent = tf('feedAccountVideoCount', '{count} vidéos dans la collection', { count: c.count });
-      metaRow.appendChild(badge);
+      metaRow.textContent = platformLabel(c.platform) + ' · ' + tf('feedAccountVideoCount', '{count} vidéos dans la collection', { count: c.count });
       body.appendChild(metaRow);
 
-      card.appendChild(body);
-
-      var actions = document.createElement('div');
-      actions.className = 'creator-card-actions';
+      // Secondary actions as quiet links under the name, the two main ones as round buttons.
+      var links = document.createElement('div');
+      links.className = 'creator-card-links';
 
       var loadBtn = document.createElement('button');
       loadBtn.type = 'button';
-      loadBtn.className = 'creator-card-btn primary';
+      loadBtn.className = 'creator-link-btn';
       loadBtn.title = tf('feedLoadAccountTitle', 'Charger les vidéos de {name}', { name: c.displayName });
-      loadBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3"></path></svg><span></span>';
-      loadBtn.querySelector('span').textContent = t('feedLoadProfile', 'Charger le profil');
+      loadBtn.textContent = t('feedLoadProfile', 'Charger le profil');
       loadBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         loadAllCreatorVideos(c.handle, c.platform);
       });
-      if (c.profileUrl) actions.appendChild(loadBtn);
-
-      var dlBtn = document.createElement('button');
-      dlBtn.type = 'button';
-      dlBtn.className = 'creator-card-btn secondary';
-      dlBtn.title = t('feedSendAccountHint', 'TapLoad récupérera les vidéos du profil.');
-      dlBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>App</span>';
-      dlBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        sendCreatorToApp(c, dlBtn);
-      });
-      if (c.profileUrl) actions.appendChild(dlBtn);
-
-      var openBtn = document.createElement('button');
-      openBtn.type = 'button';
-      openBtn.className = 'creator-card-btn secondary';
-      openBtn.title = t('feedOpenAccountTitle', 'Ouvrir le profil dans un nouvel onglet');
-      openBtn.setAttribute('aria-label', openBtn.title);
-      openBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
-      openBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (api.tabs && api.tabs.create) {
-          api.tabs.create({ url: c.profileUrl });
-        }
-      });
-      if (c.profileUrl) actions.appendChild(openBtn);
+      if (c.profileUrl) links.appendChild(loadBtn);
 
       var filterBtn = document.createElement('button');
       filterBtn.type = 'button';
-      filterBtn.className = 'creator-card-btn secondary';
+      filterBtn.className = 'creator-link-btn';
       filterBtn.textContent = t('feedFilterCreator', 'Voir les vidéos');
       filterBtn.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -2181,9 +2208,34 @@
         activeCreatorPlatform = c.platform;
         setViewMode('videos');
       });
-      actions.appendChild(filterBtn);
+      links.appendChild(filterBtn);
+      body.appendChild(links);
 
-      card.appendChild(actions);
+      card.appendChild(body);
+
+      var openBtn = document.createElement('button');
+      openBtn.type = 'button';
+      openBtn.className = 'creator-icon-btn';
+      openBtn.title = t('feedOpenAccountTitle', 'Ouvrir le profil dans un nouvel onglet');
+      openBtn.setAttribute('aria-label', openBtn.title);
+      openBtn.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg>';
+      openBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (api.tabs && api.tabs.create) {
+          api.tabs.create({ url: c.profileUrl });
+        }
+      });
+      if (c.profileUrl) card.appendChild(openBtn);
+
+      var dlBtn = document.createElement('button');
+      dlBtn.type = 'button';
+      dlBtn.className = 'creator-icon-btn primary creator-send-btn';
+      setCreatorSendState(dlBtn, 'idle');
+      dlBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sendCreatorToApp(c, dlBtn);
+      });
+      if (c.profileUrl) card.appendChild(dlBtn);
 
       card.addEventListener('click', function () {
         toggleCreatorSelection(c.key);
@@ -2214,6 +2266,13 @@
       var cb = card.querySelector('input[type="checkbox"]');
       if (cb) cb.checked = isSel;
     });
+    if (selectAllButton) {
+      selectAllButton.disabled = busy || cards.length === 0;
+      syncSelectAllButton(cards.length > 0 && Array.prototype.every.call(cards, function (card) {
+        return selectedCreatorKeys.has(card.getAttribute('data-creator-key'));
+      }));
+    }
+    if (clearSelectionButton) clearSelectionButton.disabled = busy || selectedCreatorKeys.size === 0;
 
     if (selectionCount) {
       selectionCount.textContent = tf('feedAccountsSelected', '{count} comptes sélectionnés', { count: selectedCreatorKeys.size });
@@ -2259,13 +2318,8 @@
         if (res && res.ok) {
           completed++;
           var card = feedList.querySelector('.creator-card[data-creator-key="' + c.key + '"]');
-          if (card) {
-            var dlBtn = card.querySelector('.creator-card-btn.secondary');
-            if (dlBtn) {
-              dlBtn.className = 'creator-card-btn sent';
-              dlBtn.textContent = '✓ ' + t('feedSent', 'Envoyé');
-            }
-          }
+          var dlBtn = card && card.querySelector('.creator-send-btn');
+          if (dlBtn) setCreatorSendState(dlBtn, 'sent');
         } else {
           failed++;
         }
@@ -2286,12 +2340,23 @@
     });
   }
 
+  // The round "send to the app" button of an account row: icon + accessible name per state.
+  function setCreatorSendState(btn, state) {
+    btn.disabled = state === 'sending';
+    btn.classList.toggle('sent', state === 'sent');
+    btn.classList.toggle('is-error', state === 'error');
+    btn.innerHTML = SINGLE_BTN_ICONS[state === 'sent' ? 'done' : state === 'error' ? 'retry' : state === 'sending' ? 'pending' : 'download'];
+    var label = state === 'sending' ? t('feedSending', 'Envoi…')
+      : state === 'sent' ? t('feedSent', 'Envoyé')
+      : state === 'error' ? t('feedError', 'Erreur')
+      : t('feedSendAccount', 'Envoyer le compte');
+    btn.title = state === 'idle' ? t('feedSendAccountHint', 'TapLoad récupérera les vidéos du profil.') : label;
+    btn.setAttribute('aria-label', label);
+  }
+
   function sendCreatorToApp(c, btn) {
     if (!c || !c.profileUrl) return;
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = t('feedSending', 'Envoi…');
-    }
+    if (btn) setCreatorSendState(btn, 'sending');
     sendRuntimeMessage({
       type: 'DOWNLOAD_BTN_CLICK',
       url: c.profileUrl,
@@ -2300,20 +2365,17 @@
       thumbnailUrl: c.avatarUrl || null,
     }).then(function (res) {
       if (btn) {
-        btn.disabled = false;
         if (res && res.ok) {
-          btn.className = 'creator-card-btn sent';
-          btn.textContent = '✓ ' + t('feedSent', 'Envoyé');
+          setCreatorSendState(btn, 'sent');
           setStatus(tf('feedAccountSent', 'Compte @{name} envoyé à l’application.', { name: c.handle }), 'success');
         } else {
-          btn.textContent = t('feedError', 'Erreur');
+          setCreatorSendState(btn, 'error');
           setStatus(tf('feedAccountSendFailed', 'Échec de l’envoi du compte @{name}.', { name: c.handle }), 'error');
         }
       }
     }).catch(function () {
       if (btn) {
-        btn.disabled = false;
-        btn.textContent = t('feedError', 'Erreur');
+        setCreatorSendState(btn, 'error');
         setStatus(tf('feedAccountSendFailed', 'Échec de l’envoi du compte @{name}.', { name: c.handle }), 'error');
       }
     });
@@ -2423,7 +2485,7 @@
     },
     confirmWarning: confirmXWarning,
     t: t,
-    setStatus: setStatus,
+    setStatus: function (message, state) { setStatus(message, state); showToast(message); },
     delay: function (fn, ms) { setTimeout(fn, ms); },
     tabId: function () { return isHooked && typeof hookedTabId === 'number' ? hookedTabId : null; },
     queryTabs: function () {
@@ -2649,8 +2711,21 @@
     downloadSelectedButton.disabled = busy || count === 0;
     var dlSpan = downloadSelectedButton.querySelector('span');
     if (dlSpan) dlSpan.textContent = t('feedSendSelection', 'Envoyer la sélection');
-    selectAllButton.disabled = busy || filteredItems().length === 0;
+    var visible = filteredItems();
+    selectAllButton.disabled = busy || visible.length === 0;
     clearSelectionButton.disabled = busy || count === 0;
+    // "All" ignores downloaded videos: select-all skips them too.
+    syncSelectAllButton(count > 0 && visible.every(function (it) { return sel.has(it.id) || isItemDownloaded(it); }));
+    // The selection dock replaces the activity dock, and every card shows its circle.
+    document.body.dataset.hasSelection = String(count > 0);
+    feedList.classList.toggle('has-selection', count > 0);
+  }
+
+  function syncSelectAllButton(allSelected) {
+    var label = allSelected ? t('feedDeselectAll', 'Tout désélectionner') : t('selectAll', 'Tout sélectionner');
+    selectAllButton.setAttribute('aria-pressed', String(allSelected));
+    selectAllButton.setAttribute('aria-label', label);
+    selectAllButton.title = label;
   }
 
   function syncCardSelection() {
@@ -2674,7 +2749,7 @@
     if (btn) {
       btn.disabled = true;
       btn.classList.add('downloading');
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
+      btn.innerHTML = SINGLE_BTN_ICONS.pending;
       btn.dataset.mode = 'pending';
       btn.dataset.pendingAt = String(downloadsNow());
     }
@@ -2697,7 +2772,9 @@
     }).then(function (result) {
       if (result && result.ok) {
         setStatus(t('itemSent', 'Téléchargement envoyé à l’application…'), 'success');
+        showToast(t('itemSent', 'Téléchargement envoyé à l’application…'));
       } else {
+        showToast(t('itemSendFailed', 'Échec de l’envoi.'));
         if (btn) {
           setSingleBtnMode(btn, 'download', isItemDownloaded(item));
           btn.classList.add('error');
@@ -2720,6 +2797,7 @@
         if (errWrap) errWrap.style.display = 'none';
       }
       setStatus(t('itemSendFailed', 'Échec de l’envoi.'), 'error');
+      showToast(t('itemSendFailed', 'Échec de l’envoi.'));
     });
   }
 
@@ -2817,44 +2895,35 @@
       checkbox.dispatchEvent(new Event('change'));
     });
 
-    var isVertical = item.platform === 'tiktok' ||
-      (Number.isFinite(item.height) && Number.isFinite(item.width) && item.height > item.width * 1.1);
-
+    // Thumbnail (preview) with the duration chip; the selection circle sits on top of it.
+    var thumbWrap = document.createElement('div');
+    thumbWrap.className = 'card-thumb';
     var thumbnail = createThumbnail(item);
-    if (isVertical) thumbnail.classList.add('vertical-thumb');
+    var duration = formatDuration(item.durationSeconds);
+    if (duration) {
+      var durationChip = document.createElement('span');
+      durationChip.className = 'thumb-duration';
+      durationChip.textContent = duration;
+      thumbnail.appendChild(durationChip);
+    }
+    thumbWrap.appendChild(thumbnail);
+    thumbWrap.appendChild(checkbox);
 
     var body = document.createElement('div');
     body.className = 'card-body';
 
-    // Author row with optional avatar, active badge and creator actions
-    var authorRow = document.createElement('div');
-    authorRow.className = 'card-author-row';
-    if (item.avatarUrl && isSafeHttpUrl(item.avatarUrl)) {
-      var avatar = document.createElement('img');
-      avatar.className = 'card-author-avatar';
-      avatar.src = item.avatarUrl;
-      avatar.alt = item.author;
-      authorRow.appendChild(avatar);
-    }
-    var author = document.createElement('div');
-    author.className = 'card-author';
-    author.textContent = item.author;
-    authorRow.appendChild(author);
-
-    if (item.isActive) {
-      var activeBadge = document.createElement('span');
-      activeBadge.className = 'active-indicator-badge';
-      activeBadge.textContent = t('feedNowPlaying', 'En lecture');
-      authorRow.appendChild(activeBadge);
-    }
-
+    // Like / bookmark / account, shown on hover, keyboard focus and when the card is selected.
+    var hoverActions = document.createElement('div');
+    hoverActions.className = 'card-actions';
+    var xItem = xui.isXItem(item);
+    if (xItem) hoverActions.appendChild(createXControls(item));
     if (item.author) {
       var creatorBtn = document.createElement('button');
       creatorBtn.type = 'button';
       creatorBtn.className = 'card-creator-btn';
-      creatorBtn.title = t('feedAccounts', 'Comptes') + ': ' + item.author;
-      creatorBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span></span>';
-      creatorBtn.querySelector('span').textContent = t('feedAccounts', 'Comptes');
+      creatorBtn.title = tf('cardShowAccount', 'Voir {name} dans Comptes', { name: item.author });
+      creatorBtn.setAttribute('aria-label', creatorBtn.title);
+      creatorBtn.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M4.8 20c.9-3.6 3.8-5.4 7.2-5.4s6.3 1.8 7.2 5.4"></path></svg>';
       creatorBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         setViewMode('creators');
@@ -2863,10 +2932,8 @@
         });
         if (cardForCreator) cardForCreator.scrollIntoView({ block: 'center' });
       });
-      authorRow.appendChild(creatorBtn);
+      hoverActions.appendChild(creatorBtn);
     }
-    var xItem = xui.isXItem(item);
-    if (xItem) authorRow.appendChild(createXControls(item));
 
     var title = document.createElement('div');
     title.className = 'card-title clickable-media-title';
@@ -2887,52 +2954,47 @@
       }
     });
 
+    // "X · @handle · En lecture" + small liked / bookmarked marks
     var metadata = document.createElement('div');
     metadata.className = 'card-meta';
-    [formatDuration(item.durationSeconds), formatResolution(item), formatSize(item)]
-      .forEach(function (value) {
-        if (!value) return;
-        var detail = document.createElement('span');
-        detail.className = 'meta-chip';
-        detail.textContent = value;
-        metadata.appendChild(detail);
-      });
-
-    var platform = itemPlatform(item);
-    var platformBadge = document.createElement('span');
-    platformBadge.className = 'card-platform-pill platform-' + platform;
-    platformBadge.textContent = platform.toUpperCase();
-    metadata.appendChild(platformBadge);
+    var metaText = document.createElement('span');
+    metaText.className = 'card-meta-text';
+    metaText.textContent = [platformLabel(itemPlatform(item)), item.author].filter(Boolean).join(' · ');
+    metadata.appendChild(metaText);
+    if (item.isActive) {
+      var activeBadge = document.createElement('span');
+      activeBadge.className = 'active-indicator-badge';
+      activeBadge.textContent = '· ' + t('feedNowPlaying', 'En lecture');
+      metadata.appendChild(activeBadge);
+    }
     if (xItem) {
       metadata.appendChild(createXStateChip('like'));
       metadata.appendChild(createXStateChip('bookmark'));
     }
 
+    // Detail line: resolution · size (or the sound), replaced by the download state when there is one.
+    var stateLine = document.createElement('div');
+    stateLine.className = 'card-dl-state';
+    stateLine.hidden = true;
+    var detail = document.createElement('div');
+    detail.className = 'card-detail';
+    var details = [formatResolution(item), formatSize(item)].filter(Boolean);
+    if (!details.length && item.music) details.push('♪ ' + item.music);
     if (downloaded) {
-      var dlBadge = document.createElement('span');
-      dlBadge.className = 'meta-chip downloaded-chip';
-      dlBadge.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="20 6 9 17 4 12"></polyline></svg>' + t('downloaded', 'Téléchargé').toUpperCase();
-      metadata.appendChild(dlBadge);
+      var doneLabel = document.createElement('span');
+      doneLabel.className = 'card-done-label';
+      doneLabel.textContent = t('downloaded', 'Téléchargé');
+      detail.appendChild(doneLabel);
+      if (details.length) details.unshift('');
     }
+    detail.appendChild(document.createTextNode(details.join(' · ')));
 
-    body.appendChild(authorRow);
     body.appendChild(title);
-
-    if (item.music) {
-      var musicRow = document.createElement('div');
-      musicRow.className = 'card-music';
-      var musicIcon = document.createElement('span');
-      musicIcon.textContent = '♪ ';
-      musicRow.appendChild(musicIcon);
-      var musicText = document.createElement('span');
-      musicText.textContent = item.music;
-      musicRow.appendChild(musicText);
-      body.appendChild(musicRow);
-    }
-
     body.appendChild(metadata);
+    body.appendChild(stateLine);
+    body.appendChild(detail);
 
-    // Live progress bar
+    // Live progress line along the bottom edge of the card
     var progressWrap = document.createElement('div');
     progressWrap.className = 'card-progress-bar-wrap';
     progressWrap.style.display = 'none';
@@ -2940,11 +3002,6 @@
     progressFill.className = 'card-progress-bar-fill';
     progressFill.style.width = '0%';
     progressWrap.appendChild(progressFill);
-    body.appendChild(progressWrap);
-    var stateLine = document.createElement('div');
-    stateLine.className = 'card-dl-state';
-    stateLine.hidden = true;
-    body.appendChild(stateLine);
 
     // Individual action column ("1 par 1")
     var actionCol = document.createElement('div');
@@ -2969,10 +3026,11 @@
     });
     actionCol.appendChild(singleBtn);
 
-    card.appendChild(checkbox);
-    card.appendChild(thumbnail);
+    card.appendChild(thumbWrap);
     card.appendChild(body);
     card.appendChild(actionCol);
+    if (hoverActions.firstChild) card.appendChild(hoverActions);
+    card.appendChild(progressWrap);
     if (xItem) syncXControls(card, item, xui.xTabKnown());
     applyCardDownloadState(card, item);
     return card;
@@ -3063,9 +3121,9 @@
 
   function syncOrderButton() {
     if (!orderButton) return;
-    orderButton.textContent = feedOrder === 'recent'
-      ? t('feedOrderRecent', 'Récentes')
-      : t('feedOrderFlux', 'Flux');
+    orderButton.querySelector('.order-label').textContent = feedOrder === 'recent'
+      ? t('feedOrderRecent', 'Plus récentes')
+      : t('feedOrderFlux', 'Ordre du flux');
     orderButton.setAttribute('aria-pressed', String(feedOrder === 'recent'));
   }
 
@@ -3490,14 +3548,17 @@
 
   analyzeButton.addEventListener('click', analyzeLoadedFeed);
   openXButton.addEventListener('click', openXPage);
+  // One circle: selects everything shown, or clears when everything already is.
   selectAllButton.addEventListener('click', function () {
     if (busy) return;
+    var allSelected = selectAllButton.getAttribute('aria-pressed') === 'true';
     if (currentViewMode === 'creators') {
-      var creators = getDetectedCreators();
-      creators.forEach(function (c) {
-        selectedCreatorKeys.add(c.key);
-      });
+      if (allSelected) selectedCreatorKeys.clear();
+      else getDetectedCreators().forEach(function (c) { selectedCreatorKeys.add(c.key); });
       syncCreatorsSelection();
+    } else if (allSelected) {
+      sel.clear();
+      syncCardSelection();
     } else {
       selectFirstDisplayed(filteredItems().length);
     }
@@ -3622,6 +3683,29 @@
 
   if (api.runtime && api.runtime.onMessage) {
     api.runtime.onMessage.addListener(handleLiveFeedUpdate);
+  }
+
+  // Settings popover: page actions, extra filters, display options. Closes on Escape,
+  // on a click outside and after a one-shot action.
+  var panelMenuBtn = document.getElementById('panel-menu-btn');
+  var panelMenu = document.getElementById('panel-menu');
+  function setPanelMenu(open) {
+    panelMenu.hidden = !open;
+    panelMenuBtn.setAttribute('aria-expanded', String(open));
+  }
+  if (panelMenuBtn && panelMenu) {
+    panelMenuBtn.addEventListener('click', function () { setPanelMenu(panelMenu.hidden); });
+    panelMenu.addEventListener('click', function (e) {
+      if (e.target.closest('.menu-item')) setPanelMenu(false);
+    });
+    document.addEventListener('pointerdown', function (e) {
+      if (!panelMenu.hidden && !panelMenu.contains(e.target) && !panelMenuBtn.contains(e.target)) setPanelMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || panelMenu.hidden) return;
+      setPanelMenu(false);
+      panelMenuBtn.focus();
+    });
   }
 
   document.querySelectorAll('.platform-pill').forEach(function (pill) {

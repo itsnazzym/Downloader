@@ -399,10 +399,10 @@
         "message": "عرض المزيد"
     },
     "feedOrderFlux": {
-        "message": "الخلاصة"
+        "message": "ترتيب الخلاصة"
     },
     "feedOrderRecent": {
-        "message": "الأحدث"
+        "message": "الأحدث أولاً"
     },
     "feedNewVideos": {
         "message": "{count} فيديوهات جديدة"
@@ -883,5 +883,20 @@
     },
     "xWarnContinue": {
         "message": "متابعة"
+    },
+    "panelMenu": {
+        "message": "الإعدادات"
+    },
+    "menuFilters": {
+        "message": "عوامل التصفية"
+    },
+    "feedDeselectAll": {
+        "message": "إلغاء تحديد الكل"
+    },
+    "feedOrderTitle": {
+        "message": "تغيير ترتيب العرض"
+    },
+    "cardShowAccount": {
+        "message": "عرض {name} في الحسابات"
     }
 }

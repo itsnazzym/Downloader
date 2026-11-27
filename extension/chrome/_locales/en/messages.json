@@ -399,10 +399,10 @@
         "message": "Show more"
     },
     "feedOrderFlux": {
-        "message": "Feed"
+        "message": "Feed order"
     },
     "feedOrderRecent": {
-        "message": "Newest"
+        "message": "Newest first"
     },
     "feedNewVideos": {
         "message": "{count} new videos"
@@ -985,5 +985,20 @@
     },
     "xWarnContinue": {
         "message": "Continue"
+    },
+    "panelMenu": {
+        "message": "Settings"
+    },
+    "menuFilters": {
+        "message": "Filters"
+    },
+    "feedDeselectAll": {
+        "message": "Deselect all"
+    },
+    "feedOrderTitle": {
+        "message": "Change the display order"
+    },
+    "cardShowAccount": {
+        "message": "Show {name} in Accounts"
     }
 }
