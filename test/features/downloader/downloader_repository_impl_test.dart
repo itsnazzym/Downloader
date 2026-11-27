@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:modern_downloader/core/plugins/plugin_manager.dart';
@@ -17,6 +18,7 @@ import 'package:modern_downloader/features/downloader/domain/entities/download_i
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/core/download/metadata_probe_limiter.dart';
+import 'package:modern_downloader/core/download/site_backoff.dart';
 import 'package:modern_downloader/features/downloader/domain/exceptions/yt_dlp_exception.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -142,6 +144,33 @@ class _FakeYtDlp extends YtDlpSource {
   Future<void> cancel(String id) async => cancelled.add(id);
 }
 
+/// TikTok refuses the first [refusals] downloads, then serves the video.
+class _FlakyTikTok extends _FakeYtDlp {
+  _FlakyTikTok(this.refusals);
+
+  int refusals;
+
+  @override
+  Stream<DownloadProgressEvent> download(
+    String id,
+    DownloadRequest request,
+  ) async* {
+    if (refusals > 0) {
+      refusals--;
+      downloadCalls++;
+      throw TikTokRefusedException(status: 10231);
+    }
+    yield* super.download(id, request);
+  }
+}
+
+class _NoSpread implements Random {
+  @override
+  double nextDouble() => 0;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// Streams progress lines faster than the save debounce, like real yt-dlp.
 class _SteadyYtDlp extends _FakeYtDlp {
   @override
@@ -205,6 +234,7 @@ void main() {
     Future<void> Function()? networkPreflight,
     FallbackMediaResolver? fallbackResolver,
     LibraryScannerService? scanner,
+    Future<void> Function(Duration)? sleep,
   }) {
     return DownloaderRepositoryImpl(
       source,
@@ -215,6 +245,8 @@ void main() {
       () => tmp.path,
       networkPreflight: networkPreflight,
       fallbackResolver: fallbackResolver,
+      siteBackoff: SiteBackoff(random: _NoSpread()),
+      sleep: sleep ?? (_) async {},
       mediaFingerprintService: MediaFingerprintService(persistence),
       waitForLibraryScan: () async {
         if (!loaded.isCompleted) loaded.complete();
@@ -645,5 +677,80 @@ void main() {
     final order = repo.getCurrentDownloads().toList()
       ..sort((x, y) => x.sortOrder.compareTo(y.sortOrder));
     expect(order.map((e) => e.id), ['b', 'a', 'c']);
+  });
+
+  test('a TikTok refusal is retried after a growing wait, then succeeds', () async {
+    final source = _FlakyTikTok(3);
+    final waits = <Duration>[];
+    final repo = buildRepo(source, sleep: (d) async => waits.add(d));
+    await loaded.future.timeout(const Duration(seconds: 3));
+
+    final done = Completer<DownloadItem>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.completed && !done.isCompleted) {
+        done.complete(item);
+      }
+    });
+    await repo.startDownload(
+      const DownloadRequest(
+        url: 'https://www.tiktokv.com/share/video/7666139547880770848/',
+      ),
+    );
+
+    final item = await done.future.timeout(const Duration(seconds: 5));
+    expect(item.status, DownloadStatus.completed);
+    expect(source.downloadCalls, 4);
+    // Retry delays 5 s, 20 s, 80 s; the site pause never waits longer.
+    expect(waits.map((d) => d.inSeconds), [5, 20, 80]);
+  });
+
+  test('each job reads its own copy of the shared cookies file', () async {
+    final shared = File('${tmp.path}/heartbeat_cookies_example.txt')
+      ..writeAsStringSync('# Netscape HTTP Cookie File\n');
+    final source = _FakeYtDlp();
+    final seen = <String?>[];
+    final repo = buildRepo(source);
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final done = Completer<void>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.completed && !done.isCompleted) {
+        seen.add(source.lastRequest?.cookiesFilePath);
+        done.complete();
+      }
+    });
+
+    await repo.startDownload(
+      DownloadRequest(
+        url: 'https://www.example.org/v/1',
+        cookiesFilePath: shared.path,
+      ),
+    );
+    await done.future.timeout(const Duration(seconds: 5));
+
+    expect(seen.single, isNot(shared.path));
+    expect(seen.single, contains('md_cookies_'));
+    expect(shared.existsSync(), isTrue);
+  });
+
+  test('a cookies file gone since queueing is dropped, not passed on', () async {
+    final source = _FakeYtDlp();
+    final repo = buildRepo(source);
+    await loaded.future.timeout(const Duration(seconds: 3));
+    final done = Completer<void>();
+    repo.downloadUpdateStream.listen((item) {
+      if (item.status == DownloadStatus.completed && !done.isCompleted) {
+        done.complete();
+      }
+    });
+
+    await repo.startDownload(
+      DownloadRequest(
+        url: 'https://www.example.org/v/2',
+        cookiesFilePath: '${tmp.path}/gone_cookies.txt',
+      ),
+    );
+    await done.future.timeout(const Duration(seconds: 5));
+
+    expect(source.lastRequest?.cookiesFilePath, isNull);
   });
 }

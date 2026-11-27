@@ -14,7 +14,7 @@ class YtDlpException implements Exception {
   static YtDlpException? fromLog(String data) {
     final errorLines = _errorLines(data);
     if (errorLines.isEmpty) return null;
-    final check = errorLines.toLowerCase();
+    final check = withoutMediaIds(errorLines.toLowerCase());
     if (check.contains('http error 429') ||
         check.contains('too many requests') ||
         check.contains('captcha') ||
@@ -26,13 +26,22 @@ class YtDlpException implements Exception {
     if (check.contains('video unavailable')) {
       return VideoUnavailableException(log: data);
     }
+    final tikTokStatus = RegExp(
+      r'\[tiktok\].*video not available, status code (-?\d+)',
+    ).firstMatch(check);
+    if (tikTokStatus != null) {
+      return TikTokRefusedException(
+        status: int.parse(tikTokStatus.group(1)!),
+        log: data,
+      );
+    }
     if (check.contains('private video') ||
         check.contains('this video is private') ||
         check.contains('your ip address is blocked from accessing this post') ||
         check.contains('status_self_see') ||
         check.contains('item_privacy_authorization') ||
         check.contains('item_privacy_auth') ||
-        check.contains('10204')) {
+        RegExp(r'\b10204\b').hasMatch(check)) {
       return PrivateVideoException(log: data);
     }
     if (check.contains('geo-restricted')) {
@@ -67,6 +76,10 @@ class YtDlpException implements Exception {
         (check.contains('offline') || check.contains('not currently'))) {
       return LiveStreamOfflineException(log: data);
     }
+    // TikTok photo slideshows have images and music but no video format.
+    if (RegExp(r'\[tiktok\][^\n]*no video formats found').hasMatch(check)) {
+      return TikTokPhotoPostException(log: data);
+    }
     if (check.contains('no video formats found') ||
         check.contains('no formats found') ||
         check.contains('unable to extract video data') ||
@@ -90,6 +103,11 @@ class YtDlpException implements Exception {
     }
     return null;
   }
+
+  /// [text] with long digit runs (tweet and TikTok IDs) masked, so a status
+  /// such as 10204 is never matched inside an ID.
+  static String withoutMediaIds(String text) =>
+      text.replaceAll(RegExp(r'\d{12,}'), '<id>');
 
   static String _errorLines(String data) {
     final buffer = StringBuffer();
@@ -116,6 +134,30 @@ class PrivateVideoException extends YtDlpException {
   PrivateVideoException({String? log})
     : super(
         'Vidéo privée ou retirée par l\'auteur (TikTok status_self_see / 10204)',
+        originalLog: log,
+      );
+}
+
+/// TikTok's page carried an error status instead of the post. The same code
+/// (10231, 0...) comes back for a deleted, private or region-locked post and
+/// while TikTok throttles a burst of requests, so it is retried with backoff.
+class TikTokRefusedException extends YtDlpException {
+  TikTokRefusedException({required this.status, String? log})
+    : super(
+        'TikTok refuse cette vidéo (code $status) : supprimée, privée, '
+        'bloquée dans ta région, ou trop de demandes à la fois. '
+        'Réessaie plus tard.',
+        originalLog: log,
+      );
+
+  final int status;
+}
+
+class TikTokPhotoPostException extends YtDlpException {
+  TikTokPhotoPostException({String? log})
+    : super(
+        'Publication photo TikTok (diaporama) : il n\'y a pas de vidéo à '
+        'télécharger.',
         originalLog: log,
       );
 }

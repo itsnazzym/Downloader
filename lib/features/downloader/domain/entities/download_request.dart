@@ -76,6 +76,7 @@ class DownloadRequest {
     bool? twitchDownloadChat,
     String? twitchQuality,
     String? cookiesFilePath,
+    bool clearCookiesFilePath = false,
     bool? useTorProxy,
     int? concurrentFragments,
     bool? maxSpeedMode,
@@ -103,7 +104,9 @@ class DownloadRequest {
           twitterIncludeReplies ?? this.twitterIncludeReplies,
       twitchDownloadChat: twitchDownloadChat ?? this.twitchDownloadChat,
       twitchQuality: twitchQuality ?? this.twitchQuality,
-      cookiesFilePath: cookiesFilePath ?? this.cookiesFilePath,
+      cookiesFilePath: clearCookiesFilePath
+          ? null
+          : (cookiesFilePath ?? this.cookiesFilePath),
       useTorProxy: useTorProxy ?? this.useTorProxy,
       concurrentFragments: concurrentFragments ?? this.concurrentFragments,
       maxSpeedMode: maxSpeedMode ?? this.maxSpeedMode,

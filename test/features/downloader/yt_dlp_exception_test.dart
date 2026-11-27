@@ -57,4 +57,48 @@ void main() {
       );
     });
   });
+
+  group('TikTok refusals', () {
+    // The exact log of the 49 failed archive downloads (2026-11).
+    const log =
+        'WARNING: [TikTok] 7670635041910754573: Failed to parse JSON (caused '
+        'by JSONDecodeError("Expecting value in \'\': line 1 column 1 (char '
+        '0)")); trying with webpage\n'
+        'ERROR: [TikTok] 7670635041910754573: Video not available, status '
+        'code 10231; please report this issue on  https://github.com/yt-dlp/'
+        'yt-dlp/issues?q= , filling out the appropriate issue template.';
+
+    test('"Video not available, status code N" is a TikTok refusal', () {
+      final error = YtDlpException.fromLog(log);
+      expect(error, isA<TikTokRefusedException>());
+      expect(error!.message, contains('10231'));
+      expect(
+        YtDlpException.fromLog(
+          'ERROR: [TikTok] 7589106706517478678: Video not available, status '
+          'code 0',
+        ),
+        isA<TikTokRefusedException>(),
+      );
+    });
+
+    test('a TikTok post without video formats is a photo post', () {
+      final error = YtDlpException.fromLog(
+        'ERROR: [TikTok] 7235285015339257089: No video formats found!; '
+        'please report this issue',
+      );
+      expect(error, isA<TikTokPhotoPostException>());
+      expect(
+        YtDlpException.fromLog('ERROR: [generic] x: No video formats found!'),
+        isA<NoVideoFormatsException>(),
+      );
+    });
+
+    test('a video ID that contains 10204 is not a private post', () {
+      final error = YtDlpException.fromLog(
+        'ERROR: [TikTok] 7310204998877665544: Unable to download webpage: '
+        'HTTP Error 500',
+      );
+      expect(error, isNot(isA<PrivateVideoException>()));
+    });
+  });
 }

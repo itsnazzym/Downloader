@@ -529,11 +529,8 @@ class YtDlpSource {
             'best[format_note!*=watermark][height<=$height][ext=mp4]/best[format_note!*=watermark][height<=$height]/bestvideo[format_note!*=watermark][height<=$height]+bestaudio/best',
           );
         }
-        // Force TikTok mobile API extractor args for clean streams
-        args.addAll([
-          '--extractor-args',
-          'tiktok:api_hostname=api16-normal-c-useast1a.tiktokv.com;app_info=7355',
-        ]);
+        // No `tiktok:app_info` extractor args: the app API answers empty, so
+        // it only added a failed request per video before the web page.
       } else if (request.preferredQuality == 'best' ||
           request.preferredQuality == 'manual' ||
           request.preferredQuality == 'manual+') {
