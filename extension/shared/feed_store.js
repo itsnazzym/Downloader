@@ -32,7 +32,9 @@
     };
   }
 
-  function create() {
+  // maxItems (optional): past it, the earliest detected items are dropped down to 90% of it,
+  // so a page scrolled for hours cannot grow the store without bound.
+  function create(maxItems) {
     var order = []; // ids in display order
     var byId = Object.create(null);
     var seq = 0;
@@ -84,7 +86,17 @@
         }
         prev = item.id;
       });
+      if (maxItems && order.length > maxItems) evictOldest(order.length - Math.floor(maxItems * 0.9));
       return { added: added, changed: changed };
+    }
+
+    function evictOldest(count) {
+      var gone = Object.create(null);
+      order.map(function (id) { return byId[id]; })
+        .sort(function (a, b) { return a.seq - b.seq; })
+        .slice(0, count)
+        .forEach(function (item) { gone[item.id] = true; delete byId[item.id]; });
+      order = order.filter(function (id) { return !gone[id]; });
     }
 
     function list(kind) {

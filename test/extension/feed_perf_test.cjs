@@ -108,3 +108,13 @@ test('selecting a range of 5000 ids, dragging across them and pruning stays unde
   }, 'range + drag + prune');
   assert.equal(sel.size(), 2500);
 });
+
+test('a capped store absorbs 15000 items in batches of 50 under 500 ms and stays at the cap', () => {
+  const s = MDFeedStore.create(10000);
+  within(500, () => {
+    for (let i = 0; i < 15000; i += 50) s.merge(range(i, i + 50), 'dom');
+  }, '15000 items into a 10000 cap');
+  assert.ok(s.size() <= 10000 && s.size() > 9000, 'size ' + s.size());
+  assert.equal(s.get('id14999').id, 'id14999');
+  assert.equal(s.get('id0'), undefined);
+});

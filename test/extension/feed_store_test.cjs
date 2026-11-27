@@ -216,3 +216,22 @@ test('countNewSince counts only the items of the given (filtered) list that arri
   // synthetic items (sniffed streams) have no seq and never count
   assert.equal(lib.countNewSince([{ id: 's1' }, { id: 's2' }], 0), 0);
 });
+
+test('a capped store drops the earliest detected items and keeps order and seq intact', () => {
+  const s = load().create(100);
+  for (let i = 0; i < 100; i += 10) s.merge(Array.from({ length: 10 }, (_, j) => it('id' + (i + j))), 'dom');
+  assert.equal(s.size(), 100);
+  s.merge([it('late1'), it('late2')], 'dom');
+  // over the cap: back down to 90 items, the 12 earliest detections are gone
+  assert.equal(s.size(), 90);
+  assert.equal(s.get('id0'), undefined);
+  assert.equal(s.get('id11'), undefined);
+  assert.ok(s.get('id12') && s.get('late2'));
+  assert.deepEqual(ids(s).slice(-3), ['id99', 'late1', 'late2']);
+  assert.equal(s.lastSeq(), 102);
+  assert.equal(s.newSince(100), 2);
+  // an uncapped store never evicts
+  const u = load().create();
+  u.merge(Array.from({ length: 300 }, (_, i) => it('u' + i)), 'dom');
+  assert.equal(u.size(), 300);
+});

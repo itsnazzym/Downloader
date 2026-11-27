@@ -58,7 +58,10 @@
         'downloadedKeys',
       ],
       function (items) {
-        if (api.runtime.lastError) return;
+        if (api.runtime.lastError) {
+          console.debug('TapLoad: settings not loaded: ' + (api.runtime.lastError.message || 'unknown'));
+          return;
+        }
         if (typeof items.showQualitySelector === 'boolean') {
           SETTINGS.showQualitySelector = items.showQualitySelector;
         }
@@ -816,7 +819,8 @@
         if (userMatch) {
           author = '@' + userMatch[1];
         } else {
-          var pageUserMatch = window.location.pathname.match(/@([a-zA-Z0-9_.-]+)/);
+          // Only a profile root or a single video page names the author; a collection or another list mixes accounts.
+          var pageUserMatch = window.location.pathname.match(/^\/@([a-zA-Z0-9_.-]+)(?:\/(?:video|photo)\/\d+)?\/?$/);
           if (pageUserMatch) {
             author = '@' + pageUserMatch[1];
             if (canonical.indexOf('/@') === -1 && matchId) {

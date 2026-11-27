@@ -20,7 +20,7 @@ test('content script messages to the background never leave a rejected promise b
   assert.match(content, /p2\.catch\(function \(\) \{\}\)/);
 });
 
-test('every promise chain started in the background connection has a catch', () => {
+test('the HELLO_OK cookie-preference and PROGRESS storage chains have a catch', () => {
   assert.match(connection, /api\.storage\.local\.set\(\{ recentDownloads: recents \}\);\s*\}\)\.catch\(/);
   assert.match(connection, /setTimeout\(sendCurrentTabCookies, 2000\);\s*\}\s*\}\)\.catch\(/);
 });
@@ -32,4 +32,17 @@ test('closing or replacing a socket releases the callers waiting on it', () => {
 
 test('the panel keeps at most 50 sniffed streams, like the background', () => {
   assert.match(panel, /sniffedStreams\.push\(message\.stream\);\s*if \(sniffedStreams\.length > 50\) sniffedStreams\.shift\(\);/);
+});
+
+test('the panel store is capped at MAX_ITEMS', () => {
+  assert.match(panel, /MDFeedStore\.create\(MAX_ITEMS\)/);
+});
+
+test('a TikTok video without its own handle is attributed to the page owner only on a profile or video page', () => {
+  assert.match(content, /var pageUserMatch = window\.location\.pathname\.match\(\/\^\\\/@\(\[a-zA-Z0-9_\.-\]\+\)\(\?:\\\/\(\?:video\|photo\)\\\/\\d\+\)\?\\\/\?\$\/\);/);
+  const re = /^\/@([a-zA-Z0-9_.-]+)(?:\/(?:video|photo)\/\d+)?\/?$/;
+  assert.equal(re.exec('/@owner')[1], 'owner');
+  assert.equal(re.exec('/@owner/video/7123456789')[1], 'owner');
+  assert.equal(re.exec('/@owner/collection/mix-7123456789'), null);
+  assert.equal(re.exec('/foryou'), null);
 });

@@ -6,7 +6,7 @@
     : (typeof browser !== 'undefined' ? browser : chrome);
   if (typeof MD_THEME !== 'undefined') MD_THEME.init(api);
   var MAX_ITEMS = 10000;
-  var store = MDFeedStore.create();
+  var store = MDFeedStore.create(MAX_ITEMS);
   var feedOrder = 'flux'; // 'flux' = page order, 'recent' = newest detected first
   var lastSeenSeq = 0;
   var sel = MDSelection.create();
@@ -405,6 +405,12 @@
     } catch (e) {
       return null;
     }
+  }
+
+  // Reads (so Chrome does not warn) and logs: a tab without our content script is normal, but the cause stays visible.
+  function noteLastError(where) {
+    var err = api.runtime && api.runtime.lastError;
+    if (err) console.debug('TapLoad: ' + where + ' failed: ' + (err.message || err));
   }
 
   function sendRuntimeMessage(message) {
@@ -1108,7 +1114,7 @@
     getTargetTab(function (tab) {
       if (tab && tab.id && api.tabs && api.tabs.sendMessage) {
         var p = api.tabs.sendMessage(tab.id, { type: 'MD_CLEAR_CACHE' }, function () {
-          var _ = api.runtime && api.runtime.lastError;
+          noteLastError('tab message');
         });
         if (p && typeof p.catch === 'function') p.catch(function () {});
       }
@@ -1228,7 +1234,7 @@
             type: 'MD_DEEP_SCAN_PULSE',
             maxTarget: MAX_ITEMS,
           }, function () {
-            var _ = api.runtime && api.runtime.lastError;
+            noteLastError('tab message');
           });
           if (p && typeof p.catch === 'function') p.catch(function () {});
         }
@@ -1251,7 +1257,7 @@
     getTargetTab(function (tab) {
       if (tab && tab.id && api.tabs && api.tabs.sendMessage) {
         var p = api.tabs.sendMessage(tab.id, { type: 'MD_STOP_DEEP_SCAN' }, function () {
-          var _ = api.runtime && api.runtime.lastError;
+          noteLastError('tab message');
         });
         if (p && typeof p.catch === 'function') p.catch(function () {});
       }
