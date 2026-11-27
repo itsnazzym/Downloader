@@ -49,7 +49,8 @@ class PairingExpired extends PairingOutcome {
   const PairingExpired();
 }
 
-enum PairingRefusal { paused, blocked, rateLimited, busy }
+/// [full]: 20 browsers are already paired, so approving could only fail.
+enum PairingRefusal { paused, blocked, rateLimited, busy, full }
 
 /// Either a [request] with its [outcome], or a [refusal] (with [retryAfter]
 /// for paused / rateLimited).
@@ -124,6 +125,8 @@ class PairingCoordinator extends StateNotifier<PairingRequest?> {
         outcome: pending.completer.future,
       );
     }
+    // Never ask the user to approve a pairing the store cannot keep.
+    if (_store.isFull) return const PairingSubmit(refusal: PairingRefusal.full);
     final now = _clock();
     final retry = _rateLimitedFor(o, now);
     if (retry != null) {

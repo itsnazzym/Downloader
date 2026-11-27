@@ -300,10 +300,10 @@ void main() {
     });
 
     test('store full: outcome denied, false, state cleared', () async {
+      final s = submit(); // the store fills while the user decides
       for (var i = 0; i < 20; i++) {
         await store.pair(origin: 'chrome-extension://full$i', label: 'x');
       }
-      final s = submit();
 
       expect(await coordinator.approve(s.request!.id), isFalse);
       expect(
@@ -312,8 +312,41 @@ void main() {
       );
       expect(coordinator.state, isNull);
       expect(store.state.browsers, hasLength(20));
-      // Not stuck busy: another origin can be asked right away.
-      expect(submit(_other).request, isNotNull);
+      // Not stuck busy: another origin is answered right away (full, not busy).
+      expect(submit(_other).refusal, PairingRefusal.full);
+    });
+  });
+
+  group('full store', () {
+    test('submit is refused as full before any request or rate slot', () async {
+      for (var i = 0; i < 20; i++) {
+        await store.pair(origin: 'chrome-extension://full$i', label: 'x');
+      }
+      for (var i = 0; i < 5; i++) {
+        final s = submit();
+        expect(s.refusal, PairingRefusal.full);
+        expect(s.request, isNull);
+        expect(s.outcome, isNull);
+      }
+      expect(coordinator.state, isNull);
+      expect(timers, isEmpty);
+
+      // The refusals cost no slot: once a pairing is revoked (and its origin's
+      // pause is over) the origin gets its 3 requests.
+      await store.revoke(store.state.browsers.first.id);
+      now = now.add(const Duration(minutes: 10));
+      for (var i = 0; i < 3; i++) {
+        expect(submit().request, isNotNull, reason: 'submission ${i + 1}');
+        timers.last.fire();
+      }
+    });
+
+    test('a pending request is still adopted when the store fills', () async {
+      final first = submit();
+      for (var i = 0; i < 20; i++) {
+        await store.pair(origin: 'chrome-extension://full$i', label: 'x');
+      }
+      expect(submit().request?.id, first.request!.id);
     });
   });
 

@@ -419,11 +419,13 @@ void main() {
 
     test('21st pairing throws PairedBrowsersFull and stores nothing', () async {
       for (var i = 0; i < 20; i++) {
+        expect(store.isFull, isFalse);
         await store.pair(
           origin: 'chrome-extension://abcdefghijklmnop$i',
           label: '$i',
         );
       }
+      expect(store.isFull, isTrue);
       final writesBefore = prefs.writes;
       final storedBefore = prefs.getString(_key);
       await expectLater(
@@ -435,6 +437,7 @@ void main() {
       expect(prefs.getString(_key), storedBefore);
       // Revoking frees a slot.
       await store.revoke(store.state.browsers.first.id);
+      expect(store.isFull, isFalse);
       await store.pair(origin: _origin, label: 'x');
       expect(store.state.browsers, hasLength(20));
     });

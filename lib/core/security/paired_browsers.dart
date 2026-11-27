@@ -160,6 +160,9 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
   /// close its sockets.
   Stream<PairedBrowser> get revoked => _revoked.stream;
 
+  /// True when [pair] would throw [PairedBrowsersFull] (20 pairings).
+  bool get isFull => state.browsers.length >= _maxBrowsers;
+
   static String hashToken(String token) =>
       sha256.convert(utf8.encode(token)).toString();
 
@@ -175,7 +178,7 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
   }) async {
     final cleanOrigin = _cleanOrigin(origin);
     if (cleanOrigin.isEmpty) throw ArgumentError.value(origin, 'origin');
-    if (state.browsers.length >= _maxBrowsers) throw const PairedBrowsersFull();
+    if (isFull) throw const PairedBrowsersFull();
     final token = base64Url.encode(_bytes(32)).replaceAll('=', '');
     final browser = PairedBrowser(
       id: _hex(_bytes(8)),
