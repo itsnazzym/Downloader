@@ -187,6 +187,7 @@
   var creatorScanAction = document.getElementById('creator-scan-action');
   var creatorFilterAction = document.getElementById('creator-filter-action');
   var currentCreatorHandle = '';
+  var currentCreatorPlatform = '';
   var isDeepScanning = false;
   var deepScanPulseTimer = null;
 
@@ -784,14 +785,22 @@
   if (deepScanBtn) deepScanBtn.addEventListener('click', startDeepScan);
   if (deepScanStopBtn) deepScanStopBtn.addEventListener('click', stopDeepScan);
 
-  function openCreatorModal(authorHandle) {
+  function openCreatorModal(authorHandle, platform) {
     if (!authorHandle || !creatorModal) return;
     var clean = String(authorHandle).replace(/^@/, '').trim();
     if (!clean || clean.toLowerCase() === 'utilisateur' || clean.toLowerCase() === 'créateur tiktok') return;
     currentCreatorHandle = clean;
+    currentCreatorPlatform = platform || '';
     if (creatorDialogHandle) {
       creatorDialogHandle.textContent = '@' + currentCreatorHandle;
     }
+    var hasProfile = !!MDProfile.profileUrl(currentCreatorPlatform, currentCreatorHandle);
+    [creatorAppDownloadAction, creatorScanAction].forEach(function (btn) {
+      if (!btn) return;
+      btn.disabled = !hasProfile;
+      if (hasProfile) btn.removeAttribute('title');
+      else btn.title = t('profileUnavailable', 'Profil indisponible sur cette plateforme');
+    });
     showDialog(creatorModal, creatorDialogClose);
   }
 
@@ -799,14 +808,15 @@
     if (!creatorModal) return;
     hideDialog(creatorModal);
     currentCreatorHandle = '';
+    currentCreatorPlatform = '';
   }
   if (creatorDialogClose) creatorDialogClose.addEventListener('click', closeCreatorModal);
   if (creatorBackdrop) creatorBackdrop.addEventListener('click', closeCreatorModal);
 
   if (creatorAppDownloadAction) {
     creatorAppDownloadAction.addEventListener('click', function () {
-      if (!currentCreatorHandle) return;
-      var profileUrl = 'https://www.tiktok.com/@' + currentCreatorHandle;
+      var profileUrl = MDProfile.profileUrl(currentCreatorPlatform, currentCreatorHandle);
+      if (!profileUrl) return;
       sendRuntimeMessage({
         type: 'DOWNLOAD_BTN_CLICK',
         url: profileUrl,
@@ -827,8 +837,8 @@
 
   if (creatorScanAction) {
     creatorScanAction.addEventListener('click', function () {
-      if (!currentCreatorHandle) return;
-      var profileUrl = 'https://www.tiktok.com/@' + currentCreatorHandle;
+      var profileUrl = MDProfile.profileUrl(currentCreatorPlatform, currentCreatorHandle);
+      if (!profileUrl) return;
       if (api.tabs && api.tabs.update) {
         if (isHooked && hookedTabId) {
           api.tabs.update(hookedTabId, { url: profileUrl });
@@ -1258,6 +1268,15 @@
     }
   }
 
+  // The creator filter only stores a handle, so the platform comes from the first feed item by that author.
+  function handleProfileUrl(handle) {
+    var key = String(handle || '').replace(/^@/, '').trim().toLowerCase();
+    var match = feedItems.find(function (it) {
+      return String(it.author || '').replace(/^@/, '').trim().toLowerCase() === key;
+    });
+    return match ? MDProfile.profileUrl(itemPlatform(match), match.author) : null;
+  }
+
   function filteredItems() {
     if (activePlatformFilter === 'sniffed') {
       return sniffedStreams.map(function (s) {
@@ -1416,6 +1435,11 @@
 
     var isOnProfilePage = activeTabUrl && activeTabUrl.toLowerCase().indexOf('/@' + cleanHandle.toLowerCase()) !== -1;
 
+    var hasProfile = !!handleProfileUrl(cleanHandle);
+    [loadCreatorProfileBtn, dlCreatorProfileBtn].forEach(function (btn) {
+      if (btn) btn.style.display = hasProfile ? '' : 'none';
+    });
+
     if (creatorBannerSubtitle) {
       if (isOnProfilePage) {
         creatorBannerSubtitle.textContent = tf('feedVideosLoadedFromProfile', '{count} vidéo(s) chargée(s) depuis le profil public de @{name}', { count: matchingItems.length, name: cleanHandle });
@@ -1446,11 +1470,16 @@
     var clean = String(handle).replace(/^@/, '').trim();
     if (!clean) return;
 
+    var profileUrl = handleProfileUrl(clean);
+    if (!profileUrl) {
+      setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
+      return;
+    }
+
     if (activeTabUrl && (activeTabUrl.indexOf('/collection/') !== -1 || activeTabUrl.indexOf('/playlist/') !== -1 || activeTabUrl.indexOf('/tag/') !== -1)) {
       previousPlaylistUrl = activeTabUrl;
     }
 
-    var profileUrl = 'https://www.tiktok.com/@' + clean;
     activeCreatorFilter = clean;
 
     getTargetTab(function (tab) {
@@ -1493,7 +1522,8 @@
     dlCreatorProfileBtn.addEventListener('click', function () {
       if (!activeCreatorFilter || activeCreatorFilter === 'all') return;
       var clean = String(activeCreatorFilter).replace(/^@/, '').trim();
-      var profileUrl = 'https://www.tiktok.com/@' + clean;
+      var profileUrl = handleProfileUrl(clean);
+      if (!profileUrl) return;
       dlCreatorProfileBtn.disabled = true;
       dlCreatorProfileBtn.textContent = t('feedSending', 'Envoi…');
       sendRuntimeMessage({
@@ -1554,8 +1584,8 @@
       if (!clean) return;
       var key = clean.toLowerCase();
       if (!creators[key]) {
-        var plat = itemPlatform(it) || 'tiktok';
-        var pUrl = plat === 'x' ? ('https://x.com/' + clean) : ('https://www.tiktok.com/@' + clean);
+        var plat = itemPlatform(it);
+        var pUrl = MDProfile.profileUrl(plat, clean);
         creators[key] = {
           handle: clean,
           displayName: author.indexOf('@') === 0 ? author : ('@' + author),
@@ -1735,7 +1765,7 @@
         e.stopPropagation();
         loadAllCreatorVideos(c.handle);
       });
-      actions.appendChild(loadBtn);
+      if (c.profileUrl) actions.appendChild(loadBtn);
 
       var dlBtn = document.createElement('button');
       dlBtn.type = 'button';
@@ -1746,7 +1776,7 @@
         e.stopPropagation();
         sendCreatorToApp(c, dlBtn);
       });
-      actions.appendChild(dlBtn);
+      if (c.profileUrl) actions.appendChild(dlBtn);
 
       var openBtn = document.createElement('button');
       openBtn.type = 'button';
@@ -1760,7 +1790,7 @@
           api.tabs.create({ url: c.profileUrl });
         }
       });
-      actions.appendChild(openBtn);
+      if (c.profileUrl) actions.appendChild(openBtn);
 
       var filterBtn = document.createElement('button');
       filterBtn.type = 'button';
@@ -1820,7 +1850,7 @@
 
   function downloadSelectedCreators() {
     var creators = getDetectedCreators().filter(function (c) {
-      return selectedCreatorHandles.has(c.handle);
+      return selectedCreatorHandles.has(c.handle) && c.profileUrl;
     });
 
     if (creators.length === 0) {
@@ -1920,9 +1950,11 @@
       return;
     }
 
-    var urls = handles.map(function (h) {
-      return 'https://www.tiktok.com/@' + h.replace(/^@/, '');
-    }).join('\n');
+    var urls = handles.map(handleProfileUrl).filter(Boolean).join('\n');
+    if (!urls) {
+      setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
+      return;
+    }
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(urls).then(function () {
@@ -1946,9 +1978,11 @@
       return;
     }
 
-    var lines = handles.map(function (h) {
-      return 'https://www.tiktok.com/@' + h.replace(/^@/, '');
-    }).join('\r\n');
+    var lines = handles.map(handleProfileUrl).filter(Boolean).join('\r\n');
+    if (!lines) {
+      setStatus(t('profileUnavailable', 'Profil indisponible sur cette plateforme'), 'error');
+      return;
+    }
 
     try {
       var blob = new Blob([lines], { type: 'text/plain;charset=utf-8' });

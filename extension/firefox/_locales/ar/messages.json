@@ -608,6 +608,9 @@
     "feedOpenAccountTitle": {
         "message": "فتح الملف الشخصي في تبويب جديد"
     },
+    "profileUnavailable": {
+        "message": "الملف الشخصي غير متاح على هذه المنصة"
+    },
     "feedSelectAccountFirst": {
         "message": "يرجى تحديد حساب واحد على الأقل."
     },

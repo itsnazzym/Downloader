@@ -608,6 +608,9 @@
     "feedOpenAccountTitle": {
         "message": "Open profile in a new tab"
     },
+    "profileUnavailable": {
+        "message": "Profile unavailable on this platform"
+    },
     "feedSelectAccountFirst": {
         "message": "Select at least one account."
     },
