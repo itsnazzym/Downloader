@@ -48,7 +48,7 @@ Aujourd'hui l'utilisateur doit copier un jeton depuis les réglages avancés de 
 
 **Application (réglages).** Dans Réglages avancés : liste « Navigateurs appairés » (libellé, origine abrégée, appairé le, dernière connexion, bouton Révoquer) et « Révoquer tout ». Le jeton manuel reste affiché dans une section « Avancé ». Une révocation ferme immédiatement les sockets de ce navigateur.
 
-**Extension (popup et connexion).** Plus de champ jeton obligatoire : le champ passe dans une section « Avancé ». L'extension tente de se connecter dès le démarrage, puis avec un recul croissant (2 s, 4 s, 8 s, plafonné à 15 s) tant que l'application est fermée, et se reconnecte en moins de 2 s quand elle apparaît. États du popup : « Application introuvable » (réessaie toute seule), « En attente de validation dans l'application », « Connecté », « Refusé » (bouton Réessayer). Si le jeton enregistré est révoqué, l'extension retombe sur l'appairage.
+**Extension (popup et connexion).** Plus de champ jeton obligatoire : le champ passe dans une section « Avancé ». L'extension tente de se connecter dès le démarrage, puis avec un recul croissant (2 s, 4 s, 8 s, plafonné à 15 s) tant que l'application est fermée, et se reconnecte en moins de 2 s quand elle apparaît. États du popup : « Application introuvable » (réessaie toute seule), « En attente de validation dans l'application », « Connecté », « Refusé » (pause restante affichée, sans bouton Réessayer ; ce bouton n'existe que pour une demande expirée ou « occupé »). Si le jeton enregistré est révoqué, l'extension retombe sur l'appairage.
 
 **Compatibilité.** Un jeton manuel déjà saisi continue de fonctionner ; la nouvelle extension et l'ancienne application, ou l'inverse, doivent échouer proprement : une ancienne application répond `AUTH_FAILED` simple, la nouvelle extension affiche « Mettez à jour l'application ».
 
@@ -83,7 +83,7 @@ Aujourd'hui l'utilisateur doit copier un jeton depuis les réglages avancés de 
 - `connection.js` tourne dans le service worker Chrome (`importScripts`). Les copies `extension/chrome` et `extension/firefox` sont versionnées : tout changement de `shared/` demande `dart run tool/build_extension.dart` ; `tool/check_extension_contract.dart` a une liste de jetons obligatoires à compléter pour les nouveaux messages.
 
 **Choix de ma part (mineurs, à contester)**
-- Après « Révoquer » (ou « Révoquer tout ») ou « Refuser », l'origine concernée est en pause de 10 minutes : l'extension affiche « Accès retiré / refusé » avec un bouton Réessayer, sans nouvelle invite automatique. Les révocations multiples ne mettent donc pas N invites en file.
+- Après « Révoquer » (ou « Révoquer tout ») ou « Refuser », l'origine concernée est en pause de 10 minutes : l'extension affiche « Accès retiré / refusé » avec la pause restante (pas de bouton Réessayer) et redemande d'elle-même à la fin de la pause. Les révocations multiples ne mettent donc pas N invites en file.
 - L'invite fait `windowManager.show()` + `focus()` même en mode « Ne pas déranger » (c'est une demande de sécurité, elle doit être vue) ; pas de plomberie de clic de notification.
 - Reconnexion : tant que l'application est fermée, sondage toutes les 3 s pendant 5 minutes, puis toutes les 10 s (connexion locale, coût négligeable) ; on abandonne la phrase « moins de 2 s » du design initial.
 - Interface de l'application : un widget partagé « Navigateurs appairés » (liste, révocation, section Avancé avec le jeton manuel) utilisé dans les 4 vues qui affichent le jeton aujourd'hui.
