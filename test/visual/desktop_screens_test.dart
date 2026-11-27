@@ -286,12 +286,18 @@ void main() {
 
       for (var round = 0; round < 2; round++) {
         await open('Plugins', '/settings/plugins');
-        // Terminal draws its own plugins section.
+        // Today's view, or a design's own drawing of it (Terminal's page,
+        // Nocturne's title): either way the plugins page is on screen.
         expect(
-          find.byType(
-            id == 'terminal' ? TerminalPluginsPage : PluginsSettingsView,
+          find.byWidgetPredicate(
+            (w) =>
+                w is PluginsSettingsView ||
+                w is TerminalPluginsPage ||
+                (w is Text &&
+                    w.data?.toLowerCase() ==
+                        'fonctionnalités de l’application'.toLowerCase()),
           ),
-          findsOneWidget,
+          findsWidgets,
         );
         await open('Général', '/settings/general');
       }

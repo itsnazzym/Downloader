@@ -5,6 +5,7 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
 import 'widgets/settings_tiles.dart';
 import 'widgets/settings_app_bar.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -17,6 +18,10 @@ class PerformanceSettingsView extends ConsumerWidget {
     final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
+    // OLED, and a design that draws switch tiles, use the shared tile.
+    final useSwitchTile =
+        useOledSettingsStyle(context) ||
+        DesignSkin.of(context)?.switchTile != null;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -63,7 +68,7 @@ class PerformanceSettingsView extends ConsumerWidget {
                               .setConcurrentFragments(v.toInt()),
                           icon: Icons.bolt_rounded,
                         ),
-                        if (useOledSettingsStyle(context))
+                        if (useSwitchTile)
                           SwitchTile(
                             title: l10n.maxSpeedMode,
                             subtitle: l10n.maxSpeedModeDesc,
@@ -93,7 +98,7 @@ class PerformanceSettingsView extends ConsumerWidget {
                             onChanged: settingsNotifier.setMaxSpeedMode,
                             contentPadding: EdgeInsets.zero,
                           ),
-                        if (useOledSettingsStyle(context))
+                        if (useSwitchTile)
                           SwitchTile(
                             title: l10n.reduceEffects,
                             subtitle: l10n.reduceEffectsDesc,
