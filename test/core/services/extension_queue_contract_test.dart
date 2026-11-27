@@ -1,6 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tapload/core/services/extension_queue_contract.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
 import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+
+DownloadItem _item(String id, DownloadStatus status) => DownloadItem(
+  id: id,
+  request: DownloadRequest(url: 'https://example.com/$id'),
+  status: status,
+);
 
 void main() {
   test('message types match the extension contract', () {
@@ -89,5 +97,43 @@ void main() {
     ]) {
       expect(ExtensionQueueContract.validateCommand(data), 'missing_id');
     }
+  });
+
+  test('the snapshot keeps the activity and only the 50 latest finished', () {
+    final all = [
+      for (var i = 0; i < 70; i++)
+        _item(
+          'done$i',
+          i.isEven ? DownloadStatus.completed : DownloadStatus.duplicate,
+        ),
+      for (final s in DownloadStatus.values)
+        if (s != DownloadStatus.completed && s != DownloadStatus.duplicate)
+          _item(s.name, s),
+      _item('done70', DownloadStatus.completed),
+    ];
+    final ids = ExtensionQueueContract.snapshotItems(
+      all,
+    ).map((i) => i.id).toList();
+    final finished = [for (var i = 21; i <= 70; i++) 'done$i'];
+    expect(ids.where((id) => id.startsWith('done')), finished);
+    expect(ids.where((id) => !id.startsWith('done')), [
+      'queued',
+      'extracting',
+      'downloading',
+      'processing',
+      'failed',
+      'canceled',
+      'paused',
+    ]);
+    // Order of the desktop list is kept.
+    expect(ids.indexOf('queued'), lessThan(ids.indexOf('done70')));
+  });
+
+  test('a short history is sent whole', () {
+    final all = [
+      _item('a', DownloadStatus.completed),
+      _item('b', DownloadStatus.downloading),
+    ];
+    expect(ExtensionQueueContract.snapshotItems(all), all);
   });
 }

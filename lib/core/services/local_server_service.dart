@@ -361,11 +361,9 @@ Ready for Extension Connection
   void _sendQueueSnapshot(WebSocket socket) {
     try {
       if (socket.readyState != WebSocket.open) return;
-      final items = _ref
-          .read(downloaderRepositoryProvider)
-          .getCurrentDownloads()
-          .map((item) => item.toExtensionProgressJson())
-          .toList();
+      final items = ExtensionQueueContract.snapshotItems(
+        _ref.read(downloaderRepositoryProvider).getCurrentDownloads(),
+      ).map((item) => item.toExtensionProgressJson()).toList();
       if (items.any(
         (i) =>
             i.containsKey('filePath') ||

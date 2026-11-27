@@ -1,3 +1,4 @@
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
 import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 /// WebSocket contract for the extension's download queue: a snapshot request
@@ -35,6 +36,25 @@ class ExtensionQueueContract {
 
   static bool isActive(DownloadStatus status) =>
       activeStatuses.contains(status);
+
+  /// Finished items (completed/duplicate) the snapshot keeps.
+  static const int recentFinishedLimit = 50;
+
+  /// What QUEUE_SNAPSHOT sends: the activity, not the library. Every item
+  /// that is not finished (live, paused, failed, canceled), plus the
+  /// [recentFinishedLimit] most recent finished ones. [all] is in
+  /// getCurrentDownloads() order (sortOrder, new items appended), so the most
+  /// recent are the last ones; a manual reorder in the app moves them too.
+  static List<DownloadItem> snapshotItems(List<DownloadItem> all) {
+    bool finished(DownloadItem i) =>
+        i.status == DownloadStatus.completed ||
+        i.status == DownloadStatus.duplicate;
+    var skip = all.where(finished).length - recentFinishedLimit;
+    return [
+      for (final item in all)
+        if (!finished(item) || skip-- <= 0) item,
+    ];
+  }
 
   /// True when [command] (cancel, pause, resume, retry) fits [status].
   static bool allows(String command, DownloadStatus status) =>

@@ -689,6 +689,24 @@ void main() {
       expect(list.calls, isEmpty);
     });
 
+    test('snapshot sends the activity, not the whole library', () async {
+      await openWith([
+        for (var i = 0; i < 60; i++)
+          _item('done$i', DownloadStatus.completed, filePath: 'C:/a$i.mp4'),
+        _item('live', DownloadStatus.downloading),
+        _item('broken', DownloadStatus.failed),
+      ]);
+      ws.add(jsonEncode({'type': 'QUEUE_SNAPSHOT_REQUEST'}));
+      final items = (await next('QUEUE_SNAPSHOT'))['items'] as List;
+      final ids = items.map((i) => (i as Map)['id']).toList();
+      expect(ids, hasLength(52));
+      expect(ids, containsAll(['live', 'broken', 'done10', 'done59']));
+      expect(ids, isNot(contains('done9')));
+      for (final i in items.cast<Map<String, dynamic>>()) {
+        expect(i.containsKey('filePath'), isFalse);
+      }
+    });
+
     test(
       'snapshot returns the queue without paths, cookies or request',
       () async {
