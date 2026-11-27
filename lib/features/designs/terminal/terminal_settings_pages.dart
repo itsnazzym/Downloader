@@ -7,14 +7,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tapload/core/design_system/components/app_toast.dart';
 import 'package:tapload/core/download/download_path_resolver.dart';
 import 'package:tapload/core/plugins/builtin/smart_organizer_plugin.dart';
 import 'package:tapload/core/plugins/feature_activation.dart';
 import 'package:tapload/core/plugins/feature_catalog.dart';
 import 'package:tapload/core/plugins/plugin_manager.dart';
 import 'package:tapload/core/providers/settings_provider.dart';
-import 'package:tapload/core/services/browser_extension_installer.dart';
 import 'package:tapload/core/services/disk_space_service.dart';
 import 'package:tapload/core/services/folder_size_service.dart';
 import 'package:tapload/core/theme/app_colors.dart';
@@ -28,6 +26,7 @@ import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:tapload/features/downloader/presentation/views/dialogs/reorganize_library_dialog.dart';
 import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/settings/widgets/paired_browsers_panel.dart';
 import 'package:tapload/showcase/showcase_mode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_disk_space/universal_disk_space.dart';
@@ -943,7 +942,6 @@ class _Extensions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final l10n = context.l10n;
-    final token = ref.watch(settingsProvider.select((s) => s.apiToken));
     Widget browser(
       String title,
       String steps,
@@ -995,33 +993,7 @@ class _Extensions extends ConsumerWidget {
           l10n.firefoxManualInstall,
           ExtensionInstallFlow.firefoxManual,
         ),
-        TConfLine(
-          body: TKeyValue(
-            l10n.extensionApiToken,
-            token.isEmpty ? l10n.generatedOnFirstLaunch : token,
-          ),
-          control: TButton(
-            label: l10n.copyToken,
-            height: 26,
-            onTap: token.isEmpty
-                ? null
-                : () async {
-                    try {
-                      await BrowserExtensionInstaller.copyPath(token);
-                      if (context.mounted) {
-                        AppToast.showSuccess(context, l10n.tokenCopiedHint);
-                      }
-                    } catch (_) {
-                      if (context.mounted) {
-                        AppToast.showError(
-                          context,
-                          l10n.extensionInstallFailed,
-                        );
-                      }
-                    }
-                  },
-          ),
-        ),
+        const PairedBrowsersPanel(),
       ],
     );
   }

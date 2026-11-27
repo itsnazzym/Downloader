@@ -12,7 +12,6 @@ import 'package:tapload/core/platform/platform_info.dart';
 import 'package:tapload/core/plugins/feature_activation.dart';
 import 'package:tapload/core/plugins/feature_catalog.dart';
 import 'package:tapload/core/plugins/plugin_manager.dart';
-import 'package:tapload/core/services/browser_extension_installer.dart';
 import 'package:tapload/core/ui/settings/widgets/extension_install_guide_dialog.dart';
 import 'package:tapload/core/ui/settings/widgets/settings_tiles.dart'
     show languageOptionLabels, qualityOptionLabels, themeModeOptionLabels;
@@ -21,6 +20,7 @@ import 'package:tapload/showcase/showcase_mode.dart';
 import 'package:tapload/features/onboarding/presentation/onboarding_controller.dart';
 import 'package:tapload/l10n/app_localizations.dart';
 import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/settings/widgets/paired_browsers_panel.dart';
 
 import 'nocturne_widgets.dart';
 
@@ -1299,7 +1299,6 @@ class _ExtensionsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
     final l10n = context.l10n;
-    final token = ref.watch(settingsProvider.select((s) => s.apiToken));
     Widget browser(
       String title,
       String steps,
@@ -1366,28 +1365,7 @@ class _ExtensionsCard extends ConsumerWidget {
           Icons.build_outlined,
           ExtensionInstallFlow.firefoxManual,
         ),
-        _Row(
-          label: l10n.extensionApiToken,
-          description: token.isEmpty ? l10n.generatedOnFirstLaunch : token,
-          control: NocturneButton(
-            label: l10n.copyToken,
-            icon: Icons.copy_rounded,
-            height: 36,
-            onTap: token.isEmpty
-                ? null
-                : () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    String message;
-                    try {
-                      await BrowserExtensionInstaller.copyPath(token);
-                      message = l10n.tokenCopiedHint;
-                    } catch (_) {
-                      message = l10n.extensionInstallFailed;
-                    }
-                    messenger.showSnackBar(SnackBar(content: Text(message)));
-                  },
-          ),
-        ),
+        const PairedBrowsersPanel(),
       ],
     );
   }

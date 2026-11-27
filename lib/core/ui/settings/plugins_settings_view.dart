@@ -17,22 +17,18 @@ import '../../design_system/foundation/typography.dart';
 
 import '../../design_system/components/app_button.dart';
 
-import '../../design_system/components/app_toast.dart';
-
 import '../../plugins/plugin_manager.dart';
 import '../../plugins/feature_activation.dart';
 import '../../plugins/feature_catalog.dart';
 import '../../platform/platform_info.dart';
 
-import '../../providers/settings_provider.dart';
-
-import '../../services/browser_extension_installer.dart';
 import 'widgets/extension_install_guide_dialog.dart';
 
 import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:tapload/l10n/app_localizations.dart';
 
 import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/settings/widgets/paired_browsers_panel.dart';
 
 import 'widgets/settings_app_bar.dart';
 import '../../../showcase/showcase_mode.dart';
@@ -652,8 +648,6 @@ class _BrowserExtensionsPanel extends ConsumerWidget {
 
     final colors = AppColors.of(context);
 
-    final token = ref.watch(settingsProvider.select((s) => s.apiToken));
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
 
@@ -712,84 +706,7 @@ class _BrowserExtensionsPanel extends ConsumerWidget {
 
         const Gap(AppSpacing.m),
 
-        Container(
-          width: double.infinity,
-
-          padding: const EdgeInsets.all(AppSpacing.m),
-
-          decoration: designPanel(
-            context,
-            BoxDecoration(
-              color: colors.surface,
-
-              borderRadius: _cardRadius(context),
-
-              border: Border.all(color: colors.border),
-            ),
-          ),
-
-          child: Row(
-            children: [
-              Icon(Icons.vpn_key_outlined, color: colors.textSecondary),
-
-              const Gap(AppSpacing.m),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-
-                  children: [
-                    Text(
-                      l10n.extensionApiToken,
-
-                      style: AppTypography.label.copyWith(
-                        color: colors.textPrimary,
-                      ),
-                    ),
-
-                    const Gap(AppSpacing.xxs),
-
-                    Text(
-                      token.isEmpty ? l10n.generatedOnFirstLaunch : token,
-
-                      maxLines: 1,
-
-                      overflow: TextOverflow.ellipsis,
-
-                      style: AppTypography.mono.copyWith(fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-
-              AppButton.secondary(
-                label: l10n.copyToken,
-
-                icon: Icons.copy,
-
-                onPressed: token.isEmpty
-                    ? null
-                    : () async {
-                        try {
-                          await BrowserExtensionInstaller.copyPath(token);
-
-                          if (!context.mounted) return;
-
-                          AppToast.showSuccess(context, l10n.tokenCopiedHint);
-                        } catch (e) {
-                          if (!context.mounted) return;
-
-                          AppToast.showError(
-                            context,
-
-                            l10n.extensionInstallFailed,
-                          );
-                        }
-                      },
-              ),
-            ],
-          ),
-        ),
+        const PairedBrowsersPanel(),
       ],
     );
   }

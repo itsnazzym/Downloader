@@ -14,6 +14,7 @@ import '../../../../features/downloader/presentation/providers/downloader_provid
 import '../../design_system/components/app_toast.dart';
 import 'widgets/settings_tiles.dart';
 import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/ui/settings/widgets/paired_browsers_panel.dart';
 import 'package:tapload/core/services/binary/binary_locator.dart';
 import 'package:tapload/core/services/binary/binary_verifier.dart';
 import 'package:tapload/core/platform/platform_info.dart';
@@ -188,38 +189,9 @@ class _AdvancedSettingsViewState extends ConsumerState<AdvancedSettingsView> {
                             onChanged: settingsNotifier.setCookieBrowser,
                             icon: Icons.browser_updated_rounded,
                           ),
-                          ActionTile(
-                            title: l10n.extensionApiToken,
-                            subtitle: settings.apiToken.isEmpty
-                                ? l10n.generatedOnFirstLaunch
-                                : settings.apiToken,
-                            icon: Icons.vpn_key_outlined,
-                            onTap: () async {
-                              await Clipboard.setData(
-                                ClipboardData(text: settings.apiToken),
-                              );
-                              if (context.mounted) {
-                                AppToast.showSuccess(
-                                  context,
-                                  l10n.tokenCopiedHint,
-                                );
-                              }
-                            },
-                            trailing: IconButton(
-                              icon: const Icon(Icons.copy),
-                              tooltip: l10n.copyToken,
-                              onPressed: () async {
-                                await Clipboard.setData(
-                                  ClipboardData(text: settings.apiToken),
-                                );
-                                if (context.mounted) {
-                                  AppToast.showSuccess(
-                                    context,
-                                    l10n.tokenCopied,
-                                  );
-                                }
-                              },
-                            ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: PairedBrowsersPanel(),
                           ),
                           ActionTile(
                             title: l10n.localServerPort,
