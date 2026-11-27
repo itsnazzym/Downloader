@@ -8,12 +8,14 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart'
-    show qualityOptionLabels;
+    show languageOptionLabels, qualityOptionLabels, themeModeOptionLabels;
+import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'signal_controls.dart';
+import 'signal_theme.dart';
 import 'signal_widgets.dart';
 
 /// Signal's settings (mockup Signal-Reglages.dc.html): a section rail on the
@@ -45,9 +47,9 @@ class SignalSettings extends StatelessWidget {
         final wide = constraints.maxWidth >= 900;
         final pad = signalPagePadding(constraints.maxWidth, top: 28);
         final l10n = context.l10n;
-        final title = sections(l10n)
-            .firstWhere((s) => s.$1 == path, orElse: () => sections(l10n)[0])
-            .$2;
+        final title = sections(
+          l10n,
+        ).firstWhere((s) => s.$1 == path, orElse: () => sections(l10n)[0]).$2;
         final body = general
             ? SingleChildScrollView(
                 padding: EdgeInsets.only(bottom: pad.bottom),
@@ -69,7 +71,19 @@ class SignalSettings extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: 12),
-                  Expanded(child: current),
+                  Expanded(
+                    // Appearance is Signal's own page; every other section
+                    // keeps today's view, in Signal's controls.
+                    child: path == '/settings/appearance'
+                        ? SingleChildScrollView(
+                            padding: EdgeInsets.only(
+                              top: 8,
+                              bottom: pad.bottom,
+                            ),
+                            child: const _Appearance(),
+                          )
+                        : SignalMaterial(child: current),
+                  ),
                 ],
               );
         if (!wide) {
@@ -297,8 +311,9 @@ class _General extends ConsumerWidget {
 
 /// One settings line: label and hint on the left, control on the right; a
 /// hairline above every line but the first.
-class _Row extends StatelessWidget {
-  const _Row({
+class SignalSettingRow extends StatelessWidget {
+  const SignalSettingRow({
+    super.key,
     required this.title,
     this.hint,
     required this.trailing,
@@ -390,7 +405,7 @@ class _GeneralCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _CardTitle(l10n.settingsGeneral),
-          _Row(
+          SignalSettingRow(
             first: true,
             title: l10n.audioOnly,
             hint: l10n.audioOnlyDesc,
@@ -400,7 +415,7 @@ class _GeneralCard extends ConsumerWidget {
               label: l10n.audioOnly,
             ),
           ),
-          _Row(
+          SignalSettingRow(
             title: l10n.autoStart,
             hint: l10n.autoStartDesc,
             trailing: SignalSwitch(
@@ -409,9 +424,9 @@ class _GeneralCard extends ConsumerWidget {
               label: l10n.autoStart,
             ),
           ),
-          _Row(
+          SignalSettingRow(
             title: l10n.preferredQuality,
-            trailing: _Select(
+            trailing: SignalSelect(
               value: s.preferredQuality,
               options: const ['best', 'manual', 'manual+'],
               labels: labels,
@@ -425,8 +440,9 @@ class _GeneralCard extends ConsumerWidget {
   }
 }
 
-class _Select extends StatelessWidget {
-  const _Select({
+class SignalSelect extends StatelessWidget {
+  const SignalSelect({
+    super.key,
     required this.value,
     required this.options,
     required this.labels,
@@ -558,7 +574,7 @@ class _OutputCard extends ConsumerWidget {
           ),
           // The mockup's file-name template has no setting: how files are
           // filed (one folder per creator) is the closest real choice.
-          _Row(
+          SignalSettingRow(
             title: l10n.organizeByCreator,
             hint: l10n.organizeByCreatorDesc,
             trailing: SignalSwitch(
@@ -574,7 +590,10 @@ class _OutputCard extends ConsumerWidget {
 }
 
 class _DesignCard extends ConsumerWidget {
-  const _DesignCard();
+  const _DesignCard({this.every = false});
+
+  /// Every look, OLED and iOS too (the Appearance page).
+  final bool every;
 
   static const _ids = [
     'signal',
@@ -619,7 +638,10 @@ class _DesignCard extends ConsumerWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  for (final id in _ids)
+                  for (final id
+                      in every
+                          ? [for (final p in ThemePresets.all) p.id]
+                          : _ids)
                     SizedBox(
                       width: w,
                       child: _Vignette(
@@ -804,7 +826,7 @@ class _PerformanceCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _CardTitle(l10n.settingsPerformance),
-          _Row(
+          SignalSettingRow(
             first: true,
             title: l10n.simultaneousDownloads,
             hint: l10n.simultaneousDownloadsDesc,
@@ -843,7 +865,7 @@ class _PerformanceCard extends ConsumerWidget {
               ),
             ),
           ),
-          _Row(
+          SignalSettingRow(
             title: l10n.reduceEffects,
             hint: l10n.reduceEffectsDesc,
             trailing: SignalSwitch(
@@ -895,6 +917,216 @@ class _ToolsCard extends ConsumerWidget {
                       .ensureReady(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Apparence ───────────────────────────────────────────────────────────────
+
+/// Today's Appearance settings in Signal's cards: every look (OLED and iOS
+/// too), light/dark for the looks that follow it, the language, and the
+/// accent colour (not on OLED).
+class _Appearance extends ConsumerWidget {
+  const _Appearance();
+
+  // shortcut: the same palette as the shared Appearance view; keep both in
+  // step if that list changes.
+  static const _accents = [
+    Color(0xFF0D9488),
+    Color(0xFF0A84FF),
+    Color(0xFF0EA5E9),
+    Color(0xFF22C55E),
+    Color(0xFFF97316),
+    Color(0xFFEF4444),
+    Color(0xFFC026D3),
+    Color(0xFF6366F1),
+    Color(0xFFEAB308),
+    Color(0xFFF43F5E),
+    Color(0xFF06B6D4),
+    Color(0xFFEC4899),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    final s = ref.watch(settingsProvider);
+    final n = ref.read(settingsProvider.notifier);
+    final followsMode =
+        DesignSpec.forId(ThemePresets.migrateId(s.themePreset)).brightness ==
+        null;
+    final accent = Color(s.customAccentColor);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _DesignCard(every: true),
+        const SizedBox(height: 16),
+        SignalCard(
+          padding: _cardPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (followsMode)
+                SignalSettingRow(
+                  first: true,
+                  title: l10n.theme,
+                  trailing: SignalMaterial(
+                    child: SignalSelect(
+                      value: s.themeMode,
+                      options: const ['system', 'dark', 'light'],
+                      labels: themeModeOptionLabels(l10n),
+                      tooltip: l10n.theme,
+                      onChanged: n.setThemeMode,
+                    ),
+                  ),
+                ),
+              SignalSettingRow(
+                first: !followsMode,
+                title: l10n.language,
+                trailing: SignalMaterial(
+                  child: SignalSelect(
+                    value: s.locale,
+                    options: const ['en', 'fr', 'ar'],
+                    labels: languageOptionLabels(l10n),
+                    tooltip: l10n.language,
+                    onChanged: n.setLocale,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (s.themePreset != 'oled') ...[
+          const SizedBox(height: 16),
+          SignalCard(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: SignalEyebrow(l10n.accentColor)),
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: accent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${l10n.currentAccent} ${_hex(accent)}',
+                      style: AppTypography.mono.copyWith(
+                        fontSize: 12.5,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final c in _accents)
+                      _Swatch(
+                        color: c,
+                        selected: c.toARGB32() == accent.toARGB32(),
+                        onTap: () => n.setCustomAccentColor(c.toARGB32()),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+String _hex(Color c) =>
+    '#${c.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+
+/// A round accent swatch: a cream ring and a check when chosen.
+class _Swatch extends StatefulWidget {
+  const _Swatch({
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_Swatch> createState() => _SwatchState();
+}
+
+class _SwatchState extends State<_Swatch> {
+  bool _hover = false;
+  bool _focus = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final on = widget.selected;
+    final ring = on || _focus;
+    return Semantics(
+      selected: on,
+      button: true,
+      label: _hex(widget.color),
+      child: FocusableActionDetector(
+        mouseCursor: SystemMouseCursors.click,
+        onShowHoverHighlight: (h) => setState(() => _hover = h),
+        onShowFocusHighlight: (f) => setState(() => _focus = f),
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onTap();
+              return null;
+            },
+          ),
+        },
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedScale(
+            scale: _hover && !on ? 1.08 : 1,
+            duration: signalMotion(context, 160),
+            curve: signalEase,
+            child: AnimatedContainer(
+              duration: signalMotion(context, 200),
+              width: 40,
+              height: 40,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: ring
+                      ? colors.textPrimary
+                      : colors.textPrimary.withValues(alpha: 0.08),
+                  width: ring ? 2 : 1,
+                ),
+              ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: widget.color,
+                  shape: BoxShape.circle,
+                ),
+                child: on
+                    ? const Icon(
+                        Icons.check_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

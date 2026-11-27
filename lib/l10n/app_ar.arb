@@ -1822,5 +1822,19 @@
   "nocturneLogInit": "تم تجهيز التنزيل: {id}",
   "nocturneLogStarted": "بدأ التنزيل…",
   "nocturneLogCompleted": "اكتمل التنزيل.",
-  "nocturneLogCanceled": "أُلغي التنزيل."
+  "nocturneLogCanceled": "أُلغي التنزيل.",
+  "signalArchiveFavorite": "مفضّلة",
+  "signalArchiveLiked": "أعجبني",
+  "signalArchiveOpenInBrowser": "فتح في المتصفح",
+  "signalArchiveSearchCollection": "البحث عن مجموعة",
+  "signalArchiveAllCollections": "كل المجموعات",
+  "signalArchiveResetMenu": "إزالة الفيديوهات من هذه المجموعة",
+  "signalArchiveResetTitle": "إعادة تعيين المجموعة",
+  "signalArchiveResetBody": "إزالة {count} فيديو من «{name}»؟ تُحفظ الفيديوهات وتصنيفاتها الأخرى.",
+  "signalArchiveResetAction": "إعادة تعيين",
+  "signalArchiveResetDone": "أُزيل تصنيف «{name}». تُحفظ الفيديوهات.",
+  "signalArchiveDeleteMenu": "حذف نهائي",
+  "signalArchiveDeleteTitle": "حذف المجموعة",
+  "signalArchiveDeleteBody": "حذف المجموعة «{name}» نهائيًا؟ تبقى فيديوهاتها ({count}) على القرص لكنها لن تنتمي إليها بعد الآن.",
+  "signalArchiveDeleteDone": "حُذفت المجموعة «{name}»."
 }

@@ -40,6 +40,8 @@ class DesignSkin {
     this.dropdownTile,
     this.actionTile,
     this.statusTile,
+    this.panel,
+    this.toggle,
   });
 
   final Widget Function(BuildContext context, DesignRow row)? row;
@@ -49,6 +51,18 @@ class DesignSkin {
   final Widget Function(BuildContext context, DropdownTile tile)? dropdownTile;
   final Widget Function(BuildContext context, ActionTile tile)? actionTile;
   final Widget Function(BuildContext context, StatusTile tile)? statusTile;
+
+  /// The surface of a hand-drawn card in a shared view (plugin cards, the
+  /// storage chart); receives today's decoration.
+  final BoxDecoration Function(BuildContext context, BoxDecoration base)? panel;
+
+  /// An on/off switch a shared view draws outside the tiles (plugins).
+  final Widget Function(
+    BuildContext context,
+    bool value,
+    ValueChanged<bool>? onChanged,
+  )?
+  toggle;
 
   static final _byId = <String, DesignSkin>{};
 
@@ -63,3 +77,14 @@ class DesignSkin {
     return _byId[DesignSpec.of(context).id];
   }
 }
+
+/// [base], or the active design's own card surface (see [DesignSkin.panel]).
+BoxDecoration designPanel(BuildContext context, BoxDecoration base) =>
+    DesignSkin.of(context)?.panel?.call(context, base) ?? base;
+
+/// The active design's own switch, or null to keep the shared one.
+Widget? designToggle(
+  BuildContext context,
+  bool value,
+  ValueChanged<bool>? onChanged,
+) => DesignSkin.of(context)?.toggle?.call(context, value, onChanged);

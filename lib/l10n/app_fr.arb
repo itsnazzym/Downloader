@@ -1822,5 +1822,19 @@
   "nocturneLogInit": "Téléchargement préparé : {id}",
   "nocturneLogStarted": "Téléchargement démarré…",
   "nocturneLogCompleted": "Téléchargement terminé.",
-  "nocturneLogCanceled": "Téléchargement annulé."
+  "nocturneLogCanceled": "Téléchargement annulé.",
+  "signalArchiveFavorite": "Favori",
+  "signalArchiveLiked": "J’aime",
+  "signalArchiveOpenInBrowser": "Ouvrir dans le navigateur",
+  "signalArchiveSearchCollection": "Rechercher une collection",
+  "signalArchiveAllCollections": "Toutes les collections",
+  "signalArchiveResetMenu": "Retirer les vidéos de cette collection",
+  "signalArchiveResetTitle": "Réinitialiser la collection",
+  "signalArchiveResetBody": "Retirer les {count} vidéos de « {name} » ? Les vidéos et leurs autres classements sont conservés.",
+  "signalArchiveResetAction": "Réinitialiser",
+  "signalArchiveResetDone": "Classement retiré pour « {name} ». Les vidéos sont conservées.",
+  "signalArchiveDeleteMenu": "Supprimer définitivement",
+  "signalArchiveDeleteTitle": "Supprimer la collection",
+  "signalArchiveDeleteBody": "Supprimer définitivement la collection « {name} » ? Ses {count} vidéos restent sur le disque mais ne font plus partie de ce dossier.",
+  "signalArchiveDeleteDone": "Collection « {name} » supprimée."
 }

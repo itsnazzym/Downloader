@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,17 +10,14 @@ import 'package:modern_downloader/core/services/clipboard_service.dart';
 import 'package:modern_downloader/core/services/disk_space_service.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/inspector/download_inspector.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_list.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/download_more_actions_menu.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
+import 'package:modern_downloader/features/downloader/presentation/widgets/confirm_file_deletion.dart';
 import 'package:modern_downloader/features/downloader/presentation/widgets/download_item_context_menu.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/core/utils/format_utils.dart';
@@ -29,7 +25,11 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
+import 'signal_inspector.dart';
+import 'signal_library_row.dart';
+import 'signal_library_tools.dart';
 import 'signal_states.dart';
+import 'signal_theme.dart';
 import 'signal_widgets.dart';
 
 /// Signal's home (mockup Main.dc.html): paste hero, today, downloads in
@@ -56,7 +56,7 @@ class SignalHome extends ConsumerWidget {
                 color: colors.surface,
                 border: Border(left: BorderSide(color: colors.borderSubtle)),
               ),
-              child: DownloadInspector(downloadId: selected),
+              child: SignalInspector(downloadId: selected),
             ),
         ],
       ),
@@ -162,9 +162,12 @@ class _HomeScrollState extends ConsumerState<_HomeScroll> {
                 sliver: const SliverToBoxAdapter(child: _LibraryHeader()),
               ),
               if (folders)
-                const SliverFillRemaining(
-                  hasScrollBody: true,
-                  child: DownloadList(),
+                SliverPadding(
+                  padding: pad(0, 0),
+                  sliver: const SliverFillRemaining(
+                    hasScrollBody: true,
+                    child: SignalFolders(empty: _NoResults()),
+                  ),
                 )
               else
                 SliverPadding(
@@ -1697,15 +1700,12 @@ class _LibraryHeaderState extends ConsumerState<_LibraryHeader> {
         ],
       ),
     );
-    final search = DownloadSearchField(
-      onChanged: (v) =>
-          ref.read(downloadSearchQueryProvider.notifier).state = v,
-    );
+    const search = SignalSearchField();
     const tools = [
       SizedBox(width: 8),
       _SortMenu(),
       SizedBox(width: 4),
-      DownloadMoreActionsMenu(showQueueActions: true, showRetryFailed: false),
+      SignalMoreActions(),
     ];
     final title = [
       Text(
@@ -1787,44 +1787,52 @@ class _SortMenu extends ConsumerWidget {
       (DownloadSort.nameAsc, l10n.sortFieldName),
       (DownloadSort.sizeDesc, l10n.sortFieldSize),
     ];
-    return PopupMenuButton<Object>(
-      tooltip: l10n.sortAndView,
-      color: colors.surfaceHighlight,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      onSelected: (value) {
-        if (value is DownloadSort) {
-          ref.read(downloadSortProvider.notifier).state = value;
-        } else if (value is DownloadViewMode) {
-          ref.read(downloadViewModeProvider.notifier).state = value;
-        }
-      },
-      itemBuilder: (context) => [
-        for (final (s, label) in options)
+    return SignalMaterial(
+      child: PopupMenuButton<Object>(
+        tooltip: l10n.sortAndView,
+        position: PopupMenuPosition.under,
+        offset: const Offset(0, 8),
+        onSelected: (value) {
+          if (value is DownloadSort) {
+            ref.read(downloadSortProvider.notifier).state = value;
+          } else if (value is DownloadViewMode) {
+            ref.read(downloadViewModeProvider.notifier).state = value;
+          }
+        },
+        itemBuilder: (context) => [
+          for (final (s, label) in options)
+            CheckedPopupMenuItem<Object>(
+              value: s,
+              checked: sort == s,
+              child: Text(label),
+            ),
+          const PopupMenuDivider(),
           CheckedPopupMenuItem<Object>(
-            value: s,
-            checked: sort == s,
-            child: Text(label),
+            value: DownloadViewMode.list,
+            checked: mode != DownloadViewMode.folders,
+            child: Text(l10n.viewList),
           ),
-        const PopupMenuDivider(),
-        CheckedPopupMenuItem<Object>(
-          value: DownloadViewMode.list,
-          checked: mode != DownloadViewMode.folders,
-          child: Text(l10n.viewList),
+          CheckedPopupMenuItem<Object>(
+            value: DownloadViewMode.folders,
+            checked: mode == DownloadViewMode.folders,
+            child: Text(l10n.viewFolders),
+          ),
+        ],
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: colors.textPrimary.withValues(alpha: 0.1),
+            ),
+          ),
+          child: Icon(
+            Icons.sort_rounded,
+            size: 17,
+            color: colors.textSecondary,
+          ),
         ),
-        CheckedPopupMenuItem<Object>(
-          value: DownloadViewMode.folders,
-          checked: mode == DownloadViewMode.folders,
-          child: Text(l10n.viewFolders),
-        ),
-      ],
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: colors.textPrimary.withValues(alpha: 0.1)),
-        ),
-        child: Icon(Icons.sort_rounded, size: 17, color: colors.textSecondary),
       ),
     );
   }
@@ -2068,173 +2076,33 @@ class _LibraryRow extends ConsumerStatefulWidget {
 }
 
 class _LibraryRowState extends ConsumerState<_LibraryRow> {
-  bool _hover = false;
-
-  void _play(DownloadItem item) {
-    final path = item.filePath;
-    if (path != null && File(path).existsSync()) {
-      ref.read(mediaPlayerProvider.notifier).openFile(path);
-    }
-  }
-
-  void _reveal(DownloadItem item) {
-    final path = item.filePath;
-    if (path != null && File(path).existsSync() && Platform.isWindows) {
-      Process.run('explorer', ['/select,', path]);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
     final l10n = context.l10n;
     final item =
         ref.watch(downloadRuntimeItemProvider(widget.itemId)) ?? widget.base;
     final selected = ref.watch(
       selectedDownloadIdProvider.select((id) => id == item.id),
     );
-    final failed =
-        item.status == DownloadStatus.failed ||
-        item.status == DownloadStatus.canceled;
-    final busy = isActiveDownload(item) || item.status == DownloadStatus.queued;
-    final size = bytesOf(item);
-    final reason = downloadErrorReason(item.error);
-    final failLabel = item.status == DownloadStatus.canceled
-        ? l10n.statusCanceled
-        : l10n.designFailed;
-    final meta = failed
-        ? (reason.isEmpty ? failLabel : '$failLabel · $reason')
-        : busy
-        ? '${item.source} · ${(item.progress * 100).round()} %'
-        : [
-            item.source,
-            formatLabelOf(item),
-            if (size > 0) localBytes(l10n, size),
-          ].where((s) => s.isNotEmpty).join(' · ');
+    final notifier = ref.read(downloadListProvider.notifier);
     return DownloadItemContextMenu(
       item: item,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = false),
-        child: GestureDetector(
-          onTap: () => ref.read(selectedDownloadIdProvider.notifier).state =
-              selected ? null : item.id,
-          onDoubleTap: () => _play(item),
-          child: AnimatedContainer(
-            duration: signalMotion(context, 180),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected || _hover ? colors.surface : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: selected
-                    ? colors.primary.withValues(alpha: 0.5)
-                    : Colors.transparent,
-              ),
-            ),
-            child: Row(
-              children: [
-                SignalThumb(
-                  url: item.thumbnailUrl,
-                  filePath: item.filePath,
-                  width: 88,
-                  height: 50,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        titleOf(item),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.body.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        meta,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.body.copyWith(
-                          fontSize: 12.5,
-                          color: failed ? colors.error : colors.textDisabled,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (failed) ...[
-                  const SizedBox(width: 12),
-                  SignalButton(
-                    label: l10n.retry,
-                    icon: Icons.refresh_rounded,
-                    accent: false,
-                    height: 32,
-                    fontSize: 12.5,
-                    onTap: () => ref
-                        .read(downloadListProvider.notifier)
-                        .retryDownload(item),
-                  ),
-                ],
-                AnimatedOpacity(
-                  opacity: _hover ? 1 : 0,
-                  duration: signalMotion(context, 180),
-                  child: Row(
-                    children: [
-                      if (item.status == DownloadStatus.completed) ...[
-                        _RowAction(
-                          icon: Icons.play_arrow_rounded,
-                          tooltip: l10n.detailsPlayVideo,
-                          onTap: () => _play(item),
-                        ),
-                        _RowAction(
-                          icon: Icons.folder_open_rounded,
-                          tooltip: l10n.openFolder,
-                          onTap: () => _reveal(item),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RowAction extends StatelessWidget {
-  const _RowAction({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return Tooltip(
-      message: tooltip,
-      child: InkResponse(
-        onTap: onTap,
-        radius: 20,
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(icon, size: 17, color: colors.textSecondary),
-        ),
+      child: SignalLibraryRow(
+        item: item,
+        selected: selected,
+        onTap: () => ref.read(selectedDownloadIdProvider.notifier).state =
+            selected ? null : item.id,
+        onRetry: () => notifier.retryDownload(item),
+        // A finished file leaves the disk too: ask first.
+        onDelete: () async {
+          if (await confirmFileDeletion(
+            context,
+            item,
+            actionLabel: l10n.delete,
+          )) {
+            await notifier.deleteDownload(item.id);
+          }
+        },
       ),
     );
   }
