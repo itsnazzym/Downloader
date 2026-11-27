@@ -73,6 +73,28 @@ Future<void> main(List<String> args) async {
     }
   }
 
+  for (final browser in ['chrome', 'firefox']) {
+    for (final size in [16, 32, 48, 96, 128]) {
+      final shared = File('${root.path}/extension/shared/icons/icon$size.png');
+      final copy = File('${root.path}/extension/$browser/icons/icon$size.png');
+      if (!shared.existsSync() || !copy.existsSync()) {
+        fail('Missing icon$size.png in shared or $browser');
+        continue;
+      }
+      final a = await shared.readAsBytes();
+      final b = await copy.readAsBytes();
+      var same = a.length == b.length;
+      for (var i = 0; same && i < a.length; i++) {
+        same = a[i] == b[i];
+      }
+      if (!same) {
+        fail(
+          'extension/$browser/icons/icon$size.png is out of date. Run: dart run tool/build_extension.dart',
+        );
+      }
+    }
+  }
+
   if (failed) {
     exitCode = 1;
     return;
