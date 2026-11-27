@@ -6435,4 +6435,70 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get iosDark => 'داكن';
+
+  @override
+  String pairingInviteTitle(String browser) {
+    return 'السماح لإضافة $browser بالتحكم في TapLoad؟';
+  }
+
+  @override
+  String pairingInviteBody(String code) {
+    return 'هل الرمز الظاهر في الإضافة هو $code؟';
+  }
+
+  @override
+  String get pairingInviteHint =>
+      'انقر على أيقونة TapLoad في شريط أدوات المتصفح لعرض الرمز.';
+
+  @override
+  String get pairingAllow => 'سماح';
+
+  @override
+  String get pairingDeny => 'رفض';
+
+  @override
+  String get pairingAlwaysDeny => 'الرفض دائمًا';
+
+  @override
+  String get pairedBrowsersTitle => 'المتصفحات المقترنة';
+
+  @override
+  String get pairedBrowsersEmpty =>
+      'لا يوجد متصفح مقترن. ثبّت الإضافة وانقر على أيقونتها للاقتران.';
+
+  @override
+  String pairedBrowsersPairedOn(String date) {
+    return 'تم الاقتران في $date';
+  }
+
+  @override
+  String pairedBrowsersLastSeen(String date) {
+    return 'آخر اتصال: $date';
+  }
+
+  @override
+  String get pairedBrowsersNeverSeen => 'لم يتصل أبدًا';
+
+  @override
+  String get revokeBrowser => 'إلغاء';
+
+  @override
+  String revokeBrowserConfirm(String browser) {
+    return 'إلغاء وصول $browser؟ سيلزم اقترانه من جديد.';
+  }
+
+  @override
+  String get revokeAll => 'إلغاء الكل';
+
+  @override
+  String get revokeAllConfirm => 'إلغاء وصول جميع المتصفحات المقترنة؟';
+
+  @override
+  String get blockedOriginsTitle => 'المصادر المحظورة';
+
+  @override
+  String get unblockOrigin => 'إلغاء الحظر';
+
+  @override
+  String get manualTokenAdvanced => 'متقدم: الرمز اليدوي';
 }

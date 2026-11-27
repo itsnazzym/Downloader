@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,8 @@ import 'package:window_manager/window_manager.dart';
 import 'package:tapload/core/theme/app_colors.dart';
 import 'package:tapload/core/theme/design_spec.dart';
 import 'package:tapload/core/providers/launch_provider.dart';
+import 'package:tapload/core/security/pairing_coordinator.dart';
+import 'package:tapload/core/ui/pairing/pairing_invite_dialog.dart';
 import 'package:tapload/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
 import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:tapload/core/services/hotkey_service.dart';
@@ -38,6 +42,10 @@ class AppShell extends ConsumerWidget {
       if (next != null && !ref.read(dependencyBootstrapProvider).blocksUi) {
         _handleLaunchData(context, ref, next);
       }
+    });
+
+    ref.listen<PairingRequest?>(pairingCoordinatorProvider, (previous, next) {
+      if (next != null) _showPairingInvite(context, ref, next);
     });
 
     ref.listen<DependencyBootstrapState>(dependencyBootstrapProvider, (
@@ -177,6 +185,34 @@ class AppShell extends ConsumerWidget {
     );
   }
 
+  /// Shown even in do-not-disturb: only this dialog can approve a pairing.
+  void _showPairingInvite(
+    BuildContext context,
+    WidgetRef ref,
+    PairingRequest request,
+  ) {
+    if (_inviteOpen) return;
+    _inviteOpen = true;
+    unawaited(
+      () async {
+        try {
+          await windowManager.show();
+          await windowManager.focus();
+        } catch (_) {}
+        if (!context.mounted) return;
+        await showPairingInvite(context, ref, request);
+      }().whenComplete(() {
+        _inviteOpen = false;
+        // A request that arrived meanwhile (e.g. another origin after this
+        // one ended) still needs its own dialog.
+        final current = ref.read(pairingCoordinatorProvider);
+        if (current != null && context.mounted) {
+          _showPairingInvite(context, ref, current);
+        }
+      }),
+    );
+  }
+
   void _handleLaunchData(BuildContext context, WidgetRef ref, LaunchData data) {
     // Clear the provider to prevent re-triggering
     ref.read(launchDataProvider.notifier).state = null;
@@ -220,6 +256,7 @@ class AppShell extends ConsumerWidget {
     });
   }
 
+  static bool _inviteOpen = false;
   static bool _addDialogOpen = false;
   static LaunchData? _pendingLaunch;
 }

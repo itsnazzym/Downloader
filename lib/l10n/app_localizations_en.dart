@@ -6435,4 +6435,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iosDark => 'Dark';
+
+  @override
+  String pairingInviteTitle(String browser) {
+    return 'Allow $browser’s extension to control TapLoad?';
+  }
+
+  @override
+  String pairingInviteBody(String code) {
+    return 'Is the code shown in the extension $code?';
+  }
+
+  @override
+  String get pairingInviteHint =>
+      'Click the TapLoad icon in the browser toolbar to see the code.';
+
+  @override
+  String get pairingAllow => 'Allow';
+
+  @override
+  String get pairingDeny => 'Deny';
+
+  @override
+  String get pairingAlwaysDeny => 'Always deny';
+
+  @override
+  String get pairedBrowsersTitle => 'Paired browsers';
+
+  @override
+  String get pairedBrowsersEmpty =>
+      'No paired browser. Install the extension and click its icon to pair it.';
+
+  @override
+  String pairedBrowsersPairedOn(String date) {
+    return 'Paired on $date';
+  }
+
+  @override
+  String pairedBrowsersLastSeen(String date) {
+    return 'Last seen: $date';
+  }
+
+  @override
+  String get pairedBrowsersNeverSeen => 'Never connected';
+
+  @override
+  String get revokeBrowser => 'Revoke';
+
+  @override
+  String revokeBrowserConfirm(String browser) {
+    return 'Revoke access for $browser? It will have to be paired again.';
+  }
+
+  @override
+  String get revokeAll => 'Revoke all';
+
+  @override
+  String get revokeAllConfirm => 'Revoke access for all paired browsers?';
+
+  @override
+  String get blockedOriginsTitle => 'Blocked origins';
+
+  @override
+  String get unblockOrigin => 'Unblock';
+
+  @override
+  String get manualTokenAdvanced => 'Advanced: manual token';
 }

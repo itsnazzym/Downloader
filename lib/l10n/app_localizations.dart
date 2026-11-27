@@ -10791,6 +10791,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dark'**
   String get iosDark;
+
+  /// No description provided for @pairingInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow {browser}’s extension to control TapLoad?'**
+  String pairingInviteTitle(String browser);
+
+  /// No description provided for @pairingInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Is the code shown in the extension {code}?'**
+  String pairingInviteBody(String code);
+
+  /// No description provided for @pairingInviteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the TapLoad icon in the browser toolbar to see the code.'**
+  String get pairingInviteHint;
+
+  /// No description provided for @pairingAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get pairingAllow;
+
+  /// No description provided for @pairingDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get pairingDeny;
+
+  /// No description provided for @pairingAlwaysDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Always deny'**
+  String get pairingAlwaysDeny;
+
+  /// No description provided for @pairedBrowsersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired browsers'**
+  String get pairedBrowsersTitle;
+
+  /// No description provided for @pairedBrowsersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No paired browser. Install the extension and click its icon to pair it.'**
+  String get pairedBrowsersEmpty;
+
+  /// No description provided for @pairedBrowsersPairedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired on {date}'**
+  String pairedBrowsersPairedOn(String date);
+
+  /// No description provided for @pairedBrowsersLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen: {date}'**
+  String pairedBrowsersLastSeen(String date);
+
+  /// No description provided for @pairedBrowsersNeverSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Never connected'**
+  String get pairedBrowsersNeverSeen;
+
+  /// No description provided for @revokeBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get revokeBrowser;
+
+  /// No description provided for @revokeBrowserConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke access for {browser}? It will have to be paired again.'**
+  String revokeBrowserConfirm(String browser);
+
+  /// No description provided for @revokeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke all'**
+  String get revokeAll;
+
+  /// No description provided for @revokeAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke access for all paired browsers?'**
+  String get revokeAllConfirm;
+
+  /// No description provided for @blockedOriginsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked origins'**
+  String get blockedOriginsTitle;
+
+  /// No description provided for @unblockOrigin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblockOrigin;
+
+  /// No description provided for @manualTokenAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced: manual token'**
+  String get manualTokenAdvanced;
 }
 
 class _AppLocalizationsDelegate

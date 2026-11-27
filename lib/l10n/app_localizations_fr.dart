@@ -6513,4 +6513,71 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get iosDark => 'Sombre';
+
+  @override
+  String pairingInviteTitle(String browser) {
+    return 'Autoriser l’extension de $browser à contrôler TapLoad ?';
+  }
+
+  @override
+  String pairingInviteBody(String code) {
+    return 'Le code affiché dans l’extension est-il $code ?';
+  }
+
+  @override
+  String get pairingInviteHint =>
+      'Cliquez sur l’icône TapLoad dans la barre d’outils du navigateur pour voir le code.';
+
+  @override
+  String get pairingAllow => 'Autoriser';
+
+  @override
+  String get pairingDeny => 'Refuser';
+
+  @override
+  String get pairingAlwaysDeny => 'Toujours refuser';
+
+  @override
+  String get pairedBrowsersTitle => 'Navigateurs appairés';
+
+  @override
+  String get pairedBrowsersEmpty =>
+      'Aucun navigateur appairé. Installez l’extension et cliquez sur son icône pour l’appairer.';
+
+  @override
+  String pairedBrowsersPairedOn(String date) {
+    return 'Appairé le $date';
+  }
+
+  @override
+  String pairedBrowsersLastSeen(String date) {
+    return 'Dernière connexion : $date';
+  }
+
+  @override
+  String get pairedBrowsersNeverSeen => 'Jamais connecté';
+
+  @override
+  String get revokeBrowser => 'Révoquer';
+
+  @override
+  String revokeBrowserConfirm(String browser) {
+    return 'Révoquer l’accès de $browser ? Il devra être appairé à nouveau.';
+  }
+
+  @override
+  String get revokeAll => 'Révoquer tout';
+
+  @override
+  String get revokeAllConfirm =>
+      'Révoquer l’accès de tous les navigateurs appairés ?';
+
+  @override
+  String get blockedOriginsTitle => 'Origines bloquées';
+
+  @override
+  String get unblockOrigin => 'Débloquer';
+
+  @override
+  String get manualTokenAdvanced => 'Avancé : jeton manuel';
 }
