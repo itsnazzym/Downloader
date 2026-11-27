@@ -32,7 +32,8 @@ void main() {
   }
 
   testWidgets('Terminal cuts, the other designs animate', (tester) async {
-    expect(await build(tester, DesignNav.keySidebar), isA<SizedBox>());
+    final terminal = await build(tester, DesignNav.keySidebar);
+    expect((terminal as FadeTransition).child, isA<SizedBox>());
     for (final nav in [
       DesignNav.topTabs,
       DesignNav.centerDock,

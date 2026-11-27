@@ -18,9 +18,7 @@ import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/theme/theme_resolver.dart';
 import 'package:modern_downloader/core/router/app_router.dart';
 import 'package:modern_downloader/core/ui/app_shell.dart';
-import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
-import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/design_miniature.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
@@ -216,46 +214,6 @@ void main() {
       ],
     );
     await shot(tester, key, 'desktop_transfer');
-  });
-
-  testWidgets('desktop sidebar switches between settings pages', (
-    tester,
-  ) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final router = container.read(routerProvider);
-    final key = await pump(
-      tester,
-      () => const SizedBox(),
-      router: router,
-      // The classic sidebar: iOS now has its own glass chrome on desktop.
-      preset: ThemePresets.oled,
-    );
-    Finder inSidebar(IconData icon) => find.descendant(
-      of: find.byType(AppSidebar),
-      matching: find.byIcon(icon),
-    );
-    Future<void> open(IconData icon) async {
-      await tester.tap(inSidebar(icon));
-      await settle(tester);
-      expect(tester.takeException(), isNull);
-    }
-
-    await open(Icons.settings_outlined); // expand the group
-    // Plugins twice: a stacked page would hold its onboarding GlobalKey twice.
-    for (final icon in [
-      Icons.extension_outlined,
-      Icons.tune,
-      Icons.extension_outlined,
-      Icons.tune,
-    ]) {
-      await open(icon);
-      final shown = icon == Icons.tune
-          ? GeneralSettingsView
-          : PluginsSettingsView;
-      expect(find.byType(shown).hitTestable(), findsOneWidget);
-    }
-    await shot(tester, key, 'desktop_sidebar_settings');
   });
 
   // Each design draws its own settings section navigation: going Plugins ->

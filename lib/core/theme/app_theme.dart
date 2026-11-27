@@ -118,7 +118,11 @@ class AppTheme {
         ),
         textStyle: TextStyle(color: palette.textPrimary, fontSize: 12),
       ),
-      pageTransitionsTheme: designed ? designPageTransitions(spec) : null,
+      // Desktop pages have no backdrop of their own: every design, iOS too,
+      // needs the transitions where the old page leaves first.
+      pageTransitionsTheme: designed || PlatformInfo.isDesktop
+          ? designPageTransitions(spec)
+          : null,
       dialogTheme: designed
           ? DialogThemeData(
               backgroundColor: palette.surface,
