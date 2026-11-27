@@ -5794,4 +5794,170 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'أُلغي التنزيل.';
+
+  @override
+  String get vitrineListLabel => 'التصاميم المتاحة';
+
+  @override
+  String get vitrinePreviewLabel => 'معاينة';
+
+  @override
+  String get vitrineCurrentBadge => 'الحالي';
+
+  @override
+  String vitrineApply(String name) {
+    return 'استخدام $name';
+  }
+
+  @override
+  String get vitrineApplyCurrent => 'التصميم الحالي';
+
+  @override
+  String get vitrineColors => 'الألوان';
+
+  @override
+  String get vitrineFont => 'الخط';
+
+  @override
+  String get vitrineNav => 'التنقل';
+
+  @override
+  String get vitrineChipDark => 'داكن';
+
+  @override
+  String get vitrineChipLight => 'فاتح';
+
+  @override
+  String get vitrineSignalShort => 'داكن وحيوي، في مربعات.';
+
+  @override
+  String get vitrineSignalLong =>
+      'لوحة تحكم من مربعات على خلفية شبه سوداء، مع لون مميز واحد أخضر مصفرّ لما يهم: الرابط الذي تلصقه وما يجري تنزيله.';
+
+  @override
+  String get vitrineSignalChip2 => 'علامات تبويب في الأعلى';
+
+  @override
+  String get vitrineSignalChip3 => 'نشيط';
+
+  @override
+  String get vitrineSignalNav => 'علامات تبويب في الأعلى';
+
+  @override
+  String get vitrinePorcelaineShort => 'فاتح وهادئ، في أدوات.';
+
+  @override
+  String get vitrinePorcelaineLong =>
+      'مساحة من الأدوات البيضاء على خلفية بلون الخزف، ترتّبها على طريقتك. الأزرق الكوبالتي مخصّص للإجراءات فقط.';
+
+  @override
+  String get vitrinePorcelaineChip2 => 'شريط مركزي';
+
+  @override
+  String get vitrinePorcelaineChip3 => 'هادئ';
+
+  @override
+  String get vitrinePorcelaineNav => 'شريط في الوسط';
+
+  @override
+  String get vitrinePastilleShort => 'مرح، مربعات بألوان الباستيل.';
+
+  @override
+  String get vitrinePastilleLong =>
+      'مربعات كبيرة بألوان ناعمة وأرقام ضخمة: لكل معلومة قرصها الخاص. الأكثر مرحًا بين التصاميم الثمانية.';
+
+  @override
+  String get vitrinePastilleChip2 => 'شريط في الأسفل';
+
+  @override
+  String get vitrinePastilleChip3 => 'مرح';
+
+  @override
+  String get vitrinePastilleNav => 'شريط في الأسفل';
+
+  @override
+  String get vitrineStudioShort => 'تحريري، ورق وحبر.';
+
+  @override
+  String get vitrineStudioLong =>
+      'تخطيط مجلة: ورق وحبر أسود وخطوط رفيعة ونقطة تسجيل حمراء. تُقرأ مكتبتك كجدول.';
+
+  @override
+  String get vitrineStudioChip2 => 'شريط جانبي';
+
+  @override
+  String get vitrineStudioChip3 => 'رصين';
+
+  @override
+  String get vitrineStudioNav => 'شريط جانبي نصي';
+
+  @override
+  String get vitrineTerminalShort => 'بلوحة المفاتيح، فوسفور أخضر.';
+
+  @override
+  String get vitrineTerminalLong =>
+      'كل شيء يُدار من لوحة المفاتيح مثل وحدة التحكم: لكل إجراء مفتاحه، والنص بخط ثابت العرض، والأخضر الفوسفوري يشير إلى ما يعمل.';
+
+  @override
+  String get vitrineTerminalChip2 => 'اختصارات';
+
+  @override
+  String get vitrineTerminalChip3 => 'تقني';
+
+  @override
+  String get vitrineTerminalNav => 'شريط المفاتيح';
+
+  @override
+  String get vitrineNocturneShort => 'ليل عميق، حلقات.';
+
+  @override
+  String get vitrineNocturneLong =>
+      'أزرق ليلي مريح وضوء ناعم وحلقات تقدّم. مصمّم لجلسات المساء الطويلة.';
+
+  @override
+  String get vitrineNocturneChip2 => 'شريط أيقونات';
+
+  @override
+  String get vitrineNocturneChip3 => 'ناعم';
+
+  @override
+  String get vitrineNocturneNav => 'شريط أيقونات';
+
+  @override
+  String get vitrineOledShort => 'أسود مطلق، لا يضيء إلا ما هو حي.';
+
+  @override
+  String get vitrineOledLong =>
+      'خلفية بسطوع 0٪: على شاشة OLED تكون هذه البكسلات مطفأة. لا يضيء إلا ما هو حي، بأرقام نقطية ولون زاهٍ واحد.';
+
+  @override
+  String get vitrineOledChip1 => 'أسود خالص';
+
+  @override
+  String get vitrineOledChip2 => 'تنقّل نصي';
+
+  @override
+  String get vitrineOledChip3 => 'بسيط';
+
+  @override
+  String get vitrineOledNav => 'روابط نصية في الأعلى';
+
+  @override
+  String get vitrineIosShort => 'Liquid Glass: زجاج حي فوق فيديوهاتك.';
+
+  @override
+  String get vitrineIosLong =>
+      'ألواح زجاجية عائمة تأخذ لون صورك المصغّرة، وعناوين كبيرة جدًا، وأزرار على شكل كبسولة، وحلقات تقدّم. داكن افتراضيًا، وفاتح إذا كان نظامك كذلك.';
+
+  @override
+  String get vitrineIosChip1 => 'Liquid Glass';
+
+  @override
+  String get vitrineIosChip2 => 'داكن أو فاتح';
+
+  @override
+  String get vitrineIosChip3 => 'شريط عائم';
+
+  @override
+  String get vitrineIosNav => 'شريط جانبي';
 }

@@ -5855,4 +5855,171 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String get vitrineListLabel => 'Designs disponibles';
+
+  @override
+  String get vitrinePreviewLabel => 'Aperçu';
+
+  @override
+  String get vitrineCurrentBadge => 'Actuel';
+
+  @override
+  String vitrineApply(String name) {
+    return 'Utiliser $name';
+  }
+
+  @override
+  String get vitrineApplyCurrent => 'Design actuel';
+
+  @override
+  String get vitrineColors => 'Couleurs';
+
+  @override
+  String get vitrineFont => 'Typo';
+
+  @override
+  String get vitrineNav => 'Navigation';
+
+  @override
+  String get vitrineChipDark => 'Sombre';
+
+  @override
+  String get vitrineChipLight => 'Clair';
+
+  @override
+  String get vitrineSignalShort => 'Sombre et vif, en bento.';
+
+  @override
+  String get vitrineSignalLong =>
+      'Un tableau de bord en blocs sur fond presque noir, avec un seul accent chartreuse pour ce qui compte : le lien à coller et ce qui télécharge.';
+
+  @override
+  String get vitrineSignalChip2 => 'Onglets en haut';
+
+  @override
+  String get vitrineSignalChip3 => 'Énergique';
+
+  @override
+  String get vitrineSignalNav => 'Onglets en haut';
+
+  @override
+  String get vitrinePorcelaineShort => 'Clair et calme, en widgets.';
+
+  @override
+  String get vitrinePorcelaineLong =>
+      'Un espace de widgets blancs posés sur un fond porcelaine, que tu réorganises à ta façon. Le bleu cobalt ne sert qu’aux actions.';
+
+  @override
+  String get vitrinePorcelaineChip2 => 'Dock central';
+
+  @override
+  String get vitrinePorcelaineChip3 => 'Serein';
+
+  @override
+  String get vitrinePorcelaineNav => 'Dock au centre';
+
+  @override
+  String get vitrinePastilleShort => 'Joueur, tuiles pastel.';
+
+  @override
+  String get vitrinePastilleLong =>
+      'De grosses tuiles aux couleurs douces et des chiffres géants : chaque information a sa pastille. Le plus ludique des huit.';
+
+  @override
+  String get vitrinePastilleChip2 => 'Dock en bas';
+
+  @override
+  String get vitrinePastilleChip3 => 'Ludique';
+
+  @override
+  String get vitrinePastilleNav => 'Dock en bas';
+
+  @override
+  String get vitrineStudioShort => 'Éditorial, papier et encre.';
+
+  @override
+  String get vitrineStudioLong =>
+      'Une mise en page de magazine : papier, encre noire, filets fins et un point rouge d’enregistrement. Ta bibliothèque se lit comme un tableau.';
+
+  @override
+  String get vitrineStudioChip2 => 'Barre latérale';
+
+  @override
+  String get vitrineStudioChip3 => 'Sobre';
+
+  @override
+  String get vitrineStudioNav => 'Barre latérale texte';
+
+  @override
+  String get vitrineTerminalShort => 'Au clavier, phosphore vert.';
+
+  @override
+  String get vitrineTerminalLong =>
+      'Tout se pilote au clavier, comme une console : chaque action a sa touche, le texte est en police à chasse fixe et le vert phosphore signale ce qui tourne.';
+
+  @override
+  String get vitrineTerminalChip2 => 'Raccourcis';
+
+  @override
+  String get vitrineTerminalChip3 => 'Technique';
+
+  @override
+  String get vitrineTerminalNav => 'Barre de touches';
+
+  @override
+  String get vitrineNocturneShort => 'Nuit profonde, anneaux.';
+
+  @override
+  String get vitrineNocturneLong =>
+      'Un bleu de nuit apaisant, une lumière douce et des anneaux de progression. Pensé pour les longues sessions le soir.';
+
+  @override
+  String get vitrineNocturneChip2 => 'Rail d’icônes';
+
+  @override
+  String get vitrineNocturneChip3 => 'Doux';
+
+  @override
+  String get vitrineNocturneNav => 'Rail d’icônes';
+
+  @override
+  String get vitrineOledShort => 'Noir absolu, seul le vivant s’allume.';
+
+  @override
+  String get vitrineOledLong =>
+      'Fond à 0 % de luminosité : sur un écran OLED, ces pixels sont éteints. Seul ce qui vit s’allume, en chiffres matriciels et en une couleur vive.';
+
+  @override
+  String get vitrineOledChip1 => 'Noir pur';
+
+  @override
+  String get vitrineOledChip2 => 'Navigation texte';
+
+  @override
+  String get vitrineOledChip3 => 'Minimal';
+
+  @override
+  String get vitrineOledNav => 'Liens texte en haut';
+
+  @override
+  String get vitrineIosShort =>
+      'Liquid Glass : du verre vivant sur tes vidéos.';
+
+  @override
+  String get vitrineIosLong =>
+      'Des panneaux de verre flottants qui prennent la couleur de tes miniatures, des titres XXL, des contrôles en capsule et des anneaux de progression. Sombre par défaut, clair si ton système l’est.';
+
+  @override
+  String get vitrineIosChip1 => 'Liquid Glass';
+
+  @override
+  String get vitrineIosChip2 => 'Sombre ou clair';
+
+  @override
+  String get vitrineIosChip3 => 'Barre flottante';
+
+  @override
+  String get vitrineIosNav => 'Barre latérale';
 }

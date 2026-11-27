@@ -5788,4 +5788,171 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'Download canceled.';
+
+  @override
+  String get vitrineListLabel => 'Available designs';
+
+  @override
+  String get vitrinePreviewLabel => 'Preview';
+
+  @override
+  String get vitrineCurrentBadge => 'Current';
+
+  @override
+  String vitrineApply(String name) {
+    return 'Use $name';
+  }
+
+  @override
+  String get vitrineApplyCurrent => 'Current design';
+
+  @override
+  String get vitrineColors => 'Colors';
+
+  @override
+  String get vitrineFont => 'Type';
+
+  @override
+  String get vitrineNav => 'Navigation';
+
+  @override
+  String get vitrineChipDark => 'Dark';
+
+  @override
+  String get vitrineChipLight => 'Light';
+
+  @override
+  String get vitrineSignalShort => 'Dark and vivid, in bento blocks.';
+
+  @override
+  String get vitrineSignalLong =>
+      'A dashboard of blocks on a near-black ground, with a single chartreuse accent for what matters: the link to paste and what is downloading.';
+
+  @override
+  String get vitrineSignalChip2 => 'Top tabs';
+
+  @override
+  String get vitrineSignalChip3 => 'Energetic';
+
+  @override
+  String get vitrineSignalNav => 'Top tabs';
+
+  @override
+  String get vitrinePorcelaineShort => 'Light and calm, in widgets.';
+
+  @override
+  String get vitrinePorcelaineLong =>
+      'A space of white widgets on a porcelain ground that you arrange your way. Cobalt blue is only for actions.';
+
+  @override
+  String get vitrinePorcelaineChip2 => 'Centre dock';
+
+  @override
+  String get vitrinePorcelaineChip3 => 'Serene';
+
+  @override
+  String get vitrinePorcelaineNav => 'Centred dock';
+
+  @override
+  String get vitrinePastilleShort => 'Playful, pastel tiles.';
+
+  @override
+  String get vitrinePastilleLong =>
+      'Big soft-coloured tiles and giant numbers: every piece of information has its own pastille. The most playful of the eight.';
+
+  @override
+  String get vitrinePastilleChip2 => 'Bottom dock';
+
+  @override
+  String get vitrinePastilleChip3 => 'Playful';
+
+  @override
+  String get vitrinePastilleNav => 'Bottom dock';
+
+  @override
+  String get vitrineStudioShort => 'Editorial, paper and ink.';
+
+  @override
+  String get vitrineStudioLong =>
+      'A magazine layout: paper, black ink, fine rules and a red recording dot. Your library reads like a table.';
+
+  @override
+  String get vitrineStudioChip2 => 'Sidebar';
+
+  @override
+  String get vitrineStudioChip3 => 'Understated';
+
+  @override
+  String get vitrineStudioNav => 'Text sidebar';
+
+  @override
+  String get vitrineTerminalShort => 'Keyboard-first, green phosphor.';
+
+  @override
+  String get vitrineTerminalLong =>
+      'Everything is driven from the keyboard, like a console: each action has its key, text is monospaced and phosphor green marks what is running.';
+
+  @override
+  String get vitrineTerminalChip2 => 'Shortcuts';
+
+  @override
+  String get vitrineTerminalChip3 => 'Technical';
+
+  @override
+  String get vitrineTerminalNav => 'Key bar';
+
+  @override
+  String get vitrineNocturneShort => 'Deep night, rings.';
+
+  @override
+  String get vitrineNocturneLong =>
+      'A soothing night blue, soft light and progress rings. Made for long evening sessions.';
+
+  @override
+  String get vitrineNocturneChip2 => 'Icon rail';
+
+  @override
+  String get vitrineNocturneChip3 => 'Gentle';
+
+  @override
+  String get vitrineNocturneNav => 'Icon rail';
+
+  @override
+  String get vitrineOledShort =>
+      'Absolute black, only what is alive lights up.';
+
+  @override
+  String get vitrineOledLong =>
+      'A 0% brightness ground: on an OLED screen these pixels are off. Only what is alive lights up, in dot-matrix numbers and one vivid colour.';
+
+  @override
+  String get vitrineOledChip1 => 'Pure black';
+
+  @override
+  String get vitrineOledChip2 => 'Text navigation';
+
+  @override
+  String get vitrineOledChip3 => 'Minimal';
+
+  @override
+  String get vitrineOledNav => 'Text links at the top';
+
+  @override
+  String get vitrineIosShort => 'Liquid Glass: living glass over your videos.';
+
+  @override
+  String get vitrineIosLong =>
+      'Floating glass panels that take on the colour of your thumbnails, XXL titles, capsule controls and progress rings. Dark by default, light if your system is.';
+
+  @override
+  String get vitrineIosChip1 => 'Liquid Glass';
+
+  @override
+  String get vitrineIosChip2 => 'Dark or light';
+
+  @override
+  String get vitrineIosChip3 => 'Floating bar';
+
+  @override
+  String get vitrineIosNav => 'Sidebar';
 }

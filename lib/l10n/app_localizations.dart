@@ -9789,6 +9789,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download canceled.'**
   String get designLogCanceled;
+
+  /// No description provided for @vitrineListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available designs'**
+  String get vitrineListLabel;
+
+  /// No description provided for @vitrinePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get vitrinePreviewLabel;
+
+  /// No description provided for @vitrineCurrentBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get vitrineCurrentBadge;
+
+  /// No description provided for @vitrineApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {name}'**
+  String vitrineApply(String name);
+
+  /// No description provided for @vitrineApplyCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current design'**
+  String get vitrineApplyCurrent;
+
+  /// No description provided for @vitrineColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Colors'**
+  String get vitrineColors;
+
+  /// No description provided for @vitrineFont.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get vitrineFont;
+
+  /// No description provided for @vitrineNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get vitrineNav;
+
+  /// No description provided for @vitrineChipDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get vitrineChipDark;
+
+  /// No description provided for @vitrineChipLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get vitrineChipLight;
+
+  /// No description provided for @vitrineSignalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark and vivid, in bento blocks.'**
+  String get vitrineSignalShort;
+
+  /// No description provided for @vitrineSignalLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A dashboard of blocks on a near-black ground, with a single chartreuse accent for what matters: the link to paste and what is downloading.'**
+  String get vitrineSignalLong;
+
+  /// No description provided for @vitrineSignalChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Top tabs'**
+  String get vitrineSignalChip2;
+
+  /// No description provided for @vitrineSignalChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Energetic'**
+  String get vitrineSignalChip3;
+
+  /// No description provided for @vitrineSignalNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Top tabs'**
+  String get vitrineSignalNav;
+
+  /// No description provided for @vitrinePorcelaineShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Light and calm, in widgets.'**
+  String get vitrinePorcelaineShort;
+
+  /// No description provided for @vitrinePorcelaineLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A space of white widgets on a porcelain ground that you arrange your way. Cobalt blue is only for actions.'**
+  String get vitrinePorcelaineLong;
+
+  /// No description provided for @vitrinePorcelaineChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre dock'**
+  String get vitrinePorcelaineChip2;
+
+  /// No description provided for @vitrinePorcelaineChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Serene'**
+  String get vitrinePorcelaineChip3;
+
+  /// No description provided for @vitrinePorcelaineNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Centred dock'**
+  String get vitrinePorcelaineNav;
+
+  /// No description provided for @vitrinePastilleShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Playful, pastel tiles.'**
+  String get vitrinePastilleShort;
+
+  /// No description provided for @vitrinePastilleLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Big soft-coloured tiles and giant numbers: every piece of information has its own pastille. The most playful of the eight.'**
+  String get vitrinePastilleLong;
+
+  /// No description provided for @vitrinePastilleChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom dock'**
+  String get vitrinePastilleChip2;
+
+  /// No description provided for @vitrinePastilleChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Playful'**
+  String get vitrinePastilleChip3;
+
+  /// No description provided for @vitrinePastilleNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom dock'**
+  String get vitrinePastilleNav;
+
+  /// No description provided for @vitrineStudioShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Editorial, paper and ink.'**
+  String get vitrineStudioShort;
+
+  /// No description provided for @vitrineStudioLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A magazine layout: paper, black ink, fine rules and a red recording dot. Your library reads like a table.'**
+  String get vitrineStudioLong;
+
+  /// No description provided for @vitrineStudioChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar'**
+  String get vitrineStudioChip2;
+
+  /// No description provided for @vitrineStudioChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Understated'**
+  String get vitrineStudioChip3;
+
+  /// No description provided for @vitrineStudioNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Text sidebar'**
+  String get vitrineStudioNav;
+
+  /// No description provided for @vitrineTerminalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard-first, green phosphor.'**
+  String get vitrineTerminalShort;
+
+  /// No description provided for @vitrineTerminalLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is driven from the keyboard, like a console: each action has its key, text is monospaced and phosphor green marks what is running.'**
+  String get vitrineTerminalLong;
+
+  /// No description provided for @vitrineTerminalChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts'**
+  String get vitrineTerminalChip2;
+
+  /// No description provided for @vitrineTerminalChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical'**
+  String get vitrineTerminalChip3;
+
+  /// No description provided for @vitrineTerminalNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Key bar'**
+  String get vitrineTerminalNav;
+
+  /// No description provided for @vitrineNocturneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep night, rings.'**
+  String get vitrineNocturneShort;
+
+  /// No description provided for @vitrineNocturneLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A soothing night blue, soft light and progress rings. Made for long evening sessions.'**
+  String get vitrineNocturneLong;
+
+  /// No description provided for @vitrineNocturneChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon rail'**
+  String get vitrineNocturneChip2;
+
+  /// No description provided for @vitrineNocturneChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle'**
+  String get vitrineNocturneChip3;
+
+  /// No description provided for @vitrineNocturneNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon rail'**
+  String get vitrineNocturneNav;
+
+  /// No description provided for @vitrineOledShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Absolute black, only what is alive lights up.'**
+  String get vitrineOledShort;
+
+  /// No description provided for @vitrineOledLong.
+  ///
+  /// In en, this message translates to:
+  /// **'A 0% brightness ground: on an OLED screen these pixels are off. Only what is alive lights up, in dot-matrix numbers and one vivid colour.'**
+  String get vitrineOledLong;
+
+  /// No description provided for @vitrineOledChip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pure black'**
+  String get vitrineOledChip1;
+
+  /// No description provided for @vitrineOledChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Text navigation'**
+  String get vitrineOledChip2;
+
+  /// No description provided for @vitrineOledChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal'**
+  String get vitrineOledChip3;
+
+  /// No description provided for @vitrineOledNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Text links at the top'**
+  String get vitrineOledNav;
+
+  /// No description provided for @vitrineIosShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid Glass: living glass over your videos.'**
+  String get vitrineIosShort;
+
+  /// No description provided for @vitrineIosLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating glass panels that take on the colour of your thumbnails, XXL titles, capsule controls and progress rings. Dark by default, light if your system is.'**
+  String get vitrineIosLong;
+
+  /// No description provided for @vitrineIosChip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid Glass'**
+  String get vitrineIosChip1;
+
+  /// No description provided for @vitrineIosChip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark or light'**
+  String get vitrineIosChip2;
+
+  /// No description provided for @vitrineIosChip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating bar'**
+  String get vitrineIosChip3;
+
+  /// No description provided for @vitrineIosNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidebar'**
+  String get vitrineIosNav;
 }
 
 class _AppLocalizationsDelegate

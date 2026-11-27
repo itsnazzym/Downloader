@@ -6,6 +6,7 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
@@ -768,10 +769,9 @@ class _AppearancePanel extends ConsumerWidget {
                   onChanged: set.setThemeMode,
                 ),
               ),
-            _Thumbs(
-              ids: [for (final p in ThemePresets.all) p.id],
-              selected: theme,
-              onSelect: set.setThemePreset,
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: DesignVitrine(),
             ),
           ]),
           if (s.themePreset != 'oled')

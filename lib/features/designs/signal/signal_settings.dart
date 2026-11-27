@@ -6,6 +6,7 @@ import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart'
     show languageOptionLabels, qualityOptionLabels, themeModeOptionLabels;
@@ -590,10 +591,7 @@ class _OutputCard extends ConsumerWidget {
 }
 
 class _DesignCard extends ConsumerWidget {
-  const _DesignCard({this.every = false});
-
-  /// Every look, OLED and iOS too (the Appearance page).
-  final bool every;
+  const _DesignCard();
 
   static const _ids = [
     'signal',
@@ -638,10 +636,7 @@ class _DesignCard extends ConsumerWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  for (final id
-                      in every
-                          ? [for (final p in ThemePresets.all) p.id]
-                          : _ids)
+                  for (final id in _ids)
                     SizedBox(
                       width: w,
                       child: _Vignette(
@@ -960,7 +955,17 @@ class _Appearance extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _DesignCard(every: true),
+        SignalCard(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SignalEyebrow(l10n.signalSettingsDesignTitle),
+              const SizedBox(height: 14),
+              const DesignVitrine(),
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
         SignalCard(
           padding: _cardPadding,

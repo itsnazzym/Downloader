@@ -21,6 +21,8 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_miniature.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/features/designs/pastille/pastille_kit.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/designs/terminal/terminal_library.dart';
@@ -379,6 +381,44 @@ void main() {
       // ...but the section is still named: in its navigation and as title.
       final name = lookupAppLocalizations(const Locale('fr')).settingsAppearance;
       expect(find.text(name), findsAtLeastNWidgets(2));
+    });
+  }
+
+  // The Vitrine previewing another design than the current one: wide, and at
+  // the client width of a 1000 px window.
+  for (final (id, size) in const [
+    ('signal', Size(1280, 900)),
+    ('pastille', Size(984, 680)),
+  ]) {
+    testWidgets('design $id vitrine previews another design', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      final key = await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.getById(id),
+        size: size,
+      );
+      router.go('/settings/appearance');
+      await settle(tester);
+      final oled = find.descendant(
+        of: find.byType(DesignVitrine),
+        matching: find.text('OLED'),
+      );
+      // Mid-viewport: Pastille's floating dock covers the bottom edge.
+      Future<void> reveal(Finder f) async {
+        Scrollable.ensureVisible(tester.element(f), alignment: 0.3);
+        await tester.pump();
+      }
+
+      await reveal(oled.first);
+      await tester.tap(oled.first);
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await reveal(find.byType(DesignMiniature));
+      await shot(tester, key, 'vitrine_${id}_${size.width.toInt()}');
     });
   }
 

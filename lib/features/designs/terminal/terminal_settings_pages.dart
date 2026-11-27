@@ -22,6 +22,7 @@ import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/extension_install_guide_dialog.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/library_migration_dialog.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/design_vitrine.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/dialogs/reorganize_library_dialog.dart';
@@ -488,29 +489,9 @@ class TerminalAppearancePage extends ConsumerWidget {
             onChanged: n.setThemeMode,
             icon: Icons.brightness_4_rounded,
           ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 4, 10, 6),
-          child: LayoutBuilder(
-            builder: (context, c) {
-              final cols = ((c.maxWidth + 8) / 120).floor().clamp(1, 8);
-              final w = (c.maxWidth - 8 * (cols - 1)) / cols;
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final p in ThemePresets.all)
-                    SizedBox(
-                      width: w,
-                      child: TDesignThumb(
-                        id: p.id,
-                        selected: p.id == s.themePreset,
-                        onTap: () => n.setThemePreset(p.id),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(10, 4, 10, 6),
+          child: DesignVitrine(),
         ),
         if (s.themePreset != 'oled') ...[
           SectionTitle(l10n.accentColor),
