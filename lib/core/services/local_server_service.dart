@@ -18,6 +18,9 @@ import '../services/notification_service.dart';
 import '../security/extension_origin.dart';
 import '../security/local_server_auth.dart';
 import '../security/local_server_download_intake.dart';
+import '../security/paired_browsers.dart';
+import '../security/pairing_coordinator.dart';
+import 'extension_pairing_contract.dart';
 import '../../features/x_feed/gobird_x_feed_service.dart';
 import 'extension_queue_contract.dart';
 import '../../features/x_feed/library_keys_snapshot.dart';
@@ -25,6 +28,8 @@ import '../../features/x_feed/x_feed_ws_contract.dart';
 import '../../features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'binary/binary_locator.dart';
 import '../../features/archive/presentation/providers/tiktok_archive_provider.dart';
+
+typedef _Msg = ExtensionPairingContract;
 
 final extensionConnectedClientsProvider = StateProvider<int>((ref) => 0);
 
@@ -42,18 +47,43 @@ class LocalServerService {
   late final ExtensionDownloadBatcher _downloadBatcher;
   final ProgressBroadcastFilter _progressFilter = ProgressBroadcastFilter();
 
+  // Every open socket, authenticated or not, with its handshake state.
+  final Map<WebSocket, _Connection> _connections = {};
+  // Notified once per app session: 'manual' or a paired token's hash.
+  final Set<String> _notified = {};
+  final Future<void> Function() _showExtensionConnected;
+  ProviderSubscription<PairedBrowsersState>? _pairedSub;
+  StreamSubscription<PairedBrowser>? _revokedSub;
+
   /// HELLO must arrive within this window or the socket is closed.
-  static const Duration helloTimeout = Duration(seconds: 2);
+  final Duration helloTimeout;
+
+  /// After `AUTH_FAILED pairing_required`, time left to send `PAIR_REQUEST`.
+  final Duration pairRequestWindow;
+
+  /// `PAIR_PENDING` is repeated this often: Chrome kills an extension service
+  /// worker after ~30 s without traffic.
+  final Duration pendingKeepAlive;
 
   @visibleForTesting
   int? get boundPort => _server?.port;
+
+  @visibleForTesting
+  int get liveConnectionCount => _connections.length;
 
   LocalServerService(
     this._ref, {
     GobirdXFeedService? gobirdFeedService,
     void Function(List<ExtensionDownloadIngest> batch)? onExtensionFlush,
+    this.helloTimeout = const Duration(seconds: 2),
+    this.pairRequestWindow = const Duration(seconds: 10),
+    this.pendingKeepAlive = const Duration(seconds: 10),
+    Future<void> Function()? showExtensionConnected,
   }) : _gobirdFeedService =
-           gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator()) {
+           gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator()),
+       _showExtensionConnected =
+           showExtensionConnected ??
+           NotificationService().showExtensionConnected {
     _downloadBatcher = ExtensionDownloadBatcher(
       onFlush: onExtensionFlush ?? _flushExtensionDownloads,
     );
@@ -107,6 +137,22 @@ class LocalServerService {
       (previous, next) => _broadcastTheme(),
     );
 
+    // A revocation cuts that browser's sockets at once. The state listener
+    // also covers a revoke whose save failed (state changed, no event).
+    _pairedSub?.close();
+    _pairedSub = _ref.listen<PairedBrowsersState>(pairedBrowsersProvider, (
+      previous,
+      next,
+    ) {
+      final live = {for (final b in next.browsers) b.id};
+      _closeRevoked((id) => !live.contains(id));
+    });
+    unawaited(_revokedSub?.cancel());
+    _revokedSub = _ref
+        .read(pairedBrowsersProvider.notifier)
+        .revoked
+        .listen((gone) => _closeRevoked((id) => id == gone.id));
+
     try {
       _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
       LoggerService.i('''
@@ -132,6 +178,10 @@ Ready for Extension Connection
     _repoProviderSub = null;
     _themeSub?.close();
     _themeSub = null;
+    _pairedSub?.close();
+    _pairedSub = null;
+    await _revokedSub?.cancel();
+    _revokedSub = null;
 
     try {
       _downloadBatcher.flush();
@@ -139,9 +189,11 @@ Ready for Extension Connection
     } catch (e) {
       LoggerService.w('Failed to flush extension download batch: $e');
     }
-    for (final client in _clients) {
-      unawaited(client.close());
+    // Pending and windowed sockets too, with their timers.
+    for (final c in _connections.values) {
+      _close(c);
     }
+    _connections.clear();
     _clients.clear();
     for (final timer in _pendingTikTokSyncCleanup.values) {
       timer.cancel();
@@ -182,17 +234,36 @@ Ready for Extension Connection
         return;
       }
       final origin = origins?.single;
+      final agents = request.headers['user-agent'];
+      final label = ExtensionOrigin.browserLabel(
+        agents?.length == 1 ? agents!.single : null,
+      );
+      final WebSocket socket;
       try {
-        final socket = await WebSocketTransformer.upgrade(request);
-        _handleWebSocket(
-          socket,
-          request,
-          hasExtensionOrigin: ExtensionOrigin.isExtensionOrigin(origin),
-          originScheme: ExtensionOrigin.originScheme(origin),
-        );
+        socket = await WebSocketTransformer.upgrade(request);
       } catch (e) {
         LoggerService.e('WebSocket upgrade failed', e);
+        // A throw (e.g. duplicated Sec-WebSocket-Extensions) can leave the 101
+        // headers staged and nothing sent: answer a clean 400, never hang.
+        try {
+          request.response.headers
+            ..removeAll(HttpHeaders.connectionHeader)
+            ..removeAll(HttpHeaders.upgradeHeader)
+            ..removeAll('sec-websocket-accept');
+          request.response.statusCode = HttpStatus.badRequest;
+          await request.response.close();
+        } catch (_) {} // the transformer already answered
+        return;
       }
+      _handleWebSocket(
+        socket,
+        request,
+        extensionOrigin: ExtensionOrigin.isExtensionOrigin(origin)
+            ? cleanPairingOrigin(origin!)
+            : null,
+        label: label,
+        originScheme: ExtensionOrigin.originScheme(origin),
+      );
       return;
     }
 
@@ -214,76 +285,213 @@ Ready for Extension Connection
     );
   }
 
-  void _acceptClient(WebSocket socket) {
-    if (_clients.contains(socket)) return;
-    _clients.add(socket);
-    _ref.read(extensionConnectedClientsProvider.notifier).state =
-        _clients.length;
-    unawaited(NotificationService().showExtensionConnected());
+  void _publishClientCount() =>
+      _ref.read(extensionConnectedClientsProvider.notifier).state =
+          _clients.length;
+
+  /// Once per app session and per browser (or for the manual token), so a
+  /// reconnecting extension does not notify again.
+  void _notifyConnected(String key) {
+    if (!_notified.add(key)) return;
+    unawaited(
+      Future.sync(_showExtensionConnected).catchError(
+        (Object e) => LoggerService.w('Connected notification failed: $e'),
+      ),
+    );
   }
 
-  /// [hasExtensionOrigin] is consumed by the pairing flow (a socket without an
-  /// extension Origin can never request pairing).
+  /// Never throws: timer and outcome callbacks send through here.
+  void _send(_Connection c, Map<String, dynamic> message) {
+    if (c.closed || c.socket.readyState != WebSocket.open) return;
+    try {
+      c.socket.add(jsonEncode(message));
+    } catch (e) {
+      LoggerService.w('Failed to send ${message['type']}: $e');
+    }
+  }
+
+  void _close(_Connection c) {
+    c.closed = true;
+    c.cancelTimers();
+    unawaited(c.socket.close());
+  }
+
+  void _closeRevoked(bool Function(String browserId) revoked) {
+    var dropped = false;
+    for (final c in _connections.values.toList()) {
+      final id = c.browserId;
+      if (id == null || !revoked(id)) continue;
+      c.authorized = false;
+      c.browserId = null;
+      dropped = _clients.remove(c.socket) || dropped;
+      _close(c);
+    }
+    if (dropped) _publishClientCount();
+  }
+
+  void _onSocketGone(_Connection c, Object? error) {
+    c.closed = true;
+    c.cancelTimers();
+    if (error == null) {
+      LoggerService.i('Extension Disconnected');
+    } else {
+      LoggerService.e('WebSocket Error', error);
+    }
+    // Already dropped by stop(): leave _ref alone, it may be disposed.
+    if (_connections.remove(c.socket) == null) return;
+    if (_clients.remove(c.socket)) _publishClientCount();
+  }
+
+  void _accept(_Connection c, String notifyKey, String? browserId) {
+    c.authorized = true;
+    c.browserId = browserId;
+    c.deadline?.cancel();
+    if (!_clients.contains(c.socket)) {
+      _clients.add(c.socket);
+      _publishClientCount();
+    }
+    _notifyConnected(notifyKey);
+    _send(c, {'type': _Msg.helloOk});
+    _sendTheme(c.socket);
+    _sendLibraryKeys(c.socket);
+  }
+
+  void _onHello(_Connection c, Map<String, dynamic> data) {
+    LoggerService.i('Extension Hello received');
+    // A socket waiting for the user's decision cannot switch to a token.
+    if (c.pairing) {
+      _send(c, _Msg.authFailedMessage(_Msg.notAuthenticated));
+      return;
+    }
+    final token = LocalServerAuth.tokenFromMessage(data);
+    if (_isAuthorized(token)) return _accept(c, 'manual', null);
+    final browser = token == null
+        ? null
+        : _ref.read(pairedBrowsersProvider.notifier).authenticate(token);
+    if (browser != null) return _accept(c, browser.tokenHash, browser.id);
+
+    if (c.origin == null || c.authorized) {
+      // Not an extension (or a re-HELLO): refuse and close, as always.
+      c.authorized = false;
+      if (_clients.remove(c.socket)) _publishClientCount();
+      _send(c, _Msg.authFailedMessage());
+      _close(c);
+      return;
+    }
+    _send(c, _Msg.authFailedMessage(_Msg.pairingRequired));
+    if (c.windowOpen) return; // a repeated HELLO never extends the window
+    c.windowOpen = true;
+    c.deadline?.cancel();
+    c.deadline = Timer(pairRequestWindow, () {
+      if (!c.pairing && !c.authorized) _close(c);
+    });
+  }
+
+  /// Only ever SUBMITS: approving or denying is the app UI's job, and no
+  /// message can trigger it.
+  void _onPairRequest(_Connection c) {
+    c.pairing = true;
+    c.deadline?.cancel(); // neither the HELLO timeout nor the window applies
+    final origin = c.origin!;
+    final store = _ref.read(pairedBrowsersProvider.notifier);
+    final coordinator = _ref.read(pairingCoordinatorProvider.notifier);
+    // Origin from the real header, label from the User-Agent: nothing the
+    // client wrote in its message is used.
+    final submitted = coordinator.submit(origin: origin, label: c.label);
+    final request = submitted.request;
+    final outcome = submitted.outcome;
+    if (request == null || outcome == null) {
+      LoggerService.i('Pairing request refused: ${submitted.refusal?.name}');
+      _send(c, switch (submitted.refusal) {
+        PairingRefusal.paused || PairingRefusal.rateLimited => _Msg.paused(
+          submitted.retryAfter ?? Duration.zero,
+        ),
+        PairingRefusal.blocked => _Msg.denied(_Msg.blockedRetryAfter),
+        PairingRefusal.busy || PairingRefusal.full || null => _Msg.busy(),
+      });
+      _close(c);
+      return;
+    }
+    LoggerService.i('Pairing request pending');
+    void remind() =>
+        _send(c, _Msg.pending(request, coordinator.expiresIn(request)));
+    remind();
+    c.keepAlive = Timer.periodic(pendingKeepAlive, (_) => remind());
+    unawaited(
+      outcome
+          .then((result) {
+            // Closed while pending: the request stays for a reconnect.
+            if (c.closed) return;
+            switch (result) {
+              case PairingApproved(:final token):
+                _send(c, _Msg.ok(token));
+                _notifyConnected(PairedBrowsersStore.hashToken(token));
+              case PairingDenied(:final retryAfter):
+                // deny(always) blocked the origin: say so, not 10 minutes.
+                _send(
+                  c,
+                  _Msg.denied(
+                    store.isBlocked(origin)
+                        ? _Msg.blockedRetryAfter
+                        : retryAfter,
+                  ),
+                );
+              case PairingExpired():
+                _send(c, _Msg.expired());
+            }
+            _close(c);
+          })
+          .catchError((Object e) {
+            LoggerService.w('Pairing outcome failed: $e');
+            _close(c);
+          }),
+    );
+  }
+
+  /// [extensionOrigin] is the cleaned Origin of an extension socket, null
+  /// without one: such a socket may authenticate with a token, never pair.
   void _handleWebSocket(
     WebSocket socket,
     HttpRequest request, {
-    required bool hasExtensionOrigin,
+    required String? extensionOrigin,
+    required String label,
     required String originScheme,
   }) {
     LoggerService.i(
       'Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}, origin $originScheme',
     );
 
-    // Token must arrive via HELLO message body — never from the URL query.
-    var authorized = false;
-    Timer? helloTimer;
+    final c = _Connection(socket, extensionOrigin, label);
+    _connections[socket] = c;
 
-    helloTimer = Timer(helloTimeout, () {
-      if (!authorized) {
-        LoggerService.w('WebSocket closed: HELLO auth timeout');
-        try {
-          socket.add(
-            jsonEncode({'type': 'AUTH_FAILED', 'reason': 'hello_timeout'}),
-          );
-        } catch (e) {
-          LoggerService.w('Failed to send HELLO timeout AUTH_FAILED: $e');
-        }
-        unawaited(socket.close());
-      }
+    // Token must arrive via HELLO message body — never from the URL query.
+    c.deadline = Timer(helloTimeout, () {
+      if (c.authorized || c.pairing) return;
+      LoggerService.w('WebSocket closed: HELLO auth timeout');
+      _send(c, _Msg.authFailedMessage(_Msg.helloTimeout));
+      _close(c);
     });
 
     socket.listen(
       (message) {
+        if (c.closed) return;
         try {
           final data = jsonDecode(message) as Map<String, dynamic>;
           final type = data['type'] as String?;
 
-          if (type == 'HELLO') {
-            final messageToken = LocalServerAuth.tokenFromMessage(data);
-            authorized = _isAuthorized(messageToken);
-            LoggerService.i('Extension Hello received');
-            if (authorized) {
-              helloTimer?.cancel();
-              _acceptClient(socket);
-              socket.add(jsonEncode({'type': 'HELLO_OK'}));
-              _sendTheme(socket);
-              _sendLibraryKeys(socket);
-            } else {
-              helloTimer?.cancel();
-              socket.add(jsonEncode({'type': 'AUTH_FAILED'}));
-              unawaited(socket.close());
-            }
+          if (type == _Msg.hello) {
+            _onHello(c, data);
+            return;
+          }
+
+          if (type == _Msg.pairRequest && c.mayRequestPairing) {
+            _onPairRequest(c);
             return;
           }
 
           // Refuse every other message until HELLO succeeds.
-          if (!authorized) {
-            socket.add(
-              jsonEncode({
-                'type': 'AUTH_FAILED',
-                'reason': 'not_authenticated',
-              }),
-            );
+          if (!c.authorized) {
+            _send(c, _Msg.authFailedMessage(_Msg.notAuthenticated));
             return;
           }
 
@@ -333,20 +541,8 @@ Ready for Extension Connection
           LoggerService.e('Error parsing WS message', e);
         }
       },
-      onDone: () {
-        helloTimer?.cancel();
-        LoggerService.i('Extension Disconnected');
-        _clients.remove(socket);
-        _ref.read(extensionConnectedClientsProvider.notifier).state =
-            _clients.length;
-      },
-      onError: (e) {
-        helloTimer?.cancel();
-        LoggerService.e('WebSocket Error', e);
-        _clients.remove(socket);
-        _ref.read(extensionConnectedClientsProvider.notifier).state =
-            _clients.length;
-      },
+      onDone: () => _onSocketGone(c, null),
+      onError: (Object e) => _onSocketGone(c, e),
     );
   }
 
@@ -906,5 +1102,34 @@ Ready for Extension Connection
       );
     }
     return sentCount;
+  }
+}
+
+/// Handshake state of one socket. Its timers all live here so that one
+/// [cancelTimers] covers every close path.
+class _Connection {
+  _Connection(this.socket, this.origin, this.label);
+
+  final WebSocket socket;
+
+  /// Cleaned extension Origin header; null: may authenticate, never pair.
+  final String? origin;
+
+  /// From the User-Agent header, never from a message.
+  final String label;
+
+  var authorized = false;
+  String? browserId; // paired browser behind the token, for revocation
+  var pairing = false; // PAIR_REQUEST accepted, once per socket
+  var windowOpen = false;
+  var closed = false;
+  Timer? deadline; // HELLO timeout, then the PAIR_REQUEST window
+  Timer? keepAlive; // PAIR_PENDING reminders
+
+  bool get mayRequestPairing => origin != null && !authorized && !pairing;
+
+  void cancelTimers() {
+    deadline?.cancel();
+    keepAlive?.cancel();
   }
 }
