@@ -895,5 +895,11 @@
     },
     "feedOrderTitle": {
         "message": "تغيير ترتيب العرض"
+    },
+    "feedFilterOn": {
+        "message": "عامل التصفية: {name}"
+    },
+    "feedFilterClear": {
+        "message": "إزالة عامل التصفية"
     }
 }

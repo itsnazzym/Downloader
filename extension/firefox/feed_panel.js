@@ -1793,7 +1793,19 @@
       pill.classList.toggle('active', on);
       pill.setAttribute('aria-pressed', String(on));
     });
+    // A filter that lives in the menu must still show (and be removable) in the main view.
+    var menuFilter = activePlatformFilter === 'current' ? t('feedCurrent', 'Actif')
+      : activePlatformFilter === 'sniffed' ? t('feedNetwork', 'Réseau') : '';
+    var note = document.getElementById('active-filter-note');
+    if (note) {
+      note.hidden = !menuFilter;
+      setText(document.getElementById('active-filter-text'), tf('feedFilterOn', 'Filtre : {name}', { name: menuFilter }));
+    }
+    var menuBtn = document.getElementById('panel-menu-btn');
+    if (menuBtn) menuBtn.classList.toggle('has-filter', !!menuFilter);
   }
+  var activeFilterClear = document.getElementById('active-filter-clear');
+  if (activeFilterClear) activeFilterClear.addEventListener('click', function () { selectPlatformFilter('all'); });
 
   function selectPlatformFilter(filter) {
     activePlatformFilter = filter;
@@ -2969,6 +2981,8 @@
       metadata.appendChild(createXStateChip('like'));
       metadata.appendChild(createXStateChip('bookmark'));
     }
+    // At the end of the meta line, its room always reserved: showing it never moves or hides text.
+    if (hoverActions.firstChild) metadata.appendChild(hoverActions);
 
     // Detail line: resolution · size (or the sound), replaced by the download state when there is one.
     var stateLine = document.createElement('div');
@@ -3027,7 +3041,6 @@
     card.appendChild(thumbWrap);
     card.appendChild(body);
     card.appendChild(actionCol);
-    if (hoverActions.firstChild) card.appendChild(hoverActions);
     card.appendChild(progressWrap);
     if (xItem) syncXControls(card, item, xui.xTabKnown());
     applyCardDownloadState(card, item);

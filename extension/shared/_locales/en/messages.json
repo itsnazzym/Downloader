@@ -997,5 +997,11 @@
     },
     "feedOrderTitle": {
         "message": "Change the display order"
+    },
+    "feedFilterOn": {
+        "message": "Filter: {name}"
+    },
+    "feedFilterClear": {
+        "message": "Clear filter"
     }
 }

@@ -84,13 +84,14 @@ test('controls use the theme radii: square in a radius-0 design', () => {
 });
 
 test('the new strings exist in fr, en and ar', () => {
-  const keys = ['panelMenu', 'menuFilters', 'feedDeselectAll', 'feedOrderTitle', 'feedOrderFlux', 'feedOrderRecent'];
+  const keys = ['panelMenu', 'menuFilters', 'feedDeselectAll', 'feedOrderTitle', 'feedOrderFlux', 'feedOrderRecent', 'feedFilterOn', 'feedFilterClear'];
   for (const lang of ['fr', 'en', 'ar']) {
     const messages = JSON.parse(read('_locales/' + lang + '/messages.json'));
     for (const key of keys) assert.ok(messages[key] && messages[key].message, lang + ' lacks ' + key);
+    assert.match(messages.feedFilterOn.message, /\{name\}/, lang);
     assert.equal(messages.cardShowAccount, undefined, lang + ' keeps the dead cardShowAccount key');
   }
-  for (const key of ['panelMenu', 'menuFilters', 'feedOrderTitle']) assert.match(html, new RegExp('data-i18n(-aria|-title)?="' + key + '"'));
+  for (const key of ['panelMenu', 'menuFilters', 'feedOrderTitle', 'feedFilterClear']) assert.match(html, new RegExp('data-i18n(-aria|-title)?="' + key + '"'));
 });
 
 // Body of createFeedCard, to check what the card itself wires.
@@ -114,4 +115,23 @@ test('the card profile button opens the author on the video platform, and only w
     const messages = JSON.parse(read('_locales/' + lang + '/messages.json'));
     assert.doesNotMatch(messages.feedOpenAccountTitle.message, /Comptes|Accounts|الحسابات/, lang);
   }
+});
+
+test('hover actions sit at the end of the meta line, never over the title, and hide while downloading', () => {
+  assert.match(cardSource, /metadata\.appendChild\(hoverActions\)/);
+  assert.doesNotMatch(cardSource, /card\.appendChild\(hoverActions\)/);
+  const rule = css.match(/\.card-actions \{[^}]*\}/)[0];
+  assert.doesNotMatch(rule, /position: absolute/);
+  assert.match(rule, /opacity: 0/); // invisible but still taking its room: no jump on hover
+  assert.match(css, /\.feed-card\[data-dl-state="running"\] \.card-actions \{ visibility: hidden; \}/);
+});
+
+test('a filter picked in the menu shows a removable chip and a dot on the settings button', () => {
+  assert.match(html, /<div id="active-filter-note" class="active-filter-note" hidden>/);
+  assert.match(html, /<button type="button" id="active-filter-clear"[^>]*aria-label="Retirer le filtre"[^>]*data-i18n-aria="feedFilterClear"/);
+  assert.match(panel, /note\.hidden = !menuFilter/);
+  assert.match(panel, /menuBtn\.classList\.toggle\('has-filter', !!menuFilter\)/);
+  assert.match(panel, /activeFilterClear\.addEventListener\('click', function \(\) \{ selectPlatformFilter\('all'\); \}\)/);
+  assert.match(css, /\.icon-btn\.has-filter::after/);
+  assert.match(css, /body\[data-view-mode="downloads"\] :is\([^)]*\.active-filter-note/);
 });

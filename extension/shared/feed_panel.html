@@ -113,6 +113,16 @@
         <span id="scan-info" class="scan-info" role="status" aria-live="polite"></span>
     </div>
 
+    <!-- A filter chosen in the settings menu (Actif / Réseau) stays visible here, with a one-click reset -->
+    <div id="active-filter-note" class="active-filter-note" hidden>
+        <span class="active-filter-chip">
+            <span id="active-filter-text"></span>
+            <button type="button" id="active-filter-clear" class="active-filter-clear" title="Retirer le filtre" aria-label="Retirer le filtre" data-i18n-title="feedFilterClear" data-i18n-aria="feedFilterClear">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+            </button>
+        </span>
+    </div>
+
     <main class="panel-content">
         <div id="feed-status" class="feed-status" role="status" aria-live="polite">
             <span data-i18n="xFeedReady">Faites défiler le fil ou cliquez sur Analyser.</span>
