@@ -1675,8 +1675,21 @@
     }
   }
 
+  // The author's real handle (X / TikTok post URL), or null: display names never build a profile link.
+  function itemHandle(item) {
+    return MDProfile.handleFromItem({ platform: itemPlatform(item), url: item.url, pageUrl: item.pageUrl, author: item.author });
+  }
+
   function itemCreatorKey(item) {
-    return MDProfile.creatorKey(itemPlatform(item), item.author);
+    return MDProfile.creatorKey(itemPlatform(item), itemHandle(item) || item.author);
+  }
+
+  // "@handle" when known, else the author text if it reads as a name (never "Name@handle·2h").
+  function itemAuthorLabel(item) {
+    var handle = itemHandle(item);
+    if (handle) return '@' + handle;
+    var author = String(item.author || '').trim();
+    return author.length <= 40 && !/[@·]/.test(author.replace(/^@/, '')) ? author : '';
   }
 
   function filteredItems() {
@@ -2017,17 +2030,19 @@
     var creators = {};
     itemsToAnalyze.forEach(function (it) {
       var author = String(it.author || '').trim();
-      if (!author || author === 'Créateur' || author === 'Auteur' || author === 'Inconnu') return;
-      var clean = author.replace(/^@/, '').trim();
+      var handle = itemHandle(it);
+      if (!handle && (!author || author === 'Créateur' || author === 'Auteur' || author === 'Inconnu')) return;
+      var clean = handle || author.replace(/^@/, '').trim();
       if (!clean) return;
       var key = itemCreatorKey(it);
       if (!creators[key]) {
         var plat = itemPlatform(it);
-        var pUrl = MDProfile.profileUrl(plat, clean);
+        // Only a handle read from the post URL opens a profile; a display name never does.
+        var pUrl = handle ? MDProfile.profileUrl(plat, handle) : null;
         creators[key] = {
           key: key,
           handle: clean,
-          displayName: author.indexOf('@') === 0 ? author : ('@' + author),
+          displayName: handle ? '@' + handle : author, // a display name is not dressed up as a handle
           count: 0,
           avatarUrl: it.avatarUrl || null,
           platform: plat,
@@ -2930,12 +2945,13 @@
     var xItem = xui.isXItem(item);
     if (xItem) hoverActions.appendChild(createXControls(item));
     // Profile on the video's own platform; no button when the handle cannot make a profile URL.
-    var profileHref = MDProfile.profileUrl(itemPlatform(item), item.author);
+    var cardHandle = itemHandle(item);
+    var profileHref = cardHandle ? MDProfile.profileUrl(itemPlatform(item), cardHandle) : null;
     if (profileHref) {
       var creatorBtn = document.createElement('button');
       creatorBtn.type = 'button';
       creatorBtn.className = 'card-creator-btn';
-      creatorBtn.title = t('feedOpenAccountTitle', 'Ouvrir le profil dans un nouvel onglet') + ' (' + item.author + ')';
+      creatorBtn.title = t('feedOpenAccountTitle', 'Ouvrir le profil dans un nouvel onglet') + ' (@' + cardHandle + ')';
       creatorBtn.setAttribute('aria-label', creatorBtn.title);
       creatorBtn.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M4.8 20c.9-3.6 3.8-5.4 7.2-5.4s6.3 1.8 7.2 5.4"></path></svg>';
       creatorBtn.addEventListener('click', function (e) {
@@ -2969,7 +2985,8 @@
     metadata.className = 'card-meta';
     var metaText = document.createElement('span');
     metaText.className = 'card-meta-text';
-    metaText.textContent = [platformLabel(itemPlatform(item)), item.author].filter(Boolean).join(' · ');
+    metaText.textContent = [platformLabel(itemPlatform(item)), itemAuthorLabel(item)].filter(Boolean).join(' · ');
+    metaText.title = metaText.textContent; // stays readable when the line is cut short
     metadata.appendChild(metaText);
     if (item.isActive) {
       var activeBadge = document.createElement('span');

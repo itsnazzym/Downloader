@@ -59,3 +59,40 @@ test('creatorKey separates the same handle on different platforms and normalises
   assert.equal(p.creatorKey('x', '@BOB'), x);
   assert.notEqual(p.profileUrl('x', 'bob'), p.profileUrl('tiktok', 'bob'));
 });
+
+test('handleFromItem reads X handles from the post URL, never from the display text', () => {
+  const p = load();
+  const messy = 'Studio Nova@studio_nova·2h';
+  assert.equal(p.handleFromItem({ platform: 'x', author: messy, url: 'https://x.com/studio_nova/status/123', pageUrl: 'https://x.com/home' }), 'studio_nova');
+  assert.equal(p.handleFromItem({ platform: 'x', author: messy, url: 'https://twitter.com/Studio_Nova/status/123?s=20' }), 'Studio_Nova');
+  assert.equal(p.handleFromItem({ platform: 'x', author: messy, url: 'https://mobile.x.com/abc/status/9' }), 'abc');
+  // Reserved first segments and non-post pages name nobody.
+  assert.equal(p.handleFromItem({ platform: 'x', author: '@studio_nova', url: 'https://x.com/i/status/1', pageUrl: 'https://x.com/home' }), null);
+  assert.equal(p.handleFromItem({ platform: 'x', author: '@studio_nova', url: 'https://x.com/i/web/status/1' }), null);
+  assert.equal(p.handleFromItem({ platform: 'x', url: 'https://video.twimg.com/a.mp4', pageUrl: 'https://x.com/someone' }), null);
+  // The post URL may sit in pageUrl (status page) when url is the media file.
+  assert.equal(p.handleFromItem({ platform: 'x', url: 'https://video.twimg.com/a.mp4', pageUrl: 'https://x.com/lea_en_voyage/status/7' }), 'lea_en_voyage');
+  // X handles are 1-15 word characters; other hosts never count.
+  assert.equal(p.handleFromItem({ platform: 'x', url: 'https://x.com/this_is_too_long_x/status/1' }), null);
+  assert.equal(p.handleFromItem({ platform: 'x', url: 'https://notx.com/abc/status/1' }), null);
+});
+
+test('handleFromItem reads TikTok handles from the video URL, else only from an @author', () => {
+  const p = load();
+  assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Fanny', url: 'https://www.tiktok.com/@fanny_run/video/9' }), 'fanny_run');
+  assert.equal(p.handleFromItem({ platform: 'tiktok', author: '@fanny_run', url: 'https://www.tiktok.com/video/9' }), 'fanny_run');
+  assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Camille', url: 'https://www.tiktok.com/video/9' }), null);
+  assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Camille Cuisine', url: 'https://www.tiktok.com/foryou' }), null);
+  // A collection page belongs to its owner, not to the video's author.
+  assert.equal(p.handleFromItem({ platform: 'tiktok', author: 'Camille', url: 'https://www.tiktok.com/video/9', pageUrl: 'https://www.tiktok.com/@owner/collection/x-1' }), null);
+});
+
+test('handleFromItem gives nothing for platforms without a reliable handle', () => {
+  const p = load();
+  assert.equal(p.handleFromItem({ platform: 'youtube', author: 'Camille', url: 'https://www.youtube.com/shorts/abc' }), null);
+  assert.equal(p.handleFromItem({ platform: 'instagram', author: 'Reels', url: 'https://www.instagram.com/reel/abc/' }), null);
+  assert.equal(p.handleFromItem({ platform: 'instagram', author: '@camille', url: 'https://www.instagram.com/reel/abc/' }), null);
+  assert.equal(p.handleFromItem({ platform: 'web', author: '@someone', url: 'https://example.com/v.mp4' }), null);
+  assert.equal(p.handleFromItem(null), null);
+  assert.equal(p.handleFromItem({ platform: 'x' }), null);
+});

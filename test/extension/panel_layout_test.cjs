@@ -98,19 +98,25 @@ test('the new strings exist in fr, en and ar', () => {
 const cardSource = panel.slice(panel.indexOf('function createFeedCard('), panel.indexOf('function replaceItems('));
 
 test('the card profile button opens the author on the video platform, and only when a URL exists', () => {
-  assert.match(cardSource, /var profileHref = MDProfile\.profileUrl\(itemPlatform\(item\), item\.author\);/);
   assert.match(cardSource, /if \(profileHref\) \{\s*var creatorBtn/);
   assert.match(cardSource, /api\.tabs\.create\(\{ url: profileHref \}\)/);
   assert.doesNotMatch(cardSource, /setViewMode\('creators'\)/);
   assert.match(cardSource, /t\('feedOpenAccountTitle'/);
-  // The URLs it gets: same platform as the video, none for an unknown platform.
+  // Run the card's own lines (itemHandle + the profileHref computation) against real items.
+  const helper = panel.match(/\n  function itemHandle\(item\) \{[\s\S]*?\n  \}\n/)[0];
+  const lines = cardSource.match(/ {4}var cardHandle = [^\n]*\n {4}var profileHref = [^\n]*\n/)[0];
   const ctx = {};
   ctx.self = ctx;
   vm.createContext(ctx);
   vm.runInContext(read('profile_url.js'), ctx);
-  assert.equal(ctx.MDProfile.profileUrl('x', '@studio_nova'), 'https://x.com/studio_nova');
-  assert.equal(ctx.MDProfile.profileUrl('tiktok', '@fanny_run'), 'https://www.tiktok.com/@fanny_run');
-  assert.equal(ctx.MDProfile.profileUrl('web', '@someone'), null);
+  vm.runInContext('function itemPlatform(item) { return item.platform; }' + helper +
+    'function cardProfileHref(item) {' + lines + ' return profileHref; }', ctx);
+  const href = (item) => ctx.cardProfileHref(item);
+  assert.equal(href({ platform: 'x', author: 'Studio Nova@studio_nova·2h', url: 'https://x.com/studio_nova/status/123', pageUrl: 'https://x.com/home' }), 'https://x.com/studio_nova');
+  assert.equal(href({ platform: 'tiktok', author: 'Fanny', url: 'https://www.tiktok.com/@fanny_run/video/9' }), 'https://www.tiktok.com/@fanny_run');
+  assert.equal(href({ platform: 'youtube', author: 'Camille', url: 'https://www.youtube.com/shorts/abc' }), null);
+  assert.equal(href({ platform: 'instagram', author: 'Reels', url: 'https://www.instagram.com/reel/abc/' }), null);
+  assert.equal(href({ platform: 'web', author: '@someone', url: 'https://example.com/v.mp4' }), null);
   for (const lang of ['fr', 'en', 'ar']) {
     const messages = JSON.parse(read('_locales/' + lang + '/messages.json'));
     assert.doesNotMatch(messages.feedOpenAccountTitle.message, /Comptes|Accounts|الحسابات/, lang);
@@ -134,4 +140,22 @@ test('a filter picked in the menu shows a removable chip and a dot on the settin
   assert.match(panel, /activeFilterClear\.addEventListener\('click', function \(\) \{ selectPlatformFilter\('all'\); \}\)/);
   assert.match(css, /\.icon-btn\.has-filter::after/);
   assert.match(css, /body\[data-view-mode="downloads"\] :is\([^)]*\.active-filter-note/);
+});
+
+test('accounts and the meta line use the handle from the post URL, never a messy display name', () => {
+  assert.match(panel, /var pUrl = handle \? MDProfile\.profileUrl\(plat, handle\) : null;/);
+  assert.match(panel, /return MDProfile\.creatorKey\(itemPlatform\(item\), itemHandle\(item\) \|\| item\.author\);/);
+  assert.match(cardSource, /itemAuthorLabel\(item\)/);
+  assert.match(cardSource, /metaText\.title = metaText\.textContent/);
+  const helpers = panel.match(/\n  function itemHandle\(item\) \{[\s\S]*?\n  function itemAuthorLabel\(item\) \{[\s\S]*?\n  \}\n/)[0];
+  const ctx = {};
+  ctx.self = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(read('profile_url.js'), ctx);
+  vm.runInContext('function itemPlatform(item) { return item.platform; }' + helpers, ctx);
+  const messy = 'Studio Nova@studio_nova·2h';
+  assert.equal(ctx.itemAuthorLabel({ platform: 'x', author: messy, url: 'https://x.com/studio_nova/status/1' }), '@studio_nova');
+  assert.equal(ctx.itemAuthorLabel({ platform: 'x', author: messy, url: 'https://x.com/i/status/1' }), '');
+  assert.equal(ctx.itemAuthorLabel({ platform: 'instagram', author: 'Camille' }), 'Camille');
+  assert.equal(ctx.itemCreatorKey({ platform: 'x', author: messy, url: 'https://x.com/Studio_Nova/status/1' }), 'x:studio_nova');
 });
