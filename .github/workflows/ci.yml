@@ -47,6 +47,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Format code
         run: dart format lib/ test/ tool/
 
@@ -55,6 +60,9 @@ jobs:
 
       - name: Run unit & widget tests
         run: flutter test --coverage --reporter=compact
+
+      - name: Extension unit tests
+        run: node --test test/extension
 
       - name: Check test coverage
         run: dart run tool/check_coverage.dart --min 30 coverage/lcov.info
