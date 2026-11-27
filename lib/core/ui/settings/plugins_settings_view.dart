@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,7 +9,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:gap/gap.dart';
 
-import '../../design_system/design_skin.dart';
 import '../../design_system/foundation/colors.dart';
 
 import '../../design_system/foundation/spacing.dart';
@@ -263,7 +263,7 @@ class _PluginCard extends StatelessWidget {
         BoxDecoration(
           color: AppColors.of(context).surface,
 
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: _cardRadius(context),
 
           border: Border.all(
             color: entry.isEnabled
@@ -482,7 +482,7 @@ class _FeatureModuleCard extends StatelessWidget {
         context,
         BoxDecoration(
           color: colors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: _cardRadius(context),
           border: Border.all(color: colors.border.withValues(alpha: 0.7)),
         ),
       ),
@@ -611,7 +611,7 @@ class _PluginInstallRequestCard extends ConsumerWidget {
         context,
         BoxDecoration(
           color: colors.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: _cardRadius(context),
           border: Border.all(color: colors.border),
         ),
       ),
@@ -722,7 +722,7 @@ class _BrowserExtensionsPanel extends ConsumerWidget {
             BoxDecoration(
               color: colors.surface,
 
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: _cardRadius(context),
 
               border: Border.all(color: colors.border),
             ),
@@ -840,7 +840,7 @@ class _BrowserInstallCard extends StatelessWidget {
         BoxDecoration(
           color: colors.surface,
 
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: _cardRadius(context),
 
           border: Border.all(color: colors.border),
         ),
@@ -890,3 +890,9 @@ class _BrowserInstallCard extends StatelessWidget {
     );
   }
 }
+
+/// A desktop design that draws the shared settings tiles also rounds these
+/// cards like its panels; everywhere else they keep 12 px.
+BorderRadius _cardRadius(BuildContext context) => DesignSkin.of(context) != null
+    ? AppRadius.panelOf(context)
+    : BorderRadius.circular(12);
