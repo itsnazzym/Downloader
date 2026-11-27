@@ -52,6 +52,7 @@ async function load(opts = {}) {
     URL,
   };
   vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../../extension/shared/pairing.js'), 'utf8'), context);
   vm.runInContext(source, context);
   await flush();
   assert.equal(sockets.length, 1, 'connect() opened one socket');

@@ -47,7 +47,7 @@
     "default_panel": "feed_panel.html"
   },
   "background": {
-    "scripts": ["browser_api.js", "url_policy.js", "badge.js", "stream_sniffer.js", "background.js"]
+    "scripts": ["browser_api.js", "url_policy.js", "badge.js", "stream_sniffer.js", "pairing.js", "background.js"]
   },
   "commands": {
     "send-current-tab": {
