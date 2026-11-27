@@ -26,6 +26,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../shared/design_data.dart';
 import '../signal/signal_widgets.dart' show SignalThumb;
 import 'nocturne_widgets.dart';
+import 'package:modern_downloader/core/utils/file_reveal.dart';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -38,9 +39,7 @@ void playDownload(WidgetRef ref, DownloadItem item) {
 
 void revealDownload(DownloadItem item) {
   final path = item.filePath;
-  if (path != null && File(path).existsSync() && Platform.isWindows) {
-    Process.run('explorer', ['/select,', path]);
-  }
+  if (path != null && File(path).existsSync()) revealInFolder(path);
 }
 
 /// yt-dlp size strings ("54.1MiB") in the app's units; empty if none.

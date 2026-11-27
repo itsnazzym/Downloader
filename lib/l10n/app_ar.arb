@@ -1925,5 +1925,9 @@
   "porcelaineLogSpeed": "السرعة: {speed}",
   "porcelaineLogError": "خطأ: {error}",
   "porcelaineLogDone": "اكتمل التنزيل.",
-  "porcelaineLogCanceled": "أُلغي التنزيل."
+  "porcelaineLogCanceled": "أُلغي التنزيل.",
+  "designLogInit": "تم تجهيز التنزيل: {id}",
+  "designLogStarted": "بدأ التنزيل…",
+  "designLogCompleted": "اكتمل التنزيل.",
+  "designLogCanceled": "أُلغي التنزيل."
 }

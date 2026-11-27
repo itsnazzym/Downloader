@@ -9765,6 +9765,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download canceled.'**
   String get porcelaineLogCanceled;
+
+  /// No description provided for @designLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Download prepared: {id}'**
+  String designLogInit(String id);
+
+  /// No description provided for @designLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get designLogStarted;
+
+  /// No description provided for @designLogCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get designLogCompleted;
+
+  /// No description provided for @designLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get designLogCanceled;
 }
 
 class _AppLocalizationsDelegate

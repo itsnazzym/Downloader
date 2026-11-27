@@ -5780,4 +5780,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get porcelaineLogCanceled => 'أُلغي التنزيل.';
+
+  @override
+  String designLogInit(String id) {
+    return 'تم تجهيز التنزيل: $id';
+  }
+
+  @override
+  String get designLogStarted => 'بدأ التنزيل…';
+
+  @override
+  String get designLogCompleted => 'اكتمل التنزيل.';
+
+  @override
+  String get designLogCanceled => 'أُلغي التنزيل.';
 }

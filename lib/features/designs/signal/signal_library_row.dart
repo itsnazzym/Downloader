@@ -14,6 +14,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import '../shared/design_data.dart';
 import 'signal_controls.dart';
 import 'signal_widgets.dart';
+import 'package:modern_downloader/core/utils/file_reveal.dart';
 
 /// Plays a finished download in the built-in player.
 void signalPlay(WidgetRef ref, DownloadItem item) {
@@ -23,12 +24,10 @@ void signalPlay(WidgetRef ref, DownloadItem item) {
   }
 }
 
-/// Shows a finished download in Explorer.
+/// Shows a finished download in the system's file manager.
 void signalReveal(DownloadItem item) {
   final path = item.filePath;
-  if (path != null && File(path).existsSync() && Platform.isWindows) {
-    Process.run('explorer', ['/select,', path]);
-  }
+  if (path != null && File(path).existsSync()) revealInFolder(path);
 }
 
 /// One library item in Signal: a thumbnail, title, source · format · size

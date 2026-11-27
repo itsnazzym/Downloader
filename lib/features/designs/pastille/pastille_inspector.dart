@@ -392,8 +392,8 @@ class _Body extends ConsumerWidget {
             padding: const EdgeInsets.all(14),
             children: [
               for (final line in [
-                'Initialized download for ${item.id}',
-                if (item.status != DownloadStatus.queued) 'Download started...',
+                l10n.designLogInit(item.id),
+                if (item.status != DownloadStatus.queued) l10n.designLogStarted,
                 if (item.step.isNotEmpty) '[STEP] ${item.step}',
                 if (item.speed.isNotEmpty &&
                     !item.speed.toLowerCase().contains('retry'))
@@ -401,9 +401,9 @@ class _Body extends ConsumerWidget {
                 if (item.error != null) '[ERROR] ${item.error}',
                 if (item.status == DownloadStatus.completed &&
                     item.error == null)
-                  'Download completed successfully.',
+                  l10n.designLogCompleted,
                 if (item.status == DownloadStatus.canceled)
-                  'Download canceled.',
+                  l10n.designLogCanceled,
               ])
                 SelectableText(
                   line,

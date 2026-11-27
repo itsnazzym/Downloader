@@ -2293,5 +2293,10 @@
   "porcelaineLogError": "Error: {error}",
   "@porcelaineLogError": {"placeholders": {"error": {"type": "String"}}},
   "porcelaineLogDone": "Download completed.",
-  "porcelaineLogCanceled": "Download canceled."
+  "porcelaineLogCanceled": "Download canceled.",
+  "designLogInit": "Download prepared: {id}",
+  "@designLogInit": {"placeholders": {"id": {"type": "String"}}},
+  "designLogStarted": "Download started…",
+  "designLogCompleted": "Download completed.",
+  "designLogCanceled": "Download canceled."
 }

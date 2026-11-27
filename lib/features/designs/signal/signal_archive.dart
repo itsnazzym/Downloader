@@ -1055,10 +1055,11 @@ class _CollectionCard extends StatelessWidget {
             offset: const Offset(6, 0),
             child: SignalIconButton(
               icon: Icons.download_rounded,
-              tooltip: l10n.archiveCollDownloadAll(total),
+              // Only what is left: downloaded videos are skipped.
+              tooltip: l10n.archiveCollDownloadAll(total - done),
               size: 30,
               iconSize: 15,
-              onTap: total == 0 ? null : onDownload,
+              onTap: total == done ? null : onDownload,
             ),
           ),
         ],
@@ -1532,6 +1533,7 @@ class _OpenedCollection extends ConsumerWidget {
       tikTokArchiveProvider.select((s) => s.selectedIds),
     );
     final showcase = ref.watch(showcaseModeProvider);
+    final remaining = videos.where((v) => !v.isDownloaded).length;
     final canEdit = videos.isNotEmpty && !_isSpecial(collection);
 
     Future<void> run(_CollAction a) async {
@@ -1647,11 +1649,14 @@ class _OpenedCollection extends ConsumerWidget {
             ],
             if (videos.isNotEmpty)
               SignalButton(
-                label: '${l10n.signalArchiveDownloadAll} (${videos.length})',
+                // Counts what is left: downloaded videos are skipped.
+                label: '${l10n.signalArchiveDownloadAll} ($remaining)',
                 icon: Icons.download_rounded,
                 height: 36,
                 fontSize: 13,
-                onTap: batch ? null : () => onDownloadAll(videos),
+                onTap: batch || remaining == 0
+                    ? null
+                    : () => onDownloadAll(videos),
               ),
           ],
         ),

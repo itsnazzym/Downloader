@@ -5774,4 +5774,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get porcelaineLogCanceled => 'Download canceled.';
+
+  @override
+  String designLogInit(String id) {
+    return 'Download prepared: $id';
+  }
+
+  @override
+  String get designLogStarted => 'Download started…';
+
+  @override
+  String get designLogCompleted => 'Download completed.';
+
+  @override
+  String get designLogCanceled => 'Download canceled.';
 }

@@ -1925,5 +1925,9 @@
   "porcelaineLogSpeed": "Débit : {speed}",
   "porcelaineLogError": "Erreur : {error}",
   "porcelaineLogDone": "Téléchargement terminé.",
-  "porcelaineLogCanceled": "Téléchargement annulé."
+  "porcelaineLogCanceled": "Téléchargement annulé.",
+  "designLogInit": "Téléchargement préparé : {id}",
+  "designLogStarted": "Téléchargement démarré…",
+  "designLogCompleted": "Téléchargement terminé.",
+  "designLogCanceled": "Téléchargement annulé."
 }

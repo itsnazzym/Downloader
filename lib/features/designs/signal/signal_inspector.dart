@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +24,7 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'signal_controls.dart';
 import 'signal_theme.dart';
 import 'signal_widgets.dart';
+import 'package:modern_downloader/core/utils/file_reveal.dart';
 
 /// Signal's inspector beside the home: preview (the player itself, framed
 /// in a Signal card), Lire, the metadata, copy link / show in folder, the
@@ -70,8 +70,8 @@ class SignalInspector extends ConsumerWidget {
     void open(String p) {
       if (DownloadFileResolver.isMediaPath(p)) {
         ref.read(mediaPlayerProvider.notifier).openFile(p);
-      } else if (Platform.isWindows) {
-        Process.run('explorer', [p]);
+      } else {
+        openWithSystem(p);
       }
     }
 
@@ -223,11 +223,7 @@ class SignalInspector extends ConsumerWidget {
                         accent: false,
                         height: 38,
                         fontSize: 13,
-                        onTap: () {
-                          if (Platform.isWindows) {
-                            Process.run('explorer', ['/select,', path]);
-                          }
-                        },
+                        onTap: () => revealInFolder(path),
                       ),
                   ],
                 ),
@@ -318,9 +314,9 @@ class SignalInspector extends ConsumerWidget {
                   ),
                   child: LogViewer(
                     logs: [
-                      'Initialized download for ${item.id}',
+                      l10n.designLogInit(item.id),
                       if (status != DownloadStatus.queued)
-                        'Download started...',
+                        l10n.designLogStarted,
                       if (item.step.isNotEmpty) '[STEP] ${item.step}',
                       if (item.speed.isNotEmpty &&
                           !item.speed.toLowerCase().contains('retry'))
@@ -328,9 +324,9 @@ class SignalInspector extends ConsumerWidget {
                       if (item.error != null) '[ERROR] ${item.error}',
                       if (status == DownloadStatus.completed &&
                           item.error == null)
-                        'Download completed successfully.',
+                        l10n.designLogCompleted,
                       if (status == DownloadStatus.canceled)
-                        'Download canceled.',
+                        l10n.designLogCanceled,
                     ],
                   ),
                 ),

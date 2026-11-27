@@ -5841,4 +5841,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get porcelaineLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String designLogInit(String id) {
+    return 'Téléchargement préparé : $id';
+  }
+
+  @override
+  String get designLogStarted => 'Téléchargement démarré…';
+
+  @override
+  String get designLogCompleted => 'Téléchargement terminé.';
+
+  @override
+  String get designLogCanceled => 'Téléchargement annulé.';
 }
