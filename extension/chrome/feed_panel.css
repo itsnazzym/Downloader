@@ -288,3 +288,19 @@ body:not([data-view-mode="downloads"]) .downloads-view { display: none; }
 .dl-cmd-btn:hover { background: var(--line); }
 .dl-cmd-btn.primary { background: var(--a); color: var(--on-a); }
 .dl-section-list { display: grid; gap: 6px; }
+
+/* X like / bookmark actions */
+.card-x-actions { display: flex; flex: none; gap: 2px; margin-inline-start: 2px; opacity: 0; transition: opacity .15s; }
+.feed-card:hover .card-x-actions, .feed-card:focus-within .card-x-actions { opacity: 1; }
+@media (hover: none) { .card-x-actions { opacity: 1; } }
+.card-x-btn { width: 24px; height: 24px; padding: 0; display: grid; place-items: center; border-radius: 50%; background: transparent; color: var(--mute); }
+.card-x-btn:hover:not(:disabled) { background: var(--panel-2); color: var(--ink); }
+.card-x-btn:disabled { opacity: .45; cursor: default; }
+.card-x-btn.is-pending { opacity: .6; cursor: progress; }
+.card-x-btn[aria-pressed="true"] svg, .card-x-state svg { fill: currentColor; }
+.card-x-btn[data-kind="like"][aria-pressed="true"], .card-x-state[data-kind="like"] { color: var(--bad); }
+.card-x-btn[data-kind="bookmark"][aria-pressed="true"], .card-x-state[data-kind="bookmark"] { color: var(--a); }
+.card-x-state { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: var(--r-ctl); background: var(--panel-2); }
+.x-warning-text { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+.x-warning-once { margin: 0; font-size: 12px; color: var(--mute); }
+.x-warning-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }

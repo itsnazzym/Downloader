@@ -820,5 +820,68 @@
     },
     "dlErrNotConnected": {
         "message": "تطبيق TapLoad غير متصل."
+    },
+    "xLike": {
+        "message": "أعجبني على X"
+    },
+    "xUnlike": {
+        "message": "إزالة الإعجاب"
+    },
+    "xBookmark": {
+        "message": "إضافة إلى إشارات X"
+    },
+    "xUnbookmark": {
+        "message": "إزالة من الإشارات"
+    },
+    "xOpenXFirst": {
+        "message": "افتح x.com"
+    },
+    "xLikedOk": {
+        "message": "تم الإعجاب على X"
+    },
+    "xUnlikedOk": {
+        "message": "تمت إزالة الإعجاب"
+    },
+    "xBookmarkedOk": {
+        "message": "تمت الإضافة إلى إشارات X"
+    },
+    "xUnbookmarkedOk": {
+        "message": "تمت الإزالة من الإشارات"
+    },
+    "xActionAuth": {
+        "message": "سجّل الدخول إلى x.com في هذا المتصفح."
+    },
+    "xActionRate": {
+        "message": "X يحدّ من الإجراءات: انتظر بضع ثوانٍ."
+    },
+    "xActionStale": {
+        "message": "أعد تحميل تبويب x.com."
+    },
+    "xActionNoTab": {
+        "message": "افتح x.com في هذا المتصفح."
+    },
+    "xActionFailed": {
+        "message": "الإجراء غير ممكن حالياً."
+    },
+    "xStateLiked": {
+        "message": "معجب به"
+    },
+    "xStateBookmarked": {
+        "message": "في الإشارات"
+    },
+    "xWarnTitle": {
+        "message": "الإعجاب والإشارات تمر عبر جلسة X الخاصة بك"
+    },
+    "xWarnBody": {
+        "message": "تُرسل الإجراءات إلى X بحسابك المتصل كما لو نقرت على الموقع. تجنب تكرارها كثيراً: قد تحدّ X من الحساب. هذه الميزة غير رسمية وقد تتوقف عن العمل."
+    },
+    "xWarnOnce": {
+        "message": "لا تظهر هذه الرسالة إلا مرة واحدة."
+    },
+    "xWarnCancel": {
+        "message": "إلغاء"
+    },
+    "xWarnContinue": {
+        "message": "متابعة"
     }
 }

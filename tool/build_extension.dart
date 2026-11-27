@@ -54,6 +54,7 @@ Future<void> main(List<String> args) async {
       'profile_url.js',
       'feed_store.js',
       'x_actions.js',
+      'x_actions_ui.js',
       'selection.js',
       'download_tracker.js',
       'badge.js',

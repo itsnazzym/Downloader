@@ -922,5 +922,68 @@
     },
     "dlErrNotConnected": {
         "message": "Application TapLoad non connectée."
+    },
+    "xLike": {
+        "message": "J’aime sur X"
+    },
+    "xUnlike": {
+        "message": "Retirer le like"
+    },
+    "xBookmark": {
+        "message": "Ajouter aux signets X"
+    },
+    "xUnbookmark": {
+        "message": "Retirer des signets"
+    },
+    "xOpenXFirst": {
+        "message": "Ouvrez x.com"
+    },
+    "xLikedOk": {
+        "message": "Liké sur X"
+    },
+    "xUnlikedOk": {
+        "message": "Like retiré"
+    },
+    "xBookmarkedOk": {
+        "message": "Ajouté aux signets X"
+    },
+    "xUnbookmarkedOk": {
+        "message": "Retiré des signets"
+    },
+    "xActionAuth": {
+        "message": "Connectez-vous à x.com dans ce navigateur."
+    },
+    "xActionRate": {
+        "message": "X limite les actions : patientez quelques secondes."
+    },
+    "xActionStale": {
+        "message": "Rechargez l’onglet x.com."
+    },
+    "xActionNoTab": {
+        "message": "Ouvrez x.com dans ce navigateur."
+    },
+    "xActionFailed": {
+        "message": "Action impossible pour le moment."
+    },
+    "xStateLiked": {
+        "message": "Liké"
+    },
+    "xStateBookmarked": {
+        "message": "Dans les signets"
+    },
+    "xWarnTitle": {
+        "message": "Like et signets passent par votre session X"
+    },
+    "xWarnBody": {
+        "message": "Les actions sont envoyées à X avec votre compte connecté, comme si vous cliquiez sur le site. Évitez d’en enchaîner beaucoup : X peut limiter un compte. Cette fonction n’est pas officielle et peut cesser de marcher."
+    },
+    "xWarnOnce": {
+        "message": "Ce message ne s’affiche qu’une fois."
+    },
+    "xWarnCancel": {
+        "message": "Annuler"
+    },
+    "xWarnContinue": {
+        "message": "Continuer"
     }
 }

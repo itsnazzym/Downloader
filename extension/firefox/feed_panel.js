@@ -2387,14 +2387,154 @@
     hideDialog(recoverAccountsModal);
   }
 
+  // X like / bookmark: the warning dialog lives here, the request and the state in x_actions_ui.js.
+  var xWarningModal = document.getElementById('x-warning-modal');
+  var xWarningCancel = document.getElementById('x-warning-cancel');
+  var xWarningContinue = document.getElementById('x-warning-continue');
+  var xWarningBackdrop = document.getElementById('x-warning-backdrop');
+  var xWarningResolve = null;
+
+  function closeXWarning(answer) {
+    if (!xWarningResolve) return;
+    var resolve = xWarningResolve;
+    xWarningResolve = null;
+    hideDialog(xWarningModal);
+    resolve(answer);
+  }
+
+  function confirmXWarning() {
+    if (!xWarningModal || xWarningResolve) return Promise.resolve(false);
+    return new Promise(function (resolve) {
+      xWarningResolve = resolve;
+      showDialog(xWarningModal, xWarningCancel);
+    });
+  }
+
+  if (xWarningCancel) xWarningCancel.addEventListener('click', function () { closeXWarning(false); });
+  if (xWarningBackdrop) xWarningBackdrop.addEventListener('click', function () { closeXWarning(false); });
+  if (xWarningContinue) xWarningContinue.addEventListener('click', function () { closeXWarning(true); });
+
+  var X_TAB_URLS = ['*://x.com/*', '*://*.x.com/*', '*://twitter.com/*', '*://*.twitter.com/*'];
+  var xui = MDXActionsUi.create({
+    send: sendRuntimeMessage,
+    storage: {
+      get: function (keys) { return api.storage.local.get(keys); },
+      set: function (values) { return api.storage.local.set(values); },
+    },
+    confirmWarning: confirmXWarning,
+    t: t,
+    setStatus: setStatus,
+    delay: function (fn, ms) { setTimeout(fn, ms); },
+    tabId: function () { return isHooked && typeof hookedTabId === 'number' ? hookedTabId : null; },
+    queryTabs: function () {
+      return new Promise(function (resolve, reject) {
+        if (!api.tabs || !api.tabs.query) { resolve([]); return; }
+        api.tabs.query({ url: X_TAB_URLS }, function (tabs) {
+          if (api.runtime && api.runtime.lastError) reject(new Error('tabs_query_failed'));
+          else resolve(tabs || []);
+        });
+      });
+    },
+    platform: itemPlatform,
+    refresh: refreshXControls,
+    now: Date.now,
+  });
+
+  function ensureXActionsAck() {
+    return xui.ensureAck();
+  }
+
+  function performXAction(item, op) {
+    return xui.perform(item, op);
+  }
+
+  var X_ICONS = {
+    like: '<svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+    bookmark: '<svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>',
+  };
+
+  function createXControls(item) {
+    var group = document.createElement('div');
+    group.className = 'card-x-actions';
+    ['like', 'bookmark'].forEach(function (kind) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'card-x-btn';
+      btn.dataset.kind = kind;
+      btn.innerHTML = X_ICONS[kind];
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        performXAction(item, xui.nextOp(item, kind));
+      });
+      group.appendChild(btn);
+    });
+    return group;
+  }
+
+  function createXStateChip(kind) {
+    var chip = document.createElement('span');
+    chip.className = 'card-x-state';
+    chip.dataset.kind = kind;
+    chip.setAttribute('role', 'img');
+    var label = kind === 'like' ? t('xStateLiked', 'Liké') : t('xStateBookmarked', 'Dans les signets');
+    chip.title = label;
+    chip.setAttribute('aria-label', label);
+    chip.innerHTML = X_ICONS[kind];
+    return chip;
+  }
+
+  function syncXControls(card, item, hasTab) {
+    ['like', 'bookmark'].forEach(function (kind) {
+      var state = xui.buttonState(item, kind, hasTab);
+      var btn = card.querySelector('.card-x-btn[data-kind="' + kind + '"]');
+      if (btn) {
+        btn.hidden = state.hidden;
+        btn.disabled = state.disabled;
+        btn.title = state.title;
+        btn.setAttribute('aria-label', state.label);
+        btn.setAttribute('aria-pressed', String(state.pressed));
+        btn.classList.toggle('is-pending', state.pending);
+      }
+      var chip = card.querySelector('.card-x-state[data-kind="' + kind + '"]');
+      if (chip) chip.hidden = !state.pressed;
+    });
+  }
+
+  function refreshXControls(item) {
+    var hasTab = xui.xTabKnown();
+    feedList.querySelectorAll('.feed-card').forEach(function (card) {
+      if (item && card.dataset.feedId !== item.id) return;
+      var stored = store.get(card.dataset.feedId);
+      if (stored) syncXControls(card, stored, hasTab);
+    });
+  }
+
+  function updateXTabState() {
+    xui.hasXTab().then(function () { refreshXControls(); });
+  }
+
+  if (api.tabs && api.tabs.onRemoved) {
+    api.tabs.onRemoved.addListener(function () { xui.invalidateTabs(); updateXTabState(); });
+  }
+  if (api.tabs && api.tabs.onUpdated) {
+    api.tabs.onUpdated.addListener(function (tabId, changeInfo) {
+      if (changeInfo && (changeInfo.url || changeInfo.status === 'complete')) {
+        xui.invalidateTabs();
+        updateXTabState();
+      }
+    });
+  }
+  updateXTabState();
+
   document.addEventListener('keydown', function (event) {
-    var dialog = [previewModal, creatorModal, recoverAccountsModal].find(function (candidate) {
+    var dialog = [xWarningModal, previewModal, creatorModal, recoverAccountsModal].find(function (candidate) {
       return candidate && !candidate.hidden && !candidate.classList.contains('hidden');
     });
     if (!dialog) return;
     if (event.key === 'Escape') {
       event.preventDefault();
-      if (dialog === previewModal) closeVideoPreview();
+      if (dialog === xWarningModal) closeXWarning(false);
+      else if (dialog === previewModal) closeVideoPreview();
       else if (dialog === creatorModal) closeCreatorModal();
       else closeRecoverAccountsModal();
       return;
@@ -2725,6 +2865,8 @@
       });
       authorRow.appendChild(creatorBtn);
     }
+    var xItem = xui.isXItem(item);
+    if (xItem) authorRow.appendChild(createXControls(item));
 
     var title = document.createElement('div');
     title.className = 'card-title clickable-media-title';
@@ -2761,6 +2903,10 @@
     platformBadge.className = 'card-platform-pill platform-' + platform;
     platformBadge.textContent = platform.toUpperCase();
     metadata.appendChild(platformBadge);
+    if (xItem) {
+      metadata.appendChild(createXStateChip('like'));
+      metadata.appendChild(createXStateChip('bookmark'));
+    }
 
     if (downloaded) {
       var dlBadge = document.createElement('span');
@@ -2827,6 +2973,7 @@
     card.appendChild(thumbnail);
     card.appendChild(body);
     card.appendChild(actionCol);
+    if (xItem) syncXControls(card, item, xui.xTabKnown());
     applyCardDownloadState(card, item);
     return card;
   }

@@ -922,5 +922,68 @@
     },
     "dlErrNotConnected": {
         "message": "The TapLoad app is not connected."
+    },
+    "xLike": {
+        "message": "Like on X"
+    },
+    "xUnlike": {
+        "message": "Remove like"
+    },
+    "xBookmark": {
+        "message": "Bookmark on X"
+    },
+    "xUnbookmark": {
+        "message": "Remove bookmark"
+    },
+    "xOpenXFirst": {
+        "message": "Open x.com"
+    },
+    "xLikedOk": {
+        "message": "Liked on X"
+    },
+    "xUnlikedOk": {
+        "message": "Like removed"
+    },
+    "xBookmarkedOk": {
+        "message": "Added to X bookmarks"
+    },
+    "xUnbookmarkedOk": {
+        "message": "Removed from bookmarks"
+    },
+    "xActionAuth": {
+        "message": "Sign in to x.com in this browser."
+    },
+    "xActionRate": {
+        "message": "X is limiting actions: wait a few seconds."
+    },
+    "xActionStale": {
+        "message": "Reload the x.com tab."
+    },
+    "xActionNoTab": {
+        "message": "Open x.com in this browser."
+    },
+    "xActionFailed": {
+        "message": "Action not possible right now."
+    },
+    "xStateLiked": {
+        "message": "Liked"
+    },
+    "xStateBookmarked": {
+        "message": "Bookmarked"
+    },
+    "xWarnTitle": {
+        "message": "Likes and bookmarks go through your X session"
+    },
+    "xWarnBody": {
+        "message": "Actions are sent to X with your signed-in account, as if you clicked on the site. Avoid doing many in a row: X may limit an account. This feature is unofficial and may stop working."
+    },
+    "xWarnOnce": {
+        "message": "This message is only shown once."
+    },
+    "xWarnCancel": {
+        "message": "Cancel"
+    },
+    "xWarnContinue": {
+        "message": "Continue"
     }
 }

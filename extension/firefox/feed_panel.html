@@ -342,10 +342,29 @@
         </div>
     </div>
 
+    <!-- One-time warning before the first like / bookmark sent through the user's X session -->
+    <div id="x-warning-modal" class="creator-modal hidden" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="x-warning-title" aria-describedby="x-warning-body">
+        <div class="creator-backdrop" id="x-warning-backdrop"></div>
+        <div class="creator-dialog">
+            <div class="creator-dialog-header">
+                <h3 class="creator-dialog-handle" id="x-warning-title" data-i18n="xWarnTitle">Like et signets passent par votre session X</h3>
+            </div>
+            <div class="creator-dialog-body">
+                <p class="x-warning-text" id="x-warning-body" data-i18n="xWarnBody">Les actions sont envoyées à X avec votre compte connecté, comme si vous cliquiez sur le site. Évitez d’en enchaîner beaucoup : X peut limiter un compte. Cette fonction n’est pas officielle et peut cesser de marcher.</p>
+                <p class="x-warning-once" data-i18n="xWarnOnce">Ce message ne s’affiche qu’une fois.</p>
+                <div class="x-warning-actions">
+                    <button type="button" class="creator-card-btn" id="x-warning-cancel" data-i18n="xWarnCancel">Annuler</button>
+                    <button type="button" class="creator-card-btn primary" id="x-warning-continue" data-i18n="xWarnContinue">Continuer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="browser_api.js"></script>
     <script src="theme.js"></script>
     <script src="profile_url.js"></script>
     <script src="feed_store.js"></script>
+    <script src="x_actions_ui.js"></script>
     <script src="selection.js"></script>
     <script src="download_tracker.js"></script>
     <script src="feed_panel.js"></script>
