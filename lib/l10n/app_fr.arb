@@ -1780,5 +1780,19 @@
   "archiveDeskSyncDisconnected": "Ouvre TikTok dans un navigateur où l’extension Modern Downloader est installée, puis reviens ici.",
   "archiveDeskSyncing": "Synchronisation en cours…",
   "archiveDeskSyncAction": "Synchroniser mes collections",
-  "archiveDeskSyncManual": "La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici."
+  "archiveDeskSyncManual": "La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.",
+  "signalArchiveFavorite": "Favori",
+  "signalArchiveLiked": "J’aime",
+  "signalArchiveOpenInBrowser": "Ouvrir dans le navigateur",
+  "signalArchiveSearchCollection": "Rechercher une collection",
+  "signalArchiveAllCollections": "Toutes les collections",
+  "signalArchiveResetMenu": "Retirer les vidéos de cette collection",
+  "signalArchiveResetTitle": "Réinitialiser la collection",
+  "signalArchiveResetBody": "Retirer les {count} vidéos de « {name} » ? Les vidéos et leurs autres classements sont conservés.",
+  "signalArchiveResetAction": "Réinitialiser",
+  "signalArchiveResetDone": "Classement retiré pour « {name} ». Les vidéos sont conservées.",
+  "signalArchiveDeleteMenu": "Supprimer définitivement",
+  "signalArchiveDeleteTitle": "Supprimer la collection",
+  "signalArchiveDeleteBody": "Supprimer définitivement la collection « {name} » ? Ses {count} vidéos restent sur le disque mais ne font plus partie de ce dossier.",
+  "signalArchiveDeleteDone": "Collection « {name} » supprimée."
 }

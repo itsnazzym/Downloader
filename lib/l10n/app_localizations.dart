@@ -8895,6 +8895,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
   String get archiveDeskSyncManual;
+
+  /// No description provided for @signalArchiveFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get signalArchiveFavorite;
+
+  /// No description provided for @signalArchiveLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked'**
+  String get signalArchiveLiked;
+
+  /// No description provided for @signalArchiveOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in the browser'**
+  String get signalArchiveOpenInBrowser;
+
+  /// No description provided for @signalArchiveSearchCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Search collections'**
+  String get signalArchiveSearchCollection;
+
+  /// No description provided for @signalArchiveAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get signalArchiveAllCollections;
+
+  /// No description provided for @signalArchiveResetMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the videos from this collection'**
+  String get signalArchiveResetMenu;
+
+  /// No description provided for @signalArchiveResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the collection'**
+  String get signalArchiveResetTitle;
+
+  /// No description provided for @signalArchiveResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {count} videos from “{name}”? The videos and their other collections are kept.'**
+  String signalArchiveResetBody(int count, String name);
+
+  /// No description provided for @signalArchiveResetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get signalArchiveResetAction;
+
+  /// No description provided for @signalArchiveResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed the collection from “{name}”. The videos are kept.'**
+  String signalArchiveResetDone(String name);
+
+  /// No description provided for @signalArchiveDeleteMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get signalArchiveDeleteMenu;
+
+  /// No description provided for @signalArchiveDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection'**
+  String get signalArchiveDeleteTitle;
+
+  /// No description provided for @signalArchiveDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection “{name}” permanently? Its {count} videos stay on disk but no longer belong to it.'**
+  String signalArchiveDeleteBody(int count, String name);
+
+  /// No description provided for @signalArchiveDeleteDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection “{name}” deleted.'**
+  String signalArchiveDeleteDone(String name);
 }
 
 class _AppLocalizationsDelegate

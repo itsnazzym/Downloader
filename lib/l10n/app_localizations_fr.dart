@@ -5281,4 +5281,54 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.';
+
+  @override
+  String get signalArchiveFavorite => 'Favori';
+
+  @override
+  String get signalArchiveLiked => 'J’aime';
+
+  @override
+  String get signalArchiveOpenInBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String get signalArchiveSearchCollection => 'Rechercher une collection';
+
+  @override
+  String get signalArchiveAllCollections => 'Toutes les collections';
+
+  @override
+  String get signalArchiveResetMenu => 'Retirer les vidéos de cette collection';
+
+  @override
+  String get signalArchiveResetTitle => 'Réinitialiser la collection';
+
+  @override
+  String signalArchiveResetBody(int count, String name) {
+    return 'Retirer les $count vidéos de « $name » ? Les vidéos et leurs autres classements sont conservés.';
+  }
+
+  @override
+  String get signalArchiveResetAction => 'Réinitialiser';
+
+  @override
+  String signalArchiveResetDone(String name) {
+    return 'Classement retiré pour « $name ». Les vidéos sont conservées.';
+  }
+
+  @override
+  String get signalArchiveDeleteMenu => 'Supprimer définitivement';
+
+  @override
+  String get signalArchiveDeleteTitle => 'Supprimer la collection';
+
+  @override
+  String signalArchiveDeleteBody(int count, String name) {
+    return 'Supprimer définitivement la collection « $name » ? Ses $count vidéos restent sur le disque mais ne font plus partie de ce dossier.';
+  }
+
+  @override
+  String signalArchiveDeleteDone(String name) {
+    return 'Collection « $name » supprimée.';
+  }
 }

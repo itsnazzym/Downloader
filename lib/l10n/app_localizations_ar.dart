@@ -5225,4 +5225,54 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
+
+  @override
+  String get signalArchiveFavorite => 'مفضّلة';
+
+  @override
+  String get signalArchiveLiked => 'أعجبني';
+
+  @override
+  String get signalArchiveOpenInBrowser => 'فتح في المتصفح';
+
+  @override
+  String get signalArchiveSearchCollection => 'البحث عن مجموعة';
+
+  @override
+  String get signalArchiveAllCollections => 'كل المجموعات';
+
+  @override
+  String get signalArchiveResetMenu => 'إزالة الفيديوهات من هذه المجموعة';
+
+  @override
+  String get signalArchiveResetTitle => 'إعادة تعيين المجموعة';
+
+  @override
+  String signalArchiveResetBody(int count, String name) {
+    return 'إزالة $count فيديو من «$name»؟ تُحفظ الفيديوهات وتصنيفاتها الأخرى.';
+  }
+
+  @override
+  String get signalArchiveResetAction => 'إعادة تعيين';
+
+  @override
+  String signalArchiveResetDone(String name) {
+    return 'أُزيل تصنيف «$name». تُحفظ الفيديوهات.';
+  }
+
+  @override
+  String get signalArchiveDeleteMenu => 'حذف نهائي';
+
+  @override
+  String get signalArchiveDeleteTitle => 'حذف المجموعة';
+
+  @override
+  String signalArchiveDeleteBody(int count, String name) {
+    return 'حذف المجموعة «$name» نهائيًا؟ تبقى فيديوهاتها ($count) على القرص لكنها لن تنتمي إليها بعد الآن.';
+  }
+
+  @override
+  String signalArchiveDeleteDone(String name) {
+    return 'حُذفت المجموعة «$name».';
+  }
 }

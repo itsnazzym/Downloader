@@ -1780,5 +1780,19 @@
   "archiveDeskSyncDisconnected": "افتح TikTok في متصفح مثبّت فيه امتداد Modern Downloader، ثم عُد إلى هنا.",
   "archiveDeskSyncing": "جارٍ المزامنة…",
   "archiveDeskSyncAction": "مزامنة مجموعاتي",
-  "archiveDeskSyncManual": "المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا."
+  "archiveDeskSyncManual": "المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.",
+  "signalArchiveFavorite": "مفضّلة",
+  "signalArchiveLiked": "أعجبني",
+  "signalArchiveOpenInBrowser": "فتح في المتصفح",
+  "signalArchiveSearchCollection": "البحث عن مجموعة",
+  "signalArchiveAllCollections": "كل المجموعات",
+  "signalArchiveResetMenu": "إزالة الفيديوهات من هذه المجموعة",
+  "signalArchiveResetTitle": "إعادة تعيين المجموعة",
+  "signalArchiveResetBody": "إزالة {count} فيديو من «{name}»؟ تُحفظ الفيديوهات وتصنيفاتها الأخرى.",
+  "signalArchiveResetAction": "إعادة تعيين",
+  "signalArchiveResetDone": "أُزيل تصنيف «{name}». تُحفظ الفيديوهات.",
+  "signalArchiveDeleteMenu": "حذف نهائي",
+  "signalArchiveDeleteTitle": "حذف المجموعة",
+  "signalArchiveDeleteBody": "حذف المجموعة «{name}» نهائيًا؟ تبقى فيديوهاتها ({count}) على القرص لكنها لن تنتمي إليها بعد الآن.",
+  "signalArchiveDeleteDone": "حُذفت المجموعة «{name}»."
 }

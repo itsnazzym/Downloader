@@ -5218,4 +5218,54 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.';
+
+  @override
+  String get signalArchiveFavorite => 'Favorite';
+
+  @override
+  String get signalArchiveLiked => 'Liked';
+
+  @override
+  String get signalArchiveOpenInBrowser => 'Open in the browser';
+
+  @override
+  String get signalArchiveSearchCollection => 'Search collections';
+
+  @override
+  String get signalArchiveAllCollections => 'All collections';
+
+  @override
+  String get signalArchiveResetMenu => 'Remove the videos from this collection';
+
+  @override
+  String get signalArchiveResetTitle => 'Reset the collection';
+
+  @override
+  String signalArchiveResetBody(int count, String name) {
+    return 'Remove the $count videos from “$name”? The videos and their other collections are kept.';
+  }
+
+  @override
+  String get signalArchiveResetAction => 'Reset';
+
+  @override
+  String signalArchiveResetDone(String name) {
+    return 'Removed the collection from “$name”. The videos are kept.';
+  }
+
+  @override
+  String get signalArchiveDeleteMenu => 'Delete permanently';
+
+  @override
+  String get signalArchiveDeleteTitle => 'Delete the collection';
+
+  @override
+  String signalArchiveDeleteBody(int count, String name) {
+    return 'Delete the collection “$name” permanently? Its $count videos stay on disk but no longer belong to it.';
+  }
+
+  @override
+  String signalArchiveDeleteDone(String name) {
+    return 'Collection “$name” deleted.';
+  }
 }
