@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
 import '../../../../../core/design_system/foundation/colors.dart';
 import '../../../../../core/platform/platform_info.dart';
 import '../../../domain/entities/download_item.dart';
@@ -79,6 +80,27 @@ class DownloadRowHost extends ConsumerWidget {
         return;
       }
       await notifier.deleteDownload(item.id);
+    }
+
+    // A desktop design draws its own row; menu and selection stay shared.
+    final skin = DesignSkin.of(context)?.row;
+    if (skin != null) {
+      return RepaintBoundary(
+        child: DownloadItemContextMenu(
+          item: item,
+          child: skin(
+            context,
+            DesignRow(
+              item: item,
+              isSelected: isSelected,
+              grid: useGridCard,
+              onTap: onTap,
+              onRetry: onRetry,
+              onCancel: onCancel,
+            ),
+          ),
+        ),
+      );
     }
 
     if (useGridCard) {

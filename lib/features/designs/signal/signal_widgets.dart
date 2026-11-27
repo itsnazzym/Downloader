@@ -56,44 +56,52 @@ class _SignalCardState extends State<SignalCard> {
         curve: signalEase,
         transform: Matrix4.translationValues(0, up ? -2 : 0, 0),
         padding: widget.padding,
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color:
-                widget.ring ??
-                colors.textPrimary.withValues(
-                  alpha: widget.focus ? 0.3 : (up ? 0.14 : 0.08),
-                ),
-            width: widget.ring != null ? 1.5 : 1,
-          ),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: const Alignment(0, -0.92),
-            colors: [
-              colors.textPrimary.withValues(alpha: 0.05),
-              colors.surface,
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: up ? 0.7 : 0.6),
-              blurRadius: up ? 56 : 40,
-              spreadRadius: up ? -14 : -12,
-              offset: Offset(0, up ? 24 : 16),
-            ),
-          ],
+        decoration: signalCardDecoration(
+          colors,
+          up: up,
+          focus: widget.focus,
+          ring: widget.ring,
         ),
         child: widget.child,
       ),
     );
   }
 }
+
+/// [SignalCard]'s surface, for panels drawn by shared views.
+BoxDecoration signalCardDecoration(
+  AppColors colors, {
+  bool up = false,
+  bool focus = false,
+  Color? ring,
+}) => BoxDecoration(
+  color: colors.surface,
+  borderRadius: BorderRadius.circular(20),
+  border: Border.all(
+    color:
+        ring ??
+        colors.textPrimary.withValues(alpha: focus ? 0.3 : (up ? 0.14 : 0.08)),
+    width: ring != null ? 1.5 : 1,
+  ),
+  gradient: LinearGradient(
+    begin: Alignment.topCenter,
+    end: const Alignment(0, -0.92),
+    colors: [colors.textPrimary.withValues(alpha: 0.05), colors.surface],
+  ),
+  boxShadow: [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.4),
+      blurRadius: 2,
+      offset: const Offset(0, 1),
+    ),
+    BoxShadow(
+      color: Colors.black.withValues(alpha: up ? 0.7 : 0.6),
+      blurRadius: up ? 56 : 40,
+      spreadRadius: up ? -14 : -12,
+      offset: Offset(0, up ? 24 : 16),
+    ),
+  ],
+);
 
 /// Small grey label above a card's content ("Aujourd'hui", "File d'attente").
 class SignalEyebrow extends StatelessWidget {

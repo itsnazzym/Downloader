@@ -5,19 +5,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_collections_view.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_filter_pane.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_video_card.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 
+import 'pastille_archive_parts.dart';
 import 'pastille_kit.dart';
+import 'pastille_scope.dart';
 
 /// Pastille's TikTok archive (mockup Pastille-Archives.dc.html): counts,
 /// then Vidéos / Collections / Favoris. Collections are pastel tiles with a
 /// download dot bar, selectable for purging; opening one (or the detailed
-/// view from the `…` menu) shows today's collections tools. Vidéos and
-/// Favoris keep today's filters, search, selection and batch download under
-/// the mockup's summary tile. Import / sync is today's hub, framed.
+/// view from the `…` menu) shows Pastille's collection view (or, detailed,
+/// today's tools in Pastille's Material language). Vidéos and Favoris keep
+/// every filter, search, selection and batch download, drawn in Pastille,
+/// under the mockup's summary tile. Import / sync is today's hub, framed.
 class PastilleArchive extends ConsumerStatefulWidget {
   const PastilleArchive({super.key, required this.current});
 
@@ -320,8 +321,16 @@ class _PastilleArchiveState extends ConsumerState<PastilleArchive> {
     ];
 
     if (tab == _Tab.collections) {
-      if (_detailed || openCollection) {
-        children.add(_Embedded(child: TikTokCollectionsView(catalog: cat)));
+      if (openCollection) {
+        children.add(_Embedded(child: PastilleCollectionDetail(catalog: cat)));
+      } else if (_detailed) {
+        // The detailed tools (posters, suggestions, reset): today's view
+        // in Pastille's Material language.
+        children.add(
+          _Embedded(
+            child: PastilleScope(child: TikTokCollectionsView(catalog: cat)),
+          ),
+        );
       } else {
         if (_selecting) {
           children.add(
@@ -399,7 +408,9 @@ class _Framed extends StatelessWidget {
               children: [
                 header,
                 const SizedBox(height: 22),
-                Expanded(child: _Rounded(child: child)),
+                Expanded(
+                  child: _Rounded(child: PastilleScope(child: child)),
+                ),
               ],
             ),
           );
@@ -815,7 +826,8 @@ class _VideoBrowser extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const TikTokFilterPane(),
+        const PastilleArchiveFilters(),
+        Container(width: 1.5, color: pCream.withValues(alpha: 0.07)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -957,7 +969,7 @@ class _VideoBrowser extends ConsumerWidget {
                           final v = videos[i];
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: TikTokVideoCard(
+                            child: PastilleVideoRow(
                               item: v,
                               isSelected: state.selectedIds.contains(v.id),
                               onToggleSelect: () =>

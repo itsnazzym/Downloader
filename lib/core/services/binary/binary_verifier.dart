@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import '../../logger/logger_service.dart';
 import 'binary_locator.dart';
 import 'process_runner.dart';
@@ -25,8 +27,14 @@ class BinaryVerifier {
     return _checkBinary(path, ['--version']);
   }
 
+  /// Test hook: answers [checkGobird] without starting a process.
+  @visibleForTesting
+  static Future<BinaryStatus> Function()? debugCheckGobird;
+
   /// Checks optional experimental gobird binary (not required at startup).
   static Future<BinaryStatus> checkGobird() async {
+    final debug = debugCheckGobird;
+    if (debug != null) return debug();
     final path = await _locator.findGobird();
     if (path == null) {
       return BinaryStatus(

@@ -21,9 +21,10 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
 import 'package:modern_downloader/features/designs/pastille/pastille_kit.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
+import 'package:modern_downloader/features/designs/terminal/terminal_library.dart';
+import 'package:modern_downloader/features/designs/terminal/terminal_settings_pages.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -285,7 +286,19 @@ void main() {
 
       for (var round = 0; round < 2; round++) {
         await open('Plugins', '/settings/plugins');
-        expect(find.byType(PluginsSettingsView), findsOneWidget);
+        // Today's view, or a design's own drawing of it (Terminal's page,
+        // Nocturne's title): either way the plugins page is on screen.
+        expect(
+          find.byWidgetPredicate(
+            (w) =>
+                w is PluginsSettingsView ||
+                w is TerminalPluginsPage ||
+                (w is Text &&
+                    w.data?.toLowerCase() ==
+                        'fonctionnalités de l’application'.toLowerCase()),
+          ),
+          findsWidgets,
+        );
         await open('Général', '/settings/general');
       }
     });
@@ -384,7 +397,7 @@ void main() {
     );
     router.go('/');
     await settle(tester);
-    final field = find.byType(DownloadSearchField).first;
+    final field = find.byType(TSearchField).first;
     final box = tester.getRect(field);
     final text = tester.getRect(
       find.descendant(of: field, matching: find.byType(EditableText)),
@@ -434,6 +447,49 @@ void main() {
         router.go(page.value);
         await settle(tester);
         await shot(tester, key, 'design_${id}_${page.key}');
+      });
+    }
+  }
+
+  // The pieces every design used to borrow from today's views (settings
+  // sub-pages, the archive, the inspector): writes
+  // build/visual/surface_<id>_<name>.png to check they are drawn in the design.
+  const surfaces = {
+    'output': '/settings/output',
+    'appearance': '/settings/appearance',
+    'performance': '/settings/performance',
+    'advanced': '/settings/advanced',
+    'system': '/settings/system',
+    'plugins': '/settings/plugins',
+    'smart_organizer': '/settings/smart_organizer',
+    'archive': '/archive',
+    'inspector': '/',
+  };
+  for (final id in designs) {
+    for (final surface in surfaces.entries) {
+      testWidgets('surface $id ${surface.key}', (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final router = container.read(routerProvider);
+        final items = sampleDownloads();
+        final key = await pump(
+          tester,
+          () => const SizedBox(),
+          router: router,
+          preset: ThemePresets.getById(id),
+          items: items,
+          extra: [
+            ...archive(),
+            transferControllerProvider.overrideWith(
+              (ref) => FakeTransferController(ref),
+            ),
+            // The inspector shows the first item.
+            selectedDownloadIdProvider.overrideWith((ref) => items.first.id),
+          ],
+        );
+        router.go(surface.value);
+        await settle(tester);
+        await shot(tester, key, 'surface_${id}_${surface.key}');
       });
     }
   }

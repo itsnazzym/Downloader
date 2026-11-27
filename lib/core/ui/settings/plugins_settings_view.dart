@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:modern_downloader/core/design_system/design_skin.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -257,15 +258,18 @@ class _PluginCard extends StatelessWidget {
 
       padding: const EdgeInsets.all(AppSpacing.m),
 
-      decoration: BoxDecoration(
-        color: AppColors.of(context).surface,
+      decoration: designPanel(
+        context,
+        BoxDecoration(
+          color: AppColors.of(context).surface,
 
-        borderRadius: BorderRadius.circular(12),
+          borderRadius: _cardRadius(context),
 
-        border: Border.all(
-          color: entry.isEnabled
-              ? AppColors.of(context).border
-              : AppColors.of(context).border.withValues(alpha: 0.5),
+          border: Border.all(
+            color: entry.isEnabled
+                ? AppColors.of(context).border
+                : AppColors.of(context).border.withValues(alpha: 0.5),
+          ),
         ),
       ),
 
@@ -418,17 +422,18 @@ class _PluginCard extends StatelessWidget {
             const Gap(AppSpacing.s),
           ],
 
-          Switch(
-            value: entry.isEnabled,
+          designToggle(context, entry.isEnabled, onToggle) ??
+              Switch(
+                value: entry.isEnabled,
 
-            onChanged: onToggle,
+                onChanged: onToggle,
 
-            activeThumbColor: AppColors.of(context).success,
+                activeThumbColor: AppColors.of(context).success,
 
-            inactiveThumbColor: AppColors.of(context).textDisabled,
+                inactiveThumbColor: AppColors.of(context).textDisabled,
 
-            inactiveTrackColor: AppColors.of(context).surfaceHighlight,
-          ),
+                inactiveTrackColor: AppColors.of(context).surfaceHighlight,
+              ),
         ],
       ),
     );
@@ -473,10 +478,13 @@ class _FeatureModuleCard extends StatelessWidget {
         horizontal: AppSpacing.m,
         vertical: AppSpacing.s,
       ),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.border.withValues(alpha: 0.7)),
+      decoration: designPanel(
+        context,
+        BoxDecoration(
+          color: colors.surface,
+          borderRadius: _cardRadius(context),
+          border: Border.all(color: colors.border.withValues(alpha: 0.7)),
+        ),
       ),
       child: Row(
         children: [
@@ -529,13 +537,14 @@ class _FeatureModuleCard extends StatelessWidget {
           if (plugin.isCore)
             Icon(Icons.lock_outline_rounded, color: colors.textSecondary)
           else
-            Switch(
-              value: enabled,
-              onChanged: onToggle,
-              activeThumbColor: colors.success,
-              inactiveThumbColor: colors.textDisabled,
-              inactiveTrackColor: colors.surfaceHighlight,
-            ),
+            designToggle(context, enabled, onToggle) ??
+                Switch(
+                  value: enabled,
+                  onChanged: onToggle,
+                  activeThumbColor: colors.success,
+                  inactiveThumbColor: colors.textDisabled,
+                  inactiveTrackColor: colors.surfaceHighlight,
+                ),
         ],
       ),
     );
@@ -598,10 +607,13 @@ class _PluginInstallRequestCard extends ConsumerWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.m),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.border),
+      decoration: designPanel(
+        context,
+        BoxDecoration(
+          color: colors.surface,
+          borderRadius: _cardRadius(context),
+          border: Border.all(color: colors.border),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -705,12 +717,15 @@ class _BrowserExtensionsPanel extends ConsumerWidget {
 
           padding: const EdgeInsets.all(AppSpacing.m),
 
-          decoration: BoxDecoration(
-            color: colors.surface,
+          decoration: designPanel(
+            context,
+            BoxDecoration(
+              color: colors.surface,
 
-            borderRadius: BorderRadius.circular(12),
+              borderRadius: _cardRadius(context),
 
-            border: Border.all(color: colors.border),
+              border: Border.all(color: colors.border),
+            ),
           ),
 
           child: Row(
@@ -820,12 +835,15 @@ class _BrowserInstallCard extends StatelessWidget {
 
       padding: const EdgeInsets.all(AppSpacing.m),
 
-      decoration: BoxDecoration(
-        color: colors.surface,
+      decoration: designPanel(
+        context,
+        BoxDecoration(
+          color: colors.surface,
 
-        borderRadius: BorderRadius.circular(12),
+          borderRadius: _cardRadius(context),
 
-        border: Border.all(color: colors.border),
+          border: Border.all(color: colors.border),
+        ),
       ),
 
       child: Column(
@@ -872,3 +890,9 @@ class _BrowserInstallCard extends StatelessWidget {
     );
   }
 }
+
+/// A desktop design that draws the shared settings tiles also rounds these
+/// cards like its panels; everywhere else they keep 12 px.
+BorderRadius _cardRadius(BuildContext context) => DesignSkin.of(context) != null
+    ? AppRadius.panelOf(context)
+    : BorderRadius.circular(12);

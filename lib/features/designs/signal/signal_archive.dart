@@ -8,20 +8,23 @@ import 'package:modern_downloader/features/archive/domain/entities/tiktok_archiv
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_collections_view.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_filter_pane.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_video_card.dart';
+import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_feed_view.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 
+import 'signal_archive_parts.dart';
 import 'signal_controls.dart';
+import 'signal_library_tools.dart' show SignalMenuButton, signalMenuItem;
 import 'signal_states.dart';
+import 'signal_theme.dart';
 import 'signal_widgets.dart';
 
 /// Signal's TikTok archive (mockup Signal-Archives.dc.html): an archive
 /// card, Vidéos / Collections / Favoris chips, then the collection cards
-/// with their purge bar, or the video list. With nothing imported yet, its
-/// own empty state; the hub (sync results) and loading stay today's view
-/// ([current]).
+/// with their purge bar, an opened collection, or the video list and its
+/// filters. Its own empty state, loading and import / sync hub; only the
+/// detailed collection tools keep today's view, in Signal's controls.
+/// [current] (today's view) is no longer shown.
 class SignalArchive extends ConsumerWidget {
   const SignalArchive({super.key, required this.current});
 
@@ -29,11 +32,12 @@ class SignalArchive extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final (today, empty) = ref.watch(
+    final (loading, hub, empty) = ref.watch(
       tikTokArchiveProvider.select(
         (s) => (
-          s.isLoading || s.viewMode == TikTokViewMode.hub || !s.hasCatalog,
-          // A sync in flight or its result stays today's hub.
+          s.isLoading,
+          s.viewMode == TikTokViewMode.hub || !s.hasCatalog,
+          // A sync in flight or its result shows the hub.
           !s.isLoading &&
               !s.hasCatalog &&
               s.syncStatus == TikTokSyncStatus.idle,
@@ -41,7 +45,12 @@ class SignalArchive extends ConsumerWidget {
       ),
     );
     if (empty) return const _ArchiveEmpty();
-    return today ? current : const _ArchivePage();
+    // Dialogs, menus and the detailed tools take Signal's controls.
+    return SignalMaterial(
+      child: loading
+          ? const SignalArchiveLoading()
+          : (hub ? const SignalArchiveHub() : const _ArchivePage()),
+    );
   }
 }
 
@@ -215,8 +224,8 @@ class _ArchivePageState extends ConsumerState<_ArchivePage> {
 
   /// Confirms, then deletes the collections, their exclusive videos and
   /// their downloaded files. Shared videos are kept.
-  Future<void> _confirmPurge() async {
-    final keys = Set.of(_selected);
+  Future<void> _confirmPurge([Set<String>? only]) async {
+    final keys = Set.of(only ?? _selected);
     if (keys.isEmpty || _purging) return;
     final l10n = context.l10n;
     final colors = AppColors.of(context);
@@ -275,6 +284,14 @@ class _ArchivePageState extends ConsumerState<_ArchivePage> {
     }
   }
 
+  /// Back to the collection cards once the opened one was purged or deleted.
+  void _closeIfGone(String key) {
+    if (!mounted) return;
+    final c = ref.read(tikTokArchiveProvider).catalog;
+    final gone = !(c?.collections.any((x) => (x.id ?? x.name) == key) ?? false);
+    if (gone) ref.read(tikTokArchiveProvider.notifier).selectCollection(null);
+  }
+
   Future<void> _confirmClear() async {
     final l10n = context.l10n;
     final colors = AppColors.of(context);
@@ -328,9 +345,30 @@ class _ArchivePageState extends ConsumerState<_ArchivePage> {
         : ref.watch(filteredTikTokVideosProvider);
 
     Widget content;
-    if (collectionsMode && (opened != null || _detailed)) {
-      // An opened collection and the detailed tools (suggestions, poster
-      // view, delete one collection) stay today's view.
+    final openedColl = opened == null
+        ? null
+        : catalog.collections
+              .where(
+                (c) => c.id == opened || (c.id == null && c.name == opened),
+              )
+              .firstOrNull;
+    if (collectionsMode && openedColl != null) {
+      // Same list as today's opened collection: the search and filters
+      // apply to it.
+      content = _OpenedCollection(
+        collection: openedColl,
+        videos: ref.watch(filteredTikTokVideosProvider),
+        onNotice: _notice,
+        onPurge: () async {
+          await _confirmPurge({opened!});
+          _closeIfGone(opened);
+        },
+        onGone: () => _closeIfGone(opened!),
+        onDownloadAll: (list) => _downloadAll(list),
+      );
+    } else if (collectionsMode && (opened != null || _detailed)) {
+      // The detailed tools (suggestions, poster view, delete one
+      // collection) keep today's view, in Signal's controls.
       content = TikTokCollectionsView(catalog: catalog);
     } else if (collectionsMode) {
       content = _CollectionGrid(
@@ -1017,10 +1055,11 @@ class _CollectionCard extends StatelessWidget {
             offset: const Offset(6, 0),
             child: SignalIconButton(
               icon: Icons.download_rounded,
-              tooltip: l10n.archiveCollDownloadAll(total),
+              // Only what is left: downloaded videos are skipped.
+              tooltip: l10n.archiveCollDownloadAll(total - done),
               size: 30,
               iconSize: 15,
-              onTap: total == 0 ? null : onDownload,
+              onTap: total == done ? null : onDownload,
             ),
           ),
         ],
@@ -1389,9 +1428,9 @@ class _VideoList extends ConsumerWidget {
           final v = videos[i];
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: TikTokVideoCard(
+            child: SignalVideoRow(
               item: v,
-              isSelected: selected.contains(v.id),
+              selected: selected.contains(v.id),
               onToggleSelect: () => n.toggleSelection(v.id),
               onDownload: () async {
                 await n.downloadBatch([v], limit: 1);
@@ -1405,21 +1444,254 @@ class _VideoList extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, c) {
         if (c.maxWidth < 760) return list;
-        // Today's filter pane (type, year, collections) beside the list.
+        // The filters (type, year, collections) beside the list.
         return Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-              child: const TikTokFilterPane(),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 24),
+              child: SignalFilterPane(),
             ),
             const SizedBox(width: 16),
             Expanded(child: list),
           ],
         );
       },
+    );
+  }
+}
+
+// ── Opened collection ───────────────────────────────────────────────────────
+
+enum _CollAction { reset, purge, delete }
+
+/// One collection opened: back to the cards, its name and count, the
+/// vertical player, Tout télécharger, and (not for the liked / unsorted
+/// lists) remove its videos, purge it or delete it; then its videos as
+/// Signal rows.
+class _OpenedCollection extends ConsumerWidget {
+  const _OpenedCollection({
+    required this.collection,
+    required this.videos,
+    required this.onNotice,
+    required this.onPurge,
+    required this.onGone,
+    required this.onDownloadAll,
+  });
+
+  final TikTokCollectionItem collection;
+  final List<TikTokArchiveItem> videos;
+  final ValueChanged<String> onNotice;
+  final VoidCallback onPurge;
+  final VoidCallback onGone;
+  final ValueChanged<List<TikTokArchiveItem>> onDownloadAll;
+
+  Future<bool> _ask(
+    BuildContext context, {
+    required String title,
+    required String body,
+    required String action,
+  }) async {
+    final l10n = context.l10n;
+    final colors = AppColors.of(context);
+    return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(title),
+            content: Text(body),
+            actions: [
+              TextButton(
+                autofocus: true,
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: colors.error,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(action),
+              ),
+            ],
+          ),
+        ) ==
+        true;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    final n = ref.read(tikTokArchiveProvider.notifier);
+    final key = collection.id ?? collection.name;
+    final name = collection.name;
+    final batch = ref.watch(
+      tikTokArchiveProvider.select((s) => s.isBatchDownloading),
+    );
+    final selected = ref.watch(
+      tikTokArchiveProvider.select((s) => s.selectedIds),
+    );
+    final showcase = ref.watch(showcaseModeProvider);
+    final remaining = videos.where((v) => !v.isDownloaded).length;
+    final canEdit = videos.isNotEmpty && !_isSpecial(collection);
+
+    Future<void> run(_CollAction a) async {
+      switch (a) {
+        case _CollAction.reset:
+          if (!await _ask(
+            context,
+            title: l10n.signalArchiveResetTitle,
+            body: l10n.signalArchiveResetBody(videos.length, name),
+            action: l10n.signalArchiveResetAction,
+          )) {
+            return;
+          }
+          await n.resetCollectionToUnclassified(key);
+          onNotice(l10n.signalArchiveResetDone(name));
+        case _CollAction.purge:
+          onPurge();
+        case _CollAction.delete:
+          if (!await _ask(
+            context,
+            title: l10n.signalArchiveDeleteTitle,
+            body: l10n.signalArchiveDeleteBody(videos.length, name),
+            action: l10n.signalArchiveDeleteMenu,
+          )) {
+            return;
+          }
+          await n.deleteCollection(key);
+          onNotice(l10n.signalArchiveDeleteDone(name));
+          onGone();
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            SignalButton(
+              label: l10n.signalArchiveAllCollections,
+              icon: Icons.arrow_back_rounded,
+              accent: false,
+              height: 36,
+              fontSize: 13,
+              onTap: () => n.selectCollection(null),
+            ),
+            const SizedBox(width: 16),
+            Flexible(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.display(
+                  22,
+                  weight: FontWeight.w600,
+                ).copyWith(color: colors.textPrimary),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              l10n.archiveMobileVideoCount(videos.length),
+              style: AppTypography.mono.copyWith(
+                fontSize: 13,
+                color: colors.textDisabled,
+              ),
+            ),
+            const Spacer(),
+            if (canEdit) ...[
+              SignalMenuButton<_CollAction>(
+                icon: Icons.more_horiz_rounded,
+                tooltip: l10n.moreActions,
+                onSelected: run,
+                itemBuilder: (context) => [
+                  signalMenuItem(
+                    context,
+                    value: _CollAction.reset,
+                    icon: Icons.folder_off_outlined,
+                    label: l10n.signalArchiveResetMenu,
+                  ),
+                  const PopupMenuDivider(),
+                  signalMenuItem(
+                    context,
+                    value: _CollAction.purge,
+                    icon: Icons.delete_forever_rounded,
+                    label: l10n.archivePurgeMenu,
+                    tone: colors.error,
+                  ),
+                  signalMenuItem(
+                    context,
+                    value: _CollAction.delete,
+                    icon: Icons.delete_outline_rounded,
+                    label: l10n.signalArchiveDeleteMenu,
+                    tone: colors.error,
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
+            ],
+            if (videos.isNotEmpty && !showcase) ...[
+              SignalIconButton(
+                icon: Icons.play_arrow_rounded,
+                tooltip: l10n.archiveMobilePlayFullscreen,
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (ctx) => Dialog.fullscreen(
+                    child: TikTokFeedView(
+                      videos: videos,
+                      onClose: () => Navigator.of(ctx).pop(),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            if (videos.isNotEmpty)
+              SignalButton(
+                // Counts what is left: downloaded videos are skipped.
+                label: '${l10n.signalArchiveDownloadAll} ($remaining)',
+                icon: Icons.download_rounded,
+                height: 36,
+                fontSize: 13,
+                onTap: batch || remaining == 0
+                    ? null
+                    : () => onDownloadAll(videos),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: videos.isEmpty
+              ? Center(
+                  child: Text(
+                    l10n.archiveMobileNoVideos,
+                    style: AppTypography.body.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 40),
+                  itemCount: videos.length,
+                  itemBuilder: (context, i) {
+                    final v = videos[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: SignalVideoRow(
+                        item: v,
+                        selected: selected.contains(v.id),
+                        onToggleSelect: () => n.toggleSelection(v.id),
+                        onDownload: () async {
+                          await n.downloadBatch([v], limit: 1);
+                          onNotice(l10n.archiveMobileVideoAdded);
+                        },
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

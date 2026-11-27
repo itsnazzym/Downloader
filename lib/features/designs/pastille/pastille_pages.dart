@@ -12,7 +12,7 @@ import 'pastille_transfer.dart';
 Widget? pastillePage(DesignRoute route, Widget current) {
   switch (route) {
     case DesignRoute.home:
-      return PastilleHome(library: current);
+      return const PastilleHome();
     case DesignRoute.stats:
       return const PastilleStats();
     case DesignRoute.settings:

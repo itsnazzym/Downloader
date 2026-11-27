@@ -4,24 +4,19 @@ import 'package:modern_downloader/core/plugins/feature_activation.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_collections_view.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_filter_pane.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_video_card.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 
+import 'porcelaine_archive_parts.dart';
 import 'porcelaine_widgets.dart';
 
 /// Porcelaine's TikTok archive (Porcelaine-Archives.dc.html): the archive
 /// card with its figures and actions, the Vidéos / Collections / Favoris
-/// tabs, then the video list (filters, search, selection) or the collection
-/// cards (« Sélectionner », purge). An opened collection and « Plus
-/// d'options… » show today's collections view. Loading, the import hub, an
-/// empty archive and windows under 900 px keep today's view.
+/// tabs, then the video list (filters, search, selection), the collection
+/// cards (« Sélectionner », purge, search, suggestions, reset) or an opened
+/// collection. Loading and the import hub are drawn here too.
 class PorcelaineArchive extends ConsumerWidget {
-  const PorcelaineArchive({super.key, required this.current});
-
-  final Widget current;
+  const PorcelaineArchive({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,40 +28,39 @@ class PorcelaineArchive extends ConsumerWidget {
             .byId['tiktok_archives']
             ?.nameFor(locale) ??
         l10n.archiveMobileTitle;
-    final (browsing, mode, opened) = ref.watch(
+    final (loading, browsing, mode, opened) = ref.watch(
       tikTokArchiveProvider.select(
         (s) => (
+          s.isLoading,
           !s.isLoading && s.hasCatalog && s.viewMode != TikTokViewMode.hub,
           s.viewMode,
           s.filter.selectedCollection != null,
         ),
       ),
     );
-    final full = ref.watch(_fullProvider);
     return LayoutBuilder(
       builder: (context, box) {
         final side = box.maxWidth > 1284 ? (box.maxWidth - 1220) / 2 : 32.0;
-        // Below 900 the filters and video cards no longer fit side by side:
-        // today's view (its own desktop or phone layout) is kept whole.
-        final native = browsing && box.maxWidth >= 900;
+        final native = browsing;
         final Widget body;
-        if (!native) {
-          body = _Sheet(child: current);
+        if (loading) {
+          body = const _Sheet(child: _Loading());
+        } else if (!browsing) {
+          body = const PArchiveHub();
         } else if (mode != TikTokViewMode.collections) {
           body = const _Sheet(child: _VideoBrowser());
-        } else if (opened || full) {
-          body = _Sheet(
-            child: TikTokCollectionsView(
-              catalog: ref.read(tikTokArchiveProvider).catalog!,
-            ),
-          );
+        } else if (opened) {
+          body = const _Sheet(child: PCollectionDetail());
         } else {
           body = const _CollectionsGrid();
         }
         // The grid's cards draw their ring and shadow past their box: its
         // scroll view gets [_bleed] of room on its sides, [_top] above.
         final grid = body is _CollectionsGrid;
-        return Padding(
+        // A short window: the title, card and tabs scroll away above a body
+        // that keeps a usable height.
+        final short = box.maxHeight < 620;
+        final page = Padding(
           padding: EdgeInsets.fromLTRB(side - _bleed, 0, side - _bleed, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -87,17 +81,33 @@ class PorcelaineArchive extends ConsumerWidget {
                   ],
                 ),
               ),
-              Expanded(
-                child: grid
-                    ? body
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: _bleed),
-                        child: body,
-                      ),
-              ),
+              if (short)
+                SizedBox(
+                  height: box.maxHeight - 24,
+                  child: grid
+                      ? body
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: _bleed,
+                          ),
+                          child: body,
+                        ),
+                )
+              else
+                Expanded(
+                  child: grid
+                      ? body
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: _bleed,
+                          ),
+                          child: body,
+                        ),
+                ),
             ],
           ),
         );
+        return short ? SingleChildScrollView(child: page) : page;
       },
     );
   }
@@ -106,8 +116,8 @@ class PorcelaineArchive extends ConsumerWidget {
 const double _bleed = 24;
 const double _top = 12;
 
-/// « Plus d'options… »: today's collections view in place of the cards.
-final _fullProvider = StateProvider.autoDispose<bool>((ref) => false);
+/// The collection cards' search.
+final _cardQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 final _selectingProvider = StateProvider.autoDispose<bool>((ref) => false);
 final _selectedProvider = StateProvider.autoDispose<Set<String>>(
   (ref) => const {},
@@ -130,6 +140,36 @@ class _Sheet extends StatelessWidget {
         boxShadow: pCardShadow(colors),
       ),
       child: Material(type: MaterialType.transparency, child: child),
+    );
+  }
+}
+
+/// The catalog being read and indexed.
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: colors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.l10n.archiveHubLoading,
+            style: pBody(colors, color: colors.textSecondary),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -158,26 +198,16 @@ class _ArchiveCard extends ConsumerWidget {
     final notifier = ref.read(tikTokArchiveProvider.notifier);
 
     Future<void> downloadAll() async {
-      final ok = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: colors.surface,
-          title: Text(l10n.studioDownloadAll),
-          content: Text(l10n.studioDownloadAllConfirm(s.pending)),
-          actions: [
-            TextButton(
-              autofocus: true,
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l10n.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l10n.confirm),
-            ),
-          ],
-        ),
-      );
-      if (ok != true) return;
+      if (!await pConfirm(
+        context,
+        title: l10n.studioDownloadAll,
+        body: l10n.studioDownloadAllConfirm(s.pending),
+        action: l10n.confirm,
+        icon: Icons.download_rounded,
+        kind: PBtnKind.accent,
+      )) {
+        return;
+      }
       final pending = [
         for (final v in ref.read(tikTokArchiveProvider).catalog!.videos)
           if (!v.isDownloaded) v,
@@ -370,7 +400,6 @@ class _Tabs extends ConsumerWidget {
         ),
       ),
     );
-    final full = ref.watch(_fullProvider);
     final selecting = ref.watch(_selectingProvider);
     final notifier = ref.read(tikTokArchiveProvider.notifier);
     final tab = mode == TikTokViewMode.collections ? 1 : (favorites ? 2 : 0);
@@ -379,9 +408,33 @@ class _Tabs extends ConsumerWidget {
       ref.read(_selectedProvider.notifier).state = const {};
     }
 
+    // « Plus d'options… »: what today's collections view offered beyond
+    // the cards (the suggestions banner and the search sit on the page).
+    Future<void> options(BuildContext button) async {
+      final action = await pShowMenu<String>(button, [
+        pMenuItem(
+          button,
+          value: 'clear',
+          label: l10n.archiveCollClear,
+          icon: Icons.delete_sweep_outlined,
+          danger: true,
+        ),
+      ]);
+      if (action != 'clear' || !context.mounted) return;
+      if (await pConfirm(
+        context,
+        title: l10n.archiveCollClear,
+        body: l10n.archiveCollClearBody,
+        action: l10n.archiveCollClearConfirm,
+        icon: Icons.delete_sweep_outlined,
+      )) {
+        await notifier.clearCatalog();
+        if (context.mounted) pNotice(context, l10n.archiveCollClearDone);
+      }
+    }
+
     void pick(int t) {
       endSelection();
-      ref.read(_fullProvider.notifier).state = false;
       if (t == 1) {
         notifier.setViewMode(TikTokViewMode.collections);
         return;
@@ -392,7 +445,7 @@ class _Tabs extends ConsumerWidget {
       notifier.setViewMode(TikTokViewMode.list);
     }
 
-    final cards = tab == 1 && !opened && !full;
+    final cards = tab == 1 && !opened;
     return Row(
       children: [
         Container(
@@ -439,20 +492,25 @@ class _Tabs extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: pBody(colors, size: 13, color: colors.textSecondary),
                 )
+              : cards
+              ? Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 260),
+                    child: const _CardSearch(),
+                  ),
+                )
               : const SizedBox.shrink(),
         ),
-        if (tab == 1 && full)
-          PBtn(
-            label: l10n.porcelaineSimpleView,
-            icon: Icons.arrow_back_rounded,
-            onTap: () => ref.read(_fullProvider.notifier).state = false,
-          ),
         if (cards) ...[
           if (!selecting) ...[
-            PBtn(
-              label: l10n.porcelaineMoreOptions,
-              kind: PBtnKind.ghost,
-              onTap: () => ref.read(_fullProvider.notifier).state = true,
+            const SizedBox(width: 8),
+            Builder(
+              builder: (button) => PBtn(
+                label: l10n.porcelaineMoreOptions,
+                kind: PBtnKind.ghost,
+                onTap: () => options(button),
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -473,7 +531,42 @@ class _Tabs extends ConsumerWidget {
   }
 }
 
-/// Today's video list on the Porcelaine sheet: filters beside it, search,
+class _CardSearch extends ConsumerStatefulWidget {
+  const _CardSearch();
+
+  @override
+  ConsumerState<_CardSearch> createState() => _CardSearchState();
+}
+
+class _CardSearchState extends ConsumerState<_CardSearch> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: ref.read(_cardQueryProvider));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => PSearchField(
+    controller: _controller,
+    hint: context.l10n.archiveCollSearch,
+    height: 38,
+    clearTooltip: context.l10n.archiveMobileClearSearch,
+    onChanged: (v) {
+      ref.read(_cardQueryProvider.notifier).state = v.trim();
+      setState(() {});
+    },
+  );
+}
+
+/// The video list on the Porcelaine sheet: filters beside it, search,
 /// select, download.
 class _VideoBrowser extends ConsumerStatefulWidget {
   const _VideoBrowser();
@@ -519,7 +612,7 @@ class _VideoBrowserState extends ConsumerState<_VideoBrowser> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const TikTokFilterPane(),
+        const PArchiveFilterPane(),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -686,7 +779,7 @@ class _VideoBrowserState extends ConsumerState<_VideoBrowser> {
                           final v = videos[i];
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: TikTokVideoCard(
+                            child: PArchiveVideoCard(
                               item: v,
                               isSelected: state.selectedIds.contains(v.id),
                               onToggleSelect: () =>
@@ -766,59 +859,12 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
   /// Same confirmation and purge as today's collections view.
   Future<void> _confirmPurge(Set<String> keys) async {
     if (keys.isEmpty || _purging) return;
-    final l10n = context.l10n;
-    final colors = AppColors.of(context);
-    final notifier = ref.read(tikTokArchiveProvider.notifier);
-    final preview = notifier.purgePreview(keys);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: colors.surface,
-        title: Text(l10n.archivePurgeTitle(keys.length)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.archivePurgeBody(preview.videos, preview.files)),
-            if (preview.keptShared > 0) ...[
-              const SizedBox(height: 12),
-              Text(
-                l10n.archivePurgeKept(preview.keptShared),
-                style: pBody(colors, size: 13, color: colors.textSecondary),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            autofocus: true,
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          PBtn(
-            label: l10n.delete,
-            icon: Icons.delete_outline_rounded,
-            kind: PBtnKind.danger,
-            height: 36,
-            onTap: () => Navigator.of(ctx).pop(true),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
     setState(() => _purging = true);
     try {
-      final result = await notifier.purgeCollections(keys);
-      if (!mounted) return;
-      ref.read(_selectedProvider.notifier).state = const {};
-      ref.read(_selectingProvider.notifier).state = false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n.archivePurgeDone(result.filesDeleted, result.videosRemoved),
-          ),
-        ),
-      );
+      if (await pConfirmPurge(context, ref, keys) && mounted) {
+        ref.read(_selectedProvider.notifier).state = const {};
+        ref.read(_selectingProvider.notifier).state = false;
+      }
     } finally {
       if (mounted) setState(() => _purging = false);
     }
@@ -851,7 +897,13 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
           }(),
       ];
     }
-    final cards = _cards;
+    final query = ref.watch(_cardQueryProvider).toLowerCase();
+    final cards = [
+      for (final c in _cards)
+        if (c.item.name.toLowerCase().contains(query)) c,
+    ];
+    final l10n = context.l10n;
+    final colors = AppColors.of(context);
     // `.abar` is sticky: right under a short grid, pinned to the bottom
     // once the grid scrolls (the loose Flexible gives exactly that).
     return Column(
@@ -876,30 +928,48 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
                 );
                 final width = ((box.maxWidth - 16 * (perRow - 1)) / perRow)
                     .floorToDouble();
-                return Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    for (final card in cards)
-                      SizedBox(
-                        width: width,
-                        child: _CollectionCard(
-                          item: card.item,
-                          fraction: card.fraction,
-                          selecting: selecting && card.purgeable,
-                          selected: selected.contains(card.key),
-                          onTap: () {
-                            if (!selecting) {
-                              notifier.selectCollection(card.key);
-                              return;
-                            }
-                            if (!card.purgeable) return;
-                            final next = {...selected};
-                            if (!next.remove(card.key)) next.add(card.key);
-                            ref.read(_selectedProvider.notifier).state = next;
-                          },
+                final grid = cards.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        child: Text(
+                          l10n.archiveCollEmpty,
+                          textAlign: TextAlign.center,
+                          style: pBody(colors, color: colors.textSecondary),
                         ),
-                      ),
+                      )
+                    : null;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const PSuggestionsBanner(),
+                    if (grid != null) grid,
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        for (final card in cards)
+                          SizedBox(
+                            width: width,
+                            child: _CollectionCard(
+                              item: card.item,
+                              fraction: card.fraction,
+                              selecting: selecting && card.purgeable,
+                              selected: selected.contains(card.key),
+                              onTap: () {
+                                if (!selecting) {
+                                  notifier.selectCollection(card.key);
+                                  return;
+                                }
+                                if (!card.purgeable) return;
+                                final next = {...selected};
+                                if (!next.remove(card.key)) next.add(card.key);
+                                ref.read(_selectedProvider.notifier).state =
+                                    next;
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 );
               },
@@ -1164,53 +1234,13 @@ class _CollectionCardState extends State<_CollectionCard> {
                   PositionedDirectional(
                     top: 22,
                     end: 22,
-                    child: _Check(on: widget.selected, hover: _hover),
+                    child: PCheckBox(on: widget.selected, hover: _hover),
                   ),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-/// `.ck`: the 24px checkbox.
-class _Check extends StatelessWidget {
-  const _Check({required this.on, required this.hover});
-
-  final bool on;
-  final bool hover;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return AnimatedContainer(
-      duration: pMotion(context, 150),
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        color: on ? colors.primary : colors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: on
-            ? null
-            : Border.all(
-                color: hover
-                    ? colors.primary
-                    : colors.textPrimary.withValues(alpha: 0.45),
-                width: 1.5,
-              ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.textPrimary.withValues(alpha: on ? 0.2 : 0.15),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: on
-          ? Icon(Icons.check_rounded, size: 15, color: colors.onPrimary)
-          : null,
     );
   }
 }

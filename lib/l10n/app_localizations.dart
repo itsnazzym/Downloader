@@ -8895,6 +8895,900 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
   String get archiveDeskSyncManual;
+
+  /// No description provided for @terminalLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Initialized download {id}'**
+  String terminalLogInit(String id);
+
+  /// No description provided for @terminalLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get terminalLogStarted;
+
+  /// No description provided for @terminalLogDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get terminalLogDone;
+
+  /// No description provided for @terminalLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get terminalLogCanceled;
+
+  /// No description provided for @terminalClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'clear'**
+  String get terminalClearFilters;
+
+  /// No description provided for @terminalFeedNavigate.
+  ///
+  /// In en, this message translates to:
+  /// **'next video'**
+  String get terminalFeedNavigate;
+
+  /// No description provided for @terminalArchiveIndexing.
+  ///
+  /// In en, this message translates to:
+  /// **'reading and indexing the TikTok catalog…'**
+  String get terminalArchiveIndexing;
+
+  /// No description provided for @terminalArchiveIndexingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'runs in the background, the app stays usable'**
+  String get terminalArchiveIndexingNote;
+
+  /// No description provided for @terminalExtensionOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'extension connected'**
+  String get terminalExtensionOnline;
+
+  /// No description provided for @terminalExtensionOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'extension not connected'**
+  String get terminalExtensionOffline;
+
+  /// No description provided for @nocturneBadgeFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get nocturneBadgeFavorite;
+
+  /// No description provided for @nocturneBadgeLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get nocturneBadgeLike;
+
+  /// No description provided for @nocturneOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get nocturneOpenInBrowser;
+
+  /// No description provided for @nocturneLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get nocturneLinkCopied;
+
+  /// No description provided for @nocturneDemoClip.
+  ///
+  /// In en, this message translates to:
+  /// **'{film} · clip {number}'**
+  String nocturneDemoClip(String film, int number);
+
+  /// No description provided for @nocturneAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get nocturneAllCollections;
+
+  /// No description provided for @nocturneDownloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started: {id}'**
+  String nocturneDownloadStarted(String id);
+
+  /// No description provided for @nocturneFolderDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the folder’s {count} videos…'**
+  String nocturneFolderDownloading(int count);
+
+  /// No description provided for @nocturneShowCovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show covers'**
+  String get nocturneShowCovers;
+
+  /// No description provided for @nocturneShowFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Show folders'**
+  String get nocturneShowFolders;
+
+  /// No description provided for @nocturneSyncIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete. The last reliable state is kept.'**
+  String get nocturneSyncIncomplete;
+
+  /// No description provided for @nocturneSyncIncompleteReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete: {reason}'**
+  String nocturneSyncIncompleteReason(String reason);
+
+  /// No description provided for @nocturneSuggestionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 classification suggestion to review} other{{count} classification suggestions to review}}'**
+  String nocturneSuggestionsCount(int count);
+
+  /// No description provided for @nocturneSuggestionsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review ({count})'**
+  String nocturneSuggestionsReview(int count);
+
+  /// No description provided for @nocturneSuggestionsApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting…'**
+  String get nocturneSuggestionsApplying;
+
+  /// No description provided for @nocturneSuggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the suggestions'**
+  String get nocturneSuggestionsTitle;
+
+  /// No description provided for @nocturneSuggestionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the videos to file. Nothing changes until you apply.'**
+  String get nocturneSuggestionsHint;
+
+  /// No description provided for @nocturneSuggestionVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video {id}'**
+  String nocturneSuggestionVideo(String id);
+
+  /// No description provided for @nocturneReasonPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete sync result'**
+  String get nocturneReasonPartial;
+
+  /// No description provided for @nocturneReasonDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date close to confirmed videos'**
+  String get nocturneReasonDate;
+
+  /// No description provided for @nocturneReasonImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Old mapping file'**
+  String get nocturneReasonImported;
+
+  /// No description provided for @nocturneReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Old classification to check'**
+  String get nocturneReasonOther;
+
+  /// No description provided for @nocturneSuggestionsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String nocturneSuggestionsSelected(int count);
+
+  /// No description provided for @nocturneSuggestionsApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get nocturneSuggestionsApply;
+
+  /// No description provided for @nocturneSuggestionsApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 suggestion added to the collections.} other{{count} suggestions added to the collections.}}'**
+  String nocturneSuggestionsApplied(int count);
+
+  /// No description provided for @nocturneSuggestionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t apply these suggestions: {error}'**
+  String nocturneSuggestionsFailed(String error);
+
+  /// No description provided for @nocturneClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get nocturneClose;
+
+  /// No description provided for @nocturneArchiveLoadingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading in the background: the app stays usable.'**
+  String get nocturneArchiveLoadingHint;
+
+  /// No description provided for @nocturneLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Download prepared: {id}'**
+  String nocturneLogInit(String id);
+
+  /// No description provided for @nocturneLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get nocturneLogStarted;
+
+  /// No description provided for @nocturneLogCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get nocturneLogCompleted;
+
+  /// No description provided for @nocturneLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get nocturneLogCanceled;
+
+  /// No description provided for @signalArchiveFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get signalArchiveFavorite;
+
+  /// No description provided for @signalArchiveLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked'**
+  String get signalArchiveLiked;
+
+  /// No description provided for @signalArchiveOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in the browser'**
+  String get signalArchiveOpenInBrowser;
+
+  /// No description provided for @signalArchiveSearchCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Search collections'**
+  String get signalArchiveSearchCollection;
+
+  /// No description provided for @signalArchiveAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get signalArchiveAllCollections;
+
+  /// No description provided for @signalArchiveResetMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the videos from this collection'**
+  String get signalArchiveResetMenu;
+
+  /// No description provided for @signalArchiveResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the collection'**
+  String get signalArchiveResetTitle;
+
+  /// No description provided for @signalArchiveResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {count} videos from “{name}”? The videos and their other collections are kept.'**
+  String signalArchiveResetBody(int count, String name);
+
+  /// No description provided for @signalArchiveResetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get signalArchiveResetAction;
+
+  /// No description provided for @signalArchiveResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed the collection from “{name}”. The videos are kept.'**
+  String signalArchiveResetDone(String name);
+
+  /// No description provided for @signalArchiveDeleteMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get signalArchiveDeleteMenu;
+
+  /// No description provided for @signalArchiveDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection'**
+  String get signalArchiveDeleteTitle;
+
+  /// No description provided for @signalArchiveDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection “{name}” permanently? Its {count} videos stay on disk but no longer belong to it.'**
+  String signalArchiveDeleteBody(int count, String name);
+
+  /// No description provided for @signalArchiveDeleteDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection “{name}” deleted.'**
+  String signalArchiveDeleteDone(String name);
+
+  /// No description provided for @pastilleArcFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get pastilleArcFilters;
+
+  /// No description provided for @pastilleArcClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get pastilleArcClear;
+
+  /// No description provided for @pastilleArcType.
+  ///
+  /// In en, this message translates to:
+  /// **'Video type'**
+  String get pastilleArcType;
+
+  /// No description provided for @pastilleArcAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get pastilleArcAll;
+
+  /// No description provided for @pastilleArcLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get pastilleArcLikes;
+
+  /// No description provided for @pastilleArcYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get pastilleArcYear;
+
+  /// No description provided for @pastilleArcCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections ({count})'**
+  String pastilleArcCollections(int count);
+
+  /// No description provided for @pastilleArcCollectionSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a collection'**
+  String get pastilleArcCollectionSearch;
+
+  /// No description provided for @pastilleArcFavoriteTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get pastilleArcFavoriteTag;
+
+  /// No description provided for @pastilleArcLikeTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get pastilleArcLikeTag;
+
+  /// No description provided for @pastilleArcCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get pastilleArcCopyLink;
+
+  /// No description provided for @pastilleArcLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get pastilleArcLinkCopied;
+
+  /// No description provided for @pastilleArcOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get pastilleArcOpenBrowser;
+
+  /// No description provided for @pastilleArcDemoClip.
+  ///
+  /// In en, this message translates to:
+  /// **'{film} · clip {number}'**
+  String pastilleArcDemoClip(String film, int number);
+
+  /// No description provided for @pastilleArcAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get pastilleArcAllCollections;
+
+  /// No description provided for @pastilleArcRemoveFromCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the videos from this collection'**
+  String get pastilleArcRemoveFromCollection;
+
+  /// No description provided for @pastilleArcResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the collection'**
+  String get pastilleArcResetTitle;
+
+  /// No description provided for @pastilleArcResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the {count} videos from “{name}”? The videos and their other collections are kept.'**
+  String pastilleArcResetBody(int count, String name);
+
+  /// No description provided for @pastilleArcResetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get pastilleArcResetAction;
+
+  /// No description provided for @pastilleArcResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is cleared. The videos are kept.'**
+  String pastilleArcResetDone(String name);
+
+  /// No description provided for @pastilleArcDeleteMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get pastilleArcDeleteMenu;
+
+  /// No description provided for @pastilleArcDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection'**
+  String get pastilleArcDeleteTitle;
+
+  /// No description provided for @pastilleArcDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the collection “{name}” for good? The {count} videos stay on your disk but leave this folder.'**
+  String pastilleArcDeleteBody(String name, int count);
+
+  /// No description provided for @pastilleArcDeleteDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection “{name}” deleted.'**
+  String pastilleArcDeleteDone(String name);
+
+  /// No description provided for @pastilleArcPlayFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Play the videos full screen, vertically'**
+  String get pastilleArcPlayFeed;
+
+  /// No description provided for @pastilleArcDownloadAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Download all ({count})'**
+  String pastilleArcDownloadAll(int count);
+
+  /// No description provided for @pastilleArcDownloadingFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the {count} videos of this folder…'**
+  String pastilleArcDownloadingFolder(int count);
+
+  /// No description provided for @pastilleArcDownloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started: {id}'**
+  String pastilleArcDownloadStarted(String id);
+
+  /// No description provided for @pastilleArcEmptyCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'No video in this collection'**
+  String get pastilleArcEmptyCollection;
+
+  /// No description provided for @studioArchiveAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get studioArchiveAllCollections;
+
+  /// No description provided for @studioArchiveBatchRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running ({done}/{total})'**
+  String studioArchiveBatchRunning(int done, int total);
+
+  /// No description provided for @studioArchiveDemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode: download simulated.'**
+  String get studioArchiveDemo;
+
+  /// No description provided for @studioArchiveFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get studioArchiveFavorite;
+
+  /// No description provided for @studioArchiveLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get studioArchiveLike;
+
+  /// No description provided for @studioArchiveCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get studioArchiveCopyLink;
+
+  /// No description provided for @studioArchiveLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get studioArchiveLinkCopied;
+
+  /// No description provided for @studioArchiveOpenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get studioArchiveOpenBrowser;
+
+  /// No description provided for @studioArchiveShowPosters.
+  ///
+  /// In en, this message translates to:
+  /// **'Show thumbnails'**
+  String get studioArchiveShowPosters;
+
+  /// No description provided for @studioArchiveShowFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Show folders'**
+  String get studioArchiveShowFolders;
+
+  /// No description provided for @studioArchiveSyncIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete. The last reliable state is kept.'**
+  String get studioArchiveSyncIncomplete;
+
+  /// No description provided for @studioArchiveSyncIncompleteWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete: {error}'**
+  String studioArchiveSyncIncompleteWhy(String error);
+
+  /// No description provided for @studioArchiveDeclared.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} videos synced out of {total} declared'**
+  String studioArchiveDeclared(int count, int total);
+
+  /// No description provided for @studioArchiveSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sorting suggestions to review'**
+  String studioArchiveSuggestions(int count);
+
+  /// No description provided for @studioArchiveReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the {count} suggestions'**
+  String studioArchiveReview(int count);
+
+  /// No description provided for @studioArchiveApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting…'**
+  String get studioArchiveApplying;
+
+  /// No description provided for @studioArchiveReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the suggestions'**
+  String get studioArchiveReviewTitle;
+
+  /// No description provided for @studioArchiveReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the videos to sort. Nothing changes until you apply.'**
+  String get studioArchiveReviewHint;
+
+  /// No description provided for @studioArchiveReasonPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete sync result'**
+  String get studioArchiveReasonPartial;
+
+  /// No description provided for @studioArchiveReasonDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date close to confirmed videos'**
+  String get studioArchiveReasonDate;
+
+  /// No description provided for @studioArchiveReasonMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Old mapping file'**
+  String get studioArchiveReasonMapping;
+
+  /// No description provided for @studioArchiveReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Old sorting to check'**
+  String get studioArchiveReasonOther;
+
+  /// No description provided for @studioArchiveSuggestionVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video {id}'**
+  String studioArchiveSuggestionVideo(String id);
+
+  /// No description provided for @studioArchiveApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get studioArchiveApply;
+
+  /// No description provided for @studioArchiveApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} suggestions added to the collections.'**
+  String studioArchiveApplied(int count);
+
+  /// No description provided for @studioArchiveApplyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply these suggestions: {error}'**
+  String studioArchiveApplyFailed(String error);
+
+  /// No description provided for @studioArchiveFolderQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the folder’s {count} videos…'**
+  String studioArchiveFolderQueued(int count);
+
+  /// No description provided for @studioArchiveEmptyCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'No video in this collection'**
+  String get studioArchiveEmptyCollection;
+
+  /// No description provided for @porcelaineArchiveFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get porcelaineArchiveFavorite;
+
+  /// No description provided for @porcelaineArchiveLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get porcelaineArchiveLike;
+
+  /// No description provided for @porcelaineCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get porcelaineCopyLink;
+
+  /// No description provided for @porcelaineLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get porcelaineLinkCopied;
+
+  /// No description provided for @porcelaineOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get porcelaineOpenInBrowser;
+
+  /// No description provided for @porcelaineDemoExcerpt.
+  ///
+  /// In en, this message translates to:
+  /// **'{film} · excerpt {n}'**
+  String porcelaineDemoExcerpt(String film, int n);
+
+  /// No description provided for @porcelaineClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get porcelaineClear;
+
+  /// No description provided for @porcelaineAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get porcelaineAllCollections;
+
+  /// No description provided for @porcelaineCollectionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No videos in this collection'**
+  String get porcelaineCollectionEmpty;
+
+  /// No description provided for @porcelaineDownloadingFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the folder\'s {count} videos…'**
+  String porcelaineDownloadingFolder(int count);
+
+  /// No description provided for @porcelaineSuggestionsBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sorting suggestions to review'**
+  String porcelaineSuggestionsBanner(int count);
+
+  /// No description provided for @porcelaineSuggestionsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the {count} suggestions'**
+  String porcelaineSuggestionsReview(int count);
+
+  /// No description provided for @porcelaineSuggestionsApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting…'**
+  String get porcelaineSuggestionsApplying;
+
+  /// No description provided for @porcelaineSuggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review suggestions'**
+  String get porcelaineSuggestionsTitle;
+
+  /// No description provided for @porcelaineSuggestionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the videos to file. Nothing changes until you apply.'**
+  String get porcelaineSuggestionsHint;
+
+  /// No description provided for @porcelaineSuggestionVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video {id}'**
+  String porcelaineSuggestionVideo(String id);
+
+  /// No description provided for @porcelaineSuggestionPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete sync result'**
+  String get porcelaineSuggestionPartial;
+
+  /// No description provided for @porcelaineSuggestionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date close to confirmed videos'**
+  String get porcelaineSuggestionDate;
+
+  /// No description provided for @porcelaineSuggestionMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Old mapping file'**
+  String get porcelaineSuggestionMapping;
+
+  /// No description provided for @porcelaineSuggestionOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Old classification to check'**
+  String get porcelaineSuggestionOther;
+
+  /// No description provided for @porcelaineSuggestionsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String porcelaineSuggestionsSelected(int count);
+
+  /// No description provided for @porcelaineSuggestionsApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get porcelaineSuggestionsApply;
+
+  /// No description provided for @porcelaineSuggestionsDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} suggestions added to collections.'**
+  String porcelaineSuggestionsDone(int count);
+
+  /// No description provided for @porcelaineSuggestionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply these suggestions: {error}'**
+  String porcelaineSuggestionsFailed(String error);
+
+  /// No description provided for @porcelaineEta.
+  ///
+  /// In en, this message translates to:
+  /// **'ETA {eta}'**
+  String porcelaineEta(String eta);
+
+  /// No description provided for @porcelaineLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Download set up: {id}'**
+  String porcelaineLogInit(String id);
+
+  /// No description provided for @porcelaineLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get porcelaineLogStarted;
+
+  /// No description provided for @porcelaineLogStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step: {step}'**
+  String porcelaineLogStep(String step);
+
+  /// No description provided for @porcelaineLogSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed: {speed}'**
+  String porcelaineLogSpeed(String speed);
+
+  /// No description provided for @porcelaineLogError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String porcelaineLogError(String error);
+
+  /// No description provided for @porcelaineLogDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get porcelaineLogDone;
+
+  /// No description provided for @porcelaineLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get porcelaineLogCanceled;
+
+  /// No description provided for @designLogInit.
+  ///
+  /// In en, this message translates to:
+  /// **'Download prepared: {id}'**
+  String designLogInit(String id);
+
+  /// No description provided for @designLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started…'**
+  String get designLogStarted;
+
+  /// No description provided for @designLogCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed.'**
+  String get designLogCompleted;
+
+  /// No description provided for @designLogCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download canceled.'**
+  String get designLogCanceled;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 
@@ -565,17 +566,21 @@ class StudioSwitch extends StatelessWidget {
 
   final bool value;
   final String label;
-  final ValueChanged<bool> onChanged;
+
+  /// Null greys it out.
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final motion = studioMotion(context, 200);
+    final onChanged = this.onChanged;
     return Semantics(
       toggled: value,
       label: label,
+      enabled: onChanged != null,
       child: InkWell(
-        onTap: () => onChanged(!value),
+        onTap: onChanged == null ? null : () => onChanged(!value),
         borderRadius: BorderRadius.circular(10),
         // A 36px target around the 20px track.
         child: Padding(
@@ -613,6 +618,333 @@ class StudioSwitch extends StatelessWidget {
     );
   }
 }
+
+/// A white 36px search box with a hairline ring that turns ink on focus, a
+/// magnifier, and a clear button once something is typed (Esc clears too).
+class StudioSearchBox extends StatefulWidget {
+  const StudioSearchBox({
+    super.key,
+    required this.hint,
+    required this.clearTooltip,
+    required this.onChanged,
+    this.initial = '',
+  });
+
+  final String hint;
+  final String clearTooltip;
+  final ValueChanged<String> onChanged;
+  final String initial;
+
+  @override
+  State<StudioSearchBox> createState() => _StudioSearchBoxState();
+}
+
+class _StudioSearchBoxState extends State<StudioSearchBox> {
+  late final TextEditingController _controller;
+  late final FocusNode _focus;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initial);
+    _focus = FocusNode()..addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _clear() {
+    _controller.clear();
+    widget.onChanged('');
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            _controller.text.isEmpty ? _focus.unfocus() : _clear(),
+      },
+      child: AnimatedContainer(
+        duration: studioMotion(context, 160),
+        height: 36,
+        padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _focus.hasFocus ? c.textPrimary : c.border),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.search_rounded, size: 15, color: c.textDisabled),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                focusNode: _focus,
+                onChanged: (v) {
+                  widget.onChanged(v);
+                  setState(() {});
+                },
+                cursorColor: c.textPrimary,
+                cursorHeight: 16,
+                style: studioText(c),
+                decoration: InputDecoration(
+                  isCollapsed: true,
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  hintText: widget.hint,
+                  hintStyle: studioText(c, color: c.textDisabled),
+                ),
+              ),
+            ),
+            if (_controller.text.isNotEmpty)
+              IconButton(
+                tooltip: widget.clearTooltip,
+                onPressed: _clear,
+                iconSize: 15,
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.close_rounded, color: c.textDisabled),
+              )
+            else
+              const SizedBox(width: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Studio's Material component themes, for the shared views a Studio page
+/// still hosts (settings sub-pages, the archive import hub): 8px ink and
+/// ringed buttons, hairline fields and cards, ink switches and checkboxes.
+/// Dialogs and menus opened below it inherit it.
+class StudioThemed extends StatelessWidget {
+  const StudioThemed({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final t = Theme.of(context);
+    final radius = BorderRadius.circular(8);
+    const offRing = Color(0xFF8F8C86);
+    final label = AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500);
+    final shape = WidgetStatePropertyAll<OutlinedBorder>(
+      RoundedRectangleBorder(borderRadius: radius),
+    );
+    final hover = WidgetStateProperty.resolveWith<Color?>(
+      (s) => s.contains(WidgetState.hovered) || s.contains(WidgetState.pressed)
+          ? c.textPrimary.withValues(alpha: 0.06)
+          : null,
+    );
+    OutlineInputBorder ring(Color color) => OutlineInputBorder(
+      borderRadius: radius,
+      borderSide: BorderSide(color: color),
+    );
+    return Theme(
+      data: t.copyWith(
+        splashFactory: NoSplash.splashFactory,
+        dividerTheme: DividerThemeData(color: c.borderSubtle, thickness: 1),
+        cardTheme: CardThemeData(
+          color: c.surface,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: c.border),
+          ),
+        ),
+        listTileTheme: ListTileThemeData(
+          iconColor: c.textSecondary,
+          textColor: c.textPrimary,
+          titleTextStyle: studioText(c).copyWith(fontWeight: FontWeight.w500),
+          subtitleTextStyle: studioText(c, size: 12, color: c.textSecondary),
+          shape: RoundedRectangleBorder(borderRadius: radius),
+        ),
+        switchTheme: SwitchThemeData(
+          thumbColor: WidgetStateProperty.resolveWith(
+            (s) =>
+                s.contains(WidgetState.selected) ? c.surface : c.textDisabled,
+          ),
+          trackColor: WidgetStateProperty.resolveWith(
+            (s) =>
+                s.contains(WidgetState.selected) ? c.primary : c.borderSubtle,
+          ),
+          trackOutlineColor: WidgetStateProperty.resolveWith(
+            (s) =>
+                s.contains(WidgetState.selected) ? Colors.transparent : offRing,
+          ),
+          trackOutlineWidth: const WidgetStatePropertyAll(1.5),
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          thumbIcon: const WidgetStatePropertyAll(null),
+        ),
+        checkboxTheme: CheckboxThemeData(
+          fillColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? c.primary : c.surface,
+          ),
+          checkColor: WidgetStatePropertyAll(c.surface),
+          side: const BorderSide(color: offRing, width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        ),
+        radioTheme: RadioThemeData(
+          fillColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? c.primary : offRing,
+          ),
+        ),
+        sliderTheme: studioSliderTheme(c),
+        progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: c.primary,
+          linearTrackColor: c.borderSubtle,
+          circularTrackColor: Colors.transparent,
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: ButtonStyle(
+            shape: shape,
+            textStyle: WidgetStatePropertyAll(
+              label.copyWith(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: WidgetStateProperty.resolveWith(
+              (s) =>
+                  s.contains(WidgetState.disabled) ? c.borderSubtle : c.primary,
+            ),
+            foregroundColor: WidgetStateProperty.resolveWith(
+              (s) => s.contains(WidgetState.disabled)
+                  ? c.textDisabled
+                  : c.background,
+            ),
+            elevation: const WidgetStatePropertyAll(0),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            shape: shape,
+            textStyle: WidgetStatePropertyAll(label),
+            backgroundColor: WidgetStatePropertyAll(c.primary),
+            foregroundColor: WidgetStatePropertyAll(c.background),
+            elevation: const WidgetStatePropertyAll(0),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+            shape: shape,
+            textStyle: WidgetStatePropertyAll(label),
+            backgroundColor: WidgetStatePropertyAll(c.surface),
+            foregroundColor: WidgetStatePropertyAll(c.textPrimary),
+            overlayColor: hover,
+            side: WidgetStatePropertyAll(BorderSide(color: c.border)),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: ButtonStyle(
+            shape: shape,
+            textStyle: WidgetStatePropertyAll(label),
+            foregroundColor: WidgetStatePropertyAll(c.textPrimary),
+            overlayColor: hover,
+          ),
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: ButtonStyle(
+            shape: shape,
+            foregroundColor: WidgetStatePropertyAll(c.textSecondary),
+            overlayColor: hover,
+          ),
+        ),
+        segmentedButtonTheme: SegmentedButtonThemeData(
+          style: ButtonStyle(
+            shape: shape,
+            textStyle: WidgetStatePropertyAll(label),
+            side: WidgetStatePropertyAll(BorderSide(color: c.border)),
+            backgroundColor: WidgetStateProperty.resolveWith(
+              (s) => s.contains(WidgetState.selected) ? c.primary : c.surface,
+            ),
+            foregroundColor: WidgetStateProperty.resolveWith(
+              (s) => s.contains(WidgetState.selected)
+                  ? c.background
+                  : c.textPrimary,
+            ),
+          ),
+        ),
+        chipTheme: ChipThemeData(
+          backgroundColor: c.surface,
+          selectedColor: c.primary,
+          checkmarkColor: c.background,
+          labelStyle: studioText(c, size: 12),
+          secondaryLabelStyle: studioText(c, size: 12, color: c.background),
+          side: BorderSide(color: c.border),
+          shape: RoundedRectangleBorder(borderRadius: radius),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: c.surface,
+          isDense: true,
+          hintStyle: studioText(c, color: c.textDisabled),
+          labelStyle: studioText(c, color: c.textSecondary),
+          border: ring(c.border),
+          enabledBorder: ring(c.border),
+          focusedBorder: ring(c.textPrimary),
+        ),
+        popupMenuTheme: PopupMenuThemeData(
+          color: c.surface,
+          surfaceTintColor: Colors.transparent,
+          textStyle: studioText(c),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(color: c.border),
+          ),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: c.surface,
+          surfaceTintColor: Colors.transparent,
+          titleTextStyle: studioTitle(c, 20),
+          contentTextStyle: studioText(c, color: c.textSecondary),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: c.border),
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// A 2px ink line with a small ink knob, no halo and no ticks.
+SliderThemeData studioSliderTheme(AppColors c) => SliderThemeData(
+  trackHeight: 2,
+  activeTrackColor: c.primary,
+  inactiveTrackColor: c.borderSubtle,
+  thumbColor: c.primary,
+  overlayColor: Colors.transparent,
+  thumbShape: const RoundSliderThumbShape(
+    enabledThumbRadius: 6,
+    elevation: 0,
+    pressedElevation: 0,
+  ),
+  overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+  tickMarkShape: SliderTickMarkShape.noTickMark,
+  showValueIndicator: ShowValueIndicator.never,
+);
+
+/// [DesignSkin.toggle]: the shared views' fixed-colour switches as `.sw`.
+Widget studioToggle(
+  BuildContext context,
+  bool value,
+  ValueChanged<bool>? onChanged,
+) => Opacity(
+  opacity: onChanged == null ? 0.5 : 1,
+  child: StudioSwitch(value: value, label: '', onChanged: onChanged),
+);
 
 /// `.cb`: a 16px box, ink with a white tick when checked, ringed when not.
 class StudioCheckbox extends StatelessWidget {

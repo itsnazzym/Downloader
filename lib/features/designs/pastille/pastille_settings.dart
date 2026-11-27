@@ -13,10 +13,12 @@ import 'package:modern_downloader/l10n/app_localizations.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import 'pastille_kit.dart';
+import 'pastille_scope.dart';
 
 /// Pastille's settings (mockup Pastille-Reglages.dc.html). « Général » is the
-/// mockup's overview of tiles; every other section shows today's view framed
-/// under the same header and section tabs, so no setting is lost.
+/// mockup's overview of tiles; Appearance is drawn here; every other section
+/// is today's view, its tiles drawn by `pastilleSkin` and its Material parts
+/// themed by [PastilleScope], under the same header and section tabs.
 class PastilleSettings extends StatelessWidget {
   const PastilleSettings({super.key, required this.section});
 
@@ -78,7 +80,13 @@ class PastilleSettings extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: section,
+                    // Today's sections under Pastille's Material language;
+                    // Appearance is drawn here (its grid is hand-built).
+                    child: PastilleScope(
+                      child: path == '/settings/appearance'
+                          ? const _Appearance()
+                          : section,
+                    ),
                   ),
                 ),
               ],
@@ -813,6 +821,195 @@ class _SystemTile extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Appearance: every theme as a swatch card, the light/dark mode where the
+/// theme follows it, the accent colours and the language.
+class _Appearance extends ConsumerWidget {
+  const _Appearance();
+
+  static const _accents = [
+    Color(0xFF0D9488),
+    Color(0xFF0A84FF),
+    Color(0xFF0EA5E9),
+    Color(0xFF22C55E),
+    Color(0xFFF97316),
+    Color(0xFFEF4444),
+    Color(0xFFC026D3),
+    Color(0xFF6366F1),
+    Color(0xFFEAB308),
+    Color(0xFFF43F5E),
+    Color(0xFF06B6D4),
+    Color(0xFFEC4899),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final tones = PTones.of(context);
+    final s = ref.watch(settingsProvider);
+    final n = ref.read(settingsProvider.notifier);
+    final accent = Color(s.customAccentColor);
+    final hex = accent.toARGB32().toRadixString(16).padLeft(8, '0');
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(28, 18, 28, 28),
+      children: [
+        SectionTitle(l10n.theme),
+        if (DesignSpec.forId(
+              ThemePresets.migrateId(s.themePreset),
+            ).brightness ==
+            null)
+          DropdownTile(
+            title: l10n.theme,
+            value: s.themeMode,
+            options: const ['system', 'dark', 'light'],
+            optionLabels: themeModeOptionLabels(l10n),
+            onChanged: n.setThemeMode,
+            icon: Icons.brightness_4_rounded,
+          ),
+        PTile(
+          color: tones.cream,
+          semanticLabel: l10n.theme,
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final cols = (c.maxWidth / 170).floor().clamp(2, 6);
+              final w = (c.maxWidth - 10 * (cols - 1)) / cols;
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  for (final preset in ThemePresets.all)
+                    SizedBox(
+                      width: w,
+                      child: _DesignChoice(
+                        label: preset.name,
+                        bg: preset.background,
+                        a: preset.primary,
+                        b: preset.textPrimary,
+                        selected: preset.id == s.themePreset,
+                        onTap: () => n.setThemePreset(preset.id),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+        if (s.themePreset != 'oled') ...[
+          SectionTitle(l10n.accentColor),
+          PTile(
+            color: tones.lav,
+            delay: 60,
+            semanticLabel: l10n.accentColor,
+            child: Builder(
+              builder: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: accent,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: pInk, width: 2.5),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.currentAccent,
+                            style: pBody(weight: FontWeight.w700, color: pInk),
+                          ),
+                          Text(
+                            '#${hex.substring(2).toUpperCase()}',
+                            style: pMono(size: 13, color: pSubInk),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      for (final c in _accents)
+                        _Swatch(
+                          color: c,
+                          selected: c.toARGB32() == accent.toARGB32(),
+                          onTap: () => n.setCustomAccentColor(c.toARGB32()),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        SectionTitle(l10n.language),
+        DropdownTile(
+          title: l10n.language,
+          value: s.locale,
+          options: const ['en', 'fr', 'ar'],
+          optionLabels: languageOptionLabels(l10n),
+          onChanged: n.setLocale,
+          icon: Icons.language_rounded,
+        ),
+      ],
+    );
+  }
+}
+
+/// A round accent swatch with an ink ring and tick when chosen.
+class _Swatch extends StatelessWidget {
+  const _Swatch({
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final hex = color.toARGB32().toRadixString(16).substring(2).toUpperCase();
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '#$hex',
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          focusColor: pInk.withValues(alpha: 0.2),
+          child: AnimatedContainer(
+            duration: pMotion(context, 200),
+            curve: pPop,
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: selected ? pInk : pInk.withValues(alpha: 0.12),
+                width: selected ? 3 : 1,
+              ),
+            ),
+            child: selected
+                ? const Icon(Icons.check_rounded, size: 18, color: pCream)
+                : null,
+          ),
+        ),
       ),
     );
   }

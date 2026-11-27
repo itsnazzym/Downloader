@@ -6,18 +6,115 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/setup/dependency_catalog.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart'
     show qualityOptionLabels;
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 
+import 'terminal_settings_pages.dart';
 import 'terminal_widgets.dart';
 
+/// Material pieces of the shared settings views (cards, list tiles, buttons,
+/// fields, checkboxes, dialogs, menus) squared and set in mono.
+ThemeData terminalTheme(BuildContext context) {
+  final c = AppColors.of(context);
+  final base = Theme.of(context);
+  final line = BorderSide(color: c.border);
+  const square = RoundedRectangleBorder();
+  final boxed = RoundedRectangleBorder(side: line);
+  OutlineInputBorder field(Color color) => OutlineInputBorder(
+    borderRadius: BorderRadius.zero,
+    borderSide: BorderSide(color: color),
+  );
+  ButtonStyle button(Color fg, {Color? bg, BorderSide? side}) => ButtonStyle(
+    shape: WidgetStatePropertyAll(
+      RoundedRectangleBorder(side: side ?? BorderSide.none),
+    ),
+    foregroundColor: WidgetStatePropertyAll(fg),
+    backgroundColor: WidgetStatePropertyAll(bg ?? Colors.transparent),
+    overlayColor: WidgetStatePropertyAll(c.primary.withValues(alpha: 0.1)),
+    textStyle: WidgetStatePropertyAll(tm(fg, weight: FontWeight.w600)),
+    elevation: const WidgetStatePropertyAll(0),
+    splashFactory: NoSplash.splashFactory,
+  );
+  final mono = tm(c.textPrimary).fontFamily;
+  return base.copyWith(
+    textTheme: base.textTheme.apply(fontFamily: mono),
+    cardTheme: CardThemeData(
+      color: c.surface,
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      shape: boxed,
+    ),
+    listTileTheme: ListTileThemeData(
+      shape: square,
+      iconColor: c.primary,
+      textColor: c.textPrimary,
+      titleTextStyle: tm(c.textPrimary, weight: FontWeight.w600),
+      subtitleTextStyle: tm(c.textSecondary),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: c.surface,
+      shape: boxed,
+      titleTextStyle: tm(c.primary, weight: FontWeight.w700),
+      contentTextStyle: tm(c.textPrimary),
+    ),
+    textButtonTheme: TextButtonThemeData(style: button(c.primary)),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: button(c.textPrimary, side: line),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: button(c.background, bg: c.primary),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: button(c.background, bg: c.primary),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: ButtonStyle(
+        shape: const WidgetStatePropertyAll(square),
+        foregroundColor: WidgetStatePropertyAll(c.textSecondary),
+        overlayColor: WidgetStatePropertyAll(c.primary.withValues(alpha: 0.1)),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      isDense: true,
+      filled: true,
+      fillColor: c.inputBackground,
+      border: field(c.border),
+      enabledBorder: field(c.border),
+      focusedBorder: field(c.primary),
+      labelStyle: tm(c.textSecondary),
+      hintStyle: tm(c.textDisabled),
+      helperStyle: tm(c.textDisabled),
+    ),
+    checkboxTheme: CheckboxThemeData(
+      shape: square,
+      side: BorderSide(color: c.textSecondary),
+      checkColor: WidgetStatePropertyAll(c.background),
+      fillColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected) ? c.primary : null,
+      ),
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: c.primary,
+      linearTrackColor: c.surfaceHighlight,
+      linearMinHeight: 6,
+      borderRadius: BorderRadius.zero,
+    ),
+    dividerTheme: DividerThemeData(color: c.border, thickness: 1, space: 1),
+    popupMenuTheme: PopupMenuThemeData(
+      color: c.surface,
+      shape: boxed,
+      textStyle: tm(c.textPrimary),
+    ),
+  );
+}
+
 /// Terminal's settings (mockup Terminal-Reglages.dc.html): a section list
-/// and « Général » drawn as an editable config.toml; the other sections are
-/// today's views framed in the same file panel, so no setting is lost.
+/// and « Général » drawn as an editable config.toml. Output, Appearance,
+/// Performance, Plugins and Smart organization are drawn here too; Advanced
+/// and System are today's views, their tiles drawn by the skin.
 class TerminalSettings extends ConsumerWidget {
   const TerminalSettings({super.key, required this.current});
 
@@ -78,9 +175,25 @@ class TerminalSettings extends ConsumerWidget {
           ),
       ],
     );
+    final page = switch (path) {
+      '/settings/output' => const TerminalOutputPage(),
+      '/settings/appearance' => const TerminalAppearancePage(),
+      '/settings/performance' => const TerminalPerformancePage(),
+      '/settings/plugins' => TerminalPluginsPage(
+        pluginId: GoRouterState.of(context).uri.queryParameters['plugin'],
+      ),
+      '/settings/smart_organizer' => const TerminalSmartPage(),
+      // Advanced and System: today's views, their tiles drawn by the skin.
+      _ => current,
+    };
     final file = _FilePanel(
       title: title,
-      child: general ? const _GeneralFile() : Expanded(child: current),
+      child: general
+          ? const _GeneralFile()
+          : Expanded(
+              // Dialogs opened from here capture this theme too.
+              child: Theme(data: terminalTheme(context), child: page),
+            ),
     );
     return TerminalPageKeys(
       bindings: bindings,
@@ -264,7 +377,7 @@ class _GeneralFile extends ConsumerWidget {
         ),
         line(
           Text('${l10n.terminalCfgQuality} =', style: tm(colors.textPrimary)),
-          _Select(
+          TSelect(
             value: s.preferredQuality,
             options: qualities,
             label: l10n.preferredQuality,
@@ -299,7 +412,7 @@ class _GeneralFile extends ConsumerWidget {
                   for (final id in _designs)
                     SizedBox(
                       width: w,
-                      child: _DesignThumb(
+                      child: TDesignThumb(
                         id: id,
                         selected: id == design,
                         onTap: () => n.setThemePreset(id),
@@ -471,156 +584,6 @@ class _Line extends StatelessWidget {
           Expanded(child: content),
           if (control != null) ...[const SizedBox(width: 12), control!],
         ],
-      ),
-    );
-  }
-}
-
-/// `.sel`: a square select.
-class _Select extends StatelessWidget {
-  const _Select({
-    required this.value,
-    required this.options,
-    required this.label,
-    required this.onChanged,
-  });
-
-  final String value;
-  final Map<String, String> options;
-  final String label;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return PopupMenuButton<String>(
-      tooltip: label,
-      color: colors.surface,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: colors.border),
-        borderRadius: BorderRadius.zero,
-      ),
-      onSelected: onChanged,
-      itemBuilder: (context) => [
-        for (final e in options.entries)
-          PopupMenuItem<String>(
-            value: e.key,
-            height: 36,
-            child: Text(
-              e.value,
-              style: tm(e.key == value ? colors.primary : colors.textPrimary),
-            ),
-          ),
-      ],
-      child: Container(
-        height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: colors.background,
-          border: Border.all(color: colors.border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              options[value] ?? value,
-              style: tm(colors.textPrimary, weight: FontWeight.w500),
-            ),
-            const SizedBox(width: 6),
-            Icon(Icons.expand_more, size: 16, color: colors.textPrimary),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// `.th`: a mini page in the design's own colours, `[x] Name`.
-class _DesignThumb extends StatefulWidget {
-  const _DesignThumb({
-    required this.id,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String id;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  State<_DesignThumb> createState() => _DesignThumbState();
-}
-
-class _DesignThumbState extends State<_DesignThumb> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    final p = ThemePresets.getById(widget.id);
-    final on = widget.selected;
-    final fg = on || _hover ? colors.textPrimary : colors.textSecondary;
-    Widget bar(double f, Color c) => FractionallySizedBox(
-      widthFactor: f,
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(height: 4, color: c),
-    );
-    return Semantics(
-      selected: on,
-      button: true,
-      label: p.name,
-      child: InkWell(
-        onTap: widget.onTap,
-        onHover: (v) => setState(() => _hover = v),
-        focusColor: colors.primary.withValues(alpha: 0.2),
-        hoverColor: Colors.transparent,
-        splashFactory: NoSplash.splashFactory,
-        child: AnimatedContainer(
-          duration: tMotion(context),
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: on
-                  ? colors.primary
-                  : (_hover ? colors.textSecondary : colors.border),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                height: 50,
-                padding: const EdgeInsets.all(8),
-                color: p.background,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    bar(0.4, p.primary),
-                    const SizedBox(height: 5),
-                    bar(0.75, p.surfaceHighlight),
-                    const SizedBox(height: 5),
-                    bar(0.55, p.surfaceHighlight),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: on ? '[x]' : '[ ]',
-                      style: tm(colors.primary, size: 12),
-                    ),
-                    TextSpan(text: ' ${p.name}'),
-                  ],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: tm(fg, size: 12),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

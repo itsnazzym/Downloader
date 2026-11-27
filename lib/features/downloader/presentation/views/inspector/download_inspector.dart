@@ -23,6 +23,7 @@ import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/android/android_engine_bridge.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:modern_downloader/core/utils/file_reveal.dart';
 
 class DownloadInspector extends ConsumerWidget {
   final String downloadId;
@@ -598,38 +599,10 @@ class DownloadInspector extends ConsumerWidget {
     );
   }
 
-  void _openFile(String path) {
-    try {
-      if (Platform.isWindows) {
-        Process.run('explorer', [path]);
-      } else if (Platform.isMacOS) {
-        Process.run('open', [path]);
-      } else if (Platform.isLinux) {
-        Process.run('xdg-open', [path]);
-      } else if (PlatformInfo.isAndroid) {
-        AndroidEngineBridge.instance.viewFile(path);
-      }
-    } catch (e) {
-      debugPrint("Error opening file: $e");
-    }
-  }
+  void _openFile(String path) => openWithSystem(path);
 
-  void _openInFolder(String path) {
-    try {
-      if (Platform.isWindows) {
-        Process.run('explorer', ['/select,', path]);
-      } else if (Platform.isMacOS) {
-        Process.run('open', ['-R', path]);
-      } else if (Platform.isLinux) {
-        final parent = File(path).parent.path;
-        Process.run('xdg-open', [parent]);
-      } else if (PlatformInfo.isAndroid) {
-        AndroidEngineBridge.instance.viewFile(path);
-      }
-    } catch (e) {
-      debugPrint("Error revealing file: $e");
-    }
-  }
+  void _openInFolder(String path) => revealInFolder(path);
+
 
   /// Open media files in the built-in player, others in Explorer
   void _openMediaFile(WidgetRef ref, String path) {

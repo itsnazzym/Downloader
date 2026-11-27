@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:modern_downloader/features/designs/nocturne/nocturne_theme.dart';
 import 'package:modern_downloader/features/designs/nocturne/nocturne_widgets.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -78,7 +79,7 @@ class NocturneChrome extends ConsumerWidget {
         else if (d.id != 'settings')
           d,
     ];
-    return Row(
+    final frame = Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
@@ -153,6 +154,9 @@ class NocturneChrome extends ConsumerWidget {
         ),
       ],
     );
+    // The shared dialogs, menus and fields opened from the rail or the pages
+    // take Nocturne's look.
+    return NocturneTheme(child: frame);
   }
 }
 

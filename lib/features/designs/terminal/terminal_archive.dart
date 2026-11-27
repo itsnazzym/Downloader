@@ -9,13 +9,12 @@ import 'package:modern_downloader/core/utils/browser_launch.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
-import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_feed_view.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_filter_pane.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 
+import 'terminal_archive_parts.dart';
 import 'terminal_states.dart';
 import 'terminal_widgets.dart';
 
@@ -35,7 +34,7 @@ final _downloadedIdsProvider = Provider<Set<String>>((ref) {
   return ids;
 });
 
-String _keyOf(TikTokCollectionItem c) => c.id ?? c.name;
+String _keyOf(TikTokCollectionItem c) => tCollectionKey(c);
 
 // The two virtual folders the catalog carries next to real collections:
 // views over favourites and likes, never purged, reset or deleted.
@@ -77,8 +76,8 @@ final _collectionVideosProvider =
       };
     });
 
-/// Terminal's TikTok archive (mockup Terminal-Archives.dc.html). The import
-/// and sync page (hub), loading and empty states stay today's view.
+/// Terminal's TikTok archive (mockup Terminal-Archives.dc.html), with its own
+/// import and sync hub, loading state, filter pane and fullscreen feed.
 class TerminalArchive extends ConsumerStatefulWidget {
   const TerminalArchive({super.key, required this.current});
 
@@ -141,7 +140,7 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => Dialog.fullscreen(
-        child: TikTokFeedView(
+        child: TerminalFeed(
           videos: videos,
           onClose: () => Navigator.of(dialogContext).pop(),
         ),
@@ -320,13 +319,13 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
     final state = ref.watch(tikTokArchiveProvider);
     final catalog = state.catalog;
     if (!state.isLoading && !state.hasCatalog) {
-      return _NoArchive(child: widget.current);
+      return const _NoArchive(child: TerminalArchiveHub(showPrompt: false));
     }
-    if (state.isLoading ||
-        catalog == null ||
+    if (state.isLoading) return const TerminalArchiveLoading();
+    if (catalog == null ||
         !state.hasCatalog ||
         state.viewMode == TikTokViewMode.hub) {
-      return widget.current;
+      return const TerminalArchiveHub();
     }
     final filtered = ref.watch(filteredTikTokVideosProvider);
     final tab = state.viewMode == TikTokViewMode.collections
@@ -598,7 +597,7 @@ class _TerminalArchiveState extends ConsumerState<TerminalArchive> {
 }
 
 /// No archive imported yet: Terminal's frame (prompt, typed headline, an
-/// empty `tree`) over today's import hub, which keeps its logic.
+/// empty `tree`) over the import hub.
 class _NoArchive extends StatelessWidget {
   const _NoArchive({required this.child});
 
@@ -921,7 +920,7 @@ class _CollectionCardState extends State<_CollectionCard> {
   }
 }
 
-/// Videos, favourites, likes: today's filter pane (year, collection,
+/// Videos, favourites, likes: the filter pane (year, collection,
 /// status) beside a terminal list with selection and batch download.
 class _VideosBody extends ConsumerStatefulWidget {
   const _VideosBody({
@@ -1084,10 +1083,11 @@ class _VideosBodyState extends ConsumerState<_VideosBody> {
                   onTap: () => showDialog<void>(
                     context: context,
                     builder: (_) => const Dialog(
+                      shape: RoundedRectangleBorder(),
                       child: SizedBox(
                         width: 320,
                         height: 520,
-                        child: TikTokFilterPane(),
+                        child: TerminalFilterPane(),
                       ),
                     ),
                   ),
@@ -1101,7 +1101,7 @@ class _VideosBodyState extends ConsumerState<_VideosBody> {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(width: 260, child: TikTokFilterPane()),
+            const SizedBox(width: 260, child: TerminalFilterPane()),
             const SizedBox(width: 18),
             Expanded(child: list),
           ],

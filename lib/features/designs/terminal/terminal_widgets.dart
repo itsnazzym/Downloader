@@ -1,7 +1,12 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:modern_downloader/core/design_system/foundation/typography.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
+
+import '../shared/local_thumb.dart';
 
 /// Terminal's building blocks (mockups Terminal*.dc.html): one mono size,
 /// square corners, hairline panels, key hints.
@@ -695,6 +700,276 @@ class TField extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// `key = value` with the value in amber, as in config.toml.
+class TKeyValue extends StatelessWidget {
+  const TKeyValue(this.k, this.value, {super.key});
+
+  final String k;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Text.rich(
+      TextSpan(
+        text: '$k = ',
+        children: [TextSpan(text: value, style: tm(colors.warning))],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: tm(colors.textPrimary),
+    );
+  }
+}
+
+/// A config line: optional `# comment` above, the line, its control on the
+/// right. Hover lights a 2 px left rule; [onTap] makes it a focusable key.
+class TConfLine extends StatefulWidget {
+  const TConfLine({
+    super.key,
+    required this.body,
+    this.comment,
+    this.commentMaxLines = 2,
+    this.control,
+    this.onTap,
+  });
+
+  final Widget body;
+  final String? comment;
+  final int commentMaxLines;
+  final Widget? control;
+  final VoidCallback? onTap;
+
+  @override
+  State<TConfLine> createState() => _TConfLineState();
+}
+
+class _TConfLineState extends State<TConfLine> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final comment = widget.comment;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: widget.onTap,
+          onHover: (v) => setState(() => _hover = v),
+          hoverColor: colors.primary.withValues(alpha: 0.05),
+          focusColor: colors.primary.withValues(alpha: 0.16),
+          splashFactory: NoSplash.splashFactory,
+          child: AnimatedContainer(
+            duration: tMotion(context),
+            constraints: const BoxConstraints(minHeight: 32),
+            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: _hover ? colors.primary : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (comment != null && comment.isNotEmpty)
+                  Text(
+                    '# $comment',
+                    maxLines: widget.commentMaxLines,
+                    overflow: TextOverflow.ellipsis,
+                    style: tm(colors.textSecondary),
+                  ),
+                Row(
+                  children: [
+                    Expanded(child: widget.body),
+                    if (widget.control != null) ...[
+                      const SizedBox(width: 12),
+                      widget.control!,
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A [TSeg] you can click or drag to set a value between [min] and [max].
+class TSegSlider extends StatelessWidget {
+  const TSegSlider({
+    super.key,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.step,
+    required this.label,
+    required this.onChanged,
+  });
+
+  final double value;
+  final double min;
+  final double max;
+  final double step;
+  final String label;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final span = max - min;
+    return LayoutBuilder(
+      builder: (context, c) {
+        void at(double dx) {
+          final f = (dx / c.maxWidth).clamp(0.0, 1.0);
+          final raw = min + f * span;
+          onChanged((((raw - min) / step).round() * step + min));
+        }
+
+        return Semantics(
+          slider: true,
+          label: label,
+          value: '${value.round()}',
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapDown: (d) => at(d.localPosition.dx),
+              onHorizontalDragUpdate: (d) => at(d.localPosition.dx),
+              child: SizedBox(
+                height: 28,
+                child: Center(
+                  child: TSeg(
+                    value: span <= 0 ? 0 : (value - min) / span,
+                    height: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// `.sel`: a square select.
+class TSelect extends StatelessWidget {
+  const TSelect({
+    super.key,
+    required this.value,
+    required this.options,
+    required this.label,
+    required this.onChanged,
+  });
+
+  final String value;
+  final Map<String, String> options;
+  final String label;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return PopupMenuButton<String>(
+      tooltip: label,
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.border),
+        borderRadius: BorderRadius.zero,
+      ),
+      onSelected: onChanged,
+      itemBuilder: (context) => [
+        for (final e in options.entries)
+          PopupMenuItem<String>(
+            value: e.key,
+            height: 36,
+            child: Text(
+              '${e.key == value ? '[x]' : '[ ]'} ${e.value}',
+              style: tm(e.key == value ? colors.primary : colors.textPrimary),
+            ),
+          ),
+      ],
+      child: Container(
+        height: 28,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: colors.background,
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              options[value] ?? value,
+              style: tm(colors.textPrimary, weight: FontWeight.w500),
+            ),
+            const SizedBox(width: 6),
+            Text('▾', style: tm(colors.primary)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A square thumbnail: the remote image, else the downloaded file's own
+/// frame, else a `▶` on the surface.
+class TThumb extends StatelessWidget {
+  const TThumb({super.key, this.url, this.filePath, this.cacheWidth = 320});
+
+  final String? url;
+  final String? filePath;
+  final int cacheWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final empty = ColoredBox(
+      color: colors.surfaceHighlight,
+      child: Center(child: Text('▶', style: tm(colors.textDisabled))),
+    );
+    final local = LocalVideoThumb(
+      filePath: filePath,
+      placeholder: empty,
+      cacheWidth: cacheWidth,
+    );
+    final u = url;
+    Widget image = local;
+    if (u != null && u.isNotEmpty) {
+      image = u.startsWith('http://') || u.startsWith('https://')
+          ? CachedNetworkImage(
+              imageUrl: u,
+              fit: BoxFit.cover,
+              memCacheWidth: cacheWidth,
+              placeholder: (_, _) => empty,
+              errorWidget: (_, _, _) => local,
+            )
+          : u.startsWith('assets/')
+          ? Image.asset(u, fit: BoxFit.cover, errorBuilder: (_, _, _) => local)
+          : Image.file(
+              File(u),
+              fit: BoxFit.cover,
+              cacheWidth: cacheWidth,
+              errorBuilder: (_, _, _) => local,
+            );
+    }
+    return Container(
+      clipBehavior: Clip.hardEdge,
+      foregroundDecoration: BoxDecoration(
+        border: Border.all(color: colors.border),
+      ),
+      decoration: const BoxDecoration(),
+      child: SizedBox.expand(child: image),
     );
   }
 }

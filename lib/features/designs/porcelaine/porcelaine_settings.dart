@@ -7,8 +7,7 @@ import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/settings/widgets/output_folder_picker.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart'
-    show qualityOptionLabels;
+import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
@@ -52,7 +51,13 @@ class PorcelaineSettings extends StatelessWidget {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: pCardShadow(colors),
                   ),
-                  child: current,
+                  // Appearance is drawn here; the other sections are today's
+                  // views in Porcelaine's tiles (the skin) and theme.
+                  child: PSheetTheme(
+                    child: path == '/settings/appearance'
+                        ? const _AppearancePage()
+                        : current,
+                  ),
                 ),
               ),
             ],
@@ -374,7 +379,7 @@ class _GeneralCard extends ConsumerWidget {
                   children: [
                     Text(l10n.preferredQuality, style: pBody(colors)),
                     const SizedBox(height: 8),
-                    _Select(
+                    PSelect(
                       label: l10n.preferredQuality,
                       value: s.preferredQuality,
                       options: labels,
@@ -383,72 +388,6 @@ class _GeneralCard extends ConsumerWidget {
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// `.sel` + `.menu`: a 44px stone field opening a white menu.
-class _Select extends StatelessWidget {
-  const _Select({
-    required this.label,
-    required this.value,
-    required this.options,
-    required this.onChanged,
-  });
-
-  final String label;
-  final String value;
-  final Map<String, String> options;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return PopupMenuButton<String>(
-      tooltip: label,
-      color: colors.surface,
-      elevation: 12,
-      position: PopupMenuPosition.under,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      onSelected: onChanged,
-      itemBuilder: (context) => [
-        for (final e in options.entries)
-          PopupMenuItem<String>(
-            value: e.key,
-            height: 34,
-            child: Row(
-              children: [
-                Expanded(child: Text(e.value, style: pBody(colors, size: 13))),
-                if (e.key == value)
-                  Icon(Icons.circle, size: 8, color: colors.primary),
-              ],
-            ),
-          ),
-      ],
-      child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: colors.inputBackground,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.textPrimary.withValues(alpha: 0.08)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                options[value] ?? value,
-                style: pBody(colors, size: 13.5, weight: FontWeight.w500),
-              ),
-            ),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              size: 18,
-              color: colors.textPrimary,
             ),
           ],
         ),
@@ -522,7 +461,7 @@ class _OutputCard extends ConsumerWidget {
             style: pBody(colors, size: 13, color: colors.textSecondary),
           ),
           const SizedBox(height: 8),
-          _Select(
+          PSelect(
             label: l10n.formatLabel,
             value: s.outputFormat,
             options: const {'mp4': 'MP4', 'mkv': 'MKV', 'webm': 'WebM'},
@@ -948,6 +887,222 @@ class _MoreRow extends ConsumerWidget {
           onTap: () => context.go('/settings/smart_organizer'),
         ),
       ],
+    );
+  }
+}
+
+// ── « Apparence » ──────────────────────────────────────────────────────────
+
+/// Today's Appearance page in Porcelaine: light/dark when the design
+/// follows it, every theme (the six designs, OLED, iOS) as design tiles,
+/// the accent colour and the language.
+class _AppearancePage extends ConsumerWidget {
+  const _AppearancePage();
+
+  /// The same twelve accents as today's Appearance page.
+  static const _accents = [
+    Color(0xFF0D9488),
+    Color(0xFF0A84FF),
+    Color(0xFF0EA5E9),
+    Color(0xFF22C55E),
+    Color(0xFFF97316),
+    Color(0xFFEF4444),
+    Color(0xFFC026D3),
+    Color(0xFF6366F1),
+    Color(0xFFEAB308),
+    Color(0xFFF43F5E),
+    Color(0xFF06B6D4),
+    Color(0xFFEC4899),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final l10n = context.l10n;
+    final s = ref.watch(settingsProvider);
+    final n = ref.read(settingsProvider.notifier);
+    final current = ThemePresets.migrateId(s.themePreset);
+    final accent = Color(s.customAccentColor);
+    final hex = accent
+        .toARGB32()
+        .toRadixString(16)
+        .padLeft(8, '0')
+        .substring(2)
+        .toUpperCase();
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(32, 18, 32, 32),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SectionTitle(l10n.theme),
+              if (DesignSpec.forId(current).brightness == null)
+                DropdownTile(
+                  title: l10n.theme,
+                  value: s.themeMode,
+                  options: const ['system', 'dark', 'light'],
+                  optionLabels: themeModeOptionLabels(l10n),
+                  onChanged: n.setThemeMode,
+                  icon: Icons.brightness_4_rounded,
+                ),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final p in ThemePresets.all)
+                    SizedBox(
+                      width: 168,
+                      child: _DesignTile(
+                        preset: p,
+                        selected: p.id == current,
+                        onTap: () => n.setThemePreset(p.id),
+                      ),
+                    ),
+                ],
+              ),
+              if (s.themePreset != 'oled') ...[
+                const SizedBox(height: 8),
+                SectionTitle(l10n.accentColor),
+                PCard(
+                  lift: false,
+                  radius: 22,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: accent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: colors.textPrimary.withValues(
+                                  alpha: 0.08,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.currentAccent,
+                                style: pBody(colors, weight: FontWeight.w600),
+                              ),
+                              Text('#$hex', style: pMono(colors)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          for (final c in _accents)
+                            _AccentDot(
+                              color: c,
+                              selected: c.toARGB32() == accent.toARGB32(),
+                              onTap: () => n.setCustomAccentColor(c.toARGB32()),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              SectionTitle(l10n.language),
+              DropdownTile(
+                title: l10n.language,
+                value: s.locale,
+                options: const ['en', 'fr', 'ar'],
+                optionLabels: languageOptionLabels(l10n),
+                onChanged: n.setLocale,
+                icon: Icons.language_rounded,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A 34px accent swatch; the chosen one wears the cobalt ring.
+class _AccentDot extends StatefulWidget {
+  const _AccentDot({
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_AccentDot> createState() => _AccentDotState();
+}
+
+class _AccentDotState extends State<_AccentDot> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final hex = widget.color
+        .toARGB32()
+        .toRadixString(16)
+        .padLeft(8, '0')
+        .substring(2)
+        .toUpperCase();
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      label: '#$hex',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: widget.onTap,
+            customBorder: const CircleBorder(),
+            child: AnimatedContainer(
+              duration: pMotion(context, 160),
+              curve: pEase,
+              width: 34,
+              height: 34,
+              transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
+              decoration: BoxDecoration(
+                color: widget.color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  if (widget.selected) ...[
+                    BoxShadow(color: colors.surface, spreadRadius: 3),
+                    BoxShadow(color: colors.primary, spreadRadius: 5),
+                  ],
+                ],
+              ),
+              child: widget.selected
+                  ? const Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    )
+                  : null,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

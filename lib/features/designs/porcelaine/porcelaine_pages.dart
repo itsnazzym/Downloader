@@ -20,6 +20,6 @@ Widget? porcelainePage(DesignRoute route, Widget current) {
     case DesignRoute.transfer:
       return PorcelaineTransfer(current: current);
     case DesignRoute.archive:
-      return PorcelaineArchive(current: current);
+      return const PorcelaineArchive();
   }
 }

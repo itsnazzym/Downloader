@@ -5281,4 +5281,578 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.';
+
+  @override
+  String terminalLogInit(String id) {
+    return 'Téléchargement $id initialisé';
+  }
+
+  @override
+  String get terminalLogStarted => 'Téléchargement démarré…';
+
+  @override
+  String get terminalLogDone => 'Téléchargement terminé.';
+
+  @override
+  String get terminalLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String get terminalClearFilters => 'effacer';
+
+  @override
+  String get terminalFeedNavigate => 'vidéo suivante';
+
+  @override
+  String get terminalArchiveIndexing =>
+      'analyse et indexation du catalogue TikTok…';
+
+  @override
+  String get terminalArchiveIndexingNote =>
+      'traitement en arrière-plan, l\'application reste utilisable';
+
+  @override
+  String get terminalExtensionOnline => 'extension connectée';
+
+  @override
+  String get terminalExtensionOffline => 'extension non connectée';
+
+  @override
+  String get nocturneBadgeFavorite => 'Favori';
+
+  @override
+  String get nocturneBadgeLike => 'J’aime';
+
+  @override
+  String get nocturneOpenInBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String get nocturneLinkCopied => 'Lien copié';
+
+  @override
+  String nocturneDemoClip(String film, int number) {
+    return '$film · extrait $number';
+  }
+
+  @override
+  String get nocturneAllCollections => 'Toutes les collections';
+
+  @override
+  String nocturneDownloadStarted(String id) {
+    return 'Téléchargement lancé : $id';
+  }
+
+  @override
+  String nocturneFolderDownloading(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String get nocturneShowCovers => 'Afficher les couvertures';
+
+  @override
+  String get nocturneShowFolders => 'Afficher les dossiers';
+
+  @override
+  String get nocturneSyncIncomplete =>
+      'Synchronisation incomplète. Le dernier état fiable est conservé.';
+
+  @override
+  String nocturneSyncIncompleteReason(String reason) {
+    return 'Synchronisation incomplète : $reason';
+  }
+
+  @override
+  String nocturneSuggestionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count propositions de classement à vérifier',
+      one: '1 proposition de classement à vérifier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsReview(int count) {
+    return 'Examiner ($count)';
+  }
+
+  @override
+  String get nocturneSuggestionsApplying => 'Classement en cours…';
+
+  @override
+  String get nocturneSuggestionsTitle => 'Vérifier les propositions';
+
+  @override
+  String get nocturneSuggestionsHint =>
+      'Coche les vidéos à ranger. Rien ne change avant validation.';
+
+  @override
+  String nocturneSuggestionVideo(String id) {
+    return 'Vidéo $id';
+  }
+
+  @override
+  String get nocturneReasonPartial => 'Résultat de synchronisation incomplet';
+
+  @override
+  String get nocturneReasonDate => 'Date proche des vidéos confirmées';
+
+  @override
+  String get nocturneReasonImported => 'Ancien fichier de correspondance';
+
+  @override
+  String get nocturneReasonOther => 'Ancien classement à vérifier';
+
+  @override
+  String nocturneSuggestionsSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSuggestionsApply => 'Appliquer';
+
+  @override
+  String nocturneSuggestionsApplied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count propositions ajoutées aux collections.',
+      one: '1 proposition ajoutée aux collections.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsFailed(String error) {
+    return 'Impossible d’appliquer ces propositions : $error';
+  }
+
+  @override
+  String get nocturneClose => 'Fermer';
+
+  @override
+  String get nocturneArchiveLoadingHint =>
+      'Lecture en arrière-plan : l’application reste utilisable.';
+
+  @override
+  String nocturneLogInit(String id) {
+    return 'Téléchargement préparé : $id';
+  }
+
+  @override
+  String get nocturneLogStarted => 'Téléchargement démarré…';
+
+  @override
+  String get nocturneLogCompleted => 'Téléchargement terminé.';
+
+  @override
+  String get nocturneLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String get signalArchiveFavorite => 'Favori';
+
+  @override
+  String get signalArchiveLiked => 'J’aime';
+
+  @override
+  String get signalArchiveOpenInBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String get signalArchiveSearchCollection => 'Rechercher une collection';
+
+  @override
+  String get signalArchiveAllCollections => 'Toutes les collections';
+
+  @override
+  String get signalArchiveResetMenu => 'Retirer les vidéos de cette collection';
+
+  @override
+  String get signalArchiveResetTitle => 'Réinitialiser la collection';
+
+  @override
+  String signalArchiveResetBody(int count, String name) {
+    return 'Retirer les $count vidéos de « $name » ? Les vidéos et leurs autres classements sont conservés.';
+  }
+
+  @override
+  String get signalArchiveResetAction => 'Réinitialiser';
+
+  @override
+  String signalArchiveResetDone(String name) {
+    return 'Classement retiré pour « $name ». Les vidéos sont conservées.';
+  }
+
+  @override
+  String get signalArchiveDeleteMenu => 'Supprimer définitivement';
+
+  @override
+  String get signalArchiveDeleteTitle => 'Supprimer la collection';
+
+  @override
+  String signalArchiveDeleteBody(int count, String name) {
+    return 'Supprimer définitivement la collection « $name » ? Ses $count vidéos restent sur le disque mais ne font plus partie de ce dossier.';
+  }
+
+  @override
+  String signalArchiveDeleteDone(String name) {
+    return 'Collection « $name » supprimée.';
+  }
+
+  @override
+  String get pastilleArcFilters => 'Filtres';
+
+  @override
+  String get pastilleArcClear => 'Effacer';
+
+  @override
+  String get pastilleArcType => 'Type de vidéos';
+
+  @override
+  String get pastilleArcAll => 'Toutes';
+
+  @override
+  String get pastilleArcLikes => 'Mentions J’aime';
+
+  @override
+  String get pastilleArcYear => 'Année';
+
+  @override
+  String pastilleArcCollections(int count) {
+    return 'Collections ($count)';
+  }
+
+  @override
+  String get pastilleArcCollectionSearch => 'Rechercher une collection';
+
+  @override
+  String get pastilleArcFavoriteTag => 'Favori';
+
+  @override
+  String get pastilleArcLikeTag => 'Like';
+
+  @override
+  String get pastilleArcCopyLink => 'Copier le lien';
+
+  @override
+  String get pastilleArcLinkCopied => 'Lien copié';
+
+  @override
+  String get pastilleArcOpenBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String pastilleArcDemoClip(String film, int number) {
+    return '$film · extrait $number';
+  }
+
+  @override
+  String get pastilleArcAllCollections => 'Toutes les collections';
+
+  @override
+  String get pastilleArcRemoveFromCollection =>
+      'Retirer les vidéos de cette collection';
+
+  @override
+  String get pastilleArcResetTitle => 'Réinitialiser la collection';
+
+  @override
+  String pastilleArcResetBody(int count, String name) {
+    return 'Retirer les $count vidéos de « $name » ? Les vidéos et leurs autres classements seront conservés.';
+  }
+
+  @override
+  String get pastilleArcResetAction => 'Réinitialiser';
+
+  @override
+  String pastilleArcResetDone(String name) {
+    return 'Classement retiré pour « $name ». Les vidéos sont conservées.';
+  }
+
+  @override
+  String get pastilleArcDeleteMenu => 'Supprimer définitivement';
+
+  @override
+  String get pastilleArcDeleteTitle => 'Supprimer la collection';
+
+  @override
+  String pastilleArcDeleteBody(String name, int count) {
+    return 'Supprimer définitivement la collection « $name » ? Les $count vidéos ne seront pas supprimées de votre disque, mais elles ne feront plus partie de ce dossier.';
+  }
+
+  @override
+  String pastilleArcDeleteDone(String name) {
+    return 'Collection « $name » supprimée.';
+  }
+
+  @override
+  String get pastilleArcPlayFeed =>
+      'Lire les vidéos en plein écran, verticalement';
+
+  @override
+  String pastilleArcDownloadAll(int count) {
+    return 'Tout télécharger ($count)';
+  }
+
+  @override
+  String pastilleArcDownloadingFolder(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String pastilleArcDownloadStarted(String id) {
+    return 'Téléchargement lancé : $id';
+  }
+
+  @override
+  String get pastilleArcEmptyCollection => 'Aucune vidéo dans cette collection';
+
+  @override
+  String get studioArchiveAllCollections => 'Toutes les collections';
+
+  @override
+  String studioArchiveBatchRunning(int done, int total) {
+    return 'En cours ($done/$total)';
+  }
+
+  @override
+  String get studioArchiveDemo => 'Mode démo : téléchargement simulé.';
+
+  @override
+  String get studioArchiveFavorite => 'Favori';
+
+  @override
+  String get studioArchiveLike => 'Like';
+
+  @override
+  String get studioArchiveCopyLink => 'Copier le lien';
+
+  @override
+  String get studioArchiveLinkCopied => 'Lien copié';
+
+  @override
+  String get studioArchiveOpenBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String get studioArchiveShowPosters => 'Afficher les miniatures';
+
+  @override
+  String get studioArchiveShowFolders => 'Afficher les dossiers';
+
+  @override
+  String get studioArchiveSyncIncomplete =>
+      'Synchronisation incomplète. Le dernier état fiable est conservé.';
+
+  @override
+  String studioArchiveSyncIncompleteWhy(String error) {
+    return 'Synchronisation incomplète : $error';
+  }
+
+  @override
+  String studioArchiveDeclared(int count, int total) {
+    return '$count vidéos synchronisées sur $total déclarées';
+  }
+
+  @override
+  String studioArchiveSuggestions(int count) {
+    return '$count propositions de classement à vérifier';
+  }
+
+  @override
+  String studioArchiveReview(int count) {
+    return 'Examiner les $count propositions';
+  }
+
+  @override
+  String get studioArchiveApplying => 'Classement en cours…';
+
+  @override
+  String get studioArchiveReviewTitle => 'Vérifier les propositions';
+
+  @override
+  String get studioArchiveReviewHint =>
+      'Coche les vidéos à ranger. Rien ne change avant validation.';
+
+  @override
+  String get studioArchiveReasonPartial =>
+      'Résultat de synchronisation incomplet';
+
+  @override
+  String get studioArchiveReasonDate => 'Date proche des vidéos confirmées';
+
+  @override
+  String get studioArchiveReasonMapping => 'Ancien fichier de correspondance';
+
+  @override
+  String get studioArchiveReasonOther => 'Ancien classement à vérifier';
+
+  @override
+  String studioArchiveSuggestionVideo(String id) {
+    return 'Vidéo $id';
+  }
+
+  @override
+  String get studioArchiveApply => 'Appliquer';
+
+  @override
+  String studioArchiveApplied(int count) {
+    return '$count propositions ajoutées aux collections.';
+  }
+
+  @override
+  String studioArchiveApplyFailed(String error) {
+    return 'Impossible d’appliquer ces propositions : $error';
+  }
+
+  @override
+  String studioArchiveFolderQueued(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String get studioArchiveEmptyCollection =>
+      'Aucune vidéo dans cette collection';
+
+  @override
+  String get porcelaineArchiveFavorite => 'Favori';
+
+  @override
+  String get porcelaineArchiveLike => 'Like';
+
+  @override
+  String get porcelaineCopyLink => 'Copier le lien';
+
+  @override
+  String get porcelaineLinkCopied => 'Lien copié';
+
+  @override
+  String get porcelaineOpenInBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String porcelaineDemoExcerpt(String film, int n) {
+    return '$film · extrait $n';
+  }
+
+  @override
+  String get porcelaineClear => 'Effacer';
+
+  @override
+  String get porcelaineAllCollections => 'Toutes les collections';
+
+  @override
+  String get porcelaineCollectionEmpty => 'Aucune vidéo dans cette collection';
+
+  @override
+  String porcelaineDownloadingFolder(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String porcelaineSuggestionsBanner(int count) {
+    return '$count propositions de classement à vérifier';
+  }
+
+  @override
+  String porcelaineSuggestionsReview(int count) {
+    return 'Examiner les $count propositions';
+  }
+
+  @override
+  String get porcelaineSuggestionsApplying => 'Classement en cours…';
+
+  @override
+  String get porcelaineSuggestionsTitle => 'Vérifier les propositions';
+
+  @override
+  String get porcelaineSuggestionsHint =>
+      'Coche les vidéos à ranger. Rien ne change avant validation.';
+
+  @override
+  String porcelaineSuggestionVideo(String id) {
+    return 'Vidéo $id';
+  }
+
+  @override
+  String get porcelaineSuggestionPartial =>
+      'Résultat de synchronisation incomplet';
+
+  @override
+  String get porcelaineSuggestionDate => 'Date proche des vidéos confirmées';
+
+  @override
+  String get porcelaineSuggestionMapping => 'Ancien fichier de correspondance';
+
+  @override
+  String get porcelaineSuggestionOther => 'Ancien classement à vérifier';
+
+  @override
+  String porcelaineSuggestionsSelected(int count) {
+    return '$count sélectionnées';
+  }
+
+  @override
+  String get porcelaineSuggestionsApply => 'Appliquer';
+
+  @override
+  String porcelaineSuggestionsDone(int count) {
+    return '$count propositions ajoutées aux collections.';
+  }
+
+  @override
+  String porcelaineSuggestionsFailed(String error) {
+    return 'Impossible d’appliquer ces propositions : $error';
+  }
+
+  @override
+  String porcelaineEta(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String porcelaineLogInit(String id) {
+    return 'Téléchargement préparé : $id';
+  }
+
+  @override
+  String get porcelaineLogStarted => 'Téléchargement démarré…';
+
+  @override
+  String porcelaineLogStep(String step) {
+    return 'Étape : $step';
+  }
+
+  @override
+  String porcelaineLogSpeed(String speed) {
+    return 'Débit : $speed';
+  }
+
+  @override
+  String porcelaineLogError(String error) {
+    return 'Erreur : $error';
+  }
+
+  @override
+  String get porcelaineLogDone => 'Téléchargement terminé.';
+
+  @override
+  String get porcelaineLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String designLogInit(String id) {
+    return 'Téléchargement préparé : $id';
+  }
+
+  @override
+  String get designLogStarted => 'Téléchargement démarré…';
+
+  @override
+  String get designLogCompleted => 'Téléchargement terminé.';
+
+  @override
+  String get designLogCanceled => 'Téléchargement annulé.';
 }

@@ -18,9 +18,11 @@ import 'core/services/single_instance_service.dart';
 import 'core/services/tor/tor_proxy_service.dart';
 import 'showcase/showcase_app.dart';
 import 'showcase/showcase_data.dart';
+import 'features/designs/design_skins.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerDesignSkins();
   // This path must stay before preferences, single-instance handling and services.
   if (Platform.isWindows && args.contains('--showcase')) {
     // The demo process gets its own volatile preferences instance. No call to
