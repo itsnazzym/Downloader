@@ -1,6 +1,6 @@
 # Privacy Policy — TapLoad Browser Extension
 
-**Last updated:** 2026-08-26
+**Last updated:** 2026-11-27
 
 ## What this extension does
 
@@ -16,6 +16,8 @@ TapLoad helps you send public video page URLs from supported sites (YouTube, Ins
 | Cookies for the active supported site (optional, user-controlled) | Authenticated downloads via yt-dlp and, when gobird is enabled, local X feed authentication | Local WebSocket to `127.0.0.1` only; gobird receives only `auth_token` and `ct0` through a local child-process environment |
 | User-Agent / referrer | Improve download compatibility | Local WebSocket to `127.0.0.1` only |
 | Extension settings (port, token, UI prefs) | Configuration | Browser `storage.local` on your device |
+| Like / bookmark requests on X (the id of the post you act on) | Like or bookmark a post with your own account when you press the button | `x.com` only, sent from your `x.com` tab with your own signed-in session |
+| X web app scripts (`abs.twimg.com`) | Read X's current API identifiers so the request is valid | Downloaded into the tab and read there; nothing is sent in return |
 
 **We do not** send your browsing data, cookies, or download history to any remote server operated by us. There is no analytics or advertising network.
 
@@ -28,7 +30,11 @@ TapLoad helps you send public video page URLs from supported sites (YouTube, Ins
 
 Adult-site host access is **optional** and not granted by default.
 
-The extension never embeds unofficial/private X API clients. Experimental gobird access (if enabled) runs only inside the local desktop app.
+## Like and bookmark on X
+
+When you press Like or Bookmark on a post, the extension's content script, running in your `x.com` tab, sends the request to X's web API (`x.com/i/api/graphql`) with your own session, as if you clicked on the site. It reads the CSRF value (`ct0`) from the page and fetches X's own web bundle from `abs.twimg.com` (without credentials) to find the current API identifiers. The session cookie, the CSRF value and the bearer stay in that tab: they are not stored, not sent to the TapLoad desktop app for these actions, and not sent to any third party. A one-time warning is shown before the first use; its acknowledgement is kept in `storage.local`. This feature is unofficial and X may rate-limit or restrict accounts that use it heavily.
+
+The extension does not bundle any private X API client library; the like/bookmark requests above are the only direct calls to X, and they are made only on your action. Experimental gobird access (if enabled) runs only inside the local desktop app.
 
 ## Local authentication
 

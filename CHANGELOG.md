@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Browser extension 2.2.0: Like and Bookmark buttons on X cards, using the user's own x.com session from the content script, with a one-time warning, request throttling and a rate-limit message.
+- Browser extension: live download queue in the panel (progress, speed, ETA, cancel, remove, retry, cancel all) and a Downloads tab.
+- Browser extension: drag-to-select cards (mouse and touch long-press) and Shift+click range selection.
+- Browser extension: "new videos" chip and an order toggle (feed order or most recent first).
+- Browser extension: offline state with automatic reconnection.
+
+### Changed
+
+- Browser extension: the panel layout is calmer and its colours, radii and shadows now follow the desktop design theme live.
+- Browser extension: icons now use the desktop app logo.
+- Browser extension: the profile button opens the creator's page on the right platform (X and TikTok), derived from the video URL.
+- Browser extension: feed order stays stable while scrolling.
+
+### Fixed
+
+- Browser extension: profile links no longer open the wrong platform.
+- Browser extension: the panel store is capped, swallowed tab errors are logged, and the TikTok page-owner fallback is restricted.
+
 ## [1.0.20] - 2026-09-25
 
 ### Fixed
