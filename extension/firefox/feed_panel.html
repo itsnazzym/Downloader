@@ -175,6 +175,7 @@
             <div class="selection-quick-actions">
                 <button type="button" id="select-all-btn" class="pill-action-btn" data-i18n="selectAll">Tout</button>
                 <button type="button" id="clear-selection-btn" class="pill-action-btn" data-i18n="clearSelection">Aucun</button>
+                <button type="button" id="feed-order-btn" class="pill-action-btn" aria-pressed="false">Flux</button>
             </div>
             <span id="scan-info" class="scan-info" role="status" aria-live="polite"></span>
         </div>
@@ -182,6 +183,8 @@
         <div id="feed-status" class="feed-status" role="status" aria-live="polite">
             <span data-i18n="xFeedReady">Faites défiler le fil ou cliquez sur Analyser.</span>
         </div>
+
+        <div class="new-videos-anchor"><button type="button" id="new-videos-chip" class="new-videos-chip" hidden></button></div>
 
         <div id="feed-list" class="feed-list" aria-live="polite">
             <div class="empty-state" data-i18n="xFeedNoItems">

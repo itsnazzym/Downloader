@@ -398,6 +398,15 @@
     "feedShowMore": {
         "message": "عرض المزيد"
     },
+    "feedOrderFlux": {
+        "message": "الخلاصة"
+    },
+    "feedOrderRecent": {
+        "message": "الأحدث"
+    },
+    "feedNewVideos": {
+        "message": "{count} فيديوهات جديدة"
+    },
     "feedPreview": {
         "message": "معاينة الفيديو"
     },

@@ -398,6 +398,15 @@
     "feedShowMore": {
         "message": "Afficher davantage"
     },
+    "feedOrderFlux": {
+        "message": "Flux"
+    },
+    "feedOrderRecent": {
+        "message": "Récentes"
+    },
+    "feedNewVideos": {
+        "message": "{count} nouvelles vidéos"
+    },
     "feedPreview": {
         "message": "Aperçu vidéo"
     },

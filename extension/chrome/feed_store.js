@@ -104,11 +104,48 @@
       list: list,
       get: function (id) { return byId[id]; },
       size: function () { return order.length; },
+      remove: function (id) {
+        if (!byId[id]) return;
+        delete byId[id];
+        order.splice(order.indexOf(id), 1);
+      },
       clear: function () { order = []; byId = Object.create(null); seq = 0; },
       newSince: newSince,
       lastSeq: function () { return seq; },
     };
   }
 
-  global.MDFeedStore = { create: create };
+  // insertBefore operations (applied in order, beforeId null = append) that turn
+  // the DOM id order into the target order. Cards on a longest increasing
+  // subsequence stay put; the others are moved right before their successor.
+  function domMoves(currentIds, targetIds) {
+    var pos = Object.create(null);
+    currentIds.forEach(function (id, i) { pos[id] = i; });
+    var tgt = targetIds.filter(function (id) { return id in pos; });
+    var p = tgt.map(function (id) { return pos[id]; });
+
+    // Patience LIS over p; tails[k] = index in p of the smallest tail of a run of k+1.
+    var tails = [];
+    var prevIdx = new Array(p.length);
+    p.forEach(function (v, i) {
+      var lo = 0;
+      var hi = tails.length;
+      while (lo < hi) {
+        var mid = (lo + hi) >> 1;
+        if (p[tails[mid]] < v) lo = mid + 1; else hi = mid;
+      }
+      prevIdx[i] = lo > 0 ? tails[lo - 1] : -1;
+      tails[lo] = i;
+    });
+    var keep = Object.create(null);
+    for (var k = tails.length ? tails[tails.length - 1] : -1; k >= 0; k = prevIdx[k]) keep[k] = true;
+
+    var moves = [];
+    for (var i = tgt.length - 1; i >= 0; i--) {
+      if (!keep[i]) moves.push({ id: tgt[i], beforeId: i + 1 < tgt.length ? tgt[i + 1] : null });
+    }
+    return moves;
+  }
+
+  global.MDFeedStore = { create: create, domMoves: domMoves };
 })(typeof self !== 'undefined' ? self : this);

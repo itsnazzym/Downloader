@@ -6,7 +6,9 @@
     : (typeof browser !== 'undefined' ? browser : chrome);
   if (typeof MD_THEME !== 'undefined') MD_THEME.init(api);
   var MAX_ITEMS = 10000;
-  var feedItems = [];
+  var store = MDFeedStore.create();
+  var feedOrder = 'flux'; // 'flux' = page order, 'recent' = newest detected first
+  var lastSeenSeq = 0;
   var selectedIds = new Set();
   var busy = false;
   var liveCollectionEnabled = true;
@@ -49,6 +51,10 @@
   var scanInfo = document.getElementById('scan-info');
   var feedStatus = document.getElementById('feed-status');
   var feedList = document.getElementById('feed-list');
+  var orderButton = document.getElementById('feed-order-btn');
+  var newVideosChip = document.getElementById('new-videos-chip');
+  var scrollHost = document.querySelector('.panel-content');
+  var scrolledAway = false;
   var loadMoreButton = document.createElement('button');
   loadMoreButton.type = 'button';
   loadMoreButton.className = 'load-more-button';
@@ -625,7 +631,7 @@
   function clearFeed() {
     activeCreatorFilter = 'all';
     activeCreatorPlatform = '';
-    feedItems = [];
+    resetFeed();
     selectedIds.clear();
     sniffedStreams = [];
     updateSniffedCount();
@@ -647,7 +653,7 @@
   function jumpToActiveVideo() {
     var activeCard = feedList.querySelector('.feed-card[data-is-active="true"]');
     if (!activeCard) {
-      var activeItem = feedItems.find(function (it) { return it.isActive; });
+      var activeItem = allItems().find(function (it) { return it.isActive; });
       if (activeItem) {
         activeCard = feedList.querySelector('.feed-card[data-feed-id="' + activeItem.id + '"]');
       }
@@ -964,54 +970,17 @@
     return normalized;
   }
 
-  function mergeItems(items) {
-    var normalized = normalizeItems(items);
-    if (normalized.length === 0) return 0;
+  function mergeItems(items, source) {
+    return store.merge(normalizeItems(items), source).added;
+  }
 
-    var indexes = {};
-    feedItems.forEach(function (item, index) {
-      indexes[item.id] = index;
-    });
+  function allItems() {
+    return store.list(feedOrder);
+  }
 
-    var added = 0;
-    normalized.forEach(function (item) {
-      var existingIndex = indexes[item.id];
-      if (existingIndex === undefined) {
-        indexes[item.id] = feedItems.length;
-        feedItems.push(item);
-        added++;
-        return;
-      }
-
-      var existing = feedItems[existingIndex];
-      var preferIncoming = item.source === 'gobird' &&
-        existing.source !== 'gobird';
-      var incomingTitleValid = item.title && !/^\d+$/.test(String(item.title).trim());
-      var existingTitleIsDigits = /^\d+$/.test(String(existing.title || '').trim());
-      var resolvedTitle = (existingTitleIsDigits && incomingTitleValid)
-        ? item.title
-        : (existing.title || item.title);
-
-      feedItems[existingIndex] = {
-        id: existing.id,
-        url: preferIncoming ? item.url : existing.url,
-        pageUrl: preferIncoming ? item.pageUrl : existing.pageUrl,
-        title: resolvedTitle,
-        author: existing.author || item.author,
-        platform: existing.platform || item.platform,
-        music: existing.music || item.music,
-        avatarUrl: existing.avatarUrl || item.avatarUrl,
-        thumbnailUrl: item.thumbnailUrl || existing.thumbnailUrl,
-        videoSrc: item.videoSrc || existing.videoSrc,
-        isActive: item.isActive !== undefined ? item.isActive : existing.isActive,
-        durationSeconds: existing.durationSeconds || item.durationSeconds,
-        width: existing.width || item.width,
-        height: existing.height || item.height,
-        sizeBytes: existing.sizeBytes || item.sizeBytes,
-        source: preferIncoming ? item.source : existing.source,
-      };
-    });
-    return added;
+  function resetFeed() {
+    store.clear();
+    lastSeenSeq = 0;
   }
 
   var activePlatformFilter = 'all';
@@ -1294,12 +1263,13 @@
         };
       });
     }
-    var items = feedItems;
+    var all = allItems();
+    var items = all;
     if (activePlatformFilter === 'current') {
-      if (!activeTabUrl) return feedItems;
+      if (!activeTabUrl) return all;
       try {
         var currentHost = new URL(activeTabUrl).hostname.replace(/^www\./, '');
-        items = feedItems.filter(function (item) {
+        items = all.filter(function (item) {
           try {
             var itemHost = new URL(item.pageUrl || item.url).hostname.replace(/^www\./, '');
             return itemHost === currentHost;
@@ -1308,10 +1278,10 @@
           }
         });
       } catch (e) {
-        items = feedItems;
+        items = all;
       }
     } else if (activePlatformFilter !== 'all') {
-      items = feedItems.filter(function (item) {
+      items = all.filter(function (item) {
         return itemPlatform(item) === activePlatformFilter;
       });
     }
@@ -1336,7 +1306,7 @@
     var container = document.getElementById('platform-filters');
     if (!container) return;
     var platforms = {};
-    feedItems.forEach(function (item) {
+    allItems().forEach(function (item) {
       var p = itemPlatform(item);
       if (p) platforms[p] = (platforms[p] || 0) + 1;
     });
@@ -1409,7 +1379,7 @@
 
     var cleanHandle = String(activeCreatorFilter).replace(/^@/, '').trim();
     var bannerKey = MDProfile.creatorKey(activeCreatorPlatform, cleanHandle);
-    var matchingItems = feedItems.filter(function (it) {
+    var matchingItems = allItems().filter(function (it) {
       return itemCreatorKey(it) === bannerKey;
     });
 
@@ -1565,16 +1535,17 @@
   }
 
   function getDetectedCreators() {
+    var everything = allItems();
     var itemsToAnalyze = activePlatformFilter === 'all'
-      ? feedItems
+      ? everything
       : (activePlatformFilter === 'current'
-          ? feedItems.filter(function (it) {
+          ? everything.filter(function (it) {
               if (!activeTabUrl) return true;
               try {
                 return new URL(it.pageUrl || it.url).hostname.replace(/^www\./, '') === new URL(activeTabUrl).hostname.replace(/^www\./, '');
               } catch (e) { return true; }
             })
-          : feedItems.filter(function (it) { return itemPlatform(it) === activePlatformFilter; }));
+          : everything.filter(function (it) { return itemPlatform(it) === activePlatformFilter; }));
 
     var creators = {};
     itemsToAnalyze.forEach(function (it) {
@@ -1613,7 +1584,7 @@
   function syncViewModeCounts() {
     var detectedCreators = getDetectedCreators();
     if (viewModeVideosCount) {
-      viewModeVideosCount.textContent = String(feedItems.length);
+      viewModeVideosCount.textContent = String(store.size());
     }
     if (viewModeCreatorsCount) {
       viewModeCreatorsCount.textContent = String(detectedCreators.length);
@@ -1636,6 +1607,8 @@
     if (viewModeVideosBtn) viewModeVideosBtn.setAttribute('aria-pressed', String(mode === 'videos'));
     if (viewModeCreatorsBtn) viewModeCreatorsBtn.setAttribute('aria-pressed', String(mode === 'creators'));
     if (layoutSwitch) layoutSwitch.hidden = mode !== 'videos';
+    if (orderButton) orderButton.hidden = mode !== 'videos';
+    updateNewVideosChip();
 
     var displayToolbar = document.querySelector('.display-toolbar');
     var feedOptionsBar = document.querySelector('.feed-options-bar');
@@ -2038,7 +2011,7 @@
   });
 
   function displayedItems() {
-    return filteredItems().slice(0, visibleCount());
+    return filteredItems().slice(0, renderLimit);
   }
 
   function visibleCount() {
@@ -2082,12 +2055,12 @@
     var filtered = filteredItems();
     var foundMessage = replaceCount(
       t('xFeedFound', '{count} video posts found'),
-      feedItems.length,
+      store.size(),
     );
     if (activeCreatorFilter && activeCreatorFilter !== 'all') {
       foundMessage = tf('feedVideosFromAccount', '{count} vidéos de @{name}', { count: filtered.length, name: activeCreatorFilter });
     } else if (hideDownloadedEnabled) {
-      var downloadedCount = feedItems.filter(isItemDownloaded).length;
+      var downloadedCount = allItems().filter(isItemDownloaded).length;
       if (downloadedCount > 0) {
         foundMessage += ' (' + tf('feedDownloadedHidden', '{count} déjà téléchargées masquées', { count: downloadedCount }) + ')';
       }
@@ -2213,8 +2186,9 @@
     var targetIndex = -1;
     var targetId = null;
 
-    for (var i = 0; i < feedItems.length; i++) {
-      var it = feedItems[i];
+    var current = allItems();
+    for (var i = 0; i < current.length; i++) {
+      var it = current[i];
       if (
         it.id === cleanId ||
         it.url === cleanId ||
@@ -2240,7 +2214,7 @@
           if (visible.length === 0) renderItems();
         }, 320);
       }
-      feedItems.splice(targetIndex, 1);
+      store.remove(targetId);
       selectedIds.delete(targetId);
       updateSelectionUi();
       updateFeedCountStatus();
@@ -2436,7 +2410,8 @@
   }
 
   function replaceItems(items) {
-    feedItems = normalizeItems(items);
+    resetFeed();
+    mergeItems(items);
     selectedIds.clear();
     feedList.querySelectorAll('.feed-card').forEach(function (card) {
       card.remove();
@@ -2452,7 +2427,8 @@
       return;
     }
     feedList.querySelectorAll('.creator-card').forEach(function (card) { card.remove(); });
-    var visible = displayedItems();
+    var filtered = filteredItems();
+    var visible = filtered.slice(0, renderLimit);
     var empty = feedList.querySelector('.empty-state');
     if (visible.length === 0) {
       loadMoreButton.remove();
@@ -2467,6 +2443,7 @@
       }
       pruneHiddenSelection();
       updateSelectionUi();
+      updateNewVideosChip();
       return;
     }
 
@@ -2475,18 +2452,25 @@
     visible.forEach(function (item) {
       visibleIds[item.id] = true;
     });
+    // Keep the existing card nodes, drop the hidden ones, create only the missing ones...
+    var cards = {};
     feedList.querySelectorAll('.feed-card').forEach(function (card) {
-      if (!visibleIds[card.dataset.feedId]) card.remove();
-    });
-    var renderedIds = {};
-    feedList.querySelectorAll('.feed-card').forEach(function (card) {
-      renderedIds[card.dataset.feedId] = true;
+      if (visibleIds[card.dataset.feedId]) cards[card.dataset.feedId] = card;
+      else card.remove();
     });
     visible.forEach(function (item) {
-      if (renderedIds[item.id]) return;
-      feedList.appendChild(createFeedCard(item));
+      if (cards[item.id]) return;
+      cards[item.id] = createFeedCard(item);
+      feedList.appendChild(cards[item.id]);
     });
-    var remaining = Math.max(0, filteredItems().length - visible.length);
+    // ...then move them into the target order without recreating them.
+    var currentIds = Array.prototype.map.call(feedList.querySelectorAll('.feed-card'), function (card) {
+      return card.dataset.feedId;
+    });
+    MDFeedStore.domMoves(currentIds, visible.map(function (item) { return item.id; })).forEach(function (move) {
+      feedList.insertBefore(cards[move.id], move.beforeId ? cards[move.beforeId] : null);
+    });
+    var remaining = Math.max(0, filtered.length - visible.length);
     if (remaining > 0) {
       loadMoreButton.textContent = t('feedShowMore', 'Afficher davantage') + ' (' + remaining + ')';
       feedList.appendChild(loadMoreButton);
@@ -2495,6 +2479,48 @@
     }
     pruneHiddenSelection();
     updateSelectionUi();
+    updateNewVideosChip();
+  }
+
+  function updateNewVideosChip() {
+    if (!newVideosChip) return;
+    if (!scrolledAway) lastSeenSeq = store.lastSeq();
+    var fresh = scrolledAway ? store.newSince(lastSeenSeq) : 0;
+    newVideosChip.hidden = fresh === 0 || currentViewMode !== 'videos';
+    if (fresh > 0) {
+      newVideosChip.textContent = tf('feedNewVideos', '{count} nouvelles vidéos', { count: fresh });
+    }
+  }
+
+  function syncOrderButton() {
+    if (!orderButton) return;
+    orderButton.textContent = feedOrder === 'recent'
+      ? t('feedOrderRecent', 'Récentes')
+      : t('feedOrderFlux', 'Flux');
+    orderButton.setAttribute('aria-pressed', String(feedOrder === 'recent'));
+  }
+
+  if (orderButton) {
+    orderButton.addEventListener('click', function () {
+      feedOrder = feedOrder === 'recent' ? 'flux' : 'recent';
+      syncOrderButton();
+      renderItems();
+    });
+  }
+  if (newVideosChip) {
+    newVideosChip.addEventListener('click', function () {
+      lastSeenSeq = store.lastSeq();
+      newVideosChip.hidden = true;
+      if (scrollHost) scrollHost.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+  if (scrollHost) {
+    scrollHost.addEventListener('scroll', function () {
+      var away = scrollHost.scrollTop > 48;
+      if (away === scrolledAway) return;
+      scrolledAway = away;
+      updateNewVideosChip();
+    }, { passive: true });
   }
 
   function analyzeLoadedFeed() {
@@ -2512,7 +2538,7 @@
       if (domRes && domRes.ok && Array.isArray(domRes.items)) {
         mergeItems(domRes.items);
         renderItems();
-        var isTruncated = Boolean(domRes.truncated) || feedItems.length >= MAX_ITEMS;
+        var isTruncated = Boolean(domRes.truncated) || store.size() >= MAX_ITEMS;
         updateFeedCountStatus({ truncated: isTruncated });
         return;
       }
@@ -2542,7 +2568,7 @@
           maxItems: MAX_ITEMS,
         }).then(function (result) {
           if (!result || !result.ok) {
-            if (feedItems.length === 0) renderItems();
+            if (store.size() === 0) renderItems();
             if (tab && tab.id) {
               var p2 = api.tabs.sendMessage(tab.id, { type: 'MD_EXTRACT_FEED', maxItems: MAX_ITEMS }, handleDomExtraction);
               if (p2 && typeof p2.catch === 'function') {
@@ -2569,7 +2595,7 @@
           });
           var foundMessage = replaceCount(
             t('xFeedFound', '{count} video posts found'),
-            feedItems.length,
+            store.size(),
           );
           var sourceHint = usedGobird
             ? t('xFeedSnapshotLive', 'snapshot + live collection')
@@ -2578,7 +2604,7 @@
               : t('xFeedLive', 'live collection'));
           var limitHint = '';
           var shown = visibleCount();
-          if (shown > 0 && shown < feedItems.length) {
+          if (shown > 0 && shown < store.size()) {
             limitHint = ' · ' + replaceCount(
               t('xFeedShowing', 'showing {count}'),
               shown,
@@ -2598,14 +2624,14 @@
             );
           } else {
             setStatus(
-              feedItems.length > 0
+              store.size() > 0
                 ? foundMessage
                 : t('xFeedNoItems', 'No loaded video posts found.'),
-              feedItems.length > 0 ? 'success' : '',
+              store.size() > 0 ? 'success' : '',
             );
           }
         }).catch(function () {
-          if (feedItems.length === 0) renderItems();
+          if (store.size() === 0) renderItems();
           setStatus(
             t('xFeedAnalyzeFailed', 'Could not analyze the loaded feed.'),
             'error',
@@ -2656,7 +2682,7 @@
       }
       activeCreatorFilter = 'all';
       activeCreatorPlatform = '';
-      feedItems = [];
+      resetFeed();
       selectedIds.clear();
       renderItems();
       updateFeedCountStatus();
@@ -3039,6 +3065,7 @@
   stopDeepScan();
   applyDocumentLanguage();
   applyI18n();
+  syncOrderButton();
   setSource('dom');
   renderItems();
   // gobird only runs on Analyze. Request it as soon as the panel opens so
