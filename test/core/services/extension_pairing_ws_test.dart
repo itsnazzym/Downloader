@@ -602,29 +602,24 @@ void main() {
   });
 
   group('one request per origin', () {
-    test('one adopter per request: a newer same-origin socket takes it over, '
-        'the older one gets PAIR_BUSY and is closed, only one gets the '
-        'token', () async {
+    // The code is known only to the one live socket that will get the token:
+    // a same-origin newcomer (a local process can forge the Origin) is never
+    // handed the pending request, its code, or the token.
+    test('while the first socket waits, a newer same-origin socket gets '
+        'PAIR_BUSY without a code and is closed; the token goes to the '
+        'first', () async {
       final a = await open();
       final b = await open();
-      final c = await open();
       final pa = await requestPairing(a);
-      final pb = await requestPairing(b);
-      expect(pb['requestId'], pa['requestId']);
-      expect(pb['code'], pa['code']);
-      expect(await a.next(), {'type': 'PAIR_BUSY'});
-      await a.waitClosed();
-
-      expect((await requestPairing(c))['requestId'], pa['requestId']);
-      expect(await b.next(), {'type': 'PAIR_BUSY'});
+      expect(await requestPairing(b), {'type': 'PAIR_BUSY'});
       await b.waitClosed();
+      expect(b.inbox.where((m) => m.containsKey('code')), isEmpty);
+      expect(coordinator().state!.id, pa['requestId']);
 
       expect(await coordinator().approve(pa['requestId'] as String), isTrue);
-      expect((await c.next())['type'], 'PAIR_OK');
-      await c.waitClosed();
-      for (final p in [a, b]) {
-        expect(p.inbox.where((m) => m['type'] == 'PAIR_OK'), isEmpty);
-      }
+      expect((await a.next())['type'], 'PAIR_OK');
+      await a.waitClosed();
+      expect(b.inbox.where((m) => m['type'] == 'PAIR_OK'), isEmpty);
       expect(store.state.browsers, hasLength(1));
       expect(notifications, 1);
       await settle();
@@ -646,20 +641,29 @@ void main() {
       },
     );
 
-    test('a socket closed while pending keeps the request; a reconnect '
-        'adopts it', () async {
+    test('the waiting socket closing withdraws the request; a reconnect '
+        'gets a new request id and a new code, and the token', () async {
       final first = await open();
       final pending = await requestPairing(first);
       await first.ws.close();
       await first.waitClosed();
       await settle();
-      expect(coordinator().state!.id, pending['requestId']);
+      expect(coordinator().state, isNull);
+      expect(store.pauseRemaining(_ext), isNull);
 
       final second = await open();
-      final adopted = await requestPairing(second);
-      expect(adopted['requestId'], pending['requestId']);
-      expect(adopted['code'], pending['code']);
-      await coordinator().approve(pending['requestId'] as String);
+      final renewed = await requestPairing(second);
+      expect(renewed['type'], 'PAIR_PENDING');
+      expect(renewed['requestId'], isNot(pending['requestId']));
+      expect(renewed['code'], isNot(pending['code']));
+      expect(
+        await coordinator().approve(pending['requestId'] as String),
+        isFalse,
+      );
+      expect(
+        await coordinator().approve(renewed['requestId'] as String),
+        isTrue,
+      );
       expect((await second.next())['type'], 'PAIR_OK');
     });
 
@@ -763,7 +767,8 @@ void main() {
       expect(server.liveConnectionCount, 0);
       // Past every delay: a timer still running would log or throw here.
       await settle(_hello + _window + _keepAlive * 3);
-      expect(coordinator().state, isNotNull); // the request itself stays
+      // Its only socket is gone: the request is withdrawn, not left dangling.
+      expect(coordinator().state, isNull);
       expectCleanLogs();
       expect(logs.where((l) => l.startsWith('[WARN]')), isEmpty);
     });

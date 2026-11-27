@@ -128,20 +128,23 @@ void main() {
       expect(b.id, isNot(a.id));
     });
 
-    test('same origin while pending adopts: same request, same outcome, '
+    // The code must be known only to the one socket that will get the token:
+    // a same-origin submit while pending (e.g. a local process forging the
+    // Origin) never learns the pending request or its code.
+    test('same origin while pending is busy: no request, no code, '
         'no extra rate slot', () async {
       final first = submit();
       for (var i = 0; i < 5; i++) {
         final again = submit();
-        expect(again.request!.id, first.request!.id);
-        expect(again.request!.code, first.request!.code);
-        expect(identical(again.outcome, first.outcome), isTrue);
-        expect(again.refusal, isNull);
+        expect(again.refusal, PairingRefusal.busy);
+        expect(again.request, isNull);
+        expect(again.outcome, isNull);
       }
+      expect(coordinator.state, first.request);
       expect(timers, hasLength(1));
       expect(await coordinator.approve(first.request!.id), isTrue);
 
-      // 5 adoptions cost nothing: slots 2 and 3 are still available.
+      // 5 busy refusals cost nothing: slots 2 and 3 are still available.
       for (var i = 0; i < 2; i++) {
         final s = submit();
         expect(s.request, isNotNull, reason: 'submission ${i + 2}');
@@ -361,13 +364,39 @@ void main() {
         timers.last.fire();
       }
     });
+  });
 
-    test('a pending request is still adopted when the store fills', () async {
-      final first = submit();
-      for (var i = 0; i < 20; i++) {
-        await store.pair(origin: 'chrome-extension://full$i', label: 'x');
+  group('withdraw', () {
+    test('drops the request without a pause: outcome expired, state null, '
+        'the next submit is a new request with a new code', () async {
+      final s = submit();
+      coordinator.withdraw(s.request!.id);
+
+      expect(await s.outcome!, isA<PairingExpired>());
+      expect(coordinator.state, isNull);
+      expect(timers.single.cancelled, isTrue);
+      expect(store.pauseRemaining(_origin), isNull);
+      expect(await coordinator.approve(s.request!.id), isFalse);
+
+      final again = submit().request!;
+      expect(again.id, isNot(s.request!.id));
+      expect(again.code, isNot(s.request!.code));
+    });
+
+    test('counts in the rate limit like a submission', () {
+      for (var i = 0; i < 3; i++) {
+        coordinator.withdraw(submit().request!.id);
       }
-      expect(submit().request?.id, first.request!.id);
+      expect(submit().refusal, PairingRefusal.rateLimited);
+    });
+
+    test('unknown or stale id is a no-op', () async {
+      final s = submit();
+      coordinator.withdraw('0000000000000000');
+      expect(coordinator.state, s.request);
+      await coordinator.deny(s.request!.id);
+      coordinator.withdraw(s.request!.id);
+      expect(await s.outcome!, isA<PairingDenied>());
     });
   });
 
@@ -399,25 +428,27 @@ void main() {
       expect(gated.state.browsers, hasLength(1));
     });
 
-    test('same origin adopts the identical outcome, others are busy, '
-        'deny is a no-op', () async {
+    test('every origin is busy, deny and withdraw are no-ops, approving is '
+        'exposed', () async {
       final s = submit();
+      expect(coordinator.approving, isFalse);
       gated.gate = Completer<void>();
       final approving = coordinator.approve(s.request!.id);
+      expect(coordinator.approving, isTrue);
 
-      final again = submit();
-      expect(again.request!.id, s.request!.id);
-      expect(identical(again.outcome, s.outcome), isTrue);
+      expect(submit().refusal, PairingRefusal.busy);
       expect(submit(_other).refusal, PairingRefusal.busy);
       await coordinator.deny(s.request!.id);
       await coordinator.deny(s.request!.id, always: true);
+      coordinator.withdraw(s.request!.id);
       expect(coordinator.state, s.request);
       expect(gated.pauseRemaining(_origin), isNull);
       expect(gated.isBlocked(_origin), isFalse);
 
       gated.gate!.complete();
       expect(await approving, isTrue);
-      expect(await again.outcome!, isA<PairingApproved>());
+      expect(await s.outcome!, isA<PairingApproved>());
+      expect(coordinator.approving, isFalse);
     });
 
     test('dispose meanwhile resolves expired and approve is false', () async {

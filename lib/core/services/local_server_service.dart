@@ -363,9 +363,17 @@ Ready for Extension Connection
     } else {
       LoggerService.e('WebSocket Error', error);
     }
-    _adopters.removeWhere((_, adopter) => identical(adopter, c));
     // Already dropped by stop(): leave _ref alone, it may be disposed.
     if (_connections.remove(c.socket) == null) return;
+    // The only socket that knew the code is gone: withdraw its request so a
+    // reconnect gets a new one (new id, new code) to compare again.
+    for (final id in [
+      for (final e in _adopters.entries)
+        if (identical(e.value, c)) e.key,
+    ]) {
+      _adopters.remove(id);
+      _ref.read(pairingCoordinatorProvider.notifier).withdraw(id);
+    }
     if (_clients.remove(c.socket)) _publishClientCount();
   }
 
@@ -450,22 +458,14 @@ Ready for Extension Connection
         _send(c, _Msg.pending(request, coordinator.expiresIn(request)));
     remind();
     c.keepAlive = Timer.periodic(pendingKeepAlive, (_) => remind());
-    // One socket per request: the newest (e.g. a reconnect) takes it over.
-    final previous = _adopters[request.id];
+    // The one socket of this request (any other submit is busy until it ends).
     _adopters[request.id] = c;
-    if (previous != null) {
-      _send(previous, _Msg.busy());
-      _close(previous);
-    }
     unawaited(
       outcome
           .then((result) {
-            // Replaced or closed while pending: the request stays for a
-            // reconnect.
-            // shortcut: approved with no adopter alive, the browser is stored
-            // but its token is never delivered (a dead entry the user can
-            // revoke); withdraw the request when its last adopter closes if
-            // that ever matters.
+            // shortcut: a socket that closes while the approval is being
+            // stored cannot withdraw it: the browser is stored but its token
+            // is never delivered (a dead entry the user can revoke).
             if (c.closed || !identical(_adopters[request.id], c)) return;
             _adopters.remove(request.id);
             switch (result) {

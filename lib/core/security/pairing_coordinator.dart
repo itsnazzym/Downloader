@@ -120,15 +120,11 @@ class PairingCoordinator extends StateNotifier<PairingRequest?> {
     if (paused != null) {
       return PairingSubmit(refusal: PairingRefusal.paused, retryAfter: paused);
     }
-    final pending = _pending;
-    if (pending != null) {
-      if (pending.request.origin != o) {
-        return const PairingSubmit(refusal: PairingRefusal.busy);
-      }
-      return PairingSubmit(
-        request: pending.request,
-        outcome: pending.completer.future,
-      );
+    // Even the same origin: its code must stay known to the one socket that
+    // asked (a local process can forge the Origin). A reconnect is a new
+    // request once the server has withdrawn the old one.
+    if (_pending != null) {
+      return const PairingSubmit(refusal: PairingRefusal.busy);
     }
     // Never ask the user to approve a pairing the store cannot keep.
     if (_store.isFull) return const PairingSubmit(refusal: PairingRefusal.full);
@@ -214,6 +210,19 @@ class PairingCoordinator extends StateNotifier<PairingRequest?> {
       // The request is already refused; failing to persist must not leak.
     }
   }
+
+  /// The request's only socket is gone: drop it, without the pause [deny]
+  /// sets, so the extension reconnecting asks again with a new code. A no-op
+  /// while it is being approved.
+  void withdraw(String requestId) {
+    final p = _pending;
+    if (p == null || p.request.id != requestId || p.approving) return;
+    _finish(p, const PairingExpired());
+  }
+
+  /// True while the user's approval is being stored: the request is still
+  /// [state] but can no longer be denied, so the UI must not offer it again.
+  bool get approving => _pending?.approving ?? false;
 
   @override
   void dispose() {
