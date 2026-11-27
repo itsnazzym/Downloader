@@ -27,6 +27,9 @@ Future<void> main(List<String> args) async {
       "error: 'need_tweet_url'",
       "type: 'QUEUE_SNAPSHOT_REQUEST'",
       "type: 'DOWNLOAD_COMMAND'",
+      "type: 'PAIR_REQUEST'",
+      "'pairing_required'",
+      "'PAIR_OK'",
     ];
     for (final token in requiredTokens) {
       if (!source.contains(token)) {
@@ -45,6 +48,7 @@ Future<void> main(List<String> args) async {
     'selection.js',
     'download_tracker.js',
     'badge.js',
+    'pairing.js',
   ]) {
     final file = File('${root.path}/extension/shared/$name');
     if (!file.existsSync()) {
@@ -64,6 +68,7 @@ Future<void> main(List<String> args) async {
     'selection.js',
     'download_tracker.js',
     'badge.js',
+    'pairing.js',
     'popup.js',
     'feed_panel.js',
   ];

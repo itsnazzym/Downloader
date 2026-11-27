@@ -57,6 +57,7 @@
             "url_policy.js",
             "badge.js",
             "stream_sniffer.js",
+            "pairing.js",
             "background.js"
         ]
     },

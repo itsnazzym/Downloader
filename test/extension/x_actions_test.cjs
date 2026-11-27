@@ -370,6 +370,7 @@ function loadBackground(tabs) {
     URL,
   };
   vm.createContext(context);
+  vm.runInContext(read('pairing.js'), context);
   vm.runInContext(read('connection.js'), context);
   // Resolves undefined when no listener keeps the channel open, so a missing handler fails fast.
   const ask = (msg, sender) => new Promise((resolve) => {

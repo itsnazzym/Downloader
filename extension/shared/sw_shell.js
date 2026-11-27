@@ -11,6 +11,7 @@
       importScripts('url_policy.js');
       importScripts('badge.js');
       importScripts('stream_sniffer.js');
+      importScripts('pairing.js');
       importScripts('connection.js');
     } catch (e) {
       console.error('Failed to import extension background scripts', e);

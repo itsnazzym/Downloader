@@ -47,7 +47,10 @@
   var socket = null;
   var isConnected = false;
   var reconnectTimer = null;
-  var reconnectDelayMs = 1000;
+  var reconnectAttempt = 0;
+  var unreachableSince = 0;
+  var pairingState = { phase: 'idle' };
+  var pairRequested = false; // a PAIR_REQUEST went out on the current socket
   var cookieDebounce = null;
   var cookieDebounceByDomain = {};
   var pendingDownloadAcks = [];
@@ -64,11 +67,14 @@
 
   function scheduleReconnect() {
     if (reconnectTimer) return;
+    var now = Date.now();
+    if (!unreachableSince) unreachableSince = now;
+    // During a pause or with an old app there is nothing to ask: always the slow pace.
+    var elapsed = MDPairing.shouldRequestPairing(pairingState, now) ? now - unreachableSince : Infinity;
     reconnectTimer = setTimeout(function () {
       reconnectTimer = null;
       connect();
-    }, reconnectDelayMs);
-    reconnectDelayMs = Math.min(reconnectDelayMs * 2, 30000);
+    }, MDPairing.reconnectDelayMs(reconnectAttempt++, elapsed));
   }
 
   function clearReconnect() {
@@ -76,7 +82,40 @@
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
-    reconnectDelayMs = 1000;
+    reconnectAttempt = 0;
+    unreachableSince = 0;
+  }
+
+  // storage.local.pairing is what the popup shows; an idle state is stored as no key.
+  function setPairing(state) {
+    if (state === pairingState) return;
+    var wasPending = pairingState.phase === 'pending';
+    pairingState = state;
+    try {
+      var write = state.phase === 'idle'
+        ? api.storage.local.remove(['pairing'])
+        : api.storage.local.set({ pairing: state });
+      if (write && typeof write.catch === 'function') write.catch(function () {});
+    } catch (e) { /* storage unavailable while reloading */ }
+    if (state.phase !== 'pending' && !wasPending) return;
+    try {
+      if (action && action.setBadgeText) action.setBadgeText({ text: state.phase === 'pending' ? '?' : '' });
+    } catch (e) { /* chrome.action is restricted outside service workers */ }
+  }
+
+  function pairingEvent(event) {
+    event.now = Date.now();
+    setPairing(MDPairing.next(pairingState, event));
+  }
+
+  // One request per socket, never during a pause (the app would refuse it anyway).
+  function requestPairing() {
+    if (pairRequested || !socket || socket.readyState !== WebSocket.OPEN) return false;
+    if (!MDPairing.shouldRequestPairing(pairingState, Date.now())) return false;
+    pairRequested = true;
+    socket.send(JSON.stringify({ type: 'PAIR_REQUEST', extensionVersion: getManifestVersion() }));
+    logDiag('PAIR_REQUEST', 'sent');
+    return true;
   }
 
   function publishConnectionState() {
@@ -136,7 +175,7 @@
   }
 
   function connect() {
-    api.storage.local.get(['serverPort', 'apiToken', 'adultSitesEnabled']).then(function (res) {
+    api.storage.local.get(['serverPort', 'apiToken', 'adultSitesEnabled', 'pairing']).then(function (res) {
       serverPort = parseInt(res.serverPort, 10) || 6969;
       if (serverPort < 1024 || serverPort > 65535) {
         console.warn('Invalid server port; using 6969');
@@ -144,8 +183,11 @@
       }
       apiToken = res.apiToken || '';
       adultSitesEnabled = res.adultSitesEnabled !== false;
+      // The service worker restarts often: a pause must outlive it.
+      pairingState = res.pairing && res.pairing.phase ? res.pairing : { phase: 'idle' };
 
       closeSocketQuietly();
+      pairRequested = false;
       logDiag('CONNECT_START', 'port=' + serverPort + ' tokenLen=' + apiToken.length);
       console.log('Connecting to TapLoad on 127.0.0.1:' + serverPort + '...');
 
@@ -163,6 +205,7 @@
 
         socket.onopen = function () {
           clearTimeout(helloTimer);
+          unreachableSince = 0;
           logDiag('WS_OPEN', 'Sending HELLO');
           var version = getManifestVersion();
           socket.send(JSON.stringify({
@@ -170,6 +213,8 @@
             version: version,
             token: apiToken,
           }));
+          // Sent right away: an old app answers this HELLO with a bare AUTH_FAILED, which then reads as "update the app".
+          if (!apiToken) requestPairing();
         };
 
         socket.onclose = function (event) {
@@ -177,6 +222,7 @@
           logDiag('WS_CLOSE', 'code=' + (event ? event.code : 'unknown'));
           console.log('Disconnected from App. Reconnecting...');
           isConnected = false;
+          pairingEvent({ type: 'SOCKET_CLOSED' }); // before publishConnectionState, whose OFF badge must win
           socket = null;
           activeDownloadCount = 0; // the app's queue is unknown until it is back
           failPending();
@@ -216,6 +262,7 @@
       isConnected = true;
       clearReconnect();
       api.storage.local.remove(['lastAuthError']);
+      if (pairingState.phase !== 'idle') setPairing({ phase: 'idle' }); // e.g. a manual token typed during a pause
       publishConnectionState();
       logDiag('HELLO_OK', 'Connected successfully');
       console.log('Connected to TapLoad App');
@@ -232,13 +279,53 @@
     }
 
     if (message.type === 'AUTH_FAILED') {
+      // Something sent while the app waits for the user's answer: the request stays valid.
+      if (pairRequested && message.reason === 'not_authenticated') return;
       isConnected = false;
       publishConnectionState();
       var reason = message.reason || 'auth_failed';
+      var hadToken = !!apiToken;
       api.storage.local.set({ lastAuthError: reason });
       logDiag('AUTH_FAILED', reason);
-      console.warn('Auth failed — check token in extension popup');
+      pairingEvent({ type: 'AUTH_FAILED', reason: message.reason, hadToken: hadToken, requested: pairRequested });
+      if (message.reason === 'pairing_required') {
+        if (hadToken) {
+          // Only an up-to-date app says this: the stored token was revoked.
+          apiToken = '';
+          api.storage.local.remove(['apiToken']);
+          pairingEvent({ type: 'TOKEN_CLEARED' });
+        }
+        if (requestPairing() || pairRequested) return; // keep the socket open for the answer
+      } else {
+        console.warn('Auth failed — check token in extension popup');
+      }
       try { if (socket) socket.close(); } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (message.type === 'PAIR_PENDING' || message.type === 'PAIR_DENIED' || message.type === 'PAIR_PAUSED' ||
+        message.type === 'PAIR_EXPIRED' || message.type === 'PAIR_BUSY') {
+      logDiag(message.type, ''); // never the code
+      pairingEvent({
+        type: message.type,
+        code: message.code,
+        requestId: message.requestId,
+        expiresInSeconds: message.expiresInSeconds,
+        retryAfterSeconds: message.retryAfterSeconds,
+      });
+      return;
+    }
+
+    if (message.type === 'PAIR_OK') {
+      if (typeof message.token !== 'string' || !message.token) return;
+      logDiag('PAIR_OK', 'paired');
+      pairingEvent({ type: 'PAIR_OK' });
+      api.storage.local.set({ apiToken: message.token }).then(function () {
+        clearReconnect(); // the app closes this socket after its answer
+        connect();
+      }).catch(function (e) {
+        logDiag('PAIR_TOKEN_ERR', (e && e.message) || String(e));
+      });
       return;
     }
 
@@ -1334,12 +1421,20 @@
     }
 
     if (message.type === 'MD_DOWNLOAD_COMMAND' || message.type === 'MD_QUEUE_SNAPSHOT_REQUEST' ||
-        message.type === 'MD_X_ACTION') {
-      // Queue control and X actions belong to the extension's own pages, never to content scripts.
+        message.type === 'MD_X_ACTION' || message.type === 'MD_PAIRING_RETRY') {
+      // Queue control, X actions and pairing retries belong to the extension's own pages, never to content scripts.
       if (!isExtensionPage(sender)) {
         sendResponse({ ok: false, error: 'forbidden' });
         return false;
       }
+    }
+
+    if (message.type === 'MD_PAIRING_RETRY') {
+      pairingEvent({ type: 'RETRY' });
+      clearReconnect();
+      connect();
+      sendResponse({ ok: true });
+      return false;
     }
 
     if (message.type === 'MD_DOWNLOAD_COMMAND') {
