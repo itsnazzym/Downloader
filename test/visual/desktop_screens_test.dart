@@ -258,6 +258,7 @@ void main() {
     'studio',
     'terminal',
     'nocturne',
+    'oled',
   ]) {
     testWidgets('design $id switches between settings sections', (
       tester,
@@ -418,6 +419,7 @@ void main() {
     'studio',
     'terminal',
     'nocturne',
+    'oled',
   ];
   const pages = {
     'library': '/',
@@ -527,6 +529,11 @@ void main() {
     'Nocturne-Stats': ('nocturne', '/stats', Size(1280, 900)),
     'Nocturne-Transfert': ('nocturne', '/transfer', Size(1280, 900)),
     'Nocturne-Reglages': ('nocturne', '/settings/general', Size(1280, 900)),
+    'OLED-Accueil': ('oled', '/', Size(1280, 800)),
+    'OLED-Archives': ('oled', '/archive', Size(1280, 800)),
+    'OLED-Stats': ('oled', '/stats', Size(1280, 800)),
+    'OLED-Transfert': ('oled', '/transfer', Size(1280, 800)),
+    'OLED-Reglages': ('oled', '/settings/general', Size(1280, 800)),
   };
   for (final entry in mockups.entries) {
     testWidgets('mockup ${entry.key}', (tester) async {
@@ -607,6 +614,7 @@ void main() {
     'studio',
     'terminal',
     'nocturne',
+    'oled',
   ]) {
     for (final state in states.entries) {
       testWidgets('state $id ${state.key}', (tester) async {

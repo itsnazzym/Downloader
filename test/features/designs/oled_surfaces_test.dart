@@ -15,9 +15,16 @@ import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
 import 'package:modern_downloader/core/ui/shell/chromes/oled_chrome.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_collections_view.dart';
+import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
+import 'package:modern_downloader/features/designs/oled/oled_archive.dart';
 import 'package:modern_downloader/features/designs/oled/oled_home.dart';
+import 'package:modern_downloader/features/designs/oled/oled_settings.dart';
 import 'package:modern_downloader/features/designs/oled/oled_skin.dart';
 import 'package:modern_downloader/features/designs/oled/oled_states.dart';
+import 'package:modern_downloader/features/designs/oled/oled_stats.dart';
+import 'package:modern_downloader/features/designs/oled/oled_transfer.dart';
+import 'package:modern_downloader/features/designs/oled/oled_widgets.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
@@ -184,4 +191,156 @@ void main() {
     expect(desk.snackBarTheme.behavior, SnackBarBehavior.floating);
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets('archive: the running batch can be stopped', (tester) async {
+    final (container, key) = await pump(tester, []);
+    final archive = container.read(tikTokArchiveProvider.notifier);
+    archive.setViewMode(TikTokViewMode.list);
+    container.read(routerProvider).go('/archive');
+    await settle(tester);
+    expect(find.byType(OledArchive), findsOneWidget);
+    expect(find.byType(TikTokArchiveView), findsNothing);
+    // The demo archive is mid-batch with two videos picked.
+    expect(find.text('Arrêter'), findsOneWidget);
+    await shot(tester, key, 'oled_archive_batch');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('archive: selection, then collections', (tester) async {
+    final (container, key) = await pump(tester, [
+      tikTokArchiveProvider.overrideWith(
+        (ref) => _IdleArchive(FakeArchiveRepository(), ref),
+      ),
+    ]);
+    container.read(routerProvider).go('/archive');
+    await settle(tester);
+    expect(find.text('2 sélectionnées'), findsOneWidget);
+    expect(find.text('Télécharger la sélection'), findsOneWidget);
+    await shot(tester, key, 'oled_archive');
+    await tester.tap(find.text('2 sélectionnées'));
+    await settle(tester);
+    await tester.tap(find.text('Tout sélectionner'));
+    await settle(tester);
+    expect(container.read(tikTokArchiveProvider).selectedIds, hasLength(12));
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Collections').first);
+    await settle(tester);
+    expect(
+      container.read(tikTokArchiveProvider).viewMode,
+      TikTokViewMode.collections,
+    );
+    expect(find.byType(TikTokCollectionsView), findsOneWidget);
+    await shot(tester, key, 'oled_archive_collections');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('stats: the period switches the figures', (tester) async {
+    final (container, key) = await pump(tester, []);
+    container.read(routerProvider).go('/stats');
+    await settle(tester);
+    expect(find.byType(OledStats), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await shot(tester, key, 'oled_stats');
+    await tester.tap(find.text('7 j'));
+    await settle(tester);
+    expect(find.text('7 derniers jours'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('transfer: radar and send, all options keep today\'s view', (
+    tester,
+  ) async {
+    final (container, key) = await pump(tester, []);
+    container.read(routerProvider).go('/transfer');
+    await settle(tester);
+    expect(find.byType(OledTransfer), findsOneWidget);
+    expect(find.text('ce PC'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await shot(tester, key, 'oled_transfer');
+    await tester.tap(find.text('Toutes les options'));
+    await settle(tester);
+    expect(find.text('Vue simple'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('settings: sections as links, tiles drawn by the skin', (
+    tester,
+  ) async {
+    final (container, key) = await pump(tester, []);
+    final router = container.read(routerProvider);
+    router.go('/settings/general');
+    await settle(tester);
+    expect(find.byType(OledSettings), findsOneWidget);
+    expect(find.byType(OledSettingRow), findsWidgets);
+    expect(tester.takeException(), isNull);
+    await shot(tester, key, 'oled_settings');
+    await tester.tap(find.text('Apparence').first);
+    await settle(tester);
+    expect(
+      router.routerDelegate.currentConfiguration.uri.path,
+      '/settings/appearance',
+    );
+    await shot(tester, key, 'oled_settings_appearance');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  for (final (name, size) in const [
+    ('narrow', Size(820, 900)),
+    ('compact', Size(640, 800)),
+  ]) {
+    testWidgets('every page fits a $name window', (tester) async {
+      final (container, key) = await pump(tester, [], size: size);
+      final router = container.read(routerProvider);
+      for (final route in const [
+        '/',
+        '/archive',
+        '/stats',
+        '/transfer',
+        '/settings/general',
+      ]) {
+        router.go(route);
+        await settle(tester);
+        expect(tester.takeException(), isNull, reason: route);
+        await shot(tester, key, 'oled_${name}_${route.replaceAll('/', '_')}');
+      }
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  double logoDotOpacity(WidgetTester tester) => tester
+      .widget<FadeTransition>(
+        find
+            .descendant(
+              of: find.byType(OledLiveDot).first,
+              matching: find.byType(FadeTransition),
+            )
+            .first,
+      )
+      .opacity
+      .value;
+
+  testWidgets('the logo dot breathes, and stays lit with reduced motion', (
+    tester,
+  ) async {
+    await pump(tester, []);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(logoDotOpacity(tester), lessThan(1));
+    await tester.pumpWidget(const SizedBox());
+
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await pump(tester, []);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(logoDotOpacity(tester), 1);
+    await tester.pumpWidget(const SizedBox());
+  });
+}
+
+/// The demo archive with its batch finished: the selection actions show.
+class _IdleArchive extends DemoArchiveNotifier {
+  _IdleArchive(super.repo, super.ref) {
+    state = state.copyWith(isBatchDownloading: false);
+  }
 }

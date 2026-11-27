@@ -5819,4 +5819,223 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get oledNext => 'التالي';
+
+  @override
+  String oledDaysShort(int days) {
+    return '$days ي';
+  }
+
+  @override
+  String get oledStatsEmptyTitle => 'لم يُضئ شيء بعد';
+
+  @override
+  String get oledStatsEmptyBody => 'ستظهر أرقامك هنا بعد أول تنزيل.';
+
+  @override
+  String oledDownloadsInDays(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيلات',
+      one: 'تنزيل',
+    );
+    return '$_temp0 خلال $days يومًا';
+  }
+
+  @override
+  String oledDownloadsInAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيلات',
+      one: 'تنزيل',
+    );
+    return '$_temp0 إجمالًا';
+  }
+
+  @override
+  String oledTodayCount(int count) {
+    return '$count اليوم';
+  }
+
+  @override
+  String get oledVolume => 'الحجم';
+
+  @override
+  String get oledSuccess => 'النجاح';
+
+  @override
+  String get oledFree => 'المتاح';
+
+  @override
+  String oledLastDays(int days) {
+    return 'آخر $days يومًا';
+  }
+
+  @override
+  String oledPerDot(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'نقطة = $count تنزيلات',
+      one: 'نقطة = تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledHistogramLabel(int days, int count) {
+    return 'التنزيلات يوميًا خلال $days يومًا، $count إجمالًا';
+  }
+
+  @override
+  String get oledTodayWord => 'اليوم';
+
+  @override
+  String get oledSources => 'المصادر';
+
+  @override
+  String get oledSpaceUsed => 'المساحة المستخدمة';
+
+  @override
+  String oledWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فيديوهات',
+      one: 'فيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مجموعات',
+      one: 'مجموعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مفضّلات',
+      one: 'مفضّل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledSync => 'مزامنة';
+
+  @override
+  String get oledSyncing => 'جارٍ المزامنة…';
+
+  @override
+  String get oledImportExport => 'استيراد ملف تصدير';
+
+  @override
+  String get oledTabVideos => 'الفيديوهات';
+
+  @override
+  String get oledTabCollections => 'المجموعات';
+
+  @override
+  String get oledTabFavorites => 'المفضّلة';
+
+  @override
+  String get oledSelectAll => 'تحديد الكل';
+
+  @override
+  String oledSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count',
+      one: 'تم تحديد 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledDownloadSelection => 'تنزيل المحدد';
+
+  @override
+  String get oledQueued => 'أُضيف إلى التنزيلات';
+
+  @override
+  String get oledStop => 'إيقاف';
+
+  @override
+  String get oledAllOptions => 'كل الخيارات';
+
+  @override
+  String get oledSimpleView => 'عرض مبسّط';
+
+  @override
+  String get oledThisPc => 'هذا الحاسوب';
+
+  @override
+  String get oledRefreshDevices => 'البحث عن الأجهزة';
+
+  @override
+  String get oledPairingCode => 'رمز الاقتران';
+
+  @override
+  String get oledPairingHint => 'أدخل هذا الرمز في TapLoad على هاتفك.';
+
+  @override
+  String oledSendToDevice(String name) {
+    return 'للإرسال إلى $name';
+  }
+
+  @override
+  String get oledSendNoDevice => 'للإرسال';
+
+  @override
+  String oledVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديو',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledChooseFiles => 'اختيار ملفات';
+
+  @override
+  String get oledSettingsSections => 'أقسام الإعدادات';
+
+  @override
+  String get oledLeadGeneral => 'ما يفعله TapLoad افتراضيًا.';
+
+  @override
+  String get oledLeadOutput => 'أين تُحفظ الملفات وصيغتها وطريقة ترتيبها.';
+
+  @override
+  String get oledLeadAppearance => 'التصميم واللغة والمظهر.';
+
+  @override
+  String get oledLeadPerformance => 'التنزيلات المتزامنة والسرعة والمؤثرات.';
+
+  @override
+  String get oledLeadSystem => 'المحركات والتبعيات وصيانة المكتبة.';
+
+  @override
+  String get oledLeadPlugins => 'فعّل ميزات التطبيق أو أوقفها.';
+
+  @override
+  String get oledLeadAdvanced =>
+      'ملفات تعريف الارتباط والحافظة والسجل والتجارب.';
+
+  @override
+  String get oledLeadOrganizer => 'قواعد ترتّب تنزيلاتك في مجلدات.';
 }

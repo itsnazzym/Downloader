@@ -393,14 +393,25 @@ class OledValuePill extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: OledInk.lineHover),
         ),
-        child: Text(
-          '${options[value] ?? value} ▾',
-          maxLines: 1,
-          style: oledMono(
-            size: 13,
-            color: OledInk.ink,
-            weight: FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              options[value] ?? value,
+              maxLines: 1,
+              style: oledMono(
+                size: 13,
+                color: OledInk.ink,
+                weight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.arrow_drop_down_rounded,
+              size: 18,
+              color: OledInk.mute,
+            ),
+          ],
         ),
       ),
     );

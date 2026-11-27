@@ -9831,6 +9831,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Up next'**
   String get oledNext;
+
+  /// No description provided for @oledDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String oledDaysShort(int days);
+
+  /// No description provided for @oledStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has lit up yet'**
+  String get oledStatsEmptyTitle;
+
+  /// No description provided for @oledStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your figures appear here after your first download.'**
+  String get oledStatsEmptyBody;
+
+  /// No description provided for @oledDownloadsInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{download} other{downloads}} in {days} days'**
+  String oledDownloadsInDays(int count, int days);
+
+  /// No description provided for @oledDownloadsInAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{download} other{downloads}} in all'**
+  String oledDownloadsInAll(int count);
+
+  /// No description provided for @oledTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} today'**
+  String oledTodayCount(int count);
+
+  /// No description provided for @oledVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get oledVolume;
+
+  /// No description provided for @oledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get oledSuccess;
+
+  /// No description provided for @oledFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get oledFree;
+
+  /// No description provided for @oledLastDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days'**
+  String oledLastDays(int days);
+
+  /// No description provided for @oledPerDot.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dot = 1 download} other{1 dot = {count} downloads}}'**
+  String oledPerDot(int count);
+
+  /// No description provided for @oledHistogramLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads per day over {days} days, {count} in all'**
+  String oledHistogramLabel(int days, int count);
+
+  /// No description provided for @oledTodayWord.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get oledTodayWord;
+
+  /// No description provided for @oledSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get oledSources;
+
+  /// No description provided for @oledSpaceUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Space used'**
+  String get oledSpaceUsed;
+
+  /// No description provided for @oledWordVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{video} other{videos}}'**
+  String oledWordVideos(int count);
+
+  /// No description provided for @oledWordCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{collection} other{collections}}'**
+  String oledWordCollections(int count);
+
+  /// No description provided for @oledWordFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{favourite} other{favourites}}'**
+  String oledWordFavorites(int count);
+
+  /// No description provided for @oledSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get oledSync;
+
+  /// No description provided for @oledSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get oledSyncing;
+
+  /// No description provided for @oledImportExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import an export'**
+  String get oledImportExport;
+
+  /// No description provided for @oledTabVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get oledTabVideos;
+
+  /// No description provided for @oledTabCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get oledTabCollections;
+
+  /// No description provided for @oledTabFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get oledTabFavorites;
+
+  /// No description provided for @oledSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get oledSelectAll;
+
+  /// No description provided for @oledSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String oledSelectedCount(int count);
+
+  /// No description provided for @oledDownloadSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selection'**
+  String get oledDownloadSelection;
+
+  /// No description provided for @oledQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the downloads'**
+  String get oledQueued;
+
+  /// No description provided for @oledStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get oledStop;
+
+  /// No description provided for @oledAllOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'All options'**
+  String get oledAllOptions;
+
+  /// No description provided for @oledSimpleView.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple view'**
+  String get oledSimpleView;
+
+  /// No description provided for @oledThisPc.
+  ///
+  /// In en, this message translates to:
+  /// **'this PC'**
+  String get oledThisPc;
+
+  /// No description provided for @oledRefreshDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for devices'**
+  String get oledRefreshDevices;
+
+  /// No description provided for @oledPairingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing code'**
+  String get oledPairingCode;
+
+  /// No description provided for @oledPairingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter this code in TapLoad on your phone.'**
+  String get oledPairingHint;
+
+  /// No description provided for @oledSendToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'To send to {name}'**
+  String oledSendToDevice(String name);
+
+  /// No description provided for @oledSendNoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'To send'**
+  String get oledSendNoDevice;
+
+  /// No description provided for @oledVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String oledVideoCount(int count);
+
+  /// No description provided for @oledChooseFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose files'**
+  String get oledChooseFiles;
+
+  /// No description provided for @oledSettingsSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings sections'**
+  String get oledSettingsSections;
+
+  /// No description provided for @oledLeadGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'What TapLoad does by default.'**
+  String get oledLeadGeneral;
+
+  /// No description provided for @oledLeadOutput.
+  ///
+  /// In en, this message translates to:
+  /// **'Where files go, their format and how they are sorted.'**
+  String get oledLeadOutput;
+
+  /// No description provided for @oledLeadAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'The design, the language and the look.'**
+  String get oledLeadAppearance;
+
+  /// No description provided for @oledLeadPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Simultaneous downloads, speed and effects.'**
+  String get oledLeadPerformance;
+
+  /// No description provided for @oledLeadSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Engines, dependencies and library upkeep.'**
+  String get oledLeadSystem;
+
+  /// No description provided for @oledLeadPlugins.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the app’s features on or off.'**
+  String get oledLeadPlugins;
+
+  /// No description provided for @oledLeadAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Cookies, clipboard, history and experiments.'**
+  String get oledLeadAdvanced;
+
+  /// No description provided for @oledLeadOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules that sort your downloads into folders.'**
+  String get oledLeadOrganizer;
 }
 
 class _AppLocalizationsDelegate
