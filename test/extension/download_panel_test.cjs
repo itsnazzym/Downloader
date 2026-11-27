@@ -140,6 +140,11 @@ test('the finished section builds at most 50 rows and counts the others', () => 
   assert.match(css, /\.dl-section-more \{/);
 });
 
+test('a card spinner gives up after 15 s without any report from the app', () => {
+  assert.match(panel, /if \(MDDownloads\.pendingActive\(pendingAt, dl, downloadsNow\(\)\)\) return;/);
+  assert.match(panel, /btn\.dataset\.pendingAt = String\(downloadsNow\(\)\);[^\n]*\n[^\n]*\n\s*setTimeout\(scheduleDownloadRender, MDDownloads\.PENDING_MS \+ 100\)/);
+});
+
 test('queue positions and groups come from the tracker caches, not a scan per row', () => {
   assert.match(panel, /pos: downloads\.queuePosition\(dl\.id\)/);
   assert.equal(/groups\(\)\.queued\.indexOf/.test(panel), false);

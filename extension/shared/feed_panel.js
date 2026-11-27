@@ -707,8 +707,8 @@
     var dl = downloads.findByCardKey(cardDownloadKey(item));
     var btn = card.querySelector('.card-single-dl-btn');
     var pendingAt = btn ? Number(btn.dataset.pendingAt || 0) : 0;
-    // Just sent: keep the spinner until the app reports on this download.
-    if (pendingAt && (!dl || dl.updatedAt <= pendingAt)) return;
+    // Just sent: keep the spinner until the app reports on this download (at most 15 s).
+    if (MDDownloads.pendingActive(pendingAt, dl, downloadsNow())) return;
     var state = !dl ? 'idle' : dl.status === 'duplicate' ? 'done' : MDDownloads.displayStatus(dl.status, connectionFlag());
     card.dataset.dlState = state;
     var wrap = card.querySelector('.card-progress-bar-wrap');
@@ -2861,6 +2861,8 @@
       btn.innerHTML = SINGLE_BTN_ICONS.pending;
       btn.dataset.mode = 'pending';
       btn.dataset.pendingAt = String(downloadsNow());
+      // No PROGRESS at all must not leave the spinner forever: repaint once the wait is over.
+      setTimeout(scheduleDownloadRender, MDDownloads.PENDING_MS + 100);
     }
     if (card) {
       var pWrap = card.querySelector('.card-progress-bar-wrap');
