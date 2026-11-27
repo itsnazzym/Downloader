@@ -132,7 +132,8 @@ Widget _statusTile(BuildContext context, StatusTile tile) {
     ),
     title: tile.name,
     mono: true,
-    trailing: Flexible(
+    trailing: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 260),
       child: Container(
         height: 30,
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -140,14 +141,17 @@ Widget _statusTile(BuildContext context, StatusTile tile) {
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: tone.withValues(alpha: ok ? 0.35 : 0.5)),
         ),
-        alignment: Alignment.center,
-        child: Text(
-          tile.status.version ?? context.l10n.settingsTilesNotFound,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.mono.copyWith(
-            fontSize: 12.5,
-            color: ok ? colors.textPrimary : colors.error,
+        // As wide as the version, not the card.
+        child: Center(
+          widthFactor: 1,
+          child: Text(
+            tile.status.version ?? context.l10n.settingsTilesNotFound,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.mono.copyWith(
+              fontSize: 12.5,
+              color: ok ? colors.textPrimary : colors.error,
+            ),
           ),
         ),
       ),
@@ -261,7 +265,8 @@ class _SkinTileState extends State<_SkinTile> {
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
       child: body,
     );
-    if (widget.onTap != null) {
+    // A busy action (onTap null for now) stays a dimmed, disabled button.
+    if (widget.onTap != null || widget.disabled) {
       body = Semantics(
         button: true,
         enabled: tap != null,

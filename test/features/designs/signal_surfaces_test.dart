@@ -12,6 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/router/app_router.dart';
+import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
+import 'package:modern_downloader/core/ui/settings/widgets/settings_tiles.dart';
 import 'package:modern_downloader/core/services/download_stats_service.dart';
 import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
 import 'package:modern_downloader/core/theme/app_theme.dart';
@@ -51,6 +53,7 @@ void main() {
     String path, {
     Size size = const Size(1280, 800),
     List<Override> extra = const [],
+    bool showcase = true,
   }) async {
     tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
@@ -79,7 +82,7 @@ void main() {
         designFreeSpaceProvider.overrideWith(
           (ref) async => 412 * 1024 * 1024 * 1024,
         ),
-        showcaseModeProvider.overrideWithValue(true),
+        showcaseModeProvider.overrideWithValue(showcase),
         tikTokArchiveRepositoryProvider.overrideWith(
           (ref) => FakeArchiveRepository(),
         ),
@@ -234,4 +237,80 @@ void main() {
       await shot(tester, key, c, 'settings_$page');
     });
   }
+
+  testWidgets('plugins with the browser extensions (not the demo)', (
+    tester,
+  ) async {
+    final (key, c) = await pump(
+      tester,
+      '/settings/plugins',
+      size: const Size(1280, 2600),
+      showcase: false,
+    );
+    await shot(tester, key, c, 'settings_plugins_extensions');
+  });
+
+  testWidgets('dependency status and a busy action', (tester) async {
+    tester.view.physicalSize = const Size(1280, 500) * 2;
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    PlatformInfo.debugForceMobile = false;
+    const preset = ThemePresets.signal;
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: key,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          locale: const Locale('fr'),
+          theme: AppTheme.fromPalette(
+            preset,
+            DesignSpec.forId(preset.id).brightness ?? Brightness.dark,
+          ),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                children: [
+                  StatusTile(
+                    'yt-dlp',
+                    BinaryStatus(isInstalled: true, version: '2026.09.20'),
+                  ),
+                  StatusTile(
+                    'aria2c',
+                    BinaryStatus(isInstalled: false, version: null),
+                  ),
+                  const ActionTile(
+                    title: 'Vérification…',
+                    subtitle: 'busy',
+                    icon: Icons.build_circle_outlined,
+                    onTap: null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final busy = tester.widget<Opacity>(
+      find
+          .ancestor(
+            of: find.text('Vérification…'),
+            matching: find.byType(Opacity),
+          )
+          .first,
+    );
+    expect(busy.opacity, lessThan(1));
+    await capture(tester, key, 'signal_surface_status_tiles');
+  });
 }
