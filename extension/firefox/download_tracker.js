@@ -37,6 +37,13 @@
     return list ? list.slice() : [];
   }
 
+  // What the panel shows for a download: while the app is unreachable a live one (queued, running
+  // or paused) can no longer progress, so it reads "offline" until the next snapshot settles it.
+  var LIVE = { queued: 1, running: 1, paused: 1 };
+  function displayStatus(status, connected) {
+    return connected === false && LIVE[status] === 1 ? 'offline' : status;
+  }
+
   // Diff of view rows [{id, sig}]: a row whose signature (group, status...) is
   // unchanged is updated in place, so its buttons survive progress ticks.
   function planRowUpdates(prev, next) {
@@ -227,13 +234,14 @@
         if (rec.remaining === null) remainingKnown = false; else remaining += rec.remaining;
       });
       var active = running + queued;
+      var eta = active && remainingKnown && speed > 0 ? remaining / speed : null;
       var pct = !active ? 0 : allTotals && weightSum > 0 ? weighted / weightSum : plain / active;
       return {
         running: running,
         queued: queued,
         pct: Math.round(pct * 100),
         speedBps: speed,
-        etaSeconds: active && remainingKnown && speed > 0 ? remaining / speed : null
+        etaSeconds: eta !== null && isFinite(eta) ? eta : null // a near-zero speed would give Infinity
       };
     }
 
@@ -259,6 +267,7 @@
   global.MDDownloads = {
     statusFromIndex: statusFromIndex,
     allowedCommands: allowedCommands,
+    displayStatus: displayStatus,
     planRowUpdates: planRowUpdates,
     parseSpeed: parseSpeed,
     parseEta: parseEta,

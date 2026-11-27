@@ -14,7 +14,7 @@ const NEW_KEYS = [
   'dlSectionRunning', 'dlSectionQueued', 'dlSectionFailed', 'dlSectionDone',
   'dlClearDone', 'dlCancelAll', 'dlSummaryCounts', 'dlEmpty',
   'dlCmdCancel', 'dlCmdRemove', 'dlCmdPause', 'dlCmdResume', 'dlCmdRetry',
-  'dlErrInvalidState', 'dlErrUnknownId', 'dlErrCommandFailed', 'dlErrNotConnected',
+  'dlErrInvalidState', 'dlErrUnknownId', 'dlErrCommandFailed', 'dlErrNotConnected', 'appOffline',
 ];
 
 test('the panel owns one download tracker fed by progress and snapshots', () => {
@@ -97,5 +97,23 @@ test('a canceled card offers retry, like the Downloads tab', () => {
 });
 
 test('cancel all only shows when something is queued or running', () => {
-  assert.match(panel, /cancelAll\.hidden = s\.running \+ s\.queued === 0/);
+  assert.match(panel, /cancelAll\.hidden = offline \|\| s\.running \+ s\.queued === 0/);
+});
+
+test('live downloads read offline when the app is unreachable, with their actions off', () => {
+  // cards, rows, summary and dock all go through MDDownloads.displayStatus + the connection flag
+  assert.match(panel, /function connectionFlag\(\) \{\s*return connectionKnown \? appConnected : undefined;/);
+  assert.match(panel, /dl\.status === 'duplicate' \? 'done' : MDDownloads\.displayStatus\(dl\.status, connectionFlag\(\)\)/);
+  assert.match(panel, /return section \+ '\|' \+ MDDownloads\.displayStatus\(dl\.status, connectionFlag\(\)\)/);
+  assert.match(panel, /var commands = MDDownloads\.allowedCommands\(shown\)/);
+  assert.match(panel, /btn\.disabled = mode === 'offline'/);
+  assert.match(panel, /=== 'offline'\) return t\('appOffline'/);
+  // a connection change repaints the cards and rows; the panel asks for the state when it opens
+  assert.match(panel, /connectionKnown = true;\s*\/\/ Live downloads read "offline"[^\n]*\n\s*if \(connectionFlag\(\) !== wasFlag\) scheduleDownloadRender\(\)/);
+  assert.match(panel, /type: 'GET_CONNECTION_STATE'/);
+  assert.match(css, /\[data-dl-state="offline"\]/);
+});
+
+test('a reconnect asks for a snapshot, which replaces the offline downloads', () => {
+  assert.match(panel, /if \(message\.connected && !appConnected\) requestQueueSnapshot\(\)/);
 });

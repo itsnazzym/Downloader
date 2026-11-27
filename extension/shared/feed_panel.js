@@ -209,6 +209,7 @@
   var downloads = MDDownloads.create();
   var downloadsClock = 0;
   var appConnected = false;
+  var connectionKnown = false; // no app state yet: live downloads are not "offline" before the first report
   var viewModeDownloadsBtn = document.getElementById('view-mode-downloads-btn');
   var viewModeDownloadsCount = document.getElementById('view-mode-downloads-count');
   var downloadsView = document.getElementById('downloads-view');
@@ -577,15 +578,28 @@
 
   // --- Download tracking (desktop queue mirrored by MDDownloads) ---
 
+  // false only once the app is known to be unreachable (undefined = not known yet).
+  function connectionFlag() {
+    return connectionKnown ? appConnected : undefined;
+  }
+
   // Receive time for the tracker: it must never go backwards.
   function downloadsNow() {
     downloadsClock = Math.max(downloadsClock, Date.now());
     return downloadsClock;
   }
 
+  // One formatter per language/unit/precision: building one per card per tick was the main JS cost of a render.
+  var numberFormats = {};
+  function numberFormat(options) {
+    var lang = document.documentElement.lang || '';
+    var key = lang + '|' + JSON.stringify(options);
+    return numberFormats[key] || (numberFormats[key] = new Intl.NumberFormat(lang || undefined, options));
+  }
+
   function formatUnit(value, unit) {
     try {
-      return new Intl.NumberFormat(document.documentElement.lang || undefined, {
+      return numberFormat({
         style: 'unit', unit: unit, unitDisplay: 'short', maximumFractionDigits: value < 10 ? 1 : 0,
       }).format(value);
     } catch (e) {
@@ -595,7 +609,7 @@
 
   function formatPct(pct) {
     try {
-      return new Intl.NumberFormat(document.documentElement.lang || undefined, { style: 'percent' }).format(pct / 100);
+      return numberFormat({ style: 'percent' }).format(pct / 100);
     } catch (e) {
       return pct + ' %';
     }
@@ -618,6 +632,7 @@
 
   // "47 % · 3,2 Mo/s · ≈ 12 s restantes", "En attente · 2ᵉ position", error text...
   function downloadStateLine(dl) {
+    if (MDDownloads.displayStatus(dl.status, connectionFlag()) === 'offline') return t('appOffline', 'Application hors ligne');
     if (dl.status === 'queued') {
       return tf('dlQueuedLine', 'En attente · position {pos}', { pos: downloads.groups().queued.indexOf(dl) + 1 });
     }
@@ -656,6 +671,7 @@
     resume: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"></path></svg>',
     done: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
     pending: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>',
+    offline: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M6.5 6.5l11 11"></path></svg>',
   };
 
   function setSingleBtnMode(btn, mode, downloaded) {
@@ -669,7 +685,9 @@
       btn.dataset.icon = icon;
       btn.innerHTML = SINGLE_BTN_ICONS[icon];
     }
-    btn.title = mode === 'cancel' ? t('dlCmdCancel', 'Annuler')
+    btn.disabled = mode === 'offline';
+    btn.title = mode === 'offline' ? t('appOffline', 'Application hors ligne')
+      : mode === 'cancel' ? t('dlCmdCancel', 'Annuler')
       : mode === 'retry' ? t('dlCmdRetry', 'Réessayer')
       : mode === 'resume' ? t('dlCmdResume', 'Reprendre')
       : downloaded ? t('feedAlreadyDownloadedRetry', 'Déjà téléchargé (cliquez pour re-télécharger)')
@@ -678,14 +696,14 @@
   }
 
   // Card states: idle / queued / running / paused / done / error / canceled, read from the tracker.
-  var CARD_COMMAND = { queued: 'cancel', running: 'cancel', paused: 'resume', error: 'retry', canceled: 'retry' };
+  var CARD_COMMAND = { queued: 'cancel', running: 'cancel', paused: 'resume', error: 'retry', canceled: 'retry', offline: 'offline' };
   function applyCardDownloadState(card, item) {
     var dl = downloads.findByCardKey(cardDownloadKey(item));
     var btn = card.querySelector('.card-single-dl-btn');
     var pendingAt = btn ? Number(btn.dataset.pendingAt || 0) : 0;
     // Just sent: keep the spinner until the app reports on this download.
     if (pendingAt && (!dl || dl.updatedAt <= pendingAt)) return;
-    var state = !dl ? 'idle' : dl.status === 'duplicate' ? 'done' : dl.status;
+    var state = !dl ? 'idle' : dl.status === 'duplicate' ? 'done' : MDDownloads.displayStatus(dl.status, connectionFlag());
     card.dataset.dlState = state;
     var wrap = card.querySelector('.card-progress-bar-wrap');
     var fill = card.querySelector('.card-progress-bar-fill');
@@ -693,7 +711,7 @@
     if (fill && dl) fill.style.width = Math.max(2, dl.pct) + '%';
     var line = card.querySelector('.card-dl-state');
     if (line) {
-      line.textContent = state === 'idle' ? '' : downloadStateLine(dl);
+      setText(line, state === 'idle' ? '' : downloadStateLine(dl));
       line.hidden = state === 'idle';
     }
     if (btn) setSingleBtnMode(btn, CARD_COMMAND[state] || 'download', state === 'done' || isItemDownloaded(item));
@@ -726,6 +744,16 @@
     sendRuntimeMessage({ type: 'MD_QUEUE_SNAPSHOT_REQUEST' }).catch(function () {});
   }
 
+  // The panel may open while the app is already connected or down: ask instead of waiting for a change.
+  function requestConnectionState() {
+    sendRuntimeMessage({ type: 'GET_CONNECTION_STATE' }).then(function (res) {
+      if (!res || res.ok !== true || typeof res.connected !== 'boolean' || connectionKnown) return;
+      connectionKnown = true;
+      appConnected = res.connected;
+      scheduleDownloadRender();
+    }).catch(function () {});
+  }
+
   // PROGRESS can arrive ~20 times per second: repaint at most every DL_RENDER_MS,
   // always with the latest state (trailing render).
   var DL_RENDER_MS = 250;
@@ -753,9 +781,10 @@
     activityDock.hidden = active === 0;
     if (!active) return;
     var s = downloads.summary(downloadsNow());
-    var eta = formatEta(s.etaSeconds);
-    setText(activityDockCount, tf('dlSummaryCounts', '{running} en cours · {queued} en attente', { running: s.running, queued: s.queued }));
-    setText(activityDockSpeed, formatSpeed(s.speedBps) || '');
+    var offline = connectionFlag() === false;
+    var eta = offline ? null : formatEta(s.etaSeconds);
+    setText(activityDockCount, offline ? t('appOffline', 'Application hors ligne') : tf('dlSummaryCounts', '{running} en cours · {queued} en attente', { running: s.running, queued: s.queued }));
+    setText(activityDockSpeed, (!offline && formatSpeed(s.speedBps)) || '');
     setText(activityDockEta, eta ? tf('dlEtaLeft', '≈ {eta} restantes', { eta: eta }) : '');
     activityDockFill.style.width = Math.max(0, Math.min(100, s.pct)) + '%';
   }
@@ -818,7 +847,7 @@
   }
 
   function dlRowSignature(section, dl) {
-    return section + '|' + dl.status + '|' + (dl.url ? itemPlatform({ url: dl.url }) : '');
+    return section + '|' + MDDownloads.displayStatus(dl.status, connectionFlag()) + '|' + (dl.url ? itemPlatform({ url: dl.url }) : '');
   }
 
   // Only text and bar width change on a progress tick; buttons stay the same nodes.
@@ -829,8 +858,9 @@
   }
 
   function createDownloadRow(dl) {
+    var shown = MDDownloads.displayStatus(dl.status, connectionFlag());
     var row = dlElement('div', 'dl-row');
-    row.dataset.dlState = dl.status;
+    row.dataset.dlState = shown;
     row.dataset.dlId = dl.id;
     var rec = { el: row, title: dlElement('div', 'dl-row-title'), state: dlElement('span', 'dl-row-state'), fill: null };
     row.appendChild(rec.title);
@@ -844,7 +874,7 @@
       row.appendChild(bar);
     }
     updateDownloadRow(rec, dl);
-    var commands = MDDownloads.allowedCommands(dl.status);
+    var commands = MDDownloads.allowedCommands(shown);
     if (commands.length) {
       var actions = dlElement('div', 'dl-row-actions');
       commands.forEach(function (command) {
@@ -959,9 +989,11 @@
     dlView.summary.hidden = active === 0;
     if (active) {
       var s = downloads.summary(downloadsNow());
+      var offline = connectionFlag() === false;
       var parts = [];
-      var eta = formatEta(s.etaSeconds);
-      var speed = formatSpeed(s.speedBps);
+      var eta = offline ? null : formatEta(s.etaSeconds);
+      var speed = offline ? null : formatSpeed(s.speedBps);
+      if (offline) parts.push(t('appOffline', 'Application hors ligne'));
       if (eta) parts.push(tf('dlEtaLeft', '≈ {eta} restantes', { eta: eta }));
       if (speed) parts.push(speed);
       parts.push(formatPct(s.pct));
@@ -969,7 +1001,7 @@
       dlView.summaryFill.style.width = Math.max(2, s.pct) + '%';
       setText(dlView.summaryCounts, tf('dlSummaryCounts', '{running} en cours · {queued} en attente', { running: s.running, queued: s.queued }));
       // The desktop's cancel_all only hits queued and running items, not paused ones.
-      dlView.cancelAll.hidden = s.running + s.queued === 0;
+      dlView.cancelAll.hidden = offline || s.running + s.queued === 0;
     }
     if (focusKey && !downloadsView.contains(document.activeElement)) {
       var again = Array.prototype.find.call(downloadsView.querySelectorAll('button'), function (b) {
@@ -1414,9 +1446,11 @@
     return store.list(feedOrder);
   }
 
+  var feedWasReset = false;
   function resetFeed() {
     store.clear();
     lastSeenSeq = 0;
+    feedWasReset = true; // the first items after a reset are the new baseline, not "N new"
   }
 
   var activePlatformFilter = 'all';
@@ -3093,6 +3127,12 @@
     });
   }
 
+  // Direct children of the list with a class. A subtree selector would visit every node
+  // inside every card (about 3 ms per call with 3000 cards).
+  function listChildren(className) {
+    return Array.prototype.filter.call(feedList.children, function (el) { return el.classList.contains(className); });
+  }
+
   function renderItems() {
     syncPlatformFilterPills();
     syncCreatorProfileBanner();
@@ -3101,13 +3141,13 @@
       renderCreatorsList();
       return;
     }
-    feedList.querySelectorAll('.creator-card').forEach(function (card) { card.remove(); });
+    listChildren('creator-card').forEach(function (card) { card.remove(); });
     var filtered = filteredItems();
     var visible = filtered.slice(0, renderLimit);
-    var empty = feedList.querySelector('.empty-state');
+    var empty = listChildren('empty-state')[0];
     if (visible.length === 0) {
       loadMoreButton.remove();
-      feedList.querySelectorAll('.feed-card').forEach(function (card) {
+      listChildren('feed-card').forEach(function (card) {
         card.remove();
       });
       if (!empty) {
@@ -3118,7 +3158,7 @@
       }
       pruneHiddenSelection();
       updateSelectionUi();
-      updateNewVideosChip();
+      updateNewVideosChip(filtered);
       return;
     }
 
@@ -3129,7 +3169,7 @@
     });
     // Keep the existing card nodes, drop the hidden ones, create only the missing ones...
     var cards = {};
-    feedList.querySelectorAll('.feed-card').forEach(function (card) {
+    listChildren('feed-card').forEach(function (card) {
       if (visibleIds[card.dataset.feedId]) cards[card.dataset.feedId] = card;
       else card.remove();
     });
@@ -3139,7 +3179,7 @@
       feedList.appendChild(cards[item.id]);
     });
     // ...then move them into the target order without recreating them.
-    var currentIds = Array.prototype.map.call(feedList.querySelectorAll('.feed-card'), function (card) {
+    var currentIds = listChildren('feed-card').map(function (card) {
       return card.dataset.feedId;
     });
     MDFeedStore.domMoves(currentIds, visible.map(function (item) { return item.id; })).forEach(function (move) {
@@ -3154,13 +3194,25 @@
     }
     pruneHiddenSelection();
     updateSelectionUi();
-    updateNewVideosChip();
+    updateNewVideosChip(filtered);
   }
 
-  function updateNewVideosChip() {
+  // The list's own position: the toolbar scrolls inside the same element, so scrollTop alone is not "the top of the list".
+  function listScrolledAway() {
+    var el = feedList.firstElementChild;
+    while (el && !el.classList.contains('feed-card')) el = el.nextElementSibling;
+    return !!el && scrollHost.getBoundingClientRect().top - el.getBoundingClientRect().top > 48;
+  }
+
+  function updateNewVideosChip(filtered) {
     if (!newVideosChip) return;
+    if (feedWasReset && store.size() > 0) {
+      lastSeenSeq = store.lastSeq();
+      feedWasReset = false;
+    }
     if (!scrolledAway) lastSeenSeq = store.lastSeq();
-    var fresh = scrolledAway ? store.newSince(lastSeenSeq) : 0;
+    // Only what the list can show: the active platform/creator filters apply, the sniffed view has no new videos.
+    var fresh = scrolledAway ? MDFeedStore.countNewSince(filtered || filteredItems(), lastSeenSeq) : 0;
     newVideosChip.hidden = fresh === 0 || currentViewMode !== 'videos';
     if (fresh > 0) {
       newVideosChip.textContent = tf('feedNewVideos', '{count} nouvelles vidéos', { count: fresh });
@@ -3191,7 +3243,7 @@
   }
   if (scrollHost) {
     scrollHost.addEventListener('scroll', function () {
-      var away = scrollHost.scrollTop > 48;
+      var away = listScrolledAway();
       if (away === scrolledAway) return;
       scrolledAway = away;
       updateNewVideosChip();
@@ -3368,6 +3420,7 @@
       var exists = sniffedStreams.some(function (s) { return s.url === message.stream.url; });
       if (!exists) {
         sniffedStreams.push(message.stream);
+        if (sniffedStreams.length > 50) sniffedStreams.shift(); // the background keeps 50 per tab
         updateSniffedCount();
         if (activePlatformFilter === 'sniffed') {
           renderItems();
@@ -3390,8 +3443,12 @@
 
     if (message.type === 'MD_CONNECTION_STATE') {
       // Republished on every PROGRESS: only a reconnect needs a fresh snapshot.
+      var wasFlag = connectionFlag();
       if (message.connected && !appConnected) requestQueueSnapshot();
       appConnected = !!message.connected;
+      connectionKnown = true;
+      // Live downloads read "offline" while the app is away; the snapshot after a reconnect settles them.
+      if (connectionFlag() !== wasFlag) scheduleDownloadRender();
       return;
     }
 
@@ -3713,7 +3770,8 @@
   window.addEventListener('blur', function () { endGesture(false); });
   // Capture phase: the click ending a drag-select must not open the preview or locate the media.
   feedList.addEventListener('click', function (e) {
-    if (!MDSelection.shouldSwallowClick({ moved: gestureMoved })) return;
+    // A script's click (the load-more auto-click) is never the click ending a drag.
+    if (!e.isTrusted || !MDSelection.shouldSwallowClick({ moved: gestureMoved })) return;
     gestureMoved = false;
     e.stopPropagation();
     e.preventDefault();
@@ -3873,6 +3931,7 @@
   setSource('dom');
   renderItems();
   requestQueueSnapshot();
+  requestConnectionState();
   // gobird only runs on Analyze. Request it as soon as the panel opens so
   // the badge is not stuck on "local" while the user only scrolls.
   setTimeout(analyzeLoadedFeed, 400);

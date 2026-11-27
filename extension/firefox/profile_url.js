@@ -34,7 +34,7 @@
     return profileUrl(platform, handle) !== null;
   }
 
-  // Only post URLs name their author: x.com/<handle>/status/<id>, tiktok.com/@<handle>/video/<id>.
+  // Only post URLs name their author: x.com/<handle>/status/<id>, tiktok.com/@<handle>/(video|photo)/<id>.
   // A page URL (home, a profile, a collection) says nothing about who posted the video.
   var X_POST = /^https?:\/\/(?:[a-z0-9-]+\.)*(?:x|twitter)\.com\/([^/?#]+)\/status\/\d+/i;
   var X_HANDLE = /^[A-Za-z0-9_]{1,15}$/;
@@ -60,8 +60,7 @@
         var fromUrl = m && normalizeHandle(m[1]);
         if (fromUrl) return fromUrl;
       }
-      var author = typeof item.author === 'string' ? item.author.trim() : '';
-      return author.charAt(0) === '@' ? normalizeHandle(author) : null;
+      return null; // an author string, even "@name", is a display name until the URL proves it
     }
     return null;
   }

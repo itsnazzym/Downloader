@@ -202,3 +202,17 @@ test('remove drops an item and its order slot', () => {
   s.remove('nope');
   assert.equal(s.size(), 2);
 });
+
+test('countNewSince counts only the items of the given (filtered) list that arrived later', () => {
+  const lib = load();
+  const s = lib.create();
+  s.merge([it('a', { platform: 'x' }), it('b', { platform: 'tiktok' }), it('c', { platform: 'x' })], 'dom');
+  const all = s.list('flux');
+  assert.equal(lib.countNewSince(all, 1), 2);
+  // only the X posts pass the active filter: b is not a "new video" for this list
+  assert.equal(lib.countNewSince(all.filter((i) => i.platform === 'x'), 1), 1);
+  assert.equal(lib.countNewSince(all, 3), 0);
+  assert.equal(lib.countNewSince([], 0), 0);
+  // synthetic items (sniffed streams) have no seq and never count
+  assert.equal(lib.countNewSince([{ id: 's1' }, { id: 's2' }], 0), 0);
+});

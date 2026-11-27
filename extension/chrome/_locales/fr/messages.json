@@ -866,6 +866,9 @@
     "dlPaused": {
         "message": "En pause"
     },
+    "appOffline": {
+        "message": "Application hors ligne"
+    },
     "dlFailed": {
         "message": "Échec"
     },

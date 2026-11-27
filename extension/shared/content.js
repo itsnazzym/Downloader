@@ -1555,6 +1555,7 @@
         pageUrl: window.location.href,
         platform: platform,
       });
+      if (p2 && typeof p2.catch === 'function') p2.catch(function () {});
       if (p1 && typeof p1.then === 'function') {
         p1.then(markAsEmitted).catch(function () {});
       } else {
@@ -1570,6 +1571,16 @@
     if (platform === 'generic' || xFeedUpdateTimer) return;
     var wait = (typeof delay === 'number') ? delay : (platform === 'tiktok' ? 1200 : 250);
     xFeedUpdateTimer = setTimeout(publishNewXFeedItems, wait);
+  }
+
+  // Fire and forget: a rejected promise (no receiver, extension reloading) must not surface as an unhandled rejection.
+  function notifyBackground(message) {
+    try {
+      var pending = api.runtime.sendMessage(message);
+      if (pending && typeof pending.catch === 'function') pending.catch(function () {});
+    } catch (e) {
+      /* The extension context may be shutting down during navigation. */
+    }
   }
 
   var deepScanActive = false;
@@ -1847,14 +1858,12 @@
     publishNewXFeedItems();
     var count = X_FEED_CACHE.length;
 
-    try {
-      api.runtime.sendMessage({
-        type: 'MD_DEEP_SCAN_PROGRESS',
-        count: count,
-        target: deepScanTarget,
-        done: false,
-      });
-    } catch (e) {}
+    notifyBackground({
+      type: 'MD_DEEP_SCAN_PROGRESS',
+      count: count,
+      target: deepScanTarget,
+      done: false,
+    });
 
     if (count >= deepScanTarget) {
       finishDeepScan(count);
@@ -1911,15 +1920,13 @@
       clearInterval(deepScanTimer);
       deepScanTimer = null;
     }
-    try {
-      api.runtime.sendMessage({
-        type: 'MD_DEEP_SCAN_PROGRESS',
-        count: finalCount,
-        target: deepScanTarget,
-        done: true,
-        error: error || null,
-      });
-    } catch (e) {}
+    notifyBackground({
+      type: 'MD_DEEP_SCAN_PROGRESS',
+      count: finalCount,
+      target: deepScanTarget,
+      done: true,
+      error: error || null,
+    });
   }
 
   function stopDeepScan() {
@@ -1940,13 +1947,11 @@
       X_FEED_CACHE = [];
       X_FEED_CACHE_INDEX = Object.create(null);
       X_FEED_EMITTED_IDS = {};
-      try {
-        api.runtime.sendMessage({
-          type: 'MD_PAGE_NAVIGATED',
-          pageUrl: window.location.href,
-          title: document.title,
-        });
-      } catch (e) {}
+      notifyBackground({
+        type: 'MD_PAGE_NAVIGATED',
+        pageUrl: window.location.href,
+        title: document.title,
+      });
       setTimeout(publishNewXFeedItems, 350);
     }
   }

@@ -866,6 +866,9 @@
     "dlPaused": {
         "message": "Paused"
     },
+    "appOffline": {
+        "message": "App offline"
+    },
     "dlFailed": {
         "message": "Failed"
     },

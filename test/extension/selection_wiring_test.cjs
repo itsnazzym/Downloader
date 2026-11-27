@@ -1,6 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const vm = require('node:vm');
 const path = require('node:path');
 
 const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8');
@@ -44,4 +45,28 @@ test('pointerdown resets gestureMoved before its first early return', () => {
   const firstReturn = handler.indexOf('return');
   assert.ok(reset > -1 && firstReturn > -1);
   assert.ok(reset < firstReturn, 'gestureMoved reset must precede the first return');
+});
+
+test('the click swallow ignores a script click (the load-more auto-click) even with a stale flag', () => {
+  const m = panel.match(/feedList\.addEventListener\('click', function \(e\) \{\n    \/\/ A script's click[\s\S]*?\}, true\);/);
+  assert.ok(m, 'capture-phase click listener not found');
+  const selectionSource = fs.readFileSync(path.join(__dirname, '../../extension/shared/selection.js'), 'utf8');
+  const ctx = { gestureMoved: true };
+  ctx.self = ctx;
+  let handler;
+  ctx.feedList = { addEventListener(type, fn, capture) { if (type === 'click' && capture) handler = fn; } };
+  vm.createContext(ctx);
+  vm.runInContext(selectionSource, ctx);
+  vm.runInContext(m[0], ctx);
+  const fake = (isTrusted) => ({ isTrusted, stopped: false, prevented: false, stopPropagation() { this.stopped = true; }, preventDefault() { this.prevented = true; } });
+
+  const script = fake(false);
+  handler(script);
+  assert.equal(script.stopped || script.prevented, false);
+  assert.equal(ctx.gestureMoved, true, 'a script click must not consume the flag');
+
+  const real = fake(true);
+  handler(real);
+  assert.equal(real.stopped && real.prevented, true);
+  assert.equal(ctx.gestureMoved, false);
 });

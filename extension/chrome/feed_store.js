@@ -147,5 +147,13 @@
     return moves;
   }
 
-  global.MDFeedStore = { create: create, domMoves: domMoves };
+  // Items of an already filtered list that arrived after `since`. Items without a seq
+  // (the sniffed streams view) never count.
+  function countNewSince(items, since) {
+    var n = 0;
+    for (var i = 0; i < items.length; i++) if (items[i].seq > since) n++;
+    return n;
+  }
+
+  global.MDFeedStore = { create: create, domMoves: domMoves, countNewSince: countNewSince };
 })(typeof self !== 'undefined' ? self : this);

@@ -764,6 +764,9 @@
     "dlPaused": {
         "message": "متوقف مؤقتًا"
     },
+    "appOffline": {
+        "message": "التطبيق غير متصل"
+    },
     "dlFailed": {
         "message": "فشل"
     },

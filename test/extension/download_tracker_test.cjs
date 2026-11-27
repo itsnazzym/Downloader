@@ -389,3 +389,34 @@ test('planRowUpdates keeps rows whose group and status did not change', () => {
   assert.deepEqual(plain(planRowUpdates(undefined, [{ id: 'a', sig: 's' }])), { update: [], rebuild: [], create: ['a'], remove: [] });
   assert.deepEqual(plain(planRowUpdates(prev, [])), { update: [], rebuild: [], create: [], remove: ['a', 'b', 'c'] });
 });
+
+test('summary ETA stays finite for an absurdly small speed', () => {
+  const t = load().create();
+  t.ingest(p('a', { speed: '0.' + '0'.repeat(320) + '1B/s', totalSize: 100 * MB, downloadedSize: 1 * MB, progress: 0.01 }), 1);
+  const s = t.summary(1);
+  assert.ok(s.speedBps > 0 && s.speedBps < 1e-300, 'speed must be the tiny positive value');
+  assert.equal(s.etaSeconds, null);
+  assertClean(s, 'summary');
+});
+
+test('displayStatus shows live downloads as offline while the app is unreachable', () => {
+  const { displayStatus } = load();
+  for (const live of ['queued', 'running', 'paused']) {
+    assert.equal(displayStatus(live, false), 'offline', live);
+    assert.equal(displayStatus(live, true), live, live);
+  }
+  // Settled states keep their meaning, and an unknown connection state is not "offline".
+  for (const settled of ['done', 'error', 'canceled', 'duplicate']) assert.equal(displayStatus(settled, false), settled, settled);
+  assert.equal(displayStatus('running', undefined), 'running');
+  // Offline rows get no commands: allowedCommands('offline') is empty.
+  assert.deepEqual(Array.from(load().allowedCommands('offline')), []);
+});
+
+test('a snapshot after a reconnect removes the downloads the app no longer has', () => {
+  const t = load().create();
+  t.ingest(p('ghost', { status: 2 }), 1);
+  t.ingest(p('kept', { status: 2 }), 1);
+  t.ingestSnapshot([p('kept', { status: 2, progress: 0.9 })], 2);
+  assert.equal(t.get('ghost'), undefined);
+  assert.equal(t.get('kept').pct, 90);
+});
