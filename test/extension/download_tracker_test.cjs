@@ -310,3 +310,48 @@ test('500 items x 20 updates stay under 200 ms', () => {
   assert.ok(Date.now() - start < 200, 'took ' + (Date.now() - start) + ' ms');
   assert.equal(s.running, 500);
 });
+
+test('ingestSnapshot prunes tracked items that are absent from the snapshot', () => {
+  const t = load().create();
+  t.ingest(p('g', { speed: '1MiB/s', progress: 0.3 }), 1000);
+  t.ingest(p('k', { speed: '1MiB/s', progress: 0.3 }), 1000);
+  t.ingest(p('d', { status: 4 }), 1000);
+  t.ingestSnapshot([p('k', { speed: '2MiB/s', progress: 0.6 })], 2000);
+  assert.equal(t.get('g'), undefined);
+  assert.equal(t.get('d'), undefined);
+  assert.equal(t.get('k').pct, 60);
+  const s = t.summary(2000);
+  assert.equal(s.running, 1);
+  assert.ok(Math.abs(s.speedBps - 1.3 * MB) < 1); // EMA of 1 then 2 MiB/s
+  t.ingestSnapshot([], 3000);
+  assert.equal(t.get('k'), undefined);
+  assert.equal(t.summary(3000).running, 0);
+});
+
+test('pruning keeps tombstones so cleared terminal items stay removed', () => {
+  const t = load().create();
+  t.ingest(p('a', { status: 4 }), 1000);
+  t.remove('a');
+  t.ingestSnapshot([], 2000);
+  t.ingestSnapshot([p('a', { status: 4 })], 3000);
+  assert.equal(t.get('a'), undefined);
+});
+
+test('a snapshot item that is ignored as older is still kept', () => {
+  const t = load().create();
+  t.ingest(p('a', { status: 4 }), 3000);
+  t.ingestSnapshot([p('a', { status: 2 })], 2000);
+  assert.equal(t.get('a').status, 'done');
+});
+
+test('unit tables do not leak prototype keys or overflow into NaN/Infinity', () => {
+  const { parseSpeed, create } = load();
+  assert.equal(parseSpeed('5constructor'), null);
+  assert.equal(parseSpeed('5toString/s'), null);
+  assert.equal(parseSpeed('5__proto__'), null);
+  assert.equal(parseSpeed('9'.repeat(400) + 'MiB/s'), null);
+  const t = create();
+  const dl = t.ingest(p('a', { totalSize: '5constructor', downloadedSize: '9'.repeat(400) + 'MiB', speed: '9'.repeat(400) + 'GiB/s' }), 1);
+  assertClean(dl, 'dl');
+  assertClean(t.summary(1), 'summary');
+});

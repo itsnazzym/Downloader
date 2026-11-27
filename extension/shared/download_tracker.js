@@ -11,11 +11,12 @@
   // Desktop DownloadStatus index -> tracker status.
   var STATUSES = ['queued', 'running', 'running', 'running', 'done', 'error', 'canceled', 'paused', 'duplicate'];
   var TERMINAL = { done: 1, error: 1, canceled: 1, duplicate: 1 };
-  var UNITS = {
+  // Null-prototype table: "constructor" & co. must not resolve as units.
+  var UNITS = Object.assign(Object.create(null), {
     b: 1,
     kib: 1024, mib: 1048576, gib: 1073741824, tib: 1099511627776,
     kb: 1e3, mb: 1e6, gb: 1e9, tb: 1e12
-  };
+  });
   var SIZE_RE = /^\s*(\d+(?:\.\d+)?)\s*([a-z]+)?(?:\/s)?\s*$/i;
 
   function statusFromIndex(i) {
@@ -28,7 +29,11 @@
     var m = SIZE_RE.exec(raw);
     if (!m || !m[2]) return null;
     var unit = UNITS[m[2].toLowerCase()];
-    return unit ? parseFloat(m[1]) * unit : null;
+    return unit ? finiteOrNull(parseFloat(m[1]) * unit) : null;
+  }
+
+  function finiteOrNull(n) {
+    return isFinite(n) ? n : null;
   }
 
   // "MM:SS" or "HH:MM:SS" -> seconds.
@@ -49,7 +54,7 @@
       var m = SIZE_RE.exec(v);
       if (!m) return null;
       var unit = m[2] ? UNITS[m[2].toLowerCase()] : 1;
-      return unit ? parseFloat(m[1]) * unit : null;
+      return unit ? finiteOrNull(parseFloat(m[1]) * unit) : null;
     }
     return typeof v === 'number' && isFinite(v) && v >= 0 ? v : null;
   }
@@ -67,6 +72,8 @@
     var items = new Map();      // id -> { dl, progress, dlBytes, sampleAt, remaining }
     var tombstones = new Map(); // id -> updatedAt of a removed terminal item
 
+    // `now` is the receive time and must be monotonic across calls: a strictly
+    // newer non-terminal message restarts a terminal item (retry) by design.
     function ingest(p, now) {
       if (!p || p.id == null || p.id === '') return undefined;
       var id = String(p.id);
@@ -129,9 +136,18 @@
       return dl;
     }
 
+    // The snapshot is the desktop's full queue: tracked items it omits are gone
+    // (no tombstone). Same monotonic `now` contract as ingest.
     function ingestSnapshot(list, now) {
       if (!Array.isArray(list)) return;
-      for (var i = 0; i < list.length; i++) ingest(list[i], now);
+      var seen = new Set();
+      for (var i = 0; i < list.length; i++) {
+        if (list[i] && list[i].id != null) seen.add(String(list[i].id));
+        ingest(list[i], now);
+      }
+      Array.from(items.keys()).forEach(function (id) {
+        if (!seen.has(id)) items.delete(id);
+      });
     }
 
     function forget(id) {
