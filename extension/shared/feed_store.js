@@ -38,6 +38,7 @@
     var order = []; // ids in display order
     var byId = Object.create(null);
     var seq = 0;
+    var evicted = 0; // items dropped by the cap since the last clear
 
     function merge(batch, source) {
       var added = 0;
@@ -97,6 +98,7 @@
         .slice(0, count)
         .forEach(function (item) { gone[item.id] = true; delete byId[item.id]; });
       order = order.filter(function (id) { return !gone[id]; });
+      evicted += count;
     }
 
     function list(kind) {
@@ -121,7 +123,8 @@
         delete byId[id];
         order.splice(order.indexOf(id), 1);
       },
-      clear: function () { order = []; byId = Object.create(null); seq = 0; },
+      clear: function () { order = []; byId = Object.create(null); seq = 0; evicted = 0; },
+      evicted: function () { return evicted; },
       newSince: newSince,
       lastSeq: function () { return seq; },
     };

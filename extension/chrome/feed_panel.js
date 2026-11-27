@@ -2792,7 +2792,8 @@
         shown,
       );
     }
-    if (opts.truncated) {
+    // Once the cap dropped items the list stays partial, whatever its size now.
+    if (opts.truncated || store.evicted() > 0) {
       limitHint += ' · ' + replaceCount(
         t('xFeedLimitReached', 'First {count} shown'),
         MAX_ITEMS,
@@ -3295,8 +3296,7 @@
       if (domRes && domRes.ok && Array.isArray(domRes.items)) {
         mergeItems(domRes.items);
         renderItems();
-        var isTruncated = Boolean(domRes.truncated) || store.size() >= MAX_ITEMS;
-        updateFeedCountStatus({ truncated: isTruncated });
+        updateFeedCountStatus({ truncated: Boolean(domRes.truncated) });
         return;
       }
       setStatus(t('xFeedNoItems', 'Aucune vidéo trouvée sur cette page.'), '');

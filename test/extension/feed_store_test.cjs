@@ -235,3 +235,14 @@ test('a capped store drops the earliest detected items and keeps order and seq i
   u.merge(Array.from({ length: 300 }, (_, i) => it('u' + i)), 'dom');
   assert.equal(u.size(), 300);
 });
+
+test('a capped store remembers that it evicted items until cleared', () => {
+  const s = load().create(100);
+  s.merge(Array.from({ length: 100 }, (_, i) => it('id' + i)), 'dom');
+  assert.equal(s.evicted(), 0);
+  s.merge([it('late')], 'dom');
+  assert.equal(s.size(), 90);
+  assert.equal(s.evicted(), 11);
+  s.clear();
+  assert.equal(s.evicted(), 0);
+});

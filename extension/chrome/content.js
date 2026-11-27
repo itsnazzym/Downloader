@@ -90,7 +90,9 @@
   }
 
   var X_FEED_MAX_ITEMS = 500;
-  var X_FEED_CACHE_LIMIT = 10000;
+  // At most what the panel store keeps after an eviction (MAX_ITEMS 10000 * 0.9): a larger cache
+  // would re-send evicted items, which the panel would admit again as new.
+  var X_FEED_CACHE_LIMIT = 9000;
   var X_FEED_EMITTED_IDS = {};
   var X_FEED_CACHE = [];
   var X_FEED_CACHE_INDEX = Object.create(null);
