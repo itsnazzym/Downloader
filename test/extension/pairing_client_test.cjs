@@ -392,6 +392,18 @@ test('a socket replaced while connecting (CONFIG_UPDATED then TEST_CONNECTION) l
   assert.equal('apiToken' in bg.storage, false);
 });
 
+test('connect() cancels a scheduled reconnect but keeps the reconnect pace', async () => {
+  const bg = await load();
+  bg.ws().onclose({ code: 1006 });
+  bg.advance(300000);
+  bg.ask({ type: 'TEST_CONNECTION' });
+  await flush();
+  await bg.fireTimers();
+  assert.equal(bg.sockets.length, 2, 'the scheduled reconnect did not open a third socket');
+  bg.ws().onclose({ code: 1006 });
+  assert.deepEqual(bg.reconnectDelays().slice(-1), [10000], 'still unreachable for 5 minutes: slow pace');
+});
+
 test('a late PAIR_OK from a replaced socket that had asked is ignored', async () => {
   const bg = await load();
   bg.open();
