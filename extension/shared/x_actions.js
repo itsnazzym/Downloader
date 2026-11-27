@@ -45,7 +45,8 @@
       if (m) ids[op] = m[1];
     });
     // Full web-app token shape (body, %3D, tail) so base64 'A' padding never passes for it.
-    var bearer = text.match(/AAAAAAAAAAAAAAAAAAAA[A-Za-z0-9]+%3D[A-Za-z0-9]+/);
+    // Bounded, and only tried where an alphanumeric run starts, so a huge run of 'A' stays linear.
+    var bearer = text.match(/(?<![A-Za-z0-9])A{20}[A-Za-z0-9]{1,200}%3D[A-Za-z0-9]{1,200}/);
     if (bearer) ids.bearer = bearer[0];
     return ids;
   }

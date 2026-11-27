@@ -263,6 +263,16 @@ test('parseQueryIds skips A-padding runs and needs the full bearer shape', () =>
   assert.equal(X.parseQueryIds(padding + 'n="AAAAAAAAAAAAAAAAAAAAnoSeparatorHere"').bearer, undefined);
 });
 
+test('parseQueryIds stays fast on a huge run of A and still finds a later token', () => {
+  const X = load();
+  const text = 'A'.repeat(300000) + '";n="' + BEARER + '";';
+  const started = process.hrtime.bigint();
+  const ids = X.parseQueryIds(text);
+  const ms = Number(process.hrtime.bigint() - started) / 1e6;
+  assert.ok(ms < 100, 'parseQueryIds took ' + ms + ' ms');
+  assert.equal(ids.bearer, BEARER);
+});
+
 test('perform rediscovers identifiers after an auth or stale result', async () => {
   const X = load();
   const e = env(fakeDocument({ scripts: [MAIN] }), [{ status: 401, body: null }, { status: 200, body: { data: {} } }]);
