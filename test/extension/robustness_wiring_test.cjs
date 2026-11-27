@@ -25,6 +25,10 @@ test('the HELLO_OK cookie-preference and PROGRESS storage chains have a catch', 
   assert.match(connection, /setTimeout\(sendCurrentTabCookies, 2000\);\s*\}\s*\}\)\.catch\(/);
 });
 
+test('the diagnostics log ignores a failed storage write', () => {
+  assert.match(connection, /api\.storage\.local\.set\(\{ _mdDiag: logs \}\)\.catch\(function \(\) \{\}\);/);
+});
+
 test('closing or replacing a socket releases the callers waiting on it', () => {
   assert.match(connection, /function closeSocketQuietly\(\) \{\s*if \(!socket\) return;\s*failPending\(\);/);
   assert.match(connection, /activeDownloadCount = 0;[^\n]*\n\s*failPending\(\);\s*publishConnectionState\(\);/);

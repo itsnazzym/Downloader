@@ -130,7 +130,7 @@
           d: String(data || ''),
         });
         if (logs.length > 40) logs = logs.slice(logs.length - 40);
-        api.storage.local.set({ _mdDiag: logs });
+        api.storage.local.set({ _mdDiag: logs }).catch(function () {});
       }).catch(function () {});
     } catch (e) {}
   }
