@@ -427,6 +427,21 @@ void main() {
       },
     );
 
+    test('a browser paired in an earlier session notifies on its first '
+        'connection only, each browser once', () async {
+      final (_, first) = await store.pair(origin: _ext, label: 'Chrome');
+      final (_, second) = await store.pair(origin: _ext2, label: 'Firefox');
+
+      for (final token in [first, first, second]) {
+        final p = await open();
+        p.send({'type': 'HELLO', 'token': token});
+        expect((await p.next())['type'], 'HELLO_OK');
+        await p.ws.close();
+        await p.waitClosed();
+      }
+      expect(notifications, 2);
+    });
+
     test('a paired token also works without Origin (local tool)', () async {
       final token = await pairBrowser();
       final p = await open(origin: null);
