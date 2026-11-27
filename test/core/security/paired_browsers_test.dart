@@ -295,6 +295,64 @@ void main() {
     });
   });
 
+  group('cleaners', () {
+    // 19-char scheme prefix + 180 'a' puts a space at rune 200 (index 199).
+    final spaceAtCap = 'chrome-extension://${'a' * 180} bbbb';
+    final tricky = [
+      '',
+      '   ',
+      _origin,
+      ' $_origin\n',
+      spaceAtCap,
+      '${'x' * 199}\u{1F600}tail',
+      '${'y' * 79} z',
+      'a\u0000b‮c​d﻿',
+      'lone \uD800 surrogate',
+      '   \t mixed \r\n',
+      'w' * 5000,
+      '${' ' * 300}inner${' ' * 300}',
+    ];
+
+    test('cleanPairingOrigin trims after the rune cap', () {
+      final c = cleanPairingOrigin(spaceAtCap);
+      expect(c, 'chrome-extension://${'a' * 180}');
+      expect(c.runes.length, lessThanOrEqualTo(200));
+    });
+
+    test('cleanPairingOrigin strips control and invisible chars', () {
+      expect(
+        cleanPairingOrigin(' chrome-extension://ab\ncd‮ '),
+        'chrome-extension://abcd',
+      );
+    });
+
+    test('cleanPairingLabel caps, collapses and falls back', () {
+      expect(cleanPairingLabel('  Chro​me \r\n Edge  '), 'Chrome Edge');
+      expect(cleanPairingLabel(' \u0000 '), 'Navigateur');
+      expect(cleanPairingLabel('l' * 500).runes.length, 80);
+    });
+
+    test('both cleaners are idempotent', () {
+      for (final raw in tricky) {
+        final o = cleanPairingOrigin(raw);
+        final l = cleanPairingLabel(raw);
+        expect(cleanPairingOrigin(o), o, reason: 'origin of ${raw.length}');
+        expect(cleanPairingLabel(l), l, reason: 'label of ${raw.length}');
+      }
+    });
+
+    test('a stored origin survives a reload unchanged', () async {
+      await store.pair(origin: spaceAtCap, label: 'x');
+      final s = newStore();
+      expect(
+        s.state.browsers.single.origin,
+        store.state.browsers.single.origin,
+      );
+      expect(s.isBlocked(spaceAtCap), isFalse);
+      s.dispose();
+    });
+  });
+
   group('bounds', () {
     test(
       'label: control/bidi chars stripped, trimmed, collapsed, <= 80',

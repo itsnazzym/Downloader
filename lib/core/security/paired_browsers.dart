@@ -56,12 +56,13 @@ String _cleanLabel(String raw) {
   return capped.isEmpty ? _defaultLabel : capped;
 }
 
+// Trimmed again after the cap so cleaning twice (e.g. on reload) is a no-op.
 String _cleanOrigin(String raw) => _capRunes(
   _wellFormed(
     _preCap(raw),
   ).replaceAll(_invisibleChars, '').replaceAll(_controlChars, '').trim(),
   _maxOrigin,
-);
+).trim();
 
 /// The store's own sanitising, for callers that must show or compare the same
 /// values the store would keep (pairing requests).
