@@ -63,6 +63,11 @@ String _cleanOrigin(String raw) => _capRunes(
   _maxOrigin,
 );
 
+/// The store's own sanitising, for callers that must show or compare the same
+/// values the store would keep (pairing requests).
+String cleanPairingOrigin(String raw) => _cleanOrigin(raw);
+String cleanPairingLabel(String raw) => _cleanLabel(raw);
+
 /// Thrown by [PairedBrowsersStore.pair] when [_maxBrowsers] pairings already
 /// exist. The caller should refuse the pairing (the user must revoke one).
 class PairedBrowsersFull implements Exception {
@@ -248,6 +253,27 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
 
   bool isBlocked(String origin) =>
       state.blockedOrigins.contains(_cleanOrigin(origin));
+
+  /// Pauses NEW pairing requests from [origin] (default 10 min), as [revoke]
+  /// does, without removing anything. Throws [ArgumentError] on an empty
+  /// origin; keeps the 100 newest pauses.
+  Future<void> pauseOrigin(
+    String origin, {
+    Duration duration = _pauseAfterRevoke,
+  }) {
+    final o = _cleanOrigin(origin);
+    if (o.isEmpty) throw ArgumentError.value(origin, 'origin');
+    final now = _clock();
+    final paused = {
+      for (final e in state.pausedUntil.entries)
+        if (e.key != o && e.value.isAfter(now)) e.key: e.value,
+      o: now.add(duration),
+    };
+    while (paused.length > _maxPaused) {
+      paused.remove(paused.keys.first);
+    }
+    return _save(paused: paused);
+  }
 
   /// Time left on the post-revocation pause for [origin], or null if none.
   /// The pause is per origin: revoking one of several browsers sharing an

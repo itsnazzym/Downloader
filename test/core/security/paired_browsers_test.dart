@@ -201,6 +201,41 @@ void main() {
     });
   });
 
+  group('pauseOrigin', () {
+    test('pauses 10 min by default without removing anything', () async {
+      final (b, _) = await store.pair(origin: _origin, label: 'C');
+      await store.pauseOrigin(_origin);
+
+      expect(store.pauseRemaining(_origin), const Duration(minutes: 10));
+      expect(store.pauseRemaining(_other), isNull);
+      expect(store.state.browsers, [b]);
+      now = now.add(const Duration(minutes: 10));
+      expect(store.pauseRemaining(_origin), isNull);
+    });
+
+    test('custom duration, persisted, cleaned origin, bounded', () async {
+      await store.pauseOrigin(
+        'https://ev\nil.example',
+        duration: const Duration(minutes: 3),
+      );
+      expect(
+        store.pauseRemaining('https://evil.example'),
+        const Duration(minutes: 3),
+      );
+      expect(newStore().pauseRemaining('https://evil.example'), isNotNull);
+
+      for (var i = 0; i < 150; i++) {
+        await store.pauseOrigin('https://o$i.example');
+      }
+      expect(store.state.pausedUntil.length, 100);
+      expect(store.pauseRemaining('https://o149.example'), isNotNull);
+    });
+
+    test('throws ArgumentError on an empty origin', () {
+      expect(() => store.pauseOrigin('​ '), throwsArgumentError);
+    });
+  });
+
   group('persistence', () {
     test('a new instance reloads browsers, blocks and pauses', () async {
       final (browser, token) = await store.pair(origin: _origin, label: 'C');
