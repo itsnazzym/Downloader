@@ -5225,4 +5225,37 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
+
+  @override
+  String terminalLogInit(String id) {
+    return 'تمت تهيئة التنزيل $id';
+  }
+
+  @override
+  String get terminalLogStarted => 'بدأ التنزيل…';
+
+  @override
+  String get terminalLogDone => 'اكتمل التنزيل.';
+
+  @override
+  String get terminalLogCanceled => 'أُلغي التنزيل.';
+
+  @override
+  String get terminalClearFilters => 'مسح';
+
+  @override
+  String get terminalFeedNavigate => 'الفيديو التالي';
+
+  @override
+  String get terminalArchiveIndexing => 'جارٍ قراءة كتالوج TikTok وفهرسته…';
+
+  @override
+  String get terminalArchiveIndexingNote =>
+      'يعمل في الخلفية، ويبقى التطبيق قابلًا للاستخدام';
+
+  @override
+  String get terminalExtensionOnline => 'الإضافة متصلة';
+
+  @override
+  String get terminalExtensionOffline => 'الإضافة غير متصلة';
 }

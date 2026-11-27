@@ -21,9 +21,10 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
 import 'package:modern_downloader/features/designs/pastille/pastille_kit.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
+import 'package:modern_downloader/features/designs/terminal/terminal_library.dart';
+import 'package:modern_downloader/features/designs/terminal/terminal_settings_pages.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:modern_downloader/features/archive/presentation/views/tiktok_archive_view.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
@@ -285,7 +286,13 @@ void main() {
 
       for (var round = 0; round < 2; round++) {
         await open('Plugins', '/settings/plugins');
-        expect(find.byType(PluginsSettingsView), findsOneWidget);
+        // Terminal draws its own plugins section.
+        expect(
+          find.byType(
+            id == 'terminal' ? TerminalPluginsPage : PluginsSettingsView,
+          ),
+          findsOneWidget,
+        );
         await open('Général', '/settings/general');
       }
     });
@@ -384,7 +391,7 @@ void main() {
     );
     router.go('/');
     await settle(tester);
-    final field = find.byType(DownloadSearchField).first;
+    final field = find.byType(TSearchField).first;
     final box = tester.getRect(field);
     final text = tester.getRect(
       find.descendant(of: field, matching: find.byType(EditableText)),
