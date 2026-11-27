@@ -87,4 +87,20 @@ void main() {
       expect(ExtensionOrigin.browserLabel('curl/8.0'), 'Navigateur');
     });
   });
+
+  group('ExtensionOrigin.originScheme', () {
+    test('logs a well-formed scheme only', () {
+      expect(ExtensionOrigin.originScheme(null), 'none');
+      expect(ExtensionOrigin.originScheme('https://evil.example'), 'https');
+      expect(
+        ExtensionOrigin.originScheme('chrome-extension://abcdefghijklmnop'),
+        'chrome-extension',
+      );
+      expect(ExtensionOrigin.originScheme('null'), 'other');
+      expect(ExtensionOrigin.originScheme(''), 'other');
+      expect(ExtensionOrigin.originScheme('EVIL://x'), 'other');
+      expect(ExtensionOrigin.originScheme('${'a' * 21}://x'), 'other');
+      expect(ExtensionOrigin.originScheme('a b://x'), 'other');
+    });
+  });
 }

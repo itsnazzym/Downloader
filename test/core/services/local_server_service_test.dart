@@ -304,7 +304,52 @@ void main() {
       }
     });
 
+    // Hand-written upgrade request: HttpClient cannot send duplicate headers.
+    Future<String> rawUpgradeStatusLine(List<String> originLines) async {
+      final socket = await Socket.connect('127.0.0.1', server.boundPort!);
+      addTearDown(socket.destroy);
+      socket.write(
+        [
+          'GET / HTTP/1.1',
+          'Host: 127.0.0.1:${server.boundPort}',
+          'Connection: Upgrade',
+          'Upgrade: websocket',
+          'Sec-WebSocket-Version: 13',
+          'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==',
+          ...originLines,
+          '',
+          '',
+        ].join('\r\n'),
+      );
+      final bytes = await socket.first.timeout(const Duration(seconds: 2));
+      return latin1.decode(bytes).split('\r\n').first;
+    }
+
+    test('two Origin headers get 403 and the server stays healthy', () async {
+      final status = await rawUpgradeStatusLine([
+        'Origin: chrome-extension://abcdefghijklmnopabcdefghijklmnop',
+        'Origin: chrome-extension://abcdefghijklmnopabcdefghijklmnop',
+      ]);
+      expect(status, contains('403'));
+
+      final ws = await connect();
+      final first = firstMessage(ws);
+      ws.add(jsonEncode({'type': 'HELLO', 'token': expectedToken}));
+      expect(
+        (await first.timeout(const Duration(seconds: 2)))['type'],
+        'HELLO_OK',
+      );
+      await ws.close();
+    });
+
+    test('an empty Origin header gets 403', () async {
+      final status = await rawUpgradeStatusLine(['Origin:']);
+      expect(status, contains('403'));
+    });
+
     test('/status stays reachable from a web page origin', () async {
+      final previous = HttpOverrides.current;
+      addTearDown(() => HttpOverrides.global = previous);
       HttpOverrides.global = null; // the test binding fakes every request
       final client = HttpClient();
       final req = await client.getUrl(

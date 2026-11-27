@@ -12,11 +12,15 @@ class ExtensionOrigin {
   static bool isExtensionOrigin(String? origin) =>
       origin != null && _extensionOrigin.hasMatch(origin);
 
-  /// Scheme only (`chrome-extension`, `https`…), never the extension id.
+  static final _scheme = RegExp(r'^[a-z][a-z0-9+.-]*$');
+
+  /// Scheme only (`chrome-extension`, `https`...), never the extension id.
+  /// The value is attacker-chosen, so anything odd is logged as `other`.
   static String originScheme(String? origin) {
-    if (origin == null || origin.isEmpty) return 'none';
+    if (origin == null) return 'none';
     final i = origin.indexOf(':');
-    return i > 0 && i <= 32 ? origin.substring(0, i) : 'other';
+    final scheme = i > 0 ? origin.substring(0, i) : '';
+    return scheme.length <= 20 && _scheme.hasMatch(scheme) ? scheme : 'other';
   }
 
   /// Display name deduced from the User-Agent; the order matters because

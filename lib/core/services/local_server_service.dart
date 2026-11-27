@@ -154,20 +154,42 @@ Ready for Extension Connection
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
+    try {
+      await _route(request);
+    } catch (e) {
+      // Never let a malformed request escape unanswered (client would hang).
+      LoggerService.w('Local server request failed: $e');
+      try {
+        request.response.statusCode = HttpStatus.badRequest;
+        await request.response.close();
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _route(HttpRequest request) async {
     if (WebSocketTransformer.isUpgradeRequest(request)) {
       // A web page cannot forge Origin: refuse any present non-extension one.
-      final origin = request.headers.value('origin');
-      if (origin != null && !ExtensionOrigin.isExtensionOrigin(origin)) {
+      // List semantics: value() throws on a duplicated header.
+      final origins = request.headers['origin'];
+      if (origins != null &&
+          (origins.length != 1 ||
+              !ExtensionOrigin.isExtensionOrigin(origins.single))) {
         LoggerService.w(
-          'WebSocket refused: origin rejected:${ExtensionOrigin.originScheme(origin)}',
+          'WebSocket refused: origin rejected:${origins.length == 1 ? ExtensionOrigin.originScheme(origins.single) : 'multiple'}',
         );
         request.response.statusCode = HttpStatus.forbidden;
         await request.response.close();
         return;
       }
+      final origin = origins?.single;
       try {
         final socket = await WebSocketTransformer.upgrade(request);
-        _handleWebSocket(socket, request);
+        _handleWebSocket(
+          socket,
+          request,
+          hasExtensionOrigin: ExtensionOrigin.isExtensionOrigin(origin),
+          originScheme: ExtensionOrigin.originScheme(origin),
+        );
       } catch (e) {
         LoggerService.e('WebSocket upgrade failed', e);
       }
@@ -200,13 +222,16 @@ Ready for Extension Connection
     unawaited(NotificationService().showExtensionConnected());
   }
 
-  void _handleWebSocket(WebSocket socket, HttpRequest request) {
-    final origin = request.headers.value('origin');
-    // Used by the pairing flow: only extension origins may request pairing.
-    // ignore: unused_local_variable
-    final hasExtensionOrigin = ExtensionOrigin.isExtensionOrigin(origin);
+  /// [hasExtensionOrigin] is consumed by the pairing flow (a socket without an
+  /// extension Origin can never request pairing).
+  void _handleWebSocket(
+    WebSocket socket,
+    HttpRequest request, {
+    required bool hasExtensionOrigin,
+    required String originScheme,
+  }) {
     LoggerService.i(
-      'Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}, origin ${ExtensionOrigin.originScheme(origin)}',
+      'Extension Connected (WebSocket) from ${request.connectionInfo?.remoteAddress.address}, origin $originScheme',
     );
 
     // Token must arrive via HELLO message body — never from the URL query.
