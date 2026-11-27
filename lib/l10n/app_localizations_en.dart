@@ -5218,4 +5218,129 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.';
+
+  @override
+  String get nocturneBadgeFavorite => 'Favorite';
+
+  @override
+  String get nocturneBadgeLike => 'Like';
+
+  @override
+  String get nocturneOpenInBrowser => 'Open in browser';
+
+  @override
+  String get nocturneLinkCopied => 'Link copied';
+
+  @override
+  String nocturneDemoClip(String film, int number) {
+    return '$film · clip $number';
+  }
+
+  @override
+  String get nocturneAllCollections => 'All collections';
+
+  @override
+  String nocturneDownloadStarted(String id) {
+    return 'Download started: $id';
+  }
+
+  @override
+  String nocturneFolderDownloading(int count) {
+    return 'Downloading the folder’s $count videos…';
+  }
+
+  @override
+  String get nocturneShowCovers => 'Show covers';
+
+  @override
+  String get nocturneShowFolders => 'Show folders';
+
+  @override
+  String get nocturneSyncIncomplete =>
+      'Sync incomplete. The last reliable state is kept.';
+
+  @override
+  String nocturneSyncIncompleteReason(String reason) {
+    return 'Sync incomplete: $reason';
+  }
+
+  @override
+  String nocturneSuggestionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classification suggestions to review',
+      one: '1 classification suggestion to review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsReview(int count) {
+    return 'Review ($count)';
+  }
+
+  @override
+  String get nocturneSuggestionsApplying => 'Sorting…';
+
+  @override
+  String get nocturneSuggestionsTitle => 'Review the suggestions';
+
+  @override
+  String get nocturneSuggestionsHint =>
+      'Tick the videos to file. Nothing changes until you apply.';
+
+  @override
+  String nocturneSuggestionVideo(String id) {
+    return 'Video $id';
+  }
+
+  @override
+  String get nocturneReasonPartial => 'Incomplete sync result';
+
+  @override
+  String get nocturneReasonDate => 'Date close to confirmed videos';
+
+  @override
+  String get nocturneReasonImported => 'Old mapping file';
+
+  @override
+  String get nocturneReasonOther => 'Old classification to check';
+
+  @override
+  String nocturneSuggestionsSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSuggestionsApply => 'Apply';
+
+  @override
+  String nocturneSuggestionsApplied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggestions added to the collections.',
+      one: '1 suggestion added to the collections.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsFailed(String error) {
+    return 'Couldn’t apply these suggestions: $error';
+  }
+
+  @override
+  String get nocturneClose => 'Close';
+
+  @override
+  String get nocturneArchiveLoadingHint =>
+      'Reading in the background: the app stays usable.';
 }

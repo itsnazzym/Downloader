@@ -1,25 +1,21 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
 import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
 import 'package:modern_downloader/core/ui/shell/shell_strips.dart'
     show libraryFilterSources;
-import 'package:modern_downloader/core/utils/format_utils.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/inspector/download_inspector.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_list.dart';
+import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_row_host.dart';
+import 'package:modern_downloader/features/downloader/presentation/widgets/confirm_file_deletion.dart';
 import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/toolbar/download_top_bar.dart';
 import 'package:modern_downloader/features/downloader/presentation/widgets/download_item_context_menu.dart';
 import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
 import 'package:modern_downloader/l10n/app_localizations.dart';
@@ -27,6 +23,8 @@ import 'package:modern_downloader/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import '../signal/signal_widgets.dart' show SignalThumb;
+import 'nocturne_inspector.dart';
+import 'nocturne_library.dart';
 import 'nocturne_states.dart';
 import 'nocturne_widgets.dart';
 
@@ -50,7 +48,7 @@ class NocturneHome extends ConsumerWidget {
         showDragHandle: true,
         builder: (context) => SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.86,
-          child: DownloadInspector(downloadId: next),
+          child: NocturneInspector(downloadId: next),
         ),
       ).whenComplete(() {
         if (ref.read(selectedDownloadIdProvider) == next) {
@@ -81,7 +79,7 @@ class NocturneHome extends ConsumerWidget {
                     ),
                   ),
                 ),
-                child: DownloadInspector(downloadId: selected),
+                child: NocturneInspector(downloadId: selected),
               ),
           ],
         ),
@@ -299,16 +297,10 @@ class _HomeScrollState extends ConsumerState<_HomeScroll>
                 ),
               )
             else
-              // Detailed cards and creator folders: today's list, unchanged.
+              // Detailed cards and creator folders, drawn as Nocturne cards.
               SliverPadding(
-                padding: pad(0, 24),
-                sliver: SliverFillRemaining(
-                  hasScrollBody: true,
-                  child: KeyedSubtree(
-                    key: OnboardingTargets.creatorList,
-                    child: const DownloadList(),
-                  ),
-                ),
+                padding: pad(0, 48),
+                sliver: _LibraryOther(mode: mode, columns: columns),
               ),
           ],
         );
@@ -1108,16 +1100,9 @@ class _Toolbar extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        // Today's toolbar: search (Ctrl+F), failed badge, queue controls,
-        // sort and view modes, more actions. Already in the palette.
-        ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: DownloadTopBar(
-            key: OnboardingTargets.topBar,
-            showFailedBadge: false,
-          ),
-        ),
+        const SizedBox(height: 12),
+        // Search (Ctrl+F), queue controls, sort and view modes, more actions.
+        NocturneLibraryToolbar(key: OnboardingTargets.topBar),
       ],
     );
   }
@@ -1183,188 +1168,142 @@ class _LibraryGrid extends ConsumerWidget {
   }
 }
 
-class _LibraryRow extends ConsumerStatefulWidget {
+class _LibraryRow extends ConsumerWidget {
   const _LibraryRow({required this.itemId, required this.base});
 
   final String itemId;
   final DownloadItem base;
 
   @override
-  ConsumerState<_LibraryRow> createState() => _LibraryRowState();
-}
-
-class _LibraryRowState extends ConsumerState<_LibraryRow> {
-  bool _hover = false;
-  bool _focus = false;
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    final l10n = context.l10n;
-    final item =
-        ref.watch(downloadRuntimeItemProvider(widget.itemId)) ?? widget.base;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final item = ref.watch(downloadRuntimeItemProvider(itemId)) ?? base;
     final selected = ref.watch(
       selectedDownloadIdProvider.select((id) => id == item.id),
     );
-    final failed =
-        item.status == DownloadStatus.failed ||
-        item.status == DownloadStatus.canceled;
-    final busy =
-        isActiveDownload(item) ||
-        item.status == DownloadStatus.queued ||
-        item.status == DownloadStatus.paused;
-    final size = bytesOf(item);
-    final reason = failed ? downloadErrorReason(item.error) : '';
-    final meta = failed
-        ? [l10n.designFailed, reason].where((s) => s.isNotEmpty).join(' · ')
-        : [
-            item.source,
-            formatLabelOf(item),
-            if (size > 0) localBytes(l10n, size),
-          ].where((s) => s.isNotEmpty).join(' · ');
+    final notifier = ref.read(downloadListProvider.notifier);
     return DownloadItemContextMenu(
       item: item,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: () => ref.read(selectedDownloadIdProvider.notifier).state =
-              selected ? null : item.id,
-          onDoubleTap: () => playDownload(ref, item),
-          onHover: (v) => setState(() => _hover = v),
-          onFocusChange: (v) => setState(() => _focus = v),
-          onHighlightChanged: (v) => setState(() => _pressed = v),
-          borderRadius: BorderRadius.circular(14),
-          hoverColor: Colors.transparent,
-          focusColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          splashColor: c.primary.withValues(alpha: 0.06),
-          child: AnimatedContainer(
-            duration: nocturneMotion(context, 180),
-            curve: nocturneEase,
-            transform: Matrix4.diagonal3Values(
-              _pressed ? 0.99 : 1,
-              _pressed ? 0.99 : 1,
-              1,
-            ),
-            transformAlignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: selected || _hover ? c.surface : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: selected || _focus
-                    ? c.primary.withValues(alpha: _focus ? 0.9 : 0.55)
-                    : Colors.transparent,
-              ),
-            ),
-            child: Row(
-              children: [
-                SignalThumb(
-                  url: item.thumbnailUrl,
-                  filePath: item.filePath,
-                  width: 96,
-                  height: 56,
-                  radius: 12,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        titleOf(item),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: nocturneText(c, weight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        meta,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: nocturneText(
-                          c,
-                          size: 12,
-                          color: failed ? c.error : c.textDisabled,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (busy) ...[
-                  const SizedBox(width: 10),
-                  NocturneRing(
-                    value: item.progress,
-                    size: 36,
-                    stroke: 4,
-                    radius: 14,
-                  ),
-                ],
-                // A failed row always shows how to recover.
-                if (failed) ...[
-                  const SizedBox(width: 10),
-                  NocturneButton(
-                    label: l10n.retry,
-                    icon: Icons.refresh_rounded,
-                    height: 32,
-                    radius: 10,
-                    padding: 12,
-                    fontSize: 12.5,
-                    onTap: () => ref
-                        .read(downloadListProvider.notifier)
-                        .retryDownload(item),
-                  ),
-                ],
-                AnimatedOpacity(
-                  opacity: _hover || _focus ? 1 : 0,
-                  duration: nocturneMotion(context, 180),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (item.status == DownloadStatus.completed) ...[
-                        NocturneIconButton(
-                          icon: Icons.play_arrow_rounded,
-                          tooltip: l10n.detailsPlayVideo,
-                          ghost: true,
-                          onTap: () => playDownload(ref, item),
-                        ),
-                        NocturneIconButton(
-                          icon: Icons.folder_open_rounded,
-                          tooltip: l10n.openFolder,
-                          ghost: true,
-                          onTap: () => revealDownload(item),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      child: NocturneDownloadRow(
+        item: item,
+        selected: selected,
+        onTap: () => ref.read(selectedDownloadIdProvider.notifier).state =
+            selected ? null : item.id,
+        // Failed rows have no file to lose: retry at once.
+        onRetry: () => notifier.retryDownload(item),
+        onDelete: () async {
+          if (await confirmFileDeletion(
+            context,
+            item,
+            actionLabel: context.l10n.delete,
+          )) {
+            await notifier.deleteDownload(item.id);
+          }
+        },
       ),
     );
   }
 }
 
-void playDownload(WidgetRef ref, DownloadItem item) {
-  final path = item.filePath;
-  if (path != null && File(path).existsSync()) {
-    ref.read(mediaPlayerProvider.notifier).openFile(path);
-  }
-}
+/// Detailed cards and creator folders. Rows go through the shared row host
+/// (context menu, selection, delete confirmation), drawn by Nocturne's skin.
+class _LibraryOther extends ConsumerWidget {
+  const _LibraryOther({required this.mode, required this.columns});
 
-void revealDownload(DownloadItem item) {
-  final path = item.filePath;
-  if (path != null && File(path).existsSync() && Platform.isWindows) {
-    Process.run('explorer', ['/select,', path]);
-  }
-}
+  final DownloadViewMode mode;
+  final int columns;
 
-/// yt-dlp size strings ("54.1MiB") in the app's units; empty if none.
-String sizeLabel(AppLocalizations l10n, String raw) {
-  final bytes = raw.isEmpty ? 0 : FormatUtils.parseBytes(raw);
-  return bytes > 0 ? localBytes(l10n, bytes) : '';
+  static const _cards = SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 300,
+    mainAxisExtent: 262,
+    crossAxisSpacing: 14,
+    mainAxisSpacing: 14,
+  );
+
+  Widget _rows(List<String> ids, {required bool grid}) {
+    Widget host(int i) =>
+        DownloadRowHost(key: ValueKey(ids[i]), id: ids[i], useGridCard: grid);
+    // The onboarding points at the list through its first row.
+    Widget at(BuildContext context, int i) => i == 0
+        ? KeyedSubtree(key: OnboardingTargets.creatorList, child: host(i))
+        : host(i);
+    if (grid) {
+      return SliverGrid(
+        gridDelegate: _cards,
+        delegate: SliverChildBuilderDelegate(at, childCount: ids.length),
+      );
+    }
+    return SliverGrid(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns >= 3 ? 2 : 1,
+        mainAxisExtent: 76,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 4,
+      ),
+      delegate: SliverChildBuilderDelegate(at, childCount: ids.length),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // As the shared list did: leave a folder when the view or its content
+    // changes under it.
+    ref.listen(downloadViewModeProvider, (previous, next) {
+      if (next != DownloadViewMode.folders) {
+        ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
+      }
+    });
+    ref.listen(creatorFoldersProvider, (previous, next) {
+      final opened = ref.read(openedCreatorFolderKeyProvider);
+      if (opened != null && !next.folders.any((f) => f.key == opened)) {
+        ref.read(openedCreatorFolderKeyProvider.notifier).state = null;
+      }
+    });
+    final ids = ref.watch(filteredDownloadIdListProvider).ids;
+    if (ids.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: NocturneNoResults(key: OnboardingTargets.creatorList),
+        ),
+      );
+    }
+    if (mode == DownloadViewMode.detailed) return _rows(ids, grid: true);
+    final opened = ref.watch(openedCreatorFolderProvider);
+    if (opened != null) {
+      final inside = ref.watch(openedCreatorFolderItemIdsProvider).ids;
+      final grid =
+          ref.watch(folderContentsViewModeProvider) ==
+          DownloadViewMode.detailed;
+      return SliverMainAxisGroup(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: NocturneFolderHeader(folder: opened),
+            ),
+          ),
+          _rows(inside, grid: grid),
+        ],
+      );
+    }
+    final folders = ref.watch(creatorFoldersProvider).folders;
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 200,
+        mainAxisExtent: 236,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+      ),
+      delegate: SliverChildBuilderDelegate((context, i) {
+        final tile = NocturneFolderTile(
+          key: ValueKey(folders[i].key),
+          folder: folders[i],
+          onOpen: () => openCreatorFolder(ref, folders[i].key),
+        );
+        return i == 0
+            ? KeyedSubtree(key: OnboardingTargets.creatorList, child: tile)
+            : tile;
+      }, childCount: folders.length),
+    );
+  }
 }

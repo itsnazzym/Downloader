@@ -5,35 +5,33 @@ import 'package:modern_downloader/core/services/local_server_service.dart';
 import 'package:modern_downloader/core/theme/app_colors.dart';
 import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
 import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_collections_view.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_filter_pane.dart';
-import 'package:modern_downloader/features/archive/presentation/views/widgets/tiktok_video_card.dart';
+import 'package:modern_downloader/features/archive/presentation/providers/tiktok_video_cache_provider.dart';
 import 'package:modern_downloader/l10n/l10n_ext.dart';
 import 'package:modern_downloader/showcase/showcase_mode.dart';
 
+import 'nocturne_archive_parts.dart';
 import 'nocturne_widgets.dart';
 
 /// Nocturne's TikTok archive (mockup Nocturne-Archives.dc.html): the
 /// archive's header and figures, sync and download-all, then Vidéos /
-/// Collections / Favoris. The import hub, the loading state, the filter pane,
-/// the video cards and the collections view (open, select and purge, reset,
-/// delete, suggestions) are today's widgets, unchanged.
+/// Collections / Favoris, with its own import hub, loading state, filter
+/// pane, video cards and collections (open, search, select and purge, reset,
+/// delete, suggestions, clear).
 class NocturneArchive extends ConsumerWidget {
   const NocturneArchive({super.key, required this.current});
 
-  /// Today's archive view: loading, import hub and empty states.
+  /// Today's archive view, no longer shown: every state is drawn here.
   final Widget current;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(tikTokArchiveProvider);
     final catalog = state.catalog;
-    if (!state.isLoading && !state.hasCatalog) return _NoArchive(state: state);
-    if (state.isLoading ||
-        state.viewMode == TikTokViewMode.hub ||
-        !state.hasCatalog ||
-        catalog == null) {
-      return current;
+    if (state.isLoading) return const _Loading();
+    if (!state.hasCatalog ||
+        catalog == null ||
+        state.viewMode == TikTokViewMode.hub) {
+      return _NoArchive(state: state);
     }
     final wide = MediaQuery.sizeOf(context).width >= 900;
     return Scaffold(
@@ -59,8 +57,9 @@ class NocturneArchive extends ConsumerWidget {
   }
 }
 
-/// No archive imported yet: the orbit, what the page is for, and today's
-/// hub actions (import a JSON export, sync through the extension).
+/// The import hub: no archive yet, or « Importer » from a loaded one. The
+/// orbit, what the page is for, import a JSON export, sync through the
+/// extension, and back to the library when there is one.
 class _NoArchive extends ConsumerWidget {
   const _NoArchive({required this.state});
 
@@ -75,12 +74,16 @@ class _NoArchive extends ConsumerWidget {
     final connected =
         !showcase && ref.watch(extensionConnectedClientsProvider) > 0;
     final syncing = state.syncStatus == TikTokSyncStatus.waiting;
+    final catalog = state.hasCatalog ? state.catalog : null;
     final text = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          l10n.nocturneArchiveEmptyTitle,
+          catalog == null
+              ? l10n.nocturneArchiveEmptyTitle
+              : '${l10n.archiveMobileVideoCount(catalog.videos.length)} · '
+                    '${l10n.archiveHubCollections(catalog.collections.length)}',
           style: nocturneText(
             c,
             size: 24,
@@ -91,7 +94,9 @@ class _NoArchive extends ConsumerWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: Text(
-            l10n.nocturneArchiveEmptyBody,
+            catalog == null
+                ? l10n.nocturneArchiveEmptyBody
+                : l10n.archiveDeskIntro,
             style: nocturneText(c, size: 14, color: c.textSecondary),
           ),
         ),
@@ -100,10 +105,21 @@ class _NoArchive extends ConsumerWidget {
           spacing: 10,
           runSpacing: 10,
           children: [
+            if (catalog != null)
+              NocturneButton(
+                label: l10n.archiveHubOpen,
+                icon: Icons.grid_view_rounded,
+                kind: NocturneButtonKind.primary,
+                height: 42,
+                radius: 14,
+                onTap: () => notifier.setViewMode(TikTokViewMode.collections),
+              ),
             NocturneButton(
               label: l10n.nocturneArchiveImportJson,
               icon: Icons.file_open_outlined,
-              kind: NocturneButtonKind.primary,
+              kind: catalog == null
+                  ? NocturneButtonKind.primary
+                  : NocturneButtonKind.plain,
               height: 42,
               radius: 14,
               onTap: showcase ? null : notifier.pickAndImportFile,
@@ -113,15 +129,24 @@ class _NoArchive extends ConsumerWidget {
               icon: Icons.sync_rounded,
               height: 42,
               radius: 14,
-              onTap: connected && !syncing ? notifier.triggerExtensionSync : null,
+              onTap: connected && !syncing
+                  ? notifier.triggerExtensionSync
+                  : null,
             ),
           ],
         ),
-        if (!connected) ...[
-          const SizedBox(height: 12),
+        const SizedBox(height: 12),
+        Text(
+          connected ? l10n.archiveDeskSyncManual : l10n.nocturneArchiveSyncHint,
+          style: nocturneText(c, size: 12.5, color: c.textDisabled),
+        ),
+        if (syncing) ...[
+          const SizedBox(height: 14),
+          const SizedBox(width: 320, child: LinearProgressIndicator()),
+          const SizedBox(height: 8),
           Text(
-            l10n.nocturneArchiveSyncHint,
-            style: nocturneText(c, size: 12.5, color: c.textDisabled),
+            l10n.archiveMobileSyncWaiting,
+            style: nocturneText(c, size: 12.5, color: c.textSecondary),
           ),
         ],
         // Today's hub feedback: the last sync's outcome and import errors.
@@ -140,7 +165,12 @@ class _NoArchive extends ConsumerWidget {
             style: nocturneText(
               c,
               size: 12.5,
-              color: error ? c.error : c.textSecondary,
+              color: error
+                  ? (state.syncStatus == TikTokSyncStatus.partial &&
+                            message == state.syncMessage
+                        ? c.warning
+                        : c.error)
+                  : c.textSecondary,
             ),
           ),
         ],
@@ -174,6 +204,35 @@ class _NoArchive extends ConsumerWidget {
                     )
                   : text,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The catalog being read: the orbit turning slowly, what is happening.
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final l10n = context.l10n;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const NocturneOrbit(size: 150, icon: Icons.inventory_2_outlined),
+          const SizedBox(height: 22),
+          Text(
+            l10n.archiveHubLoading,
+            style: nocturneText(c, size: 15, weight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.nocturneArchiveLoadingHint,
+            style: nocturneText(c, size: 12.5, color: c.textDisabled),
           ),
         ],
       ),
@@ -223,12 +282,7 @@ class _Header extends ConsumerWidget {
     );
     final identity = Row(
       children: [
-        NocturneMonogram(
-          text: 'Tik Tok',
-          size: 60,
-          radius: 18,
-          fontSize: 18,
-        ),
+        NocturneMonogram(text: 'Tik Tok', size: 60, radius: 18, fontSize: 18),
         const SizedBox(width: 18),
         Expanded(
           child: Column(
@@ -527,7 +581,7 @@ class _VideoListState extends ConsumerState<_VideoList> {
                   backgroundColor: c.surface,
                   builder: (_) => SizedBox(
                     height: MediaQuery.sizeOf(context).height * 0.8,
-                    child: const TikTokFilterPane(),
+                    child: const NocturneFilterPane(),
                   ),
                 ),
               ),
@@ -618,11 +672,10 @@ class _VideoListState extends ConsumerState<_VideoList> {
                     final video = videos[i];
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: TikTokVideoCard(
+                      child: NocturneVideoCard(
                         item: video,
-                        isSelected: state.selectedIds.contains(video.id),
-                        onToggleSelect: () =>
-                            notifier.toggleSelection(video.id),
+                        selected: state.selectedIds.contains(video.id),
+                        onToggle: () => notifier.toggleSelection(video.id),
                         onDownload: () async {
                           if (ref.read(showcaseModeProvider)) return;
                           await notifier.downloadBatch([video], limit: 1);
@@ -645,7 +698,7 @@ class _VideoListState extends ConsumerState<_VideoList> {
             padding: EdgeInsets.zero,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(17),
-              child: const TikTokFilterPane(),
+              child: const NocturneFilterPane(),
             ),
           ),
         ),
@@ -656,10 +709,10 @@ class _VideoListState extends ConsumerState<_VideoList> {
   }
 }
 
-/// Collections as in the mockup: tinted cards, how much is downloaded,
-/// select-and-purge with its bar. Opening a collection, and « Vue
-/// classique » (search, posters, suggestions, reset, delete), show today's
-/// collections view.
+/// Collections as in the mockup: tinted cards (or their covers), how much is
+/// downloaded, search, select-and-purge with its bar, delete one, clear the
+/// whole archive, review the classification suggestions. Opening one shows
+/// its videos.
 class _Collections extends ConsumerStatefulWidget {
   const _Collections({required this.state, required this.catalog});
 
@@ -672,92 +725,41 @@ class _Collections extends ConsumerStatefulWidget {
 
 class _CollectionsState extends ConsumerState<_Collections> {
   bool _selecting = false;
-  bool _classic = false;
   bool _purging = false;
+  bool _covers = false;
   final Set<String> _selected = {};
+  final _search = TextEditingController();
 
-  // Same virtual folders as today's view: views, not collections.
-  static const _liked = 'Vidéos Likées';
-  static const _unsorted = 'Favoris non classés';
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   static bool _contains(TikTokCollectionItem col, TikTokArchiveItem v) {
-    if (col.name == _liked) return v.isLiked;
-    if (col.name == _unsorted) {
+    if (col.name == nocturneLikedFolder) return v.isLiked;
+    if (col.name == nocturneUnsortedFolder) {
       return v.isFavorite &&
           v.collectionIds.isEmpty &&
           (v.collectionName == null ||
-              v.collectionName == _unsorted ||
-              v.collectionName == _liked);
+              v.collectionName == nocturneUnsortedFolder ||
+              v.collectionName == nocturneLikedFolder);
     }
     return (col.id != null && v.collectionIds.contains(col.id)) ||
         (v.collectionName?.split(' · ').contains(col.name) ?? false);
   }
 
-  void _notice(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
-
-  /// Confirms, then deletes the collections' own videos and their files
-  /// (permanently); videos shared with a kept collection stay.
   Future<void> _purge() async {
     if (_selected.isEmpty || _purging) return;
-    final l10n = context.l10n;
-    final c = AppColors.of(context);
-    final notifier = ref.read(tikTokArchiveProvider.notifier);
-    final keys = Set<String>.of(_selected);
-    final preview = notifier.purgePreview(keys);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.surface,
-        title: Text(l10n.archivePurgeTitle(keys.length)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.archivePurgeBody(preview.videos, preview.files)),
-            if (preview.keptShared > 0) ...[
-              const SizedBox(height: 12),
-              Text(
-                l10n.archivePurgeKept(preview.keptShared),
-                style: nocturneText(c, size: 12.5, color: c.textSecondary),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            autofocus: true,
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          NocturneButton(
-            label: l10n.delete,
-            icon: Icons.delete_forever_rounded,
-            kind: NocturneButtonKind.danger,
-            onTap: () => Navigator.of(ctx).pop(true),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
     setState(() => _purging = true);
     try {
-      final r = await notifier.purgeCollections(keys);
-      if (!mounted) return;
-      setState(() {
-        _selecting = false;
-        _selected.clear();
-      });
-      _notice(l10n.archivePurgeDone(r.filesDeleted, r.videosRemoved));
+      final done = await nocturnePurge(context, ref, Set.of(_selected));
+      if (done && mounted) {
+        setState(() {
+          _selecting = false;
+          _selected.clear();
+        });
+      }
     } finally {
       if (mounted) setState(() => _purging = false);
     }
@@ -769,47 +771,38 @@ class _CollectionsState extends ConsumerState<_Collections> {
     final l10n = context.l10n;
     final catalog = widget.catalog;
     final notifier = ref.read(tikTokArchiveProvider.notifier);
-    if (_classic || widget.state.filter.selectedCollection != null) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_classic) ...[
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: NocturneButton(
-                label: l10n.nocturneCardsView,
-                icon: Icons.grid_view_rounded,
-                kind: NocturneButtonKind.ghost,
-                onTap: () => setState(() => _classic = false),
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-          Expanded(
-            child: NocturneCard(
-              lift: false,
-              padding: EdgeInsets.zero,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(17),
-                child: TikTokCollectionsView(catalog: catalog),
-              ),
-            ),
-          ),
-        ],
-      );
+    final open = widget.state.filter.selectedCollection;
+    if (open != null) {
+      final name =
+          catalog.collections
+              .where(
+                (col) => col.id == open || (col.id == null && col.name == open),
+              )
+              .firstOrNull
+              ?.name ??
+          open;
+      return NocturneCollectionDetail(collectionKey: open, name: name);
     }
+    // Videos the cache knows are gone don't count, as in today's view.
+    final unavailable = ref.watch(showcaseModeProvider)
+        ? const <String>{}
+        : ref.watch(tiktokUnavailableIdsProvider).valueOrNull ??
+              ref.read(tiktokVideoCacheServiceProvider).unavailableIds;
+    final query = _search.text.trim().toLowerCase();
     final cards = <Widget>[];
     for (final col in catalog.collections) {
+      if (query.isNotEmpty && !col.name.toLowerCase().contains(query)) continue;
       final videos = [
         for (final v in catalog.videos)
-          if (_contains(col, v)) v,
+          if (!unavailable.contains(v.id) && _contains(col, v)) v,
       ];
       final missing = [
         for (final v in videos)
           if (!v.isDownloaded) v,
       ];
       final key = col.id ?? col.name;
-      final special = col.name == _liked || col.name == _unsorted;
+      final special =
+          col.name == nocturneLikedFolder || col.name == nocturneUnsortedFolder;
       cards.add(
         _CollectionCard(
           collection: col,
@@ -817,6 +810,7 @@ class _CollectionsState extends ConsumerState<_Collections> {
           downloaded: videos.length - missing.length,
           selecting: _selecting && !special,
           selected: _selected.contains(key),
+          cover: _covers,
           onTap: () {
             if (!_selecting) {
               notifier.selectCollection(key);
@@ -829,6 +823,16 @@ class _CollectionsState extends ConsumerState<_Collections> {
           onDownload: missing.isEmpty || widget.state.isBatchDownloading
               ? null
               : () => notifier.downloadBatch(missing, limit: missing.length),
+          // Virtual folders (liked, unsorted) are views, not collections.
+          onDelete: special || _selecting
+              ? null
+              : () => nocturneDeleteCollection(
+                  context,
+                  ref,
+                  key,
+                  col.name,
+                  videos.length,
+                ),
         ),
       );
     }
@@ -836,13 +840,29 @@ class _CollectionsState extends ConsumerState<_Collections> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            NocturneButton(
-              label: l10n.nocturneClassicView,
-              icon: Icons.view_list_rounded,
-              kind: NocturneButtonKind.ghost,
-              onTap: () => setState(() => _classic = true),
+            Expanded(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: NocturneSearchBox(
+                    controller: _search,
+                    hint: l10n.archiveCollSearch,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            NocturneIconButton(
+              icon: _covers
+                  ? Icons.view_agenda_outlined
+                  : Icons.photo_library_outlined,
+              tooltip: _covers
+                  ? l10n.nocturneShowFolders
+                  : l10n.nocturneShowCovers,
+              onTap: () => setState(() => _covers = !_covers),
             ),
             const SizedBox(width: 8),
             NocturneButton(
@@ -857,73 +877,108 @@ class _CollectionsState extends ConsumerState<_Collections> {
                 _selected.clear();
               }),
             ),
+            const SizedBox(width: 4),
+            NocturneIconButton(
+              icon: Icons.delete_sweep_outlined,
+              tooltip: l10n.archiveCollClear,
+              ghost: true,
+              onTap: () => nocturneClearArchive(context, ref),
+            ),
           ],
         ),
+        if (catalog.suggestions.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          NocturneSuggestionsBanner(suggestions: catalog.suggestions),
+        ],
         const SizedBox(height: 14),
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                NocturneAutoGrid(minWidth: 220, children: cards),
-                if (_selecting) ...[
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
-                    decoration: BoxDecoration(
-                      color: c.surfaceHighlight,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: c.primary.withValues(alpha: 0.14),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+          child: cards.isEmpty
+              ? Center(
+                  child: Text(
+                    l10n.archiveCollEmpty,
+                    style: nocturneText(c, color: c.textSecondary),
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      NocturneAutoGrid(minWidth: 220, children: cards),
+                      if (_selecting) ...[
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+                          decoration: BoxDecoration(
+                            color: c.surfaceHighlight,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: c.primary.withValues(alpha: 0.14),
+                            ),
+                          ),
+                          child: Row(
                             children: [
-                              Text(
-                                l10n.archivePurgeSelectedCount(
-                                  _selected.length,
-                                ),
-                                style: nocturneText(
-                                  c,
-                                  size: 14,
-                                  weight: FontWeight.w700,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.archivePurgeSelectedCount(
+                                        _selected.length,
+                                      ),
+                                      style: nocturneText(
+                                        c,
+                                        size: 14,
+                                        weight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      l10n.nocturnePurgeHint,
+                                      style: nocturneText(
+                                        c,
+                                        size: 12.5,
+                                        color: c.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 3),
-                              Text(
-                                l10n.nocturnePurgeHint,
-                                style: nocturneText(
-                                  c,
-                                  size: 12.5,
-                                  color: c.textSecondary,
-                                ),
+                              const SizedBox(width: 16),
+                              NocturneButton(
+                                label: l10n.archivePurgeAction,
+                                icon: Icons.delete_outline_rounded,
+                                kind: NocturneButtonKind.danger,
+                                onTap: _selected.isEmpty || _purging
+                                    ? null
+                                    : _purge,
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        NocturneButton(
-                          label: l10n.archivePurgeAction,
-                          icon: Icons.delete_outline_rounded,
-                          kind: NocturneButtonKind.danger,
-                          onTap: _selected.isEmpty || _purging ? null : _purge,
-                        ),
                       ],
-                    ),
+                    ],
                   ),
-                ],
-              ],
-            ),
-          ),
+                ),
         ),
       ],
     );
   }
+}
+
+/// Only TikTok's own image hosts are loaded as covers.
+bool _trustedCover(String? value) {
+  final uri = value == null ? null : Uri.tryParse(value);
+  if (uri == null || uri.scheme != 'https') return false;
+  const hosts = [
+    'tiktokcdn.com',
+    'tiktokv.com',
+    'byteoversea.com',
+    'ibytedtos.com',
+    'byteimg.com',
+  ];
+  final host = uri.host.toLowerCase();
+  return hosts.any((d) => host == d || host.endsWith('.$d'));
 }
 
 class _CollectionCard extends StatelessWidget {
@@ -933,8 +988,10 @@ class _CollectionCard extends StatelessWidget {
     required this.downloaded,
     required this.selecting,
     required this.selected,
+    required this.cover,
     required this.onTap,
     required this.onDownload,
+    required this.onDelete,
   });
 
   final TikTokCollectionItem collection;
@@ -942,14 +999,24 @@ class _CollectionCard extends StatelessWidget {
   final int downloaded;
   final bool selecting;
   final bool selected;
+
+  /// Shows the collection's cover image instead of the tinted bars.
+  final bool cover;
   final VoidCallback onTap;
   final VoidCallback? onDownload;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final l10n = context.l10n;
     final share = count == 0 ? 0.0 : downloaded / count;
+    final coverUrl = cover && _trustedCover(collection.coverUrl)
+        ? collection.coverUrl
+        : null;
+    final incomplete =
+        collection.syncComplete == false &&
+        collection.syncError != 'count_mismatch';
     return Semantics(
       button: true,
       selected: selected,
@@ -965,36 +1032,68 @@ class _CollectionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  height: 88,
+                  height: cover ? 132 : 88,
                   padding: const EdgeInsets.all(10),
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     gradient: nocturneTint(collection.name.hashCode),
                     borderRadius: BorderRadius.circular(13),
                   ),
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          for (var i = 0; i < 3; i++) ...[
-                            if (i > 0) const SizedBox(width: 6),
-                            Expanded(
-                              child: FractionallySizedBox(
-                                heightFactor: const [0.62, 0.82, 0.48][i],
-                                alignment: Alignment.bottomCenter,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(
-                                      alpha: 0.06,
+                      if (coverUrl != null)
+                        Positioned.fill(
+                          left: -10,
+                          top: -10,
+                          right: -10,
+                          bottom: -10,
+                          child: Image.network(
+                            coverUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const SizedBox(),
+                          ),
+                        )
+                      else
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            for (var i = 0; i < 3; i++) ...[
+                              if (i > 0) const SizedBox(width: 6),
+                              Expanded(
+                                child: FractionallySizedBox(
+                                  heightFactor: const [0.62, 0.82, 0.48][i],
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.06,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
-                        ],
-                      ),
+                        ),
+                      if (incomplete)
+                        Positioned(
+                          top: -2,
+                          left: -2,
+                          child: Tooltip(
+                            message: collection.syncError == null
+                                ? l10n.nocturneSyncIncomplete
+                                : l10n.nocturneSyncIncompleteReason(
+                                    collection.syncError!,
+                                  ),
+                            child: Icon(
+                              Icons.warning_amber_rounded,
+                              size: 18,
+                              color: c.warning,
+                            ),
+                          ),
+                        ),
                       if (selecting)
                         Positioned(
                           top: -2,
@@ -1008,6 +1107,18 @@ class _CollectionCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: NocturneCheck(checked: selected),
+                          ),
+                        )
+                      else if (onDelete != null)
+                        Positioned(
+                          top: -6,
+                          right: -6,
+                          child: NocturneIconButton(
+                            icon: Icons.delete_outline_rounded,
+                            tooltip: l10n.archiveCollDelete,
+                            ghost: true,
+                            size: 30,
+                            onTap: onDelete,
                           ),
                         ),
                     ],

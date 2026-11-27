@@ -5225,4 +5225,129 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.';
+
+  @override
+  String get nocturneBadgeFavorite => 'مفضّل';
+
+  @override
+  String get nocturneBadgeLike => 'إعجاب';
+
+  @override
+  String get nocturneOpenInBrowser => 'فتح في المتصفح';
+
+  @override
+  String get nocturneLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String nocturneDemoClip(String film, int number) {
+    return '$film · مقطع $number';
+  }
+
+  @override
+  String get nocturneAllCollections => 'كل المجموعات';
+
+  @override
+  String nocturneDownloadStarted(String id) {
+    return 'بدأ التنزيل: $id';
+  }
+
+  @override
+  String nocturneFolderDownloading(int count) {
+    return 'جارٍ تنزيل $count مقاطع من المجلد…';
+  }
+
+  @override
+  String get nocturneShowCovers => 'عرض الأغلفة';
+
+  @override
+  String get nocturneShowFolders => 'عرض المجلدات';
+
+  @override
+  String get nocturneSyncIncomplete =>
+      'مزامنة غير مكتملة. تم الاحتفاظ بآخر حالة موثوقة.';
+
+  @override
+  String nocturneSyncIncompleteReason(String reason) {
+    return 'مزامنة غير مكتملة: $reason';
+  }
+
+  @override
+  String nocturneSuggestionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count اقتراحات تصنيف للمراجعة',
+      one: 'اقتراح تصنيف واحد للمراجعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsReview(int count) {
+    return 'مراجعة ($count)';
+  }
+
+  @override
+  String get nocturneSuggestionsApplying => 'جارٍ التصنيف…';
+
+  @override
+  String get nocturneSuggestionsTitle => 'مراجعة الاقتراحات';
+
+  @override
+  String get nocturneSuggestionsHint =>
+      'حدّد المقاطع المراد ترتيبها. لا يتغيّر شيء قبل التطبيق.';
+
+  @override
+  String nocturneSuggestionVideo(String id) {
+    return 'مقطع $id';
+  }
+
+  @override
+  String get nocturneReasonPartial => 'نتيجة مزامنة غير مكتملة';
+
+  @override
+  String get nocturneReasonDate => 'تاريخ قريب من المقاطع المؤكدة';
+
+  @override
+  String get nocturneReasonImported => 'ملف مطابقة قديم';
+
+  @override
+  String get nocturneReasonOther => 'تصنيف قديم للتحقق';
+
+  @override
+  String nocturneSuggestionsSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محددة',
+      one: '1 محدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSuggestionsApply => 'تطبيق';
+
+  @override
+  String nocturneSuggestionsApplied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُضيفت $count اقتراحات إلى المجموعات.',
+      one: 'أُضيف اقتراح واحد إلى المجموعات.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsFailed(String error) {
+    return 'تعذّر تطبيق هذه الاقتراحات: $error';
+  }
+
+  @override
+  String get nocturneClose => 'إغلاق';
+
+  @override
+  String get nocturneArchiveLoadingHint =>
+      'تتم القراءة في الخلفية: يبقى التطبيق قابلًا للاستخدام.';
 }

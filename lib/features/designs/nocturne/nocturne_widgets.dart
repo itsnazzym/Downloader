@@ -162,7 +162,9 @@ class _NocturneButtonState extends State<NocturneButton> {
     final hover = _hover && enabled;
     final (Color bg, Color fg, FontWeight w) = switch (widget.kind) {
       NocturneButtonKind.plain => (
-        hover ? Color.lerp(c.surfaceHighlight, c.primary, 0.05)! : c.surfaceHighlight,
+        hover
+            ? Color.lerp(c.surfaceHighlight, c.primary, 0.05)!
+            : c.surfaceHighlight,
         c.textPrimary,
         FontWeight.w600,
       ),
@@ -659,9 +661,7 @@ class NocturneCheck extends StatelessWidget {
       decoration: BoxDecoration(
         color: checked ? c.primary : c.inputBackground,
         borderRadius: BorderRadius.circular(7),
-        border: checked
-            ? null
-            : Border.all(color: c.textDisabled, width: 1.5),
+        border: checked ? null : Border.all(color: c.textDisabled, width: 1.5),
       ),
       child: checked
           ? Icon(Icons.check_rounded, size: 14, color: c.background)
@@ -723,8 +723,11 @@ class NocturneTitle extends StatelessWidget {
     final c = AppColors.of(context);
     return Text(
       text,
-      style: nocturneText(c, size: 15, weight: FontWeight.w700)
-          .copyWith(letterSpacing: -0.15),
+      style: nocturneText(
+        c,
+        size: 15,
+        weight: FontWeight.w700,
+      ).copyWith(letterSpacing: -0.15),
     );
   }
 }
@@ -916,7 +919,9 @@ class NocturneOrbit extends StatelessWidget {
           core: c.surfaceHighlight,
           arc: arc,
         ),
-        child: Center(child: Icon(icon, size: size * 0.16, color: accent)),
+        child: Center(
+          child: Icon(icon, size: size * 0.16, color: accent),
+        ),
       ),
     );
   }
@@ -1106,7 +1111,11 @@ class NocturneAutoGrid extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    for (var j = i; j < i + cols && j < children.length; j++) ...[
+                    for (
+                      var j = i;
+                      j < i + cols && j < children.length;
+                      j++
+                    ) ...[
                       if (j > i) SizedBox(width: gap),
                       SizedBox(width: w, child: children[j]),
                     ],
@@ -1117,6 +1126,69 @@ class NocturneAutoGrid extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// The settings' pill menu: the current choice in a raised pill, a checked
+/// list on tap.
+class NocturnePillMenu<T> extends StatelessWidget {
+  const NocturnePillMenu({
+    super.key,
+    required this.value,
+    required this.options,
+    required this.onSelected,
+    required this.tooltip,
+  });
+
+  final T value;
+  final Map<T, String> options;
+  final ValueChanged<T> onSelected;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return PopupMenuButton<T>(
+      tooltip: tooltip,
+      initialValue: value,
+      onSelected: onSelected,
+      itemBuilder: (context) => [
+        for (final e in options.entries)
+          CheckedPopupMenuItem(
+            value: e.key,
+            checked: e.key == value,
+            child: Text(e.value),
+          ),
+      ],
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: c.surfaceHighlight,
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: Text(
+                options[value] ?? '$value',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: nocturneText(c, size: 13, weight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 16,
+              color: c.textSecondary,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

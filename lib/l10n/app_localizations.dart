@@ -8895,6 +8895,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync is manual. To refresh your collections, keep TikTok open in the browser and run it again here.'**
   String get archiveDeskSyncManual;
+
+  /// No description provided for @nocturneBadgeFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get nocturneBadgeFavorite;
+
+  /// No description provided for @nocturneBadgeLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get nocturneBadgeLike;
+
+  /// No description provided for @nocturneOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get nocturneOpenInBrowser;
+
+  /// No description provided for @nocturneLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get nocturneLinkCopied;
+
+  /// No description provided for @nocturneDemoClip.
+  ///
+  /// In en, this message translates to:
+  /// **'{film} · clip {number}'**
+  String nocturneDemoClip(String film, int number);
+
+  /// No description provided for @nocturneAllCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'All collections'**
+  String get nocturneAllCollections;
+
+  /// No description provided for @nocturneDownloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Download started: {id}'**
+  String nocturneDownloadStarted(String id);
+
+  /// No description provided for @nocturneFolderDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the folder’s {count} videos…'**
+  String nocturneFolderDownloading(int count);
+
+  /// No description provided for @nocturneShowCovers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show covers'**
+  String get nocturneShowCovers;
+
+  /// No description provided for @nocturneShowFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Show folders'**
+  String get nocturneShowFolders;
+
+  /// No description provided for @nocturneSyncIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete. The last reliable state is kept.'**
+  String get nocturneSyncIncomplete;
+
+  /// No description provided for @nocturneSyncIncompleteReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync incomplete: {reason}'**
+  String nocturneSyncIncompleteReason(String reason);
+
+  /// No description provided for @nocturneSuggestionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 classification suggestion to review} other{{count} classification suggestions to review}}'**
+  String nocturneSuggestionsCount(int count);
+
+  /// No description provided for @nocturneSuggestionsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review ({count})'**
+  String nocturneSuggestionsReview(int count);
+
+  /// No description provided for @nocturneSuggestionsApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting…'**
+  String get nocturneSuggestionsApplying;
+
+  /// No description provided for @nocturneSuggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the suggestions'**
+  String get nocturneSuggestionsTitle;
+
+  /// No description provided for @nocturneSuggestionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the videos to file. Nothing changes until you apply.'**
+  String get nocturneSuggestionsHint;
+
+  /// No description provided for @nocturneSuggestionVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video {id}'**
+  String nocturneSuggestionVideo(String id);
+
+  /// No description provided for @nocturneReasonPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete sync result'**
+  String get nocturneReasonPartial;
+
+  /// No description provided for @nocturneReasonDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date close to confirmed videos'**
+  String get nocturneReasonDate;
+
+  /// No description provided for @nocturneReasonImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Old mapping file'**
+  String get nocturneReasonImported;
+
+  /// No description provided for @nocturneReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Old classification to check'**
+  String get nocturneReasonOther;
+
+  /// No description provided for @nocturneSuggestionsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String nocturneSuggestionsSelected(int count);
+
+  /// No description provided for @nocturneSuggestionsApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get nocturneSuggestionsApply;
+
+  /// No description provided for @nocturneSuggestionsApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 suggestion added to the collections.} other{{count} suggestions added to the collections.}}'**
+  String nocturneSuggestionsApplied(int count);
+
+  /// No description provided for @nocturneSuggestionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t apply these suggestions: {error}'**
+  String nocturneSuggestionsFailed(String error);
+
+  /// No description provided for @nocturneClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get nocturneClose;
+
+  /// No description provided for @nocturneArchiveLoadingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading in the background: the app stays usable.'**
+  String get nocturneArchiveLoadingHint;
 }
 
 class _AppLocalizationsDelegate

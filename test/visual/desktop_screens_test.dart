@@ -285,7 +285,18 @@ void main() {
 
       for (var round = 0; round < 2; round++) {
         await open('Plugins', '/settings/plugins');
-        expect(find.byType(PluginsSettingsView), findsOneWidget);
+        // Today's view, or a design's own drawing of it: either way the
+        // plugins page is on screen.
+        expect(
+          find.byWidgetPredicate(
+            (w) =>
+                w is PluginsSettingsView ||
+                (w is Text &&
+                    w.data?.toLowerCase() ==
+                        'fonctionnalités de l’application'.toLowerCase()),
+          ),
+          findsWidgets,
+        );
         await open('Général', '/settings/general');
       }
     });

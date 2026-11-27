@@ -5281,4 +5281,129 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get archiveDeskSyncManual =>
       'La synchronisation est manuelle. Pour actualiser tes collections, garde TikTok ouvert dans le navigateur et relance-la ici.';
+
+  @override
+  String get nocturneBadgeFavorite => 'Favori';
+
+  @override
+  String get nocturneBadgeLike => 'J’aime';
+
+  @override
+  String get nocturneOpenInBrowser => 'Ouvrir dans le navigateur';
+
+  @override
+  String get nocturneLinkCopied => 'Lien copié';
+
+  @override
+  String nocturneDemoClip(String film, int number) {
+    return '$film · extrait $number';
+  }
+
+  @override
+  String get nocturneAllCollections => 'Toutes les collections';
+
+  @override
+  String nocturneDownloadStarted(String id) {
+    return 'Téléchargement lancé : $id';
+  }
+
+  @override
+  String nocturneFolderDownloading(int count) {
+    return 'Téléchargement des $count vidéos du dossier…';
+  }
+
+  @override
+  String get nocturneShowCovers => 'Afficher les couvertures';
+
+  @override
+  String get nocturneShowFolders => 'Afficher les dossiers';
+
+  @override
+  String get nocturneSyncIncomplete =>
+      'Synchronisation incomplète. Le dernier état fiable est conservé.';
+
+  @override
+  String nocturneSyncIncompleteReason(String reason) {
+    return 'Synchronisation incomplète : $reason';
+  }
+
+  @override
+  String nocturneSuggestionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count propositions de classement à vérifier',
+      one: '1 proposition de classement à vérifier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsReview(int count) {
+    return 'Examiner ($count)';
+  }
+
+  @override
+  String get nocturneSuggestionsApplying => 'Classement en cours…';
+
+  @override
+  String get nocturneSuggestionsTitle => 'Vérifier les propositions';
+
+  @override
+  String get nocturneSuggestionsHint =>
+      'Coche les vidéos à ranger. Rien ne change avant validation.';
+
+  @override
+  String nocturneSuggestionVideo(String id) {
+    return 'Vidéo $id';
+  }
+
+  @override
+  String get nocturneReasonPartial => 'Résultat de synchronisation incomplet';
+
+  @override
+  String get nocturneReasonDate => 'Date proche des vidéos confirmées';
+
+  @override
+  String get nocturneReasonImported => 'Ancien fichier de correspondance';
+
+  @override
+  String get nocturneReasonOther => 'Ancien classement à vérifier';
+
+  @override
+  String nocturneSuggestionsSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSuggestionsApply => 'Appliquer';
+
+  @override
+  String nocturneSuggestionsApplied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count propositions ajoutées aux collections.',
+      one: '1 proposition ajoutée aux collections.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsFailed(String error) {
+    return 'Impossible d’appliquer ces propositions : $error';
+  }
+
+  @override
+  String get nocturneClose => 'Fermer';
+
+  @override
+  String get nocturneArchiveLoadingHint =>
+      'Lecture en arrière-plan : l’application reste utilisable.';
 }
