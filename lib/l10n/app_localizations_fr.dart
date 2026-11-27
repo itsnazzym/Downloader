@@ -6516,7 +6516,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String pairingInviteTitle(String browser) {
-    return 'Autoriser l’extension de $browser à contrôler TapLoad ?';
+    return 'Une extension de $browser demande à contrôler TapLoad';
   }
 
   @override
@@ -6580,4 +6580,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get manualTokenAdvanced => 'Avancé : jeton manuel';
+
+  @override
+  String get unknownBrowser => 'Navigateur';
 }

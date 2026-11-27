@@ -10795,7 +10795,7 @@ abstract class AppLocalizations {
   /// No description provided for @pairingInviteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Allow {browser}’s extension to control TapLoad?'**
+  /// **'A {browser} extension is asking to control TapLoad'**
   String pairingInviteTitle(String browser);
 
   /// No description provided for @pairingInviteBody.
@@ -10899,6 +10899,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Advanced: manual token'**
   String get manualTokenAdvanced;
+
+  /// No description provided for @unknownBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Browser'**
+  String get unknownBrowser;
 }
 
 class _AppLocalizationsDelegate

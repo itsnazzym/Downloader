@@ -82,9 +82,9 @@ void main() {
     });
 
     test('falls back to a generic label', () {
-      expect(ExtensionOrigin.browserLabel(null), 'Navigateur');
-      expect(ExtensionOrigin.browserLabel(''), 'Navigateur');
-      expect(ExtensionOrigin.browserLabel('curl/8.0'), 'Navigateur');
+      expect(ExtensionOrigin.browserLabel(null), 'Browser');
+      expect(ExtensionOrigin.browserLabel(''), 'Browser');
+      expect(ExtensionOrigin.browserLabel('curl/8.0'), 'Browser');
     });
   });
 

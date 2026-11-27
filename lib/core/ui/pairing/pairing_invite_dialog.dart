@@ -4,6 +4,7 @@ import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tapload/core/security/pairing_coordinator.dart';
+import 'package:tapload/core/ui/settings/widgets/paired_browsers_panel.dart';
 import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Asks the user to compare the code with the one in the extension popup.
@@ -34,10 +35,19 @@ class _PairingInvite extends ConsumerStatefulWidget {
 class _PairingInviteState extends ConsumerState<_PairingInvite> {
   var _closed = false;
 
+  /// Closes THIS invite even when another route (e.g. the add-download
+  /// dialog) was opened above it; popping would close that one instead.
   void _close() {
     if (_closed) return;
+    final route = ModalRoute.of(context);
+    final navigator = route?.navigator;
+    if (route == null || navigator == null) return;
+    if (route.isCurrent) {
+      navigator.pop();
+    } else {
+      navigator.removeRoute(route);
+    }
     _closed = true;
-    Navigator.of(context).pop();
   }
 
   @override
@@ -50,11 +60,25 @@ class _PairingInviteState extends ConsumerState<_PairingInvite> {
     });
     final scheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      title: Text(l10n.pairingInviteTitle(request.label)),
+      title: Text(
+        l10n.pairingInviteTitle(
+          PairedBrowsersPanel.browserName(l10n, request.label),
+        ),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Any extension of that browser gets the same title: the origin is
+          // what tells them apart.
+          Text(
+            PairedBrowsersPanel.shortOrigin(request.origin),
+            textDirection: TextDirection.ltr,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+          ),
+          const SizedBox(height: 12),
           Text(l10n.pairingInviteBody(request.code)),
           const SizedBox(height: 16),
           Center(

@@ -2494,7 +2494,7 @@
   "@iosDesignCount": {"placeholders": {"count": {"type": "int"}}},
   "iosLight": "Light",
   "iosDark": "Dark",
-  "pairingInviteTitle": "Allow {browser}’s extension to control TapLoad?",
+  "pairingInviteTitle": "A {browser} extension is asking to control TapLoad",
   "@pairingInviteTitle": {"placeholders": {"browser": {"type": "String"}}},
   "pairingInviteBody": "Is the code shown in the extension {code}?",
   "@pairingInviteBody": {"placeholders": {"code": {"type": "String"}}},
@@ -2516,5 +2516,6 @@
   "revokeAllConfirm": "Revoke access for all paired browsers?",
   "blockedOriginsTitle": "Blocked origins",
   "unblockOrigin": "Unblock",
-  "manualTokenAdvanced": "Advanced: manual token"
+  "manualTokenAdvanced": "Advanced: manual token",
+  "unknownBrowser": "Browser"
 }

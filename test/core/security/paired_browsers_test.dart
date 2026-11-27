@@ -328,7 +328,7 @@ void main() {
 
     test('cleanPairingLabel caps, collapses and falls back', () {
       expect(cleanPairingLabel('  Chro\u200Bme \r\n Edge  '), 'Chrome Edge');
-      expect(cleanPairingLabel(' \u0000 '), 'Navigateur');
+      expect(cleanPairingLabel(' \u0000 '), 'Browser');
       expect(cleanPairingLabel('l' * 500).runes.length, 80);
     });
 
@@ -387,12 +387,18 @@ void main() {
       },
     );
 
-    test('empty or invisible-only label falls back to Navigateur', () async {
-      final (a, _) = await store.pair(origin: _origin, label: '');
-      final (b, _) = await store.pair(origin: _other, label: '\u200B\u202E \n');
-      expect(a.label, 'Navigateur');
-      expect(b.label, 'Navigateur');
-    });
+    test(
+      'empty or invisible-only label falls back to the neutral Browser',
+      () async {
+        final (a, _) = await store.pair(origin: _origin, label: '');
+        final (b, _) = await store.pair(
+          origin: _other,
+          label: '\u200B\u202E \n',
+        );
+        expect(a.label, 'Browser');
+        expect(b.label, 'Browser');
+      },
+    );
 
     test('origin: control chars stripped and capped at 200', () async {
       final (b, _) = await store.pair(

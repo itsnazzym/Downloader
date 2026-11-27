@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/security/extension_origin.dart';
 
 const _kPairedBrowsers = 'paired_browsers_v1';
 const _tokenLength = 43; // 32 random bytes, base64url without padding
@@ -20,7 +21,7 @@ const _maxPaused = 100;
 const _maxLabel = 80;
 const _maxOrigin = 200;
 const _maxStoredChars = 256 * 1024; // legit data is well under 60 KB
-const _defaultLabel = 'Navigateur';
+const _defaultLabel = ExtensionOrigin.unknownBrowser;
 
 final _controlChars = RegExp(r'[\u0000-\u001F\u007F-\u009F\u2028\u2029]');
 // Zero-width, bidi marks/overrides/isolates, word joiner, BOM.
@@ -169,7 +170,8 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
   /// Creates a pairing. The returned token is the only copy ever in clear.
   ///
   /// [label] is sanitised (control/bidi chars removed, <= 80 chars, falls back
-  /// to "Navigateur"); [origin] is cleaned and capped at 200 chars.
+  /// to [ExtensionOrigin.unknownBrowser]); [origin] is cleaned and capped at
+  /// 200 chars.
   /// Throws [ArgumentError] if the cleaned origin is empty and
   /// [PairedBrowsersFull] when 20 browsers are already paired.
   Future<(PairedBrowser, String)> pair({

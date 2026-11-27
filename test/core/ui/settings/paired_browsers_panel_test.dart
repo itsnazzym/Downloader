@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/security/extension_origin.dart';
 import 'package:tapload/core/security/paired_browsers.dart';
 import 'package:tapload/core/ui/settings/widgets/paired_browsers_panel.dart';
 import 'package:tapload/l10n/app_localizations.dart';
@@ -84,6 +85,24 @@ void main() {
     expect(store.state.browsers.map((b) => b.label), ['Firefox']);
   });
 
+  testWidgets('each Révoquer button names its browser for screen readers', (
+    tester,
+  ) async {
+    await pairTwo(tester);
+    await pump(tester);
+    expect(find.byTooltip('Révoquer Chrome'), findsOneWidget);
+    expect(find.byTooltip('Révoquer Firefox'), findsOneWidget);
+  });
+
+  testWidgets('an unknown browser is named in the UI language', (tester) async {
+    await tester.runAsync(
+      () => store.pair(origin: _a, label: ExtensionOrigin.unknownBrowser),
+    );
+    await pump(tester);
+    expect(find.text('Navigateur'), findsOneWidget);
+    expect(find.byTooltip('Révoquer Navigateur'), findsOneWidget);
+  });
+
   testWidgets('Révoquer tout', (tester) async {
     await pairTwo(tester);
     await pump(tester);
@@ -97,6 +116,10 @@ void main() {
     await tester.runAsync(() => store.block(_a));
     await pump(tester);
     expect(find.text('Origines bloquées'), findsOneWidget);
+    expect(
+      find.byTooltip('Débloquer ${PairedBrowsersPanel.shortOrigin(_a)}'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Débloquer'));
     await tester.pumpAndSettle();
     expect(store.state.blockedOrigins, isEmpty);

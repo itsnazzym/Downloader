@@ -588,7 +588,7 @@ void main() {
     test('an unknown User-Agent gives the neutral label', () async {
       final p = await open(ua: 'curl/8.0');
       await requestPairing(p);
-      expect(coordinator().state!.label, 'Navigateur');
+      expect(coordinator().state!.label, 'Browser');
     });
 
     test('two User-Agent header lines do not break the upgrade', () async {

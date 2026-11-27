@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tapload/core/design_system/components/app_toast.dart';
 import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/security/extension_origin.dart';
 import 'package:tapload/core/security/paired_browsers.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Paired browser extensions: list, revoke, blocked origins, and the manual
@@ -16,6 +18,10 @@ class PairedBrowsersPanel extends ConsumerWidget {
   // Origins are 'scheme://<32-char id>': keep the scheme and both ends.
   static String shortOrigin(String o) =>
       o.length <= 32 ? o : '${o.substring(0, 22)}…${o.substring(o.length - 6)}';
+
+  /// The stored label, except the neutral unknown-browser one, translated.
+  static String browserName(AppLocalizations l10n, String label) =>
+      label == ExtensionOrigin.unknownBrowser ? l10n.unknownBrowser : label;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,19 +80,23 @@ class PairedBrowsersPanel extends ConsumerWidget {
         for (final b in state.browsers)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(b.label),
+            title: Text(browserName(l10n, b.label)),
             subtitle: Text(
               '${shortOrigin(b.origin)}\n'
               '${l10n.pairedBrowsersPairedOn(when(b.createdAt))} · '
               '${b.lastSeenAt == null ? l10n.pairedBrowsersNeverSeen : l10n.pairedBrowsersLastSeen(when(b.lastSeenAt!))}',
             ),
             isThreeLine: true,
-            trailing: TextButton(
-              onPressed: () => confirm(
-                l10n.revokeBrowserConfirm(b.label),
-                () => store.revoke(b.id),
+            // Names the browser, or a screen reader hears N identical buttons.
+            trailing: Tooltip(
+              message: '${l10n.revokeBrowser} ${browserName(l10n, b.label)}',
+              child: TextButton(
+                onPressed: () => confirm(
+                  l10n.revokeBrowserConfirm(browserName(l10n, b.label)),
+                  () => store.revoke(b.id),
+                ),
+                child: Text(l10n.revokeBrowser),
               ),
-              child: Text(l10n.revokeBrowser),
             ),
           ),
         if (state.blockedOrigins.isNotEmpty) ...[
@@ -96,9 +106,12 @@ class PairedBrowsersPanel extends ConsumerWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(shortOrigin(o)),
-              trailing: TextButton(
-                onPressed: () => unawaited(store.unblock(o)),
-                child: Text(l10n.unblockOrigin),
+              trailing: Tooltip(
+                message: '${l10n.unblockOrigin} ${shortOrigin(o)}',
+                child: TextButton(
+                  onPressed: () => unawaited(store.unblock(o)),
+                  child: Text(l10n.unblockOrigin),
+                ),
               ),
             ),
         ],

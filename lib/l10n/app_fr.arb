@@ -2097,7 +2097,7 @@
   "iosDesignCount": "{count} styles d’interface",
   "iosLight": "Clair",
   "iosDark": "Sombre",
-  "pairingInviteTitle": "Autoriser l’extension de {browser} à contrôler TapLoad ?",
+  "pairingInviteTitle": "Une extension de {browser} demande à contrôler TapLoad",
   "pairingInviteBody": "Le code affiché dans l’extension est-il {code} ?",
   "pairingInviteHint": "Cliquez sur l’icône TapLoad dans la barre d’outils du navigateur pour voir le code.",
   "pairingAllow": "Autoriser",
@@ -2114,5 +2114,6 @@
   "revokeAllConfirm": "Révoquer l’accès de tous les navigateurs appairés ?",
   "blockedOriginsTitle": "Origines bloquées",
   "unblockOrigin": "Débloquer",
-  "manualTokenAdvanced": "Avancé : jeton manuel"
+  "manualTokenAdvanced": "Avancé : jeton manuel",
+  "unknownBrowser": "Navigateur"
 }

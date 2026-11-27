@@ -23,6 +23,9 @@ class ExtensionOrigin {
     return scheme.length <= 20 && _scheme.hasMatch(scheme) ? scheme : 'other';
   }
 
+  /// Stored label of an unrecognised browser: neutral, translated at display.
+  static const unknownBrowser = 'Browser';
+
   /// Display name deduced from the User-Agent; the order matters because
   /// Edge, Opera and Vivaldi all also announce `Chrome/`.
   static String browserLabel(String? userAgent) {
@@ -32,6 +35,6 @@ class ExtensionOrigin {
     if (ua.contains('Vivaldi')) return 'Vivaldi';
     if (ua.contains('Firefox/')) return 'Firefox';
     if (ua.contains('Chrome/')) return 'Chrome';
-    return 'Navigateur';
+    return unknownBrowser;
   }
 }

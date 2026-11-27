@@ -6438,7 +6438,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pairingInviteTitle(String browser) {
-    return 'السماح لإضافة $browser بالتحكم في TapLoad؟';
+    return 'إضافة من $browser تطلب التحكم في TapLoad';
   }
 
   @override
@@ -6480,18 +6480,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pairedBrowsersNeverSeen => 'لم يتصل أبدًا';
 
   @override
-  String get revokeBrowser => 'إلغاء';
+  String get revokeBrowser => 'إبطال';
 
   @override
   String revokeBrowserConfirm(String browser) {
-    return 'إلغاء وصول $browser؟ سيلزم اقترانه من جديد.';
+    return 'إبطال وصول $browser؟ سيلزم اقترانه من جديد.';
   }
 
   @override
-  String get revokeAll => 'إلغاء الكل';
+  String get revokeAll => 'إبطال الكل';
 
   @override
-  String get revokeAllConfirm => 'إلغاء وصول جميع المتصفحات المقترنة؟';
+  String get revokeAllConfirm => 'إبطال وصول جميع المتصفحات المقترنة؟';
 
   @override
   String get blockedOriginsTitle => 'المصادر المحظورة';
@@ -6501,4 +6501,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get manualTokenAdvanced => 'متقدم: الرمز اليدوي';
+
+  @override
+  String get unknownBrowser => 'متصفح';
 }
