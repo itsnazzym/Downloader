@@ -146,7 +146,7 @@ class AppShell extends ConsumerWidget {
             ),
           );
 
-    if (mesh) {
+    if (mesh && design.nav == DesignNav.sidebar) {
       chrome = MeshGradientBackground(child: chrome);
     }
 
@@ -155,7 +155,8 @@ class AppShell extends ConsumerWidget {
         child: Stack(
           children: [
             chrome,
-            if (showDock) FloatingNavDock(currentLocation: location),
+            if (showDock && design.nav == DesignNav.sidebar)
+              FloatingNavDock(currentLocation: location),
             const OnboardingOverlay(),
             if (ref.watch(mediaPlayerProvider.select((s) => s.isOpen)))
               const Positioned.fill(child: MediaPlayerView()),

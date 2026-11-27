@@ -21,7 +21,8 @@ class AppTheme {
     // The six desktop designs restyle shared Material pieces (dialogs,
     // toasts, menus, toggles) and their page transitions; OLED and iOS keep
     // the platform look they were built with.
-    final designed = spec.nav != DesignNav.sidebar;
+    final designed =
+        spec.nav != DesignNav.sidebar && spec.nav != DesignNav.glassSidebar;
     final panel = BorderRadius.circular(
       spec.cardRadius.clamp(0, 24).toDouble(),
     );

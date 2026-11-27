@@ -5855,4 +5855,240 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String get iosFailures => 'Échecs';
+
+  @override
+  String get iosTools => 'Outils';
+
+  @override
+  String get iosRecent => 'Récents';
+
+  @override
+  String get iosEmptyTitle => 'Rien ici pour l’instant';
+
+  @override
+  String get iosEmptyBody =>
+      'Colle un lien YouTube, TikTok, X ou d’ailleurs : tes vidéos, ta musique et tes images s’aligneront ici.';
+
+  @override
+  String get iosNoResultsTitle => 'Aucun résultat';
+
+  @override
+  String get iosNoResultsFilters =>
+      'Aucun téléchargement ne correspond à ces filtres.';
+
+  @override
+  String iosNoResultsQuery(String query) {
+    return 'Rien ne correspond à « $query ».';
+  }
+
+  @override
+  String get iosClearFilters => 'Effacer la recherche et les filtres';
+
+  @override
+  String get iosClearSearch => 'Effacer la recherche';
+
+  @override
+  String get iosLoadErrorTitle => 'La bibliothèque n’a pas pu être lue';
+
+  @override
+  String get iosLoadErrorBody =>
+      'Tes fichiers ne sont pas touchés. Réessaie de la lire.';
+
+  @override
+  String iosFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count téléchargements ont échoué',
+      one: '1 téléchargement a échoué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String iosEtaLeft(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String get iosWeek => 'Semaine';
+
+  @override
+  String get iosMonth => 'Mois';
+
+  @override
+  String get iosStatsEmptyTitle => 'Pas encore de statistiques';
+
+  @override
+  String get iosStatsEmptyBody =>
+      'Ton premier téléchargement dessinera ici les barres, les anneaux et le stockage.';
+
+  @override
+  String iosDownloadsWord(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'téléchargements',
+      one: 'téléchargement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosVsBefore => 'par rapport à la période précédente';
+
+  @override
+  String iosBarsLabel(int days, int today) {
+    return 'Téléchargements par jour sur $days jours, $today aujourd’hui';
+  }
+
+  @override
+  String get iosSuccess => 'Réussite';
+
+  @override
+  String get iosSpaceUsed => 'Espace utilisé';
+
+  @override
+  String get iosStorage => 'Stockage';
+
+  @override
+  String iosFreeLeft(String free) {
+    return '$free libres';
+  }
+
+  @override
+  String get iosTransferHint =>
+      'Appareils sur le même Wi-Fi · clique sur un appareil pour lui envoyer la sélection';
+
+  @override
+  String get iosThisPc => 'Ce PC';
+
+  @override
+  String iosSending(int percent) {
+    return 'Envoi… $percent %';
+  }
+
+  @override
+  String get iosSelected => 'Sélectionné';
+
+  @override
+  String get iosAvailable => 'Disponible';
+
+  @override
+  String get iosSent => 'Envoyé';
+
+  @override
+  String get iosRemove => 'Retirer';
+
+  @override
+  String get iosPairingCode => 'Code d’appairage';
+
+  @override
+  String get iosCopy => 'Copier';
+
+  @override
+  String get iosCopied => 'Code copié.';
+
+  @override
+  String get iosChooseFiles => 'Choisir des fichiers…';
+
+  @override
+  String iosCollectionFigures(int count, int downloaded) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '1 vidéo',
+    );
+    return '$_temp0 · $downloaded téléchargées';
+  }
+
+  @override
+  String iosInCollection(String name) {
+    return 'Dans $name';
+  }
+
+  @override
+  String iosSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosClearSelection => 'Tout désélectionner';
+
+  @override
+  String iosSelectVideo(String date) {
+    return 'Sélectionner $date';
+  }
+
+  @override
+  String get iosDownloadsGroup => 'Téléchargements';
+
+  @override
+  String get iosNotifications => 'Notifications';
+
+  @override
+  String get iosNotificationsDesc =>
+      'Prévient à la fin de chaque téléchargement';
+
+  @override
+  String get iosQualityDesc => 'Utilisée quand rien n’est précisé';
+
+  @override
+  String get iosAutoStartOn =>
+      'Les nouveaux liens démarrent dès qu’ils sont ajoutés.';
+
+  @override
+  String get iosAutoStartOff =>
+      'Les nouveaux liens attendent dans la file jusqu’à ce que tu les lances.';
+
+  @override
+  String get iosOutputGroup => 'Dossier de sortie';
+
+  @override
+  String get iosAuto => 'Auto';
+
+  @override
+  String get iosTint => 'Teinte';
+
+  @override
+  String get iosTintBlue => 'Bleu';
+
+  @override
+  String get iosTintPurple => 'Violet';
+
+  @override
+  String get iosTintPink => 'Rose';
+
+  @override
+  String get iosTintOrange => 'Orange';
+
+  @override
+  String get iosTintGreen => 'Vert';
+
+  @override
+  String get iosTintGraphite => 'Graphite';
+
+  @override
+  String get iosChangeDesign => 'Changer de design';
+
+  @override
+  String iosDesignCount(int count) {
+    return '$count styles d’interface';
+  }
+
+  @override
+  String get iosLight => 'Clair';
+
+  @override
+  String get iosDark => 'Sombre';
 }

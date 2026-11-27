@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:modern_downloader/core/ui/shell/designed_page.dart';
 
+import 'ios/ios_pages.dart';
 import 'nocturne/nocturne_pages.dart';
 import 'pastille/pastille_pages.dart';
 import 'porcelaine/porcelaine_pages.dart';
@@ -25,6 +26,8 @@ Widget? designPageFor(String designId, DesignRoute route, Widget current) {
       return terminalPage(route, current);
     case 'nocturne':
       return nocturnePage(route, current);
+    case 'ios':
+      return iosPage(route, current);
   }
   return null;
 }

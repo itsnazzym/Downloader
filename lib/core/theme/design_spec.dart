@@ -24,6 +24,9 @@ enum DesignNav {
 
   /// Pastille: a floating dock at the bottom of the window.
   bottomDock,
+
+  /// iOS (Liquid Glass): a floating frosted sidebar over a coloured ambient.
+  glassSidebar,
 }
 
 /// How a design draws download progress.
@@ -165,7 +168,7 @@ class DesignSpec {
     monoFont: 'JetBrains Mono',
     cardRadius: 16,
     controlRadius: 14,
-    nav: DesignNav.sidebar,
+    nav: DesignNav.glassSidebar,
     progress: DesignProgress.bar,
   );
 

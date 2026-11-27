@@ -15,6 +15,7 @@ import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart'
 import 'package:modern_downloader/core/theme/app_theme.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:modern_downloader/core/theme/theme_resolver.dart';
 import 'package:modern_downloader/core/router/app_router.dart';
 import 'package:modern_downloader/core/ui/app_shell.dart';
 import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
@@ -60,6 +61,7 @@ void main() {
     Size size = const Size(1280, 800),
     List<DownloadItem>? items,
     bool loading = false,
+    Brightness? brightness,
   }) async {
     tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
@@ -104,8 +106,13 @@ void main() {
             debugShowCheckedModeBanner: false,
             locale: Locale(locale),
             theme: AppTheme.fromPalette(
-              preset,
-              DesignSpec.forId(preset.id).brightness ?? Brightness.dark,
+              ThemeResolver.forBrightness(
+                preset,
+                brightness ?? Brightness.dark,
+              ),
+              brightness ??
+                  DesignSpec.forId(preset.id).brightness ??
+                  Brightness.dark,
             ),
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -219,7 +226,8 @@ void main() {
       tester,
       () => const SizedBox(),
       router: router,
-      preset: ThemePresets.ios,
+      // The classic sidebar: iOS now has its own glass chrome on desktop.
+      preset: ThemePresets.oled,
     );
     Finder inSidebar(IconData icon) => find.descendant(
       of: find.byType(AppSidebar),
@@ -632,5 +640,92 @@ void main() {
         await shot(tester, key, 'state_${id}_${state.key}');
       });
     }
+  }
+
+  // iOS (Liquid Glass) follows the light/dark setting: every page in both
+  // modes and a narrow window, then its surfaces and states in dark
+  // (build/visual/design_ios_*.png, surface_ios_*.png, state_ios_*.png).
+  for (final mode in Brightness.values) {
+    for (final page in {...pages, 'narrow': '/'}.entries) {
+      testWidgets('design ios ${page.key} ${mode.name}', (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final router = container.read(routerProvider);
+        final key = await pump(
+          tester,
+          () => const SizedBox(),
+          router: router,
+          preset: ThemePresets.ios,
+          brightness: mode,
+          size: page.key == 'narrow'
+              ? const Size(820, 900)
+              : const Size(1280, 900),
+          extra: [
+            ...archive(),
+            transferControllerProvider.overrideWith(
+              (ref) => FakeTransferController(ref),
+            ),
+          ],
+        );
+        router.go(page.value);
+        await settle(tester);
+        expect(tester.takeException(), isNull);
+        await shot(tester, key, 'design_ios_${page.key}_${mode.name}');
+      });
+    }
+  }
+  for (final surface in surfaces.entries) {
+    // Output's disk chart starts a real disk probe (a process) that this
+    // render cannot finish; it is today's view, drawn by the iOS skin.
+    if (surface.key == 'output') continue;
+    testWidgets('surface ios ${surface.key}', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      final items = sampleDownloads();
+      final key = await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.ios,
+        items: items,
+        extra: [
+          ...archive(),
+          transferControllerProvider.overrideWith(
+            (ref) => FakeTransferController(ref),
+          ),
+          selectedDownloadIdProvider.overrideWith((ref) => items.first.id),
+        ],
+      );
+      router.go(surface.value);
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await shot(tester, key, 'surface_ios_${surface.key}');
+    });
+  }
+  for (final state in states.entries) {
+    testWidgets('state ios ${state.key}', (tester) async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(routerProvider);
+      final key = await pump(
+        tester,
+        () => const SizedBox(),
+        router: router,
+        preset: ThemePresets.ios,
+        size: state.value.size,
+        items: state.value.items,
+        loading: state.value.loading,
+        extra: [
+          if (state.value.search.isNotEmpty)
+            downloadSearchQueryProvider.overrideWith(
+              (ref) => state.value.search,
+            ),
+        ],
+      );
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await shot(tester, key, 'state_ios_${state.key}');
+    });
   }
 }

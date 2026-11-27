@@ -5794,4 +5794,235 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'أُلغي التنزيل.';
+
+  @override
+  String get iosFailures => 'الإخفاقات';
+
+  @override
+  String get iosTools => 'الأدوات';
+
+  @override
+  String get iosRecent => 'الأحدث';
+
+  @override
+  String get iosEmptyTitle => 'لا شيء هنا بعد';
+
+  @override
+  String get iosEmptyBody =>
+      'الصق رابطًا من يوتيوب أو تيك توك أو إكس أو غيرها: ستصطف فيديوهاتك وموسيقاك وصورك هنا.';
+
+  @override
+  String get iosNoResultsTitle => 'لا نتائج';
+
+  @override
+  String get iosNoResultsFilters => 'لا يوجد تنزيل يطابق هذه المرشحات.';
+
+  @override
+  String iosNoResultsQuery(String query) {
+    return 'لا شيء يطابق «$query».';
+  }
+
+  @override
+  String get iosClearFilters => 'مسح البحث والمرشحات';
+
+  @override
+  String get iosClearSearch => 'مسح البحث';
+
+  @override
+  String get iosLoadErrorTitle => 'تعذّرت قراءة المكتبة';
+
+  @override
+  String get iosLoadErrorBody => 'ملفاتك لم تُمس. حاول قراءتها مجددًا.';
+
+  @override
+  String iosFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشل $count تنزيلات',
+      one: 'فشل تنزيل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String iosEtaLeft(String eta) {
+    return 'يتبقى $eta';
+  }
+
+  @override
+  String get iosWeek => 'أسبوع';
+
+  @override
+  String get iosMonth => 'شهر';
+
+  @override
+  String get iosStatsEmptyTitle => 'لا إحصاءات بعد';
+
+  @override
+  String get iosStatsEmptyBody =>
+      'سيرسم تنزيلك الأول الأعمدة والحلقات والتخزين هنا.';
+
+  @override
+  String iosDownloadsWord(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنزيلات',
+      one: 'تنزيل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosVsBefore => 'مقارنة بالفترة السابقة';
+
+  @override
+  String iosBarsLabel(int days, int today) {
+    return 'التنزيلات يوميًا خلال $days يومًا، $today اليوم';
+  }
+
+  @override
+  String get iosSuccess => 'النجاح';
+
+  @override
+  String get iosSpaceUsed => 'المساحة المستخدمة';
+
+  @override
+  String get iosStorage => 'التخزين';
+
+  @override
+  String iosFreeLeft(String free) {
+    return '$free متاحة';
+  }
+
+  @override
+  String get iosTransferHint =>
+      'الأجهزة على شبكة Wi-Fi نفسها · انقر على جهاز لإرسال التحديد إليه';
+
+  @override
+  String get iosThisPc => 'هذا الحاسوب';
+
+  @override
+  String iosSending(int percent) {
+    return 'جارٍ الإرسال… $percent٪';
+  }
+
+  @override
+  String get iosSelected => 'محدد';
+
+  @override
+  String get iosAvailable => 'متاح';
+
+  @override
+  String get iosSent => 'أُرسل';
+
+  @override
+  String get iosRemove => 'إزالة';
+
+  @override
+  String get iosPairingCode => 'رمز الاقتران';
+
+  @override
+  String get iosCopy => 'نسخ';
+
+  @override
+  String get iosCopied => 'تم نسخ الرمز.';
+
+  @override
+  String get iosChooseFiles => 'اختر ملفات…';
+
+  @override
+  String iosCollectionFigures(int count, int downloaded) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فيديوهات',
+      one: 'فيديو واحد',
+    );
+    return '$_temp0 · $downloaded منزّلة';
+  }
+
+  @override
+  String iosInCollection(String name) {
+    return 'في $name';
+  }
+
+  @override
+  String iosSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محددة',
+      one: 'واحد محدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosClearSelection => 'إلغاء التحديد';
+
+  @override
+  String iosSelectVideo(String date) {
+    return 'تحديد $date';
+  }
+
+  @override
+  String get iosDownloadsGroup => 'التنزيلات';
+
+  @override
+  String get iosNotifications => 'الإشعارات';
+
+  @override
+  String get iosNotificationsDesc => 'ينبّهك عند انتهاء كل تنزيل';
+
+  @override
+  String get iosQualityDesc => 'تُستخدم عندما لا يُحدَّد شيء';
+
+  @override
+  String get iosAutoStartOn => 'تبدأ الروابط الجديدة فور إضافتها.';
+
+  @override
+  String get iosAutoStartOff => 'تنتظر الروابط الجديدة في الطابور حتى تبدأها.';
+
+  @override
+  String get iosOutputGroup => 'مجلد الحفظ';
+
+  @override
+  String get iosAuto => 'تلقائي';
+
+  @override
+  String get iosTint => 'اللون';
+
+  @override
+  String get iosTintBlue => 'أزرق';
+
+  @override
+  String get iosTintPurple => 'بنفسجي';
+
+  @override
+  String get iosTintPink => 'وردي';
+
+  @override
+  String get iosTintOrange => 'برتقالي';
+
+  @override
+  String get iosTintGreen => 'أخضر';
+
+  @override
+  String get iosTintGraphite => 'غرافيت';
+
+  @override
+  String get iosChangeDesign => 'تغيير التصميم';
+
+  @override
+  String iosDesignCount(int count) {
+    return '$count أنماط للواجهة';
+  }
+
+  @override
+  String get iosLight => 'فاتح';
+
+  @override
+  String get iosDark => 'داكن';
 }
