@@ -40,6 +40,8 @@ The extension does not bundle any private X API client library; the like/bookmar
 
 The desktop app requires an API token. The extension sends the token only inside the WebSocket `HELLO` message (never in the connection URL query string).
 
+By default the token is obtained by **pairing**: the extension asks the desktop app (`127.0.0.1` only) for access, the user approves it in the app after comparing a 4-digit code, and the app returns a pairing token over that local connection. The extension stores this pairing token (and, while a request is waiting, the comparison code and its deadline) in the browser's `storage.local` on your device. The pairing token and the code are never sent to any third party and never leave your computer. You can revoke a browser in the desktop app at any time; its token then stops working at once. A token pasted by hand in the popup (Advanced) is stored the same way.
+
 ## Contact
 
 Project: https://github.com/itsnazzym/Downloader

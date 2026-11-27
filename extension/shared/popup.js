@@ -17,6 +17,12 @@
   var syncTikTokBtn = document.getElementById('sync-tiktok-btn');
   var qualityToggle = document.getElementById('quality-toggle');
   var messageOverrideUntil = 0;
+  var pairTitle = document.getElementById('setup-title');
+  var pairBody = document.getElementById('pair-body');
+  var pairCode = document.getElementById('pair-code');
+  var pairDelay = document.getElementById('pair-delay');
+  var pairRetryBtn = document.getElementById('pair-retry-btn');
+  var advanced = document.getElementById('advanced');
 
   var toastTimer = null;
   var lastToast = '';
@@ -90,16 +96,72 @@
     }
   }
 
+  // What the card says per pairing phase (storage.local.pairing, written by connection.js); no phase = app not reachable.
+  var PAIR_TEXT = {
+    idle: ['pairNotFoundTitle', 'Application introuvable', 'pairNotFoundBody', 'TapLoad doit être ouvert sur cet ordinateur. L’extension réessaie automatiquement.'],
+    pending: ['pairPendingTitle', 'En attente de validation dans l’application', 'pairPendingBody', 'Comparer ce code avec celui de TapLoad, puis choisir Autoriser dans l’application.'],
+    denied: ['pairDeniedTitle', 'Accès refusé ou retiré', 'pairDeniedBody', 'Ce navigateur n’est pas autorisé dans TapLoad.'],
+    expired: ['pairExpiredTitle', 'Demande expirée', 'pairExpiredBody', 'Aucune réponse dans TapLoad.'],
+    busy: ['pairBusyTitle', 'Une autre demande est en cours', 'pairBusyBody', 'Nouvel essai automatique dans un instant.'],
+    update_needed: ['pairUpdateTitle', 'Mettez à jour l’application', 'pairUpdateBody', 'Cette version de TapLoad est trop ancienne pour l’appairage automatique.'],
+  };
+  PAIR_TEXT.paused = PAIR_TEXT.denied;
+  // After a refusal the app's pause covers retries, so denied/paused only count down; expired/busy can ask again at once.
+  var PAIR_COUNTDOWN_PHASES = ['denied', 'paused'];
+  var PAIR_RETRY_PHASES = ['expired', 'busy'];
+
+  // null once connected; a pending code past its deadline is no longer on the app's screen.
+  function pairingPhase(pairing, connected, now) {
+    if (connected) return null;
+    var phase = pairing && pairing.phase;
+    if (!PAIR_TEXT[phase]) return 'idle';
+    if (phase === 'pending' && !(pairing.until > now)) return 'idle';
+    return phase;
+  }
+
+  function formatDelay(seconds) {
+    var unit = seconds >= 3600 ? 'hour' : seconds >= 60 ? 'minute' : 'second';
+    var n = Math.ceil(seconds / (unit === 'hour' ? 3600 : unit === 'minute' ? 60 : 1));
+    try {
+      return new Intl.NumberFormat(document.documentElement.lang || undefined, { style: 'unit', unit: unit, unitDisplay: 'short' }).format(n);
+    } catch (e) {
+      return n + ' ' + unit.charAt(0);
+    }
+  }
+
+  function renderPairing(phase, pairing, now) {
+    document.body.dataset.pair = phase || 'none';
+    var text = PAIR_TEXT[phase];
+    if (text) {
+      pairTitle.textContent = t(text[0], text[1]);
+      pairBody.textContent = t(text[2], text[3]);
+    }
+    pairCode.hidden = phase !== 'pending';
+    pairCode.textContent = phase === 'pending' ? String(pairing.code || '') : '';
+    pairRetryBtn.hidden = PAIR_RETRY_PHASES.indexOf(phase) === -1;
+    var countdown = PAIR_COUNTDOWN_PHASES.indexOf(phase) !== -1;
+    pairDelay.hidden = !countdown;
+    if (countdown) {
+      var left = Math.ceil(((pairing && pairing.until) - now) / 1000);
+      pairDelay.textContent = left > 0
+        ? t('pairRetryIn', 'Nouvelle demande possible dans {time}.').replace('{time}', formatDelay(left))
+        : t('pairRetryReady', 'Une nouvelle demande est possible.');
+    }
+  }
+
   function updateStatus() {
-    api.storage.local.get(['isConnected', 'lastAuthError', 'apiToken']).then(function (res) {
+    api.storage.local.get(['isConnected', 'lastAuthError', 'apiToken', 'pairing']).then(function (res) {
+      var connected = res.isConnected === true;
+      var phase = pairingPhase(res.pairing, connected, Date.now());
+      renderPairing(phase, res.pairing, Date.now());
       var rawToken = (res.apiToken || '').trim();
       if (rawToken && (rawToken.indexOf('\\') >= 0 || rawToken.indexOf('/') >= 0 || /^[a-zA-Z]:/.test(rawToken))) {
         setConnectionUi(false, t('tokenIsPathError', 'Chemin de dossier détecté au lieu du jeton API !'));
         return;
       }
-      var connected = res.isConnected === true;
       var detail = null;
-      if (!connected && res.lastAuthError) {
+      // pairing_required is the normal first contact, and a pairing card already explains the other refusals.
+      if (!connected && res.lastAuthError && res.lastAuthError !== 'pairing_required' && phase === 'idle') {
         detail = t('authFailed', 'Auth failed — check token');
       }
       setConnectionUi(connected, detail);
@@ -277,7 +339,11 @@
       if (area === 'local' && changes.recentDownloads) {
         renderList(changes.recentDownloads.newValue);
       }
-      if (area === 'local' && (changes.isConnected || changes.lastAuthError)) {
+      // A pairing finishing while the popup is open: the field must follow, or the next save would overwrite the new token.
+      if (area === 'local' && changes.apiToken && tokenInput && tokenInput.value.trim() !== (changes.apiToken.newValue || '')) {
+        tokenInput.value = changes.apiToken.newValue || '';
+      }
+      if (area === 'local' && (changes.isConnected || changes.lastAuthError || changes.pairing)) {
         updateStatus();
       }
     });
@@ -297,6 +363,7 @@
   if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', function () { showView('home'); });
   if (editTokenBtn) editTokenBtn.addEventListener('click', function () {
     document.body.dataset.setup = 'open';
+    if (advanced) advanced.open = true;
     showView('home');
     if (tokenInput) tokenInput.focus();
   });
@@ -355,6 +422,18 @@
         showFeedback(t('xFeedOpenFailed', 'Could not open video panel'), true);
       }).finally(function () {
         openFeedBtn.disabled = false;
+      });
+    });
+  }
+
+  // The background drops the pause and asks again; storage.local.pairing then changes under us.
+  if (pairRetryBtn) {
+    pairRetryBtn.addEventListener('click', function () {
+      pairRetryBtn.disabled = true;
+      api.runtime.sendMessage({ type: 'MD_PAIRING_RETRY' }, function () {
+        void api.runtime.lastError;
+        pairRetryBtn.disabled = false;
+        updateStatus();
       });
     });
   }

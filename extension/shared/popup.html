@@ -19,17 +19,20 @@
     <!-- Home -->
     <main class="view view-home" id="view-home">
       <section class="setup" id="setup-card" aria-labelledby="setup-title">
-        <h1 id="setup-title" data-i18n="popupSetupTitle">Relie l’extension à TapLoad</h1>
-        <ol class="setup-steps">
-          <li data-i18n="popupSetupStep1">Ouvre TapLoad sur ton ordinateur.</li>
-          <li data-i18n="popupSetupStep2">Dans Réglages, copie le jeton de l’extension.</li>
-          <li data-i18n="popupSetupStep3">Colle-le ici, puis teste.</li>
-        </ol>
-        <div class="token-field">
-          <input type="password" id="token-input" autocomplete="off" spellcheck="false" placeholder="Jeton TapLoad" data-i18n-placeholder="popupTokenPlaceholder" aria-label="Jeton TapLoad" data-i18n-aria="popupTokenPlaceholder">
-          <button type="button" id="toggle-token-btn" class="round-btn flat" aria-label="Afficher le jeton" title="Afficher le jeton"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </div>
-        <button type="button" id="test-connection-btn" class="pill-btn solid" data-i18n="testConnection">Tester la connexion</button>
+        <h1 id="setup-title">Application introuvable</h1>
+        <p class="pair-body" id="pair-body">TapLoad doit être ouvert sur cet ordinateur. L’extension réessaie automatiquement.</p>
+        <div class="pair-code" id="pair-code" role="status" aria-label="Code de comparaison" data-i18n-aria="pairCodeLabel" hidden></div>
+        <p class="pair-delay" id="pair-delay" hidden></p>
+        <button type="button" id="pair-retry-btn" class="pill-btn solid" data-i18n="pairRetryBtn" hidden>Réessayer</button>
+        <details class="advanced" id="advanced">
+          <summary data-i18n="pairAdvanced">Avancé</summary>
+          <p class="adv-help" data-i18n="popupTokenHelp">Il se trouve dans TapLoad, Réglages, Extension.</p>
+          <div class="token-field">
+            <input type="password" id="token-input" autocomplete="off" spellcheck="false" placeholder="Jeton TapLoad" data-i18n-placeholder="popupTokenPlaceholder" aria-label="Jeton TapLoad" data-i18n-aria="popupTokenPlaceholder">
+            <button type="button" id="toggle-token-btn" class="round-btn flat" aria-label="Afficher le jeton" title="Afficher le jeton"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <button type="button" id="test-connection-btn" class="pill-btn solid" data-i18n="testConnection">Tester la connexion</button>
+        </details>
       </section>
 
       <section class="tiles" id="tiles" aria-label="Actions">

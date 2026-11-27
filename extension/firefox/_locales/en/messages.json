@@ -752,18 +752,6 @@
     "popupSettings": {
         "message": "Settings"
     },
-    "popupSetupTitle": {
-        "message": "Link the extension to TapLoad"
-    },
-    "popupSetupStep1": {
-        "message": "Open TapLoad on your computer."
-    },
-    "popupSetupStep2": {
-        "message": "In Settings, copy the extension token."
-    },
-    "popupSetupStep3": {
-        "message": "Paste it here, then test."
-    },
     "popupTokenPlaceholder": {
         "message": "TapLoad token"
     },
@@ -1009,5 +997,56 @@
     },
     "feedFilterClear": {
         "message": "Clear filter"
+    },
+    "pairNotFoundTitle": {
+        "message": "App not found"
+    },
+    "pairNotFoundBody": {
+        "message": "TapLoad must be open on this computer. The extension retries automatically."
+    },
+    "pairPendingTitle": {
+        "message": "Waiting for approval in the app"
+    },
+    "pairPendingBody": {
+        "message": "Compare this code with the one in TapLoad, then choose Allow in the app."
+    },
+    "pairCodeLabel": {
+        "message": "Comparison code"
+    },
+    "pairDeniedTitle": {
+        "message": "Access denied or removed"
+    },
+    "pairDeniedBody": {
+        "message": "This browser is not allowed in TapLoad."
+    },
+    "pairExpiredTitle": {
+        "message": "Request expired"
+    },
+    "pairExpiredBody": {
+        "message": "No answer in TapLoad."
+    },
+    "pairBusyTitle": {
+        "message": "Another request is in progress"
+    },
+    "pairBusyBody": {
+        "message": "Trying again automatically in a moment."
+    },
+    "pairUpdateTitle": {
+        "message": "Update the app"
+    },
+    "pairUpdateBody": {
+        "message": "This version of TapLoad is too old for automatic pairing."
+    },
+    "pairRetryIn": {
+        "message": "A new request is possible in {time}."
+    },
+    "pairRetryReady": {
+        "message": "A new request is possible."
+    },
+    "pairRetryBtn": {
+        "message": "Try again"
+    },
+    "pairAdvanced": {
+        "message": "Advanced"
     }
 }

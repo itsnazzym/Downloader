@@ -907,5 +907,146 @@
     },
     "feedFilterClear": {
         "message": "إزالة عامل التصفية"
+    },
+    "popupSettings": {
+        "message": "الإعدادات"
+    },
+    "popupTokenPlaceholder": {
+        "message": "رمز TapLoad"
+    },
+    "popupFindTitle": {
+        "message": "اكتشاف الفيديوهات"
+    },
+    "popupFindSub": {
+        "message": "يسرد كل فيديوهات الصفحة، جاهزة للإرسال."
+    },
+    "popupSendSub": {
+        "message": "يُرسَل الرابط إلى TapLoad."
+    },
+    "popupSyncHintOff": {
+        "message": "افتح TikTok ثم المفضلة ثم المجموعات."
+    },
+    "popupSyncHintOn": {
+        "message": "يرتّب مفضلاتك في مجموعاتها."
+    },
+    "popupBack": {
+        "message": "رجوع"
+    },
+    "popupTokenHelp": {
+        "message": "تجده في TapLoad، الإعدادات، الإضافة."
+    },
+    "popupTokenEdit": {
+        "message": "تغيير الرمز"
+    },
+    "popupPortHelp": {
+        "message": "أبقِ 6969 ما لم تغيّره في TapLoad."
+    },
+    "popupBrowserLabel": {
+        "message": "متصفح ملفات تعريف الارتباط"
+    },
+    "popupCookiesHelp": {
+        "message": "مطلوب للفيديوهات الخاصة أو المتاحة للحسابات المسجَّلة فقط."
+    },
+    "popupQualityHelp": {
+        "message": "اختر الجودة قبل إرسال الفيديو."
+    },
+    "popupNotLinked": {
+        "message": "غير مرتبط"
+    },
+    "popupLinked": {
+        "message": "TapLoad مرتبط."
+    },
+    "contentSyncRunningTitle": {
+        "message": "المزامنة جارية"
+    },
+    "contentSyncItemsLabel": {
+        "message": "مجموعات تمت قراءتها"
+    },
+    "contentSyncDiscoverLabel": {
+        "message": "مجموعات تم رصدها"
+    },
+    "contentSyncVideosFound": {
+        "message": "تم العثور على {n} فيديو"
+    },
+    "contentSyncKeepOpen": {
+        "message": "أبقِ تبويب TikTok هذا مفتوحًا."
+    },
+    "contentSyncDoneTitle": {
+        "message": "تم ترتيب المفضلة"
+    },
+    "contentSyncDoneLabel": {
+        "message": "فيديوهات مرتبة في {n} مجموعات"
+    },
+    "contentSyncPartialNote": {
+        "message": "{n} مجموعات غير مكتملة: لم يرسل TikTok كل شيء. أعد التشغيل لإكمالها."
+    },
+    "contentSyncListPartial": {
+        "message": "ربما لم يتم رصد بعض المجموعات. أعد التشغيل للتحقق."
+    },
+    "contentSyncRetry": {
+        "message": "إعادة التشغيل"
+    },
+    "contentSyncClose": {
+        "message": "إغلاق"
+    },
+    "contentSyncErrorTitle": {
+        "message": "تعذّرت المزامنة"
+    },
+    "contentSyncAppOffline": {
+        "message": "TapLoad غير مفتوح أو غير مرتبط. افتح التطبيق ثم أعد التشغيل."
+    },
+    "feedOptions": {
+        "message": "خيارات العرض"
+    },
+    "pairNotFoundTitle": {
+        "message": "التطبيق غير موجود"
+    },
+    "pairNotFoundBody": {
+        "message": "يجب أن يكون TapLoad مفتوحًا على هذا الكمبيوتر. تعيد الإضافة المحاولة تلقائيًا."
+    },
+    "pairPendingTitle": {
+        "message": "بانتظار التأكيد في التطبيق"
+    },
+    "pairPendingBody": {
+        "message": "قارن هذا الرمز بالرمز الظاهر في TapLoad، ثم اختر «سماح» في التطبيق."
+    },
+    "pairCodeLabel": {
+        "message": "رمز المقارنة"
+    },
+    "pairDeniedTitle": {
+        "message": "تم رفض الوصول أو إزالته"
+    },
+    "pairDeniedBody": {
+        "message": "هذا المتصفح غير مصرّح له في TapLoad."
+    },
+    "pairExpiredTitle": {
+        "message": "انتهت صلاحية الطلب"
+    },
+    "pairExpiredBody": {
+        "message": "لم يصل أي رد في TapLoad."
+    },
+    "pairBusyTitle": {
+        "message": "هناك طلب آخر قيد المعالجة"
+    },
+    "pairBusyBody": {
+        "message": "ستتم إعادة المحاولة تلقائيًا بعد لحظات."
+    },
+    "pairUpdateTitle": {
+        "message": "حدّث التطبيق"
+    },
+    "pairUpdateBody": {
+        "message": "هذا الإصدار من TapLoad قديم جدًا للاقتران التلقائي."
+    },
+    "pairRetryIn": {
+        "message": "يمكن إرسال طلب جديد بعد {time}."
+    },
+    "pairRetryReady": {
+        "message": "يمكن إرسال طلب جديد الآن."
+    },
+    "pairRetryBtn": {
+        "message": "إعادة المحاولة"
+    },
+    "pairAdvanced": {
+        "message": "خيارات متقدمة"
     }
 }

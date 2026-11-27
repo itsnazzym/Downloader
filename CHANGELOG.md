@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Browser extension pairing: the extension is approved in the app with a 4-digit code comparison instead of a pasted token. The popup shows the code, "Waiting for approval in the app", Denied / Access removed with the remaining delay, a Try again button after an expiry, and "Update the app" for older apps; the manual token moved to a collapsed Advanced section and the "?" badge disappears once connected.
+- Paired browsers list in the app settings with per-browser revocation (closes the socket at once and pauses new invitations for 10 minutes); only extension origins can pair, and web pages are refused.
 - Browser extension 2.2.0: Like and Bookmark buttons on X cards, using the user's own x.com session from the content script, with a one-time warning, request throttling and a rate-limit message.
 - Browser extension: live download queue in the panel (progress, speed, ETA, cancel, remove, retry, cancel all) and a Downloads tab.
 - Browser extension: drag-to-select cards (mouse and touch long-press) and Shift+click range selection.

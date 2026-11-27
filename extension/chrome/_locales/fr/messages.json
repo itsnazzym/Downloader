@@ -752,18 +752,6 @@
     "popupSettings": {
         "message": "Réglages"
     },
-    "popupSetupTitle": {
-        "message": "Relie l’extension à TapLoad"
-    },
-    "popupSetupStep1": {
-        "message": "Ouvre TapLoad sur ton ordinateur."
-    },
-    "popupSetupStep2": {
-        "message": "Dans Réglages, copie le jeton de l’extension."
-    },
-    "popupSetupStep3": {
-        "message": "Colle-le ici, puis teste."
-    },
     "popupTokenPlaceholder": {
         "message": "Jeton TapLoad"
     },
@@ -1009,5 +997,56 @@
     },
     "feedFilterClear": {
         "message": "Retirer le filtre"
+    },
+    "pairNotFoundTitle": {
+        "message": "Application introuvable"
+    },
+    "pairNotFoundBody": {
+        "message": "TapLoad doit être ouvert sur cet ordinateur. L’extension réessaie automatiquement."
+    },
+    "pairPendingTitle": {
+        "message": "En attente de validation dans l’application"
+    },
+    "pairPendingBody": {
+        "message": "Comparer ce code avec celui de TapLoad, puis choisir Autoriser dans l’application."
+    },
+    "pairCodeLabel": {
+        "message": "Code de comparaison"
+    },
+    "pairDeniedTitle": {
+        "message": "Accès refusé ou retiré"
+    },
+    "pairDeniedBody": {
+        "message": "Ce navigateur n’est pas autorisé dans TapLoad."
+    },
+    "pairExpiredTitle": {
+        "message": "Demande expirée"
+    },
+    "pairExpiredBody": {
+        "message": "Aucune réponse dans TapLoad."
+    },
+    "pairBusyTitle": {
+        "message": "Une autre demande est en cours"
+    },
+    "pairBusyBody": {
+        "message": "Nouvel essai automatique dans un instant."
+    },
+    "pairUpdateTitle": {
+        "message": "Mettez à jour l’application"
+    },
+    "pairUpdateBody": {
+        "message": "Cette version de TapLoad est trop ancienne pour l’appairage automatique."
+    },
+    "pairRetryIn": {
+        "message": "Nouvelle demande possible dans {time}."
+    },
+    "pairRetryReady": {
+        "message": "Une nouvelle demande est possible."
+    },
+    "pairRetryBtn": {
+        "message": "Réessayer"
+    },
+    "pairAdvanced": {
+        "message": "Avancé"
     }
 }

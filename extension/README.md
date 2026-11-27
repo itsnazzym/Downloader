@@ -15,6 +15,40 @@ dart run tool/build_extension.dart
 
 See the root [README.md](../README.md) section **Browser extensions**.
 
+## Pairing with the desktop app
+
+The extension no longer needs a pasted token. On first use it connects to the app on `127.0.0.1`, and the
+app asks the user whether to allow this browser:
+
+1. The extension shows `?` on its toolbar icon. Its popup shows a 4-digit code and "Waiting for approval in the app".
+2. TapLoad shows the same code in an invitation. The user compares the two codes, then chooses **Allow**, **Deny** or **Always deny**.
+3. On Allow the app sends a token over that same socket; the extension keeps it in `storage.local` and connects.
+   Nothing is typed by the user again, and the token survives app restarts.
+
+**Revocation.** Settings, Extension (and the other settings views) list the paired browsers. Revoking one closes
+its socket at once, deletes its token, and pauses invitations from that browser for 10 minutes. After a revocation
+the extension falls back to pairing: it never loops.
+
+**Pauses.** Deny pauses the browser for 10 minutes, Always deny for 24 hours, no answer within 2 minutes expires the
+request and pauses for 10 minutes, and a fourth request within an hour pauses for 30 minutes. After a refusal or a revocation the
+popup only shows the remaining time (the app's pause would refuse an earlier retry), and the extension asks again
+by itself once the pause is over. After an expiry or a busy answer the popup offers a **Try again** button, which
+asks the background script to start over immediately.
+
+**Security.**
+
+- Only a socket whose `Origin` is `chrome-extension://…` or `moz-extension://…` can ask to pair. A web page
+  always sends its own `https://…` Origin, which a page cannot forge, and the app refuses the connection (403).
+- Approval happens only in the desktop app. No WebSocket message approves a request, the comparison code is never
+  logged, and it is shown for comparison only (it grants nothing by itself).
+- One request is pending at a time per browser origin; a second browser origin waits (`PAIR_BUSY`).
+- Each browser gets its own random token; the app keeps only its SHA-256, and tokens are revocable one by one.
+
+**Manual token.** The token field remains in the popup under **Advanced** (collapsed). A token pasted from TapLoad,
+Settings, Extension still works exactly as before and never triggers pairing.
+
+**Older app.** If the app answers the pairing request with a bare `AUTH_FAILED`, the popup says "Update the app".
+
 ## X feed panel
 
 On `x.com`, open the extension popup and choose **X Feed** (or open the browser sidebar).

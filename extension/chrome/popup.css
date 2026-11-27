@@ -53,8 +53,15 @@ body[data-view="settings"] .view-home { display: none; }
 .setup { display: none; margin-bottom: 10px; padding: 16px; border-radius: var(--r-card); background: var(--c); color: var(--on-c); }
 body[data-conn="offline"] .setup, body[data-setup="open"] .setup { display: block; }
 .setup h1 { margin: 0 0 8px; font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -.035em; }
-.setup-steps { margin: 0 0 12px; padding-left: 20px; font-size: 13px; line-height: 1.45; font-weight: 500; }
-.setup-steps li { padding-left: 2px; }
+.pair-body { margin: 0 0 12px; font-size: 13px; line-height: 1.45; font-weight: 500; }
+/* The code is compared by eye with the app's prompt: big, spaced, never mirrored in RTL. */
+.pair-code { margin: 0 0 10px; padding: 12px 0; border-radius: var(--r-card); background: color-mix(in srgb, var(--on-c) 14%, transparent); text-align: center; direction: ltr; unicode-bidi: isolate; font-size: 48px; line-height: 1.1; font-weight: 800; letter-spacing: .22em; text-indent: .22em; font-variant-numeric: tabular-nums; }
+body[data-pair="none"] #setup-title, body[data-pair="none"] #pair-body { display: none; }
+.pair-delay { margin: 0 0 10px; font-size: 12px; font-weight: 600; opacity: .8; }
+.advanced { margin-top: 12px; }
+.advanced summary { cursor: pointer; padding: 6px 0; font-size: 12px; font-weight: 700; opacity: .8; }
+.advanced summary:hover { opacity: 1; }
+.adv-help { margin: 4px 0 10px; font-size: 12px; line-height: 1.4; opacity: .8; }
 .token-field { display: flex; align-items: center; margin-bottom: 8px; border-radius: var(--r-ctl); background: color-mix(in srgb, var(--on-c) 14%, transparent); }
 .token-field input { flex: 1; min-width: 0; height: 40px; padding: 0 4px 0 16px; border: 0; background: transparent; color: var(--on-c); outline: none; }
 .token-field input::placeholder { color: color-mix(in srgb, var(--on-c) 55%, transparent); }
