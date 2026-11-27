@@ -402,6 +402,7 @@ class EnginePlugin(
             if (arguments.isEmpty() || arguments.contains("-version") || arguments.contains("--version")) {
                 return Triple(0, "ffmpeg (android bundle)", "")
             }
+            if (name.startsWith("ffmpeg")) return runBundledFfmpeg(arguments)
             return Triple(0, "ffmpeg (android bundle)", "")
         }
         if (name.startsWith("aria2") &&
@@ -420,6 +421,34 @@ class EnginePlugin(
             }
         val response = YoutubeDL.getInstance().execute(request, processId, callback)
         return Triple(response.exitCode, response.out ?: "", response.err ?: "")
+    }
+
+    /**
+     * Runs the ffmpeg youtubedl-android ships (the one yt-dlp uses) for a
+     * real job, e.g. a TikTok photo slideshow. It is libffmpeg.so in the
+     * native library dir and needs its unpacked libraries on the path.
+     */
+    private fun runBundledFfmpeg(arguments: List<String>): Triple<Int, String, String> {
+        FFmpeg.getInstance().init(context)
+        val binary = File(context.applicationInfo.nativeLibraryDir, "libffmpeg.so")
+        val packages = File(context.noBackupFilesDir, "youtubedl-android/packages")
+        val process = ProcessBuilder(listOf(binary.absolutePath) + arguments)
+            .redirectErrorStream(false)
+            .apply {
+                environment()["LD_LIBRARY_PATH"] = listOf(
+                    File(packages, "ffmpeg/usr/lib").absolutePath,
+                    File(packages, "python/usr/lib").absolutePath,
+                ).joinToString(":")
+            }
+            .start()
+        // Read stdout on its own thread so a full pipe never blocks ffmpeg.
+        var out = ""
+        val reader = Thread { out = process.inputStream.bufferedReader().readText() }
+        reader.start()
+        val err = process.errorStream.bufferedReader().readText()
+        val code = process.waitFor()
+        reader.join()
+        return Triple(code, out, err)
     }
 
     private fun extractThumbnail(videoPath: String, thumbnailPath: String): Boolean {
