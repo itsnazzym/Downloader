@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:modern_downloader/core/platform/platform_info.dart';
 import 'app_palette.dart';
 import 'app_typography.dart';
 import 'design_spec.dart';
@@ -21,7 +22,10 @@ class AppTheme {
     // The six desktop designs restyle shared Material pieces (dialogs,
     // toasts, menus, toggles) and their page transitions; OLED and iOS keep
     // the platform look they were built with.
-    final designed = spec.nav != DesignNav.sidebar;
+    final designed =
+        spec.nav != DesignNav.sidebar &&
+        // OLED has its own desktop design; phones keep its platform look.
+        !(palette.id == 'oled' && PlatformInfo.isMobile);
     final panel = BorderRadius.circular(
       spec.cardRadius.clamp(0, 24).toDouble(),
     );

@@ -6022,4 +6022,259 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get vitrineIosNav => 'Barre latérale';
+
+  @override
+  String get oledNavHome => 'Accueil';
+
+  @override
+  String get oledMainNavigation => 'Navigation principale';
+
+  @override
+  String get oledFreeWord => 'libres';
+
+  @override
+  String get oledPasteHint => 'Colle un lien YouTube, TikTok, Instagram, X…';
+
+  @override
+  String oledActiveOf(int index, int count) {
+    return 'En cours · $index sur $count';
+  }
+
+  @override
+  String oledEtaLeft(String eta) {
+    return 'reste $eta';
+  }
+
+  @override
+  String get oledNext => 'Ensuite';
+
+  @override
+  String oledDaysShort(int days) {
+    return '$days j';
+  }
+
+  @override
+  String get oledStatsEmptyTitle => 'Rien ne s’est encore allumé';
+
+  @override
+  String get oledStatsEmptyBody =>
+      'Tes chiffres apparaîtront ici après ton premier téléchargement.';
+
+  @override
+  String oledDownloadsInDays(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'téléchargements',
+      one: 'téléchargement',
+      zero: 'téléchargement',
+    );
+    return '$_temp0 sur $days jours';
+  }
+
+  @override
+  String oledDownloadsInAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'téléchargements',
+      one: 'téléchargement',
+      zero: 'téléchargement',
+    );
+    return '$_temp0 au total';
+  }
+
+  @override
+  String oledTodayCount(int count) {
+    return '$count aujourd’hui';
+  }
+
+  @override
+  String get oledVolume => 'Volume';
+
+  @override
+  String get oledSuccess => 'Réussite';
+
+  @override
+  String get oledFree => 'Libres';
+
+  @override
+  String oledLastDays(int days) {
+    return '$days derniers jours';
+  }
+
+  @override
+  String oledPerDot(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '1 point = $count téléchargements',
+      one: '1 point = 1 téléchargement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledHistogramLabel(int days, int count) {
+    return 'Téléchargements par jour sur $days jours, $count au total';
+  }
+
+  @override
+  String get oledTodayWord => 'aujourd’hui';
+
+  @override
+  String get oledSources => 'Sources';
+
+  @override
+  String get oledSpaceUsed => 'Espace utilisé';
+
+  @override
+  String oledWordVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'vidéos',
+      one: 'vidéo',
+      zero: 'vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordCollections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'collections',
+      one: 'collection',
+      zero: 'collection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String oledWordFavorites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'favoris',
+      one: 'favori',
+      zero: 'favori',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledSync => 'Synchroniser';
+
+  @override
+  String get oledSyncing => 'Synchronisation…';
+
+  @override
+  String get oledImportExport => 'Importer un export';
+
+  @override
+  String get oledTabVideos => 'Vidéos';
+
+  @override
+  String get oledTabCollections => 'Collections';
+
+  @override
+  String get oledTabFavorites => 'Favoris';
+
+  @override
+  String get oledSelectAll => 'Tout sélectionner';
+
+  @override
+  String oledSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '1 sélectionnée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledDownloadSelection => 'Télécharger la sélection';
+
+  @override
+  String get oledQueued => 'Ajouté aux téléchargements';
+
+  @override
+  String get oledStop => 'Arrêter';
+
+  @override
+  String get oledAllOptions => 'Toutes les options';
+
+  @override
+  String get oledSimpleView => 'Vue simple';
+
+  @override
+  String get oledThisPc => 'ce PC';
+
+  @override
+  String get oledRefreshDevices => 'Chercher les appareils';
+
+  @override
+  String get oledPairingCode => 'Code d’appairage';
+
+  @override
+  String get oledPairingHint =>
+      'Saisis ce code dans TapLoad sur ton téléphone.';
+
+  @override
+  String oledSendToDevice(String name) {
+    return 'À envoyer vers $name';
+  }
+
+  @override
+  String get oledSendNoDevice => 'À envoyer';
+
+  @override
+  String oledVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '1 vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get oledChooseFiles => 'Choisir des fichiers';
+
+  @override
+  String get oledSettingsSections => 'Sections des réglages';
+
+  @override
+  String get oledLeadGeneral => 'Ce que TapLoad fait par défaut.';
+
+  @override
+  String get oledLeadOutput =>
+      'Où vont les fichiers, leur format et leur rangement.';
+
+  @override
+  String get oledLeadAppearance => 'Le design, la langue et l’allure.';
+
+  @override
+  String get oledLeadPerformance =>
+      'Téléchargements simultanés, vitesse et effets.';
+
+  @override
+  String get oledLeadSystem =>
+      'Moteurs, dépendances et entretien de la bibliothèque.';
+
+  @override
+  String get oledLeadPlugins => 'Active ou coupe les fonctionnalités de l’app.';
+
+  @override
+  String get oledLeadAdvanced =>
+      'Cookies, presse-papiers, historique et expériences.';
+
+  @override
+  String get oledLeadOrganizer =>
+      'Les règles qui rangent tes téléchargements en dossiers.';
 }

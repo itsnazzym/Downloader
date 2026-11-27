@@ -1,6 +1,7 @@
 import 'package:modern_downloader/core/design_system/design_skin.dart';
 
 import 'nocturne/nocturne_skin.dart';
+import 'oled/oled_skin.dart';
 import 'pastille/pastille_skin.dart';
 import 'porcelaine/porcelaine_skin.dart';
 import 'signal/signal_skin.dart';
@@ -15,4 +16,5 @@ void registerDesignSkins() {
   DesignSkin.register('studio', studioSkin);
   DesignSkin.register('terminal', terminalSkin);
   DesignSkin.register('nocturne', nocturneSkin);
+  DesignSkin.register('oled', oledSkin);
 }
