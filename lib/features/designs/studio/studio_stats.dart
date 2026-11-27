@@ -111,10 +111,7 @@ class _Kpis extends ConsumerWidget {
       (l10n.downloads, (_count(l10n, total), '')),
       (l10n.studioStorage, _split(localBytes(l10n, bytes))),
       (l10n.statsToday, (_count(l10n, today), '')),
-      (
-        l10n.freeSpace,
-        free == null ? ('—', '') : _split(localBytes(l10n, free)),
-      ),
+      (l10n.freeSpace, free == null ? ('—', '') : _split(localBytes(l10n, free))),
     ];
     return StudioPanel(
       child: LayoutBuilder(
@@ -186,9 +183,7 @@ class _ChartState extends ConsumerState<_Chart> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final l10n = context.l10n;
-    final history = ref.watch(
-      downloadStatsProvider.select((s) => s.dailyHistory),
-    );
+    final history = ref.watch(downloadStatsProvider.select((s) => s.dailyHistory));
     final byDay = {for (final d in history) d.date: d};
     final now = DateTime.now();
     final days = [
@@ -258,24 +253,22 @@ class _ChartState extends ConsumerState<_Chart> {
                       ),
                     )
                   : Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          for (var i = 0; i < days.length; i++) ...[
-                            if (i > 0) const SizedBox(width: 4),
-                            Expanded(
-                              child: _Bar(
-                                day: days[i],
-                                fraction: peak == 0
-                                    ? 0
-                                    : days[i].downloads / peak,
-                              ),
-                            ),
-                          ],
-                        ],
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (var i = 0; i < days.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 4),
+                      Expanded(
+                        child: _Bar(
+                          day: days[i],
+                          fraction: peak == 0 ? 0 : days[i].downloads / peak,
+                        ),
                       ),
-                    ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -560,10 +553,7 @@ class _ByFormat extends ConsumerWidget {
       (l10n.designFilterImages, image, imageShade),
     ];
     int pct(int n) => total == 0 ? 0 : (n * 100 / total).round();
-    final shown = [
-      for (final p in parts)
-        if (p.$2 > 0) p,
-    ];
+    final shown = [for (final p in parts) if (p.$2 > 0) p];
     return StudioPanel(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Column(
@@ -645,22 +635,18 @@ class _TopCreators extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     // The whole library grouped by creator; a record list compares by value.
-    final top = ref
-        .watch(
-          downloadListProvider.select((v) {
-            final folders = CreatorFolderGrouper.fromItems(
-              v.valueOrNull ?? const <DownloadItem>[],
-              order: CreatorFolderOrder.countDesc,
-            );
-            return _Top(
-              [
-                for (final f in folders)
-                  if (!f.isUnknown) (f.handle!, f.count),
-              ].take(5).toList(),
-            );
-          }),
-        )
-        .list;
+    final top = ref.watch(
+      downloadListProvider.select((v) {
+        final folders = CreatorFolderGrouper.fromItems(
+          v.valueOrNull ?? const <DownloadItem>[],
+          order: CreatorFolderOrder.countDesc,
+        );
+        return _Top([
+          for (final f in folders)
+            if (!f.isUnknown) (f.handle!, f.count),
+        ].take(5).toList());
+      }),
+    ).list;
     if (top.isEmpty) return const SizedBox.shrink();
     final peak = top.first.$2;
     return StudioPanel(
@@ -823,7 +809,10 @@ class _Shortcuts extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(label, style: studioText(c, color: c.textSecondary)),
+                    Text(
+                      label,
+                      style: studioText(c, color: c.textSecondary),
+                    ),
                   ],
                 ),
             ],

@@ -332,7 +332,12 @@ class _VideosPane extends ConsumerWidget {
                         child: SizedBox(
                           width: 300,
                           height: 520,
-                          child: StudioThemed(child: const _FilterPane()),
+                          child: const StudioThemed(
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
+                              child: _FilterPane(),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -728,13 +733,15 @@ class _ListToolbar extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
-                SizedBox(
-                  width: 300,
-                  child: StudioSearchBox(
-                    hint: l10n.archiveMobileSearchHint,
-                    clearTooltip: l10n.archiveMobileClearSearch,
-                    initial: query,
-                    onChanged: notifier.setSearchQuery,
+                Flexible(
+                  child: SizedBox(
+                    width: 300,
+                    child: StudioSearchBox(
+                      hint: l10n.archiveMobileSearchHint,
+                      clearTooltip: l10n.archiveMobileClearSearch,
+                      initial: query,
+                      onChanged: notifier.setSearchQuery,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -1034,7 +1041,7 @@ class _VideoRowState extends State<_VideoRow> {
               if (widget.showId) ...[
                 const SizedBox(width: 12),
                 SizedBox(
-                  width: _hover ? 60 : 190,
+                  width: 190,
                   child: SelectableText(
                     item.id,
                     maxLines: 1,
@@ -1042,35 +1049,43 @@ class _VideoRowState extends State<_VideoRow> {
                   ),
                 ),
               ],
-              if (_hover) ...[
-                StudioIconButton(
-                  icon: Icons.copy_rounded,
-                  tooltip: l10n.studioArchiveCopyLink,
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: item.url));
-                    _notice(context, l10n.studioArchiveLinkCopied);
-                  },
+              // Kept mounted when hidden, for the keyboard and touch.
+              AnimatedOpacity(
+                duration: studioMotion(context, 140),
+                opacity: _hover ? 1 : 0,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    StudioIconButton(
+                      icon: Icons.copy_rounded,
+                      tooltip: l10n.studioArchiveCopyLink,
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: item.url));
+                        _notice(context, l10n.studioArchiveLinkCopied);
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                    StudioIconButton(
+                      icon: Icons.open_in_new_rounded,
+                      tooltip: l10n.studioArchiveOpenBrowser,
+                      onTap: () {
+                        if (Uri.tryParse(item.url)?.host.endsWith('.invalid') ==
+                            true) {
+                          return;
+                        }
+                        openInBrowser(item.url);
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                    StudioButton(
+                      label: l10n.archiveMobileDownload,
+                      icon: Icons.download_rounded,
+                      height: 32,
+                      onTap: widget.onDownload,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                StudioIconButton(
-                  icon: Icons.open_in_new_rounded,
-                  tooltip: l10n.studioArchiveOpenBrowser,
-                  onTap: () {
-                    if (Uri.tryParse(item.url)?.host.endsWith('.invalid') ==
-                        true) {
-                      return;
-                    }
-                    openInBrowser(item.url);
-                  },
-                ),
-                const SizedBox(width: 6),
-                StudioButton(
-                  label: l10n.archiveMobileDownload,
-                  icon: Icons.download_rounded,
-                  height: 32,
-                  onTap: widget.onDownload,
-                ),
-              ],
+              ),
             ],
           ),
         ),
@@ -1260,12 +1275,14 @@ class _CollectionsGridState extends ConsumerState<_CollectionsGrid> {
             children: [
               Row(
                 children: [
-                  SizedBox(
-                    width: 280,
-                    child: StudioSearchBox(
-                      hint: l10n.archiveCollSearch,
-                      clearTooltip: l10n.archiveMobileClearSearch,
-                      onChanged: (v) => setState(() => _search = v.trim()),
+                  Flexible(
+                    child: SizedBox(
+                      width: 280,
+                      child: StudioSearchBox(
+                        hint: l10n.archiveCollSearch,
+                        clearTooltip: l10n.archiveMobileClearSearch,
+                        onChanged: (v) => setState(() => _search = v.trim()),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -1992,8 +2009,7 @@ class _CollectionDetail extends ConsumerWidget {
                     onTap: () => notifier.selectCollection(null),
                   ),
                   const SizedBox(width: 18),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 360),
+                  Flexible(
                     child: Text(
                       name,
                       maxLines: 1,

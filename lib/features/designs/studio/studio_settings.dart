@@ -113,7 +113,9 @@ class StudioSettings extends StatelessWidget {
                 child: Align(
                   alignment: AlignmentDirectional.topStart,
                   child: Padding(
-                    padding: EdgeInsetsDirectional.only(start: side - 24),
+                    padding: EdgeInsetsDirectional.only(
+                      start: (side - 24).clamp(0, 40).toDouble(),
+                    ),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 700 + 48),
                       child: current,

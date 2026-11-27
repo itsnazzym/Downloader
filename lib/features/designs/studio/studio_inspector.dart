@@ -244,7 +244,7 @@ class _StudioInspectorState extends ConsumerState<StudioInspector>
         ),
       ],
     );
-    final enter = CurvedAnimation(parent: _enter, curve: studioEase);
+    final enter = _enter.drive(CurveTween(curve: studioEase));
     return ColoredBox(
       color: c.surface,
       child: Column(
