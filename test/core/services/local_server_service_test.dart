@@ -588,12 +588,43 @@ void main() {
     });
 
     test('pause, resume and retry reach the matching provider call', () async {
-      await openWith([_item('a', DownloadStatus.failed)]);
-      expect((await send('pause', 'a'))['ok'], isTrue);
-      expect((await send('resume', 'a'))['ok'], isTrue);
-      expect((await send('retry', 'a'))['ok'], isTrue);
-      expect(list.calls, ['pause:a', 'resume:a', 'retry:a']);
+      await openWith([
+        _item('running', DownloadStatus.downloading),
+        _item('stopped', DownloadStatus.paused),
+        _item('broken', DownloadStatus.failed),
+      ]);
+      expect((await send('pause', 'running'))['ok'], isTrue);
+      expect((await send('resume', 'stopped'))['ok'], isTrue);
+      expect((await send('retry', 'broken'))['ok'], isTrue);
+      expect(list.calls, ['pause:running', 'resume:stopped', 'retry:broken']);
     });
+
+    test(
+      'a command that does not fit the status is refused untouched',
+      () async {
+        await openWith([
+          _item('done', DownloadStatus.completed, filePath: r'C:\keep\a.mp4'),
+          _item('dup', DownloadStatus.duplicate),
+          _item('busy', DownloadStatus.downloading),
+        ]);
+        for (final refused in [
+          ('retry', 'done'),
+          ('pause', 'done'),
+          ('cancel', 'done'),
+          ('resume', 'done'),
+          ('retry', 'dup'),
+          ('cancel', 'dup'),
+          ('retry', 'busy'),
+          ('resume', 'busy'),
+        ]) {
+          final res = await send(refused.$1, refused.$2);
+          expect(res['ok'], isFalse, reason: '$refused');
+          expect(res['error'], 'invalid_state', reason: '$refused');
+          expect(res['id'], refused.$2);
+        }
+        expect(list.calls, isEmpty);
+      },
+    );
 
     test('cancel_all cancels only the active items', () async {
       await openWith([

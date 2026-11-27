@@ -8,7 +8,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:tapload/core/providers/settings_provider.dart';
 import 'package:tapload/features/downloader/domain/repositories/i_downloader_repository.dart';
 import 'package:tapload/features/downloader/domain/entities/download_item.dart';
-import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 import 'package:tapload/core/download/extension_download_batcher.dart';
 import 'package:tapload/core/download/progress_throttle.dart';
@@ -418,7 +417,9 @@ Ready for Extension Connection
       final list = _ref.read(downloadListProvider.notifier);
 
       if (command == 'cancel_all') {
-        for (final item in items.where(_isActive)) {
+        for (final item in items.where(
+          (i) => ExtensionQueueContract.isActive(i.status),
+        )) {
           await list.cancelDownload(item.id);
         }
         return reply();
@@ -428,6 +429,11 @@ Ready for Extension Connection
       final matches = items.where((item) => item.id == id);
       if (matches.isEmpty) return reply(error: 'unknown_id');
       final item = matches.first;
+      // A command that does not fit the status could delete or rewrite a
+      // finished download (retry deletes the file first).
+      if (!ExtensionQueueContract.allows(command as String, item.status)) {
+        return reply(error: 'invalid_state');
+      }
 
       switch (command) {
         case 'cancel':
@@ -445,12 +451,6 @@ Ready for Extension Connection
       reply(error: 'command_failed');
     }
   }
-
-  static bool _isActive(DownloadItem item) =>
-      item.status == DownloadStatus.queued ||
-      item.status == DownloadStatus.extracting ||
-      item.status == DownloadStatus.downloading ||
-      item.status == DownloadStatus.processing;
 
   void _broadcastProgress(DownloadItem item) {
     if (_clients.isEmpty) return;

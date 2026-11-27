@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tapload/core/services/extension_queue_contract.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 void main() {
   test('message types match the extension contract', () {
@@ -7,6 +8,50 @@ void main() {
     expect(ExtensionQueueContract.snapshot, 'QUEUE_SNAPSHOT');
     expect(ExtensionQueueContract.command, 'DOWNLOAD_COMMAND');
     expect(ExtensionQueueContract.commandResult, 'DOWNLOAD_COMMAND_RESULT');
+  });
+
+  test('each command is allowed only for the statuses that fit it', () {
+    const allowed = <String, Set<DownloadStatus>>{
+      'pause': {
+        DownloadStatus.extracting,
+        DownloadStatus.downloading,
+        DownloadStatus.processing,
+      },
+      'resume': {DownloadStatus.paused},
+      'cancel': {
+        DownloadStatus.queued,
+        DownloadStatus.extracting,
+        DownloadStatus.downloading,
+        DownloadStatus.processing,
+        DownloadStatus.paused,
+      },
+      'retry': {DownloadStatus.failed, DownloadStatus.canceled},
+    };
+    for (final entry in allowed.entries) {
+      for (final status in DownloadStatus.values) {
+        expect(
+          ExtensionQueueContract.allows(entry.key, status),
+          entry.value.contains(status),
+          reason: '${entry.key} on ${status.name}',
+        );
+      }
+    }
+    expect(
+      ExtensionQueueContract.allows('explode', DownloadStatus.failed),
+      isFalse,
+    );
+  });
+
+  test('cancel_all targets exactly the queued and running statuses', () {
+    expect(
+      DownloadStatus.values.where(ExtensionQueueContract.isActive).toSet(),
+      {
+        DownloadStatus.queued,
+        DownloadStatus.extracting,
+        DownloadStatus.downloading,
+        DownloadStatus.processing,
+      },
+    );
   });
 
   test('id commands with an id are valid', () {
