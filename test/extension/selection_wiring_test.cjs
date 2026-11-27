@@ -28,3 +28,9 @@ test('css and html support the gestures', () => {
 test('release decision goes through MDSelection.releaseAction', () => {
   assert.match(panel, /MDSelection\.releaseAction\(/);
 });
+
+test('click after a drag is swallowed in the capture phase, and thumbnail/title can start a drag', () => {
+  assert.match(panel, /MDSelection\.shouldSwallowClick\(/);
+  assert.match(panel, /\}, true\);\s*\n\s*feedList\.addEventListener\('keydown'/);
+  assert.equal(/select, textarea, \.thumbnail-container/.test(panel), false);
+});

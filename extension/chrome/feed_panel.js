@@ -2262,7 +2262,6 @@
     });
 
     card.addEventListener('click', function (e) {
-      if (gestureMoved) return; // this click ends a drag-select
       if (e.shiftKey && anchorId && !e.target.closest('button, a, .thumbnail-container, .card-title') &&
           sel.range(anchorId, item.id, renderedCardIds()).length) {
         e.preventDefault();
@@ -2995,7 +2994,7 @@
   feedList.addEventListener('pointerdown', function (e) {
     if (!e.isPrimary || e.button !== 0) return;
     var card = e.target.closest('.feed-card');
-    if (!card || e.target.closest('button, a, input, select, textarea, .thumbnail-container, .card-title')) return;
+    if (!card || e.target.closest('button, a, input, select, textarea')) return;
     endGesture(false);
     gestureMoved = false;
     var touch = e.pointerType === 'touch';
@@ -3047,6 +3046,14 @@
   });
   window.addEventListener('pointercancel', function () { endGesture(false); });
   window.addEventListener('blur', function () { endGesture(false); });
+  // Capture phase: the click ending a drag-select must not open the preview or locate the media.
+  feedList.addEventListener('click', function (e) {
+    if (!MDSelection.shouldSwallowClick({ moved: gestureMoved, dragging: sel.isDragging() })) return;
+    gestureMoved = false;
+    e.stopPropagation();
+    e.preventDefault();
+  }, true);
+  feedList.addEventListener('keydown', function () { gestureMoved = false; });
   // Once armed, a touch drag must select, not scroll.
   feedList.addEventListener('touchmove', function (e) {
     if (gesture && gesture.armed && e.cancelable) e.preventDefault();

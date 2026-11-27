@@ -82,5 +82,10 @@
     return p.pointerType === 'touch' && p.armed && !p.dragging && !p.moved ? 'toggle' : 'none';
   }
 
-  root.MDSelection = { create: create, releaseAction: releaseAction };
+  // The click that follows a drag-select must not reach the card or its thumbnail/title.
+  function shouldSwallowClick(p) {
+    return Boolean(p.moved || p.dragging);
+  }
+
+  root.MDSelection = { create: create, releaseAction: releaseAction, shouldSwallowClick: shouldSwallowClick };
 })(typeof self !== 'undefined' ? self : this);
