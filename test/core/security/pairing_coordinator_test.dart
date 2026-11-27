@@ -320,7 +320,7 @@ void main() {
       expect(store.state.browsers, isEmpty);
     });
 
-    test('store full: outcome denied, false, state cleared', () async {
+    test('store full: outcome failed, false, state cleared', () async {
       final s = submit(); // the store fills while the user decides
       for (var i = 0; i < 20; i++) {
         await store.pair(origin: 'chrome-extension://full$i', label: 'x');
@@ -329,7 +329,7 @@ void main() {
       expect(await coordinator.approve(s.request!.id), isFalse);
       expect(
         await s.outcome!.timeout(const Duration(seconds: 1)),
-        isA<PairingDenied>(),
+        isA<PairingFailed>(),
       );
       expect(coordinator.state, isNull);
       expect(store.state.browsers, hasLength(20));
@@ -431,17 +431,12 @@ void main() {
       expect(await approving, isFalse);
     });
 
-    test('any store failure resolves denied, false, state cleared', () async {
+    test('any store failure resolves failed, false, state cleared', () async {
       final s = submit();
       gated.failWith = StateError('disk full');
 
       expect(await coordinator.approve(s.request!.id), isFalse);
-      final outcome = await s.outcome!;
-      expect(outcome, isA<PairingDenied>());
-      expect(
-        (outcome as PairingDenied).retryAfter,
-        const Duration(minutes: 10),
-      );
+      expect(await s.outcome!, isA<PairingFailed>());
       expect(coordinator.state, isNull);
       expect(gated.state.browsers, isEmpty);
       expect(submit(_other).request, isNotNull);

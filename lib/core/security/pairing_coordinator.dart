@@ -39,10 +39,15 @@ class PairingApproved extends PairingOutcome {
   final String token;
 }
 
-/// The user refused, or the pairing could not be stored (e.g. 20 browsers).
+/// The user refused.
 class PairingDenied extends PairingOutcome {
   const PairingDenied(this.retryAfter);
   final Duration retryAfter;
+}
+
+/// Approved, but the pairing could not be stored (e.g. 20 browsers, disk).
+class PairingFailed extends PairingOutcome {
+  const PairingFailed();
 }
 
 class PairingExpired extends PairingOutcome {
@@ -183,7 +188,7 @@ class PairingCoordinator extends StateNotifier<PairingRequest?> {
       );
       outcome = PairingApproved(token);
     } catch (_) {
-      outcome = const PairingDenied(_pause);
+      outcome = const PairingFailed();
     }
     // Disposed meanwhile: the outcome is already completed, the token is lost.
     if (!identical(_pending, p)) return false;

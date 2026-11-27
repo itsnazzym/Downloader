@@ -34,7 +34,9 @@ typedef _Msg = ExtensionPairingContract;
 final extensionConnectedClientsProvider = StateProvider<int>((ref) => 0);
 
 final localServerServiceProvider = Provider<LocalServerService>((ref) {
-  return LocalServerService(ref);
+  final service = LocalServerService(ref);
+  ref.onDispose(() => unawaited(service.stop()));
+  return service;
 });
 
 class LocalServerService {
@@ -49,6 +51,8 @@ class LocalServerService {
 
   // Every open socket, authenticated or not, with its handshake state.
   final Map<WebSocket, _Connection> _connections = {};
+  // The one socket waiting on each pairing request: only it gets the token.
+  final Map<String, _Connection> _adopters = {};
   // Notified once per app session: 'manual' or a paired token's hash.
   final Set<String> _notified = {};
   final Future<void> Function() _showExtensionConnected;
@@ -69,8 +73,6 @@ class LocalServerService {
   /// 503 before the upgrade, so a local flood cannot pin sockets and timers.
   final int maxUnauthenticatedSockets;
 
-  /// Sockets waiting on a pairing request at once; more get PAIR_BUSY.
-  static const maxPairingSockets = 8;
   static const _maxUnauthenticatedFrame = 4096;
   static const _maxHelloAttempts = 5;
   var _upgrading = 0; // upgrades in flight, counted against the cap
@@ -205,13 +207,16 @@ Ready for Extension Connection
       _close(c);
     }
     _connections.clear();
+    _adopters.clear();
     _clients.clear();
     for (final timer in _pendingTikTokSyncCleanup.values) {
       timer.cancel();
     }
     _pendingTikTokSyncCleanup.clear();
     _pendingTikTokSyncClients.clear();
-    _ref.read(extensionConnectedClientsProvider.notifier).state = 0;
+    try {
+      _ref.read(extensionConnectedClientsProvider.notifier).state = 0;
+    } catch (_) {} // stopped by the provider's onDispose: the container is gone
     await _server?.close();
     _server = null;
   }
@@ -358,6 +363,7 @@ Ready for Extension Connection
     } else {
       LoggerService.e('WebSocket Error', error);
     }
+    _adopters.removeWhere((_, adopter) => identical(adopter, c));
     // Already dropped by stop(): leave _ref alone, it may be disposed.
     if (_connections.remove(c.socket) == null) return;
     if (_clients.remove(c.socket)) _publishClientCount();
@@ -416,14 +422,6 @@ Ready for Extension Connection
   /// Only ever SUBMITS: approving or denying is the app UI's job, and no
   /// message can trigger it.
   void _onPairRequest(_Connection c) {
-    // Adoption skips the rate limit, so cap the sockets one request can hold.
-    if (_connections.values.where((x) => x.pairing).length >=
-        maxPairingSockets) {
-      LoggerService.w('Pairing request refused: too many waiting sockets');
-      _send(c, _Msg.busy());
-      _close(c);
-      return;
-    }
     final origin = c.origin!;
     final store = _ref.read(pairedBrowsersProvider.notifier);
     final coordinator = _ref.read(pairingCoordinatorProvider.notifier);
@@ -452,11 +450,24 @@ Ready for Extension Connection
         _send(c, _Msg.pending(request, coordinator.expiresIn(request)));
     remind();
     c.keepAlive = Timer.periodic(pendingKeepAlive, (_) => remind());
+    // One socket per request: the newest (e.g. a reconnect) takes it over.
+    final previous = _adopters[request.id];
+    _adopters[request.id] = c;
+    if (previous != null) {
+      _send(previous, _Msg.busy());
+      _close(previous);
+    }
     unawaited(
       outcome
           .then((result) {
-            // Closed while pending: the request stays for a reconnect.
-            if (c.closed) return;
+            // Replaced or closed while pending: the request stays for a
+            // reconnect.
+            // shortcut: approved with no adopter alive, the browser is stored
+            // but its token is never delivered (a dead entry the user can
+            // revoke); withdraw the request when its last adopter closes if
+            // that ever matters.
+            if (c.closed || !identical(_adopters[request.id], c)) return;
+            _adopters.remove(request.id);
             switch (result) {
               case PairingApproved(:final token):
                 _send(c, _Msg.ok(token));
@@ -473,11 +484,17 @@ Ready for Extension Connection
                 );
               case PairingExpired():
                 _send(c, _Msg.expired());
+              case PairingFailed():
+                // Not stored: no pause applies, the extension may retry.
+                _send(c, _Msg.busy());
             }
             _close(c);
           })
           .catchError((Object e) {
             LoggerService.w('Pairing outcome failed: $e');
+            if (identical(_adopters[request.id], c)) {
+              _adopters.remove(request.id);
+            }
             _close(c);
           }),
     );
@@ -588,7 +605,8 @@ Ready for Extension Connection
             _close(c);
             return;
           }
-          LoggerService.e('Error parsing WS message', e);
+          // The type only: a FormatException quotes its source (a token).
+          LoggerService.e('Error parsing WS message: ${e.runtimeType}');
         }
       },
       onDone: () => _onSocketGone(c, null),
@@ -1177,7 +1195,9 @@ class _Connection {
   Timer? deadline; // HELLO timeout, then the PAIR_REQUEST window
   Timer? keepAlive; // PAIR_PENDING reminders
 
-  bool get mayRequestPairing => origin != null && !authorized && !pairing;
+  /// Only after `AUTH_FAILED pairing_required` opened the window.
+  bool get mayRequestPairing =>
+      origin != null && windowOpen && !authorized && !pairing;
 
   void cancelTimers() {
     deadline?.cancel();

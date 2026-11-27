@@ -10,6 +10,9 @@ import 'package:tapload/core/providers/settings_provider.dart';
 import 'package:tapload/core/security/paired_browsers.dart';
 import 'package:tapload/core/security/pairing_coordinator.dart';
 import 'package:tapload/core/services/local_server_service.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 
 import '../../visual/visual_fakes.dart';
@@ -82,6 +85,7 @@ class _Peer {
     ws.listen(
       (event) {
         final m = jsonDecode(event as String) as Map<String, dynamic>;
+        types.add(m['type'] as String?);
         if (m['type'] == 'THEME' || m['type'] == 'LIBRARY_KEYS_RESULT') return;
         inbox.add(m);
         _wake();
@@ -95,6 +99,7 @@ class _Peer {
 
   final WebSocket ws;
   final inbox = <Map<String, dynamic>>[];
+  final types = <String?>[]; // every message type received, THEME included
   final closed = Completer<void>();
   var _read = 0;
   Completer<void>? _waiter;
@@ -154,6 +159,7 @@ void main() {
   late int notifications;
   late List<String> logs;
   late List<HttpClient> clients;
+  late FakeDownloaderRepository repo;
 
   PairingCoordinator coordinator() =>
       container.read(pairingCoordinatorProvider.notifier);
@@ -173,6 +179,7 @@ void main() {
     notifications = 0;
     logs = [];
     clients = [];
+    repo = FakeDownloaderRepository([]);
     store = PairedBrowsersStore(
       storePrefs,
       clock: () => now,
@@ -181,9 +188,7 @@ void main() {
 
     container = ProviderContainer(
       overrides: [
-        downloaderRepositoryProvider.overrideWithValue(
-          FakeDownloaderRepository([]),
-        ),
+        downloaderRepositoryProvider.overrideWithValue(repo),
         pairedBrowsersProvider.overrideWith((ref) => store),
         pairingCoordinatorProvider.overrideWith(
           (ref) => PairingCoordinator(
@@ -396,11 +401,30 @@ void main() {
       expectCleanLogs(secrets: [request.code]);
     });
 
-    test('PAIR_REQUEST may come without a HELLO first', () async {
+    test('PAIR_REQUEST before AUTH_FAILED pairing_required is '
+        'not_authenticated; after it, it is accepted', () async {
       final p = await open();
       p.send({'type': 'PAIR_REQUEST'});
-      expect((await p.next())['type'], 'PAIR_PENDING');
+      expect(await p.next(), {
+        'type': 'AUTH_FAILED',
+        'reason': 'not_authenticated',
+      });
+      expect(coordinator().state, isNull);
+      expect((await requestPairing(p))['type'], 'PAIR_PENDING');
     });
+
+    test(
+      'PAIR_REQUEST from an authenticated extension socket is ignored',
+      () async {
+        final p = await open();
+        p.send({'type': 'HELLO', 'token': _manual});
+        expect((await p.next())['type'], 'HELLO_OK');
+        p.send({'type': 'PAIR_REQUEST'});
+        p.send({'type': 'PING'});
+        expect(await p.next(), {'type': 'PONG'});
+        expect(coordinator().state, isNull);
+      },
+    );
 
     test('a small code is still sent as a 4-character string', () async {
       coordinatorRandom = _FixedRandom();
@@ -578,22 +602,33 @@ void main() {
   });
 
   group('one request per origin', () {
-    test('two sockets of one origin share the request; both get PAIR_OK and '
-        'one browser is stored', () async {
+    test('one adopter per request: a newer same-origin socket takes it over, '
+        'the older one gets PAIR_BUSY and is closed, only one gets the '
+        'token', () async {
       final a = await open();
       final b = await open();
+      final c = await open();
       final pa = await requestPairing(a);
       final pb = await requestPairing(b);
       expect(pb['requestId'], pa['requestId']);
       expect(pb['code'], pa['code']);
+      expect(await a.next(), {'type': 'PAIR_BUSY'});
+      await a.waitClosed();
+
+      expect((await requestPairing(c))['requestId'], pa['requestId']);
+      expect(await b.next(), {'type': 'PAIR_BUSY'});
+      await b.waitClosed();
 
       expect(await coordinator().approve(pa['requestId'] as String), isTrue);
-      final oa = await a.next();
-      final ob = await b.next();
-      expect(oa['type'], 'PAIR_OK');
-      expect(ob, oa);
+      expect((await c.next())['type'], 'PAIR_OK');
+      await c.waitClosed();
+      for (final p in [a, b]) {
+        expect(p.inbox.where((m) => m['type'] == 'PAIR_OK'), isEmpty);
+      }
       expect(store.state.browsers, hasLength(1));
       expect(notifications, 1);
+      await settle();
+      expect(server.liveConnectionCount, 0);
     });
 
     test(
@@ -792,39 +827,17 @@ void main() {
   });
 
   group('limits', () {
-    test('at most 8 sockets wait on a request: the 9th gets PAIR_BUSY, a '
-        'freed slot is reused', () async {
-      final waiting = <_Peer>[];
-      String? id;
-      for (var i = 0; i < LocalServerService.maxPairingSockets; i++) {
-        final p = await open();
-        final pending = await requestPairing(p);
-        id ??= pending['requestId'] as String;
-        expect(pending['requestId'], id, reason: 'socket $i adopts');
-        waiting.add(p);
-      }
-      final extra = await open();
-      expect(await requestPairing(extra), {'type': 'PAIR_BUSY'});
-      await extra.waitClosed();
-
-      await waiting.first.ws.close();
-      await waiting.first.waitClosed();
-      await settle();
-      final again = await open();
-      expect((await requestPairing(again))['requestId'], id);
-      expect(coordinator().state!.id, id);
-    });
-
     test('unauthenticated sockets are capped with 503; authenticated ones do '
         'not count; a freed slot is reused', () async {
       final admin = await open(origin: null);
       admin.send({'type': 'HELLO', 'token': _manual});
       expect((await admin.next())['type'], 'HELLO_OK');
-      // 8 pending sockets are held open, one silent socket fills the cap (9).
-      for (var i = 0; i < LocalServerService.maxPairingSockets; i++) {
-        await requestPairing(await open());
-      }
-      final silent = await open();
+      // One pending socket and 8 silent ones fill the cap (9), opened at
+      // once so all are inside the HELLO timeout.
+      await requestPairing(await open());
+      final silents = await Future.wait(List.generate(8, (_) => open()));
+      final silent = silents.first;
+      await settle(const Duration(milliseconds: 50));
       await expectLater(
         open(),
         throwsA(
@@ -865,13 +878,17 @@ void main() {
       expect((await ok.next())['type'], 'HELLO_OK');
     });
 
-    test('after authentication a malformed frame keeps the socket', () async {
+    test('after authentication a malformed frame keeps the socket and is '
+        'logged by error type only', () async {
       final p = await open();
       p.send({'type': 'HELLO', 'token': _manual});
       expect((await p.next())['type'], 'HELLO_OK');
-      p.ws.add('not json');
+      p.ws.add('{"token": "SECRET-abc'); // FormatException quotes its source
       p.send({'type': 'PING'});
       expect((await p.next())['type'], 'PONG');
+      final errors = logs.where((l) => l.contains('Error parsing WS message'));
+      expect(errors.single, contains('FormatException'));
+      expect(logs.where((l) => l.contains('SECRET')), isEmpty);
     });
 
     test('an unauthenticated frame over 4 KB closes the socket and is not '
@@ -941,6 +958,73 @@ void main() {
       );
       expect((await waiting.next())['type'], 'PAIR_OK');
     });
+
+    test('the waiting socket gets no PROGRESS or THEME broadcast', () async {
+      final admin = await open(origin: null);
+      admin.send({'type': 'HELLO', 'token': _manual});
+      expect((await admin.next())['type'], 'HELLO_OK');
+      final p = await open();
+      await requestPairing(p);
+
+      repo.emit(
+        DownloadItem(
+          id: 'd1',
+          request: DownloadRequest(url: 'https://www.youtube.com/watch?v=d1'),
+          status: DownloadStatus.completed,
+        ),
+      );
+      container.read(settingsProvider.notifier).setThemePreset('pastille');
+      expect((await admin.next())['type'], 'PROGRESS');
+      await settle();
+      expect(admin.types.where((t) => t == 'THEME'), hasLength(2));
+      expect(p.types, isNot(contains('PROGRESS')));
+      expect(p.types, isNot(contains('THEME')));
+      expect(p.isClosed, isFalse);
+    });
+
+    test('a pairing the store cannot save gets PAIR_BUSY, not a 10-minute '
+        'PAIR_DENIED', () async {
+      final p = await open();
+      final pending = await requestPairing(p);
+      storePrefs.failWrites = true;
+      expect(
+        await coordinator().approve(pending['requestId'] as String),
+        isFalse,
+      );
+      expect(await p.next(), {'type': 'PAIR_BUSY'});
+      await p.waitClosed();
+      expect(store.pauseRemaining(_ext), isNull);
+    });
+  });
+
+  test('disposing the container stops the real provider\'s server', () async {
+    final own = ProviderContainer(
+      overrides: [
+        downloaderRepositoryProvider.overrideWithValue(repo),
+        pairedBrowsersProvider.overrideWith(
+          (ref) => PairedBrowsersStore(storePrefs, clock: () => now),
+        ),
+      ],
+    );
+    final real = own.read(localServerServiceProvider);
+    await real.start();
+    final client = _clientWithUa(_chromeUa);
+    clients.add(client);
+    final p = _Peer(
+      await WebSocket.connect(
+        'ws://127.0.0.1:${real.boundPort}/',
+        customClient: client,
+      ),
+    );
+    p.send({'type': 'HELLO', 'token': _manual});
+    expect((await p.next())['type'], 'HELLO_OK');
+
+    own.dispose();
+    await p.waitClosed();
+    for (var i = 0; i < 20 && real.boundPort != null; i++) {
+      await settle();
+    }
+    expect(real.boundPort, isNull);
   });
 
   group('upgrade errors', () {

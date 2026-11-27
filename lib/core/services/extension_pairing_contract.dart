@@ -7,6 +7,10 @@ class ExtensionPairingContract {
 
   // client -> server
   static const hello = 'HELLO';
+
+  /// Accepted only after the server answered HELLO with
+  /// `AUTH_FAILED pairing_required` (the extension sends HELLO first);
+  /// earlier it gets `AUTH_FAILED not_authenticated`.
   static const pairRequest = 'PAIR_REQUEST';
 
   // server -> client
