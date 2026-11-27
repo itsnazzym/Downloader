@@ -242,7 +242,7 @@ body[data-view-mode="creators"] .download-btn { flex: 1 1 100%; }
 .preview-author-name { font-weight: 800; font-size: 15px; letter-spacing: -.02em; }
 .preview-close-btn, .creator-dialog-close { width: 32px; height: 32px; border-radius: 50%; background: var(--panel-2); color: var(--sub); }
 .preview-close-btn:hover, .creator-dialog-close:hover { color: var(--ink); background: var(--line); }
-.preview-media-container { display: grid; place-items: center; margin: 0 16px; overflow: hidden; border-radius: var(--r-card); background: #000; }
+.preview-media-container { display: grid; place-items: center; margin: 0 16px; overflow: hidden; border-radius: var(--r-card); background: var(--canvas); }
 .preview-media-container video, .preview-media-container img { display: block; width: 100%; max-height: 56vh; object-fit: contain; }
 .preview-footer { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 16px; }
 .preview-title { font-size: 13px; font-weight: 600; color: var(--sub); }

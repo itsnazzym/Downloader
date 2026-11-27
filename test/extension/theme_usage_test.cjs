@@ -78,9 +78,16 @@ const ALLOWED_VARS = [
 ];
 const THEMED_VARS = ALLOWED_VARS.filter((name) => name !== '--font');
 
+/** Comments blanked out, newlines kept so line numbers stay right. */
+const stripComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+
+// Only a bare `:root` (optionally with attribute selectors) holds the pre-THEME fallbacks.
+const ROOT_SELECTOR = /^:root(\[[^\]]*\])*$/;
+const isRootRule = (selector) => selector.split(',').every((s) => ROOT_SELECTOR.test(s.trim()));
+
 /** Tiny CSS tokenizer: strips comments, tracks braces, returns one entry per declaration. */
 function declarations(source) {
-  const text = source.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+  const text = stripComments(source);
   const found = [];
   const stack = [];
   let buf = '';
@@ -88,13 +95,15 @@ function declarations(source) {
   let line = 1;
   let parens = 0;
   let quote = null;
+  let escaped = false;
   const flush = () => {
     const colon = buf.indexOf(':');
     if (stack.length && colon > 0 && buf.trim()) {
+      const selector = stack[stack.length - 1];
       found.push({
         line: bufLine,
-        selector: stack[stack.length - 1],
-        inRoot: stack.some((s) => /^:root\b/.test(s)),
+        selector,
+        inRoot: isRootRule(selector),
         prop: buf.slice(0, colon).trim().toLowerCase(),
         value: buf.slice(colon + 1).trim(),
       });
@@ -104,7 +113,13 @@ function declarations(source) {
   for (const ch of text) {
     if (ch === '\n') line++;
     if (!buf.trim() && !/\s/.test(ch)) bufLine = line;
-    if (quote) { buf += ch; if (ch === quote) quote = null; continue; }
+    if (quote) {
+      buf += ch;
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === quote) quote = null;
+      continue;
+    }
     if (ch === '"' || ch === "'") { quote = ch; buf += ch; continue; }
     if (ch === '(') parens++;
     if (ch === ')') parens--;
@@ -117,14 +132,31 @@ function declarations(source) {
   return found;
 }
 
-const NAMED = ('white black red green blue yellow orange purple pink gray grey silver gold cyan '
-  + 'magenta brown navy teal lime maroon olive aqua').split(' ');
-const NAMED_RE = new RegExp('(^|[^\\w-])(' + NAMED.join('|') + ')(?![\\w-])', 'i');
+// The CSS named colours (CSS Color 4), `transparent` and `currentColor` excepted.
+const NAMED = ('aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue '
+  + 'blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan '
+  + 'darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen '
+  + 'darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey '
+  + 'darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite '
+  + 'forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink '
+  + 'indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral '
+  + 'lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen '
+  + 'lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta '
+  + 'maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue '
+  + 'mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin '
+  + 'navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen '
+  + 'paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple rebeccapurple red '
+  + 'rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue '
+  + 'slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white '
+  + 'whitesmoke yellow yellowgreen').split(' ');
+const NAMED_RE = new RegExp('(^|[^\\w-])(' + NAMED.join('|') + ')(?![\\w-])', 'gi');
+// Colour functions the theme never produces (rgb/rgba/hsl/hsla are handled separately).
+const COLOUR_FN_RE = /\b(?:oklch|oklab|lab|lch|hwb|color|light-dark)\([^)]*\)?/gi;
 const THUMB_SELECTOR = /^\.(thumb|card-thumb|thumbnail)/;
 
 function colourProblems(decl) {
   if (/^(font|content)/.test(decl.prop)) return [];
-  const value = decl.value.replace(/url\([^)]*\)/gi, '').replace(/"[^"]*"|'[^']*'/g, '');
+  const value = decl.value.replace(/url\([^)]*\)/gi, '').replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '');
   const problems = [];
   const onThumb = decl.selector.split(',').every((s) => THUMB_SELECTOR.test(s.trim()));
   for (const hex of value.match(/#[0-9a-f]{3,8}\b/gi) || []) {
@@ -137,12 +169,13 @@ function colourProblems(decl) {
     const overlay = nums.slice(0, 3).join(',') === '0,0,0' || nums.slice(0, 3).join(',') === '255,255,255';
     if (!(translucent && overlay)) problems.push(fn);
   }
-  const named = NAMED_RE.exec(value.replace(/var\([^)]*\)/gi, ''));
-  if (named) problems.push(named[2]);
+  for (const fn of value.match(COLOUR_FN_RE) || []) problems.push(fn);
+  // Drop only the variable names: a fallback such as var(--x, red) is still scanned.
+  for (const m of value.replace(/var\(\s*--[\w-]+\s*,?/gi, ' ').matchAll(NAMED_RE)) problems.push(m[2]);
   return problems;
 }
 
-test('the panel CSS has no hard-coded colours outside :root', { todo: 'until Task 13 rewrites the panel CSS' }, () => {
+test('the panel CSS has no hard-coded colours outside :root', () => {
   const offenders = [];
   for (const decl of declarations(css)) {
     if (decl.inRoot) continue;
@@ -163,10 +196,24 @@ test('the colour scanner flags what it should and spares what it should', () => 
   assert.deepEqual(scan('@media (x) { .a { color: var(--ink); background: transparent; border-color: currentColor; /* #fff */ } }'), []);
   assert.deepEqual(scan('.a { content: "#fff"; background: url(x.svg#id); font: 13px var(--font); }'), []);
   assert.equal(declarations('.a {\n  color: #fff;\n}\n.b {\n  color: #000;\n}').map((d) => d.line).join(), '2,5');
+  // Wrappers and selectors that must not hide an offender.
+  assert.deepEqual(scan('@media (max-width: 400px) { .a { color: #abc; } }'), ['#abc']);
+  assert.deepEqual(scan('.a { color: #abc !important; border-color: tomato !important; }'), ['#abc', 'tomato']);
+  assert.deepEqual(scan(':root .x { color: #abc; }'), ['#abc']);
+  assert.deepEqual(scan(':root, .x { color: #abc; }'), ['#abc']);
+  assert.deepEqual(scan(':root[data-theme="dark"] { --a: #fff; } @media (x) { :root { --b: red; } }'), []);
+  assert.deepEqual(scan('.a { color: oklch(70% 0.1 200); background: color-mix(in srgb, var(--a) 10%, var(--panel)); }'), ['oklch(70% 0.1 200)']);
+  assert.deepEqual(scan('.a { color: light-dark(var(--ink), var(--sub)); fill: hwb(0 0% 0%); }'), ['light-dark(var(--ink)', 'hwb(0 0% 0%)']);
+  assert.deepEqual(scan('.a { color: var(--x, red); background: var(--panel); }'), ['red']);
+  assert.deepEqual(scan('.a { color: WhiteSmoke; outline-color: lightgray; } .b { color: crimson }'), ['WhiteSmoke', 'lightgray', 'crimson']);
+  assert.deepEqual(scan('.a { background: transparent; color: currentColor; animation: spin 1s; }'), []);
+  // An escaped quote must not swallow the rest of the file.
+  assert.deepEqual(scan('.a::after { content: "\\""; } .b { color: #123; }'), ['#123']);
+  assert.ok(NAMED.length >= 147, 'full CSS named colour list');
 });
 
 test('every var(--name) in the panel CSS is provided by the theme or the file', () => {
-  const defined = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  const defined = new Set([...stripComments(css).matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
   const unknown = new Set();
   for (const decl of declarations(css)) {
     if (decl.inRoot) continue;
