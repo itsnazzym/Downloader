@@ -52,6 +52,7 @@ Future<void> main(List<String> args) async {
       'url_policy.js',
       'theme.js',
       'profile_url.js',
+      'feed_store.js',
       'badge.js',
       'stream_sniffer.js',
       'connection.js',

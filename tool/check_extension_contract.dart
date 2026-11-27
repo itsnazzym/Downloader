@@ -33,7 +33,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  for (final name in ['url_policy.js', 'theme.js', 'profile_url.js', 'badge.js']) {
+  for (final name in ['url_policy.js', 'theme.js', 'profile_url.js', 'feed_store.js', 'badge.js']) {
     final file = File('${root.path}/extension/shared/$name');
     if (!file.existsSync()) {
       fail('Missing extension/shared/$name');
@@ -46,6 +46,7 @@ Future<void> main(List<String> args) async {
     'url_policy.js',
     'theme.js',
     'profile_url.js',
+    'feed_store.js',
     'badge.js',
     'popup.js',
     'feed_panel.js',
