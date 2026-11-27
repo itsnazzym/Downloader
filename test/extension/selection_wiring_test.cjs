@@ -34,3 +34,14 @@ test('click after a drag is swallowed in the capture phase, and thumbnail/title 
   assert.match(panel, /\}, true\);\s*\n\s*feedList\.addEventListener\('keydown'/);
   assert.equal(/select, textarea, \.thumbnail-container/.test(panel), false);
 });
+
+test('pointerdown resets gestureMoved before its first early return', () => {
+  const start = panel.indexOf("feedList.addEventListener('pointerdown'");
+  const end = panel.indexOf("window.addEventListener('pointermove'", start);
+  assert.ok(start > -1 && end > start);
+  const handler = panel.slice(start, end);
+  const reset = handler.indexOf('gestureMoved = false');
+  const firstReturn = handler.indexOf('return');
+  assert.ok(reset > -1 && firstReturn > -1);
+  assert.ok(reset < firstReturn, 'gestureMoved reset must precede the first return');
+});

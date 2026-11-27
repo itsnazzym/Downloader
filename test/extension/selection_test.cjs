@@ -118,7 +118,6 @@ test('releaseAction: only an in-place touch long-press toggles', () => {
 
 test('shouldSwallowClick: only after a drag or a long-press toggle', () => {
   const f = load().shouldSwallowClick;
-  assert.equal(f({ moved: false, dragging: false }), false);
-  assert.equal(f({ moved: true, dragging: false }), true);
-  assert.equal(f({ moved: false, dragging: true }), true);
+  assert.equal(f({ moved: false }), false);
+  assert.equal(f({ moved: true }), true);
 });

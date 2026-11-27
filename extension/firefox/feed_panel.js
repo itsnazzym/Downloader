@@ -2992,11 +2992,11 @@
   }
 
   feedList.addEventListener('pointerdown', function (e) {
+    gestureMoved = false; // before any early return: every real click follows a pointerdown
     if (!e.isPrimary || e.button !== 0) return;
     var card = e.target.closest('.feed-card');
     if (!card || e.target.closest('button, a, input, select, textarea')) return;
     endGesture(false);
-    gestureMoved = false;
     var touch = e.pointerType === 'touch';
     var g = {
       id: card.dataset.feedId,
@@ -3048,7 +3048,7 @@
   window.addEventListener('blur', function () { endGesture(false); });
   // Capture phase: the click ending a drag-select must not open the preview or locate the media.
   feedList.addEventListener('click', function (e) {
-    if (!MDSelection.shouldSwallowClick({ moved: gestureMoved, dragging: sel.isDragging() })) return;
+    if (!MDSelection.shouldSwallowClick({ moved: gestureMoved })) return;
     gestureMoved = false;
     e.stopPropagation();
     e.preventDefault();

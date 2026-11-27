@@ -84,7 +84,7 @@
 
   // The click that follows a drag-select must not reach the card or its thumbnail/title.
   function shouldSwallowClick(p) {
-    return Boolean(p.moved || p.dragging);
+    return Boolean(p.moved);
   }
 
   root.MDSelection = { create: create, releaseAction: releaseAction, shouldSwallowClick: shouldSwallowClick };
