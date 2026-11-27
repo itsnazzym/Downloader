@@ -355,3 +355,24 @@ test('unit tables do not leak prototype keys or overflow into NaN/Infinity', () 
   assertClean(dl, 'dl');
   assertClean(t.summary(1), 'summary');
 });
+
+test('allowedCommands mirrors the desktop command matrix', () => {
+  const { allowedCommands } = load();
+  const plain = (s) => JSON.parse(JSON.stringify(allowedCommands(s)));
+  assert.deepEqual(plain('queued'), ['cancel']);
+  assert.deepEqual(plain('running'), ['pause', 'cancel']);
+  assert.deepEqual(plain('paused'), ['resume', 'cancel']);
+  assert.deepEqual(plain('error'), ['retry']);
+  assert.deepEqual(plain('canceled'), ['retry']);
+  assert.deepEqual(plain('done'), []);
+  assert.deepEqual(plain('duplicate'), []);
+  for (const odd of ['constructor', '__proto__', 'toString', '', 'nope', undefined, null, 2, {}]) {
+    assert.deepEqual(plain(odd), [], 'no commands for ' + String(odd));
+  }
+});
+
+test('allowedCommands returns a fresh array each call', () => {
+  const { allowedCommands } = load();
+  allowedCommands('queued').push('retry');
+  assert.equal(JSON.stringify(allowedCommands('queued')), '["cancel"]');
+});

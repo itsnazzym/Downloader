@@ -23,6 +23,20 @@
     return (typeof i === 'number' && STATUSES[i]) || null;
   }
 
+  // Mirrors the desktop guard (extension_queue_contract.dart): commands each status accepts.
+  var COMMANDS = Object.assign(Object.create(null), {
+    queued: ['cancel'],
+    running: ['pause', 'cancel'],
+    paused: ['resume', 'cancel'],
+    error: ['retry'],
+    canceled: ['retry']
+  });
+
+  function allowedCommands(status) {
+    var list = typeof status === 'string' && COMMANDS[status];
+    return list ? list.slice() : [];
+  }
+
   // "3.2MiB/s" -> bytes/s. A unit is mandatory so "Unknown" / "" / "N/A" stay null.
   function parseSpeed(raw) {
     if (typeof raw !== 'string') return null;
@@ -227,6 +241,7 @@
 
   global.MDDownloads = {
     statusFromIndex: statusFromIndex,
+    allowedCommands: allowedCommands,
     parseSpeed: parseSpeed,
     parseEta: parseEta,
     create: create
