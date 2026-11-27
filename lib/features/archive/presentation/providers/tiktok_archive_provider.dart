@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/tiktok_archive_catalog.dart';
+import '../../domain/entities/tiktok_classification_report.dart';
 import '../../domain/repositories/i_tiktok_archive_repository.dart';
 import '../../data/repositories/tiktok_archive_repository_impl.dart';
 import '../../data/services/tiktok_collection_reconciliation_service.dart';
@@ -199,7 +200,7 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
       const defaultPath =
           r'C:\Users\entre\Downloads\tiktok_data\user_data_tiktok.json';
       if (File(defaultPath).existsSync()) {
-        await importFromPath(defaultPath);
+        await importFromPath(defaultPath, announce: false);
         return;
       }
 
@@ -290,7 +291,9 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
     state = state.copyWith(viewMode: mode);
   }
 
-  Future<void> importFromPath(String filePath) async {
+  /// [announce] false keeps the import silent (startup discovery): no summary
+  /// and no extension sync until the user asks for one.
+  Future<void> importFromPath(String filePath, {bool announce = true}) async {
     if (_ref.read(showcaseModeProvider)) return;
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
@@ -305,6 +308,7 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
         selectedIds: {},
         viewMode: TikTokViewMode.collections,
       );
+      if (announce) _reportImport(catalog);
     } catch (e, st) {
       LoggerService.e(
         'Failed to import TikTok archive from $filePath: $e',
@@ -314,6 +318,46 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Échec de l\'importation: $e',
+      );
+    }
+  }
+
+  /// "N favoris classés dans X/Y collections · M non classés", or null before
+  /// any catalog exists.
+  String? get classificationSummary {
+    final catalog = state.catalog;
+    return catalog == null
+        ? null
+        : TikTokClassificationReport.fromCatalog(catalog).summary();
+  }
+
+  /// Says what the import classified and why the rest is not. The export has
+  /// no collection membership, so when favorites remain unfiled the extension
+  /// sync starts by itself; without an extension the message says what to do.
+  void _reportImport(TikTokArchiveCatalog catalog) {
+    final report = TikTokClassificationReport.fromCatalog(catalog);
+    final summary =
+        'Import terminé : ${report.videos} vidéos, ${report.summary()}.';
+    if (!report.needsSync) {
+      state = state.copyWith(
+        syncStatus: TikTokSyncStatus.complete,
+        syncMessage: summary,
+      );
+      return;
+    }
+    const why =
+        ' Le JSON TikTok ne dit pas dans quelle collection se trouve un favori : '
+        'seule ta session TikTok connectée le sait.';
+    try {
+      triggerExtensionSync(
+        offlineNotice:
+            '$summary$why Ouvre TikTok dans ton navigateur avec l’extension, puis appuie sur Synchroniser.',
+      );
+    } catch (e) {
+      LoggerService.w('Automatic TikTok sync after import not started: $e');
+      state = state.copyWith(
+        syncStatus: TikTokSyncStatus.partial,
+        syncMessage: '$summary$why',
       );
     }
   }
@@ -586,7 +630,10 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
 
   /// Trigger collection synchronization from a connected browser extension.
   /// Pending state ends only when the extension returns data or the request times out.
-  void triggerExtensionSync() {
+  ///
+  /// With [offlineNotice], no connected extension is not an error: the notice
+  /// is shown as a partial result instead of a failure.
+  void triggerExtensionSync({String? offlineNotice}) {
     if (_ref.read(showcaseModeProvider)) return;
     final requestId = ++_extensionSyncRequestId;
     _extensionSyncTimeout?.cancel();
@@ -599,6 +646,10 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
         .read(localServerServiceProvider)
         .requestTikTokCollectionsSync(requestId: requestId);
     if (sentCount == 0) {
+      if (offlineNotice != null) {
+        setExtensionSyncResult(ok: true, partial: true, message: offlineNotice);
+        return;
+      }
       setExtensionSyncResult(
         ok: false,
         message: 'Aucune extension Modern Downloader n’est connectée.',

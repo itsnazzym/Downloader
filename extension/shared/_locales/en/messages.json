@@ -15,10 +15,10 @@
         "message": "Test connection"
     },
     "recentDownloads": {
-        "message": "Recent Downloads"
+        "message": "Recent"
     },
     "noDownloads": {
-        "message": "No active downloads"
+        "message": "Nothing yet. Send a video to see it here."
     },
     "browser": {
         "message": "Browser"
@@ -30,7 +30,7 @@
         "message": "Token"
     },
     "autoCookies": {
-        "message": "Auto-Cookies"
+        "message": "Share my session"
     },
     "adultSites": {
         "message": "Adult sites"
@@ -327,10 +327,10 @@
         "message": "Connection and preferences"
     },
     "syncTikTok": {
-        "message": "Sync TikTok collections"
+        "message": "File my favorites"
     },
     "syncInProgress": {
-        "message": "Sync requested…"
+        "message": "Syncing…"
     },
     "syncStarted": {
         "message": "Sync started on the TikTok page."
@@ -402,7 +402,7 @@
         "message": "Video preview"
     },
     "contentSyncButton": {
-        "message": "Sync collections"
+        "message": "File my favorites"
     },
     "contentSyncInProgress": {
         "message": "Syncing collections…"
@@ -429,10 +429,10 @@
         "message": "collections"
     },
     "contentSyncNoVideos": {
-        "message": "Collections found, videos unavailable"
+        "message": "Collections are visible, but TikTok returned no videos. Reload the page and run it again."
     },
     "contentSyncNoCollections": {
-        "message": "Open TikTok Favorites, then Collections."
+        "message": "No collection visible. Open Favorites, then Collections on TikTok."
     },
     "contentSyncFailed": {
         "message": "Sync failed"
@@ -736,5 +736,107 @@
     },
     "feedCollectionVideosLoaded": {
         "message": "{count} video(s) in this collection · Click to load all published videos from @{name}"
+    },
+    "popupSettings": {
+        "message": "Settings"
+    },
+    "popupSetupTitle": {
+        "message": "Link the extension to TapLoad"
+    },
+    "popupSetupStep1": {
+        "message": "Open TapLoad on your computer."
+    },
+    "popupSetupStep2": {
+        "message": "In Settings, copy the extension token."
+    },
+    "popupSetupStep3": {
+        "message": "Paste it here, then test."
+    },
+    "popupTokenPlaceholder": {
+        "message": "TapLoad token"
+    },
+    "popupFindTitle": {
+        "message": "Find videos"
+    },
+    "popupFindSub": {
+        "message": "Lists every video on the page, ready to send."
+    },
+    "popupSendSub": {
+        "message": "The link goes to TapLoad."
+    },
+    "popupSyncHintOff": {
+        "message": "Open TikTok, Favorites, Collections."
+    },
+    "popupSyncHintOn": {
+        "message": "Files your favorites into their collections."
+    },
+    "popupBack": {
+        "message": "Back"
+    },
+    "popupTokenHelp": {
+        "message": "Find it in TapLoad, Settings, Extension."
+    },
+    "popupTokenEdit": {
+        "message": "Change token"
+    },
+    "popupPortHelp": {
+        "message": "Keep 6969 unless you changed it in TapLoad."
+    },
+    "popupBrowserLabel": {
+        "message": "Browser for cookies"
+    },
+    "popupCookiesHelp": {
+        "message": "Needed for private videos and logged-in-only videos."
+    },
+    "popupQualityHelp": {
+        "message": "Pick the quality before sending a video."
+    },
+    "popupNotLinked": {
+        "message": "Not linked"
+    },
+    "popupLinked": {
+        "message": "TapLoad is linked."
+    },
+    "contentSyncRunningTitle": {
+        "message": "Syncing"
+    },
+    "contentSyncItemsLabel": {
+        "message": "collections read"
+    },
+    "contentSyncDiscoverLabel": {
+        "message": "collections found"
+    },
+    "contentSyncVideosFound": {
+        "message": "{n} videos found"
+    },
+    "contentSyncKeepOpen": {
+        "message": "Keep this TikTok tab open."
+    },
+    "contentSyncDoneTitle": {
+        "message": "Favorites filed"
+    },
+    "contentSyncDoneLabel": {
+        "message": "videos placed in {n} collections"
+    },
+    "contentSyncPartialNote": {
+        "message": "{n} collections are incomplete: TikTok did not send everything. Run it again to fill them."
+    },
+    "contentSyncListPartial": {
+        "message": "Some collections may not have been found. Run it again to check."
+    },
+    "contentSyncRetry": {
+        "message": "Run again"
+    },
+    "contentSyncClose": {
+        "message": "Close"
+    },
+    "contentSyncErrorTitle": {
+        "message": "Sync failed"
+    },
+    "contentSyncAppOffline": {
+        "message": "TapLoad is not open or not linked. Open the app, then run it again."
+    },
+    "feedOptions": {
+        "message": "Display options"
     }
 }

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:modern_downloader/core/download/extension_download_batcher.dart';
 import 'package:modern_downloader/core/providers/settings_provider.dart';
 import 'package:modern_downloader/core/services/local_server_service.dart';
+import 'package:modern_downloader/core/theme/extension_theme.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
 import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
 import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
@@ -169,6 +170,33 @@ void main() {
     );
     final msg = await first.timeout(const Duration(seconds: 2));
     expect(msg['type'], 'HELLO_OK');
+    await ws.close();
+  });
+
+  test('the extension receives the desktop design after HELLO and on change', () async {
+    final ws = await connect();
+    final themes = <Map<String, dynamic>>[];
+    final firstTheme = Completer<void>();
+    ws.listen((event) {
+      final data = jsonDecode(event as String) as Map<String, dynamic>;
+      if (data['type'] == ExtensionTheme.messageType) {
+        themes.add(data);
+        if (!firstTheme.isCompleted) firstTheme.complete();
+      }
+    });
+    ws.add(
+      jsonEncode({'type': 'HELLO', 'token': expectedToken, 'version': '2.1.0'}),
+    );
+    await firstTheme.future.timeout(const Duration(seconds: 2));
+    final current = ExtensionTheme.effectivePreset(
+      container.read(settingsProvider),
+    ).id;
+    expect(themes.first['id'], current);
+
+    container.read(settingsProvider.notifier).setThemePreset('pastille');
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(themes.last['id'], 'pastille');
+    expect(themes.last['tiles'], hasLength(3));
     await ws.close();
   });
 

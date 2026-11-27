@@ -4,6 +4,7 @@
   var api = typeof MD_API !== 'undefined'
     ? MD_API
     : (typeof browser !== 'undefined' ? browser : chrome);
+  if (typeof MD_THEME !== 'undefined') MD_THEME.init(api);
   var MAX_ITEMS = 10000;
   var feedItems = [];
   var selectedIds = new Set();

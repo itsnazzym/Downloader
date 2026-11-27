@@ -15,10 +15,10 @@
         "message": "Tester la connexion"
     },
     "recentDownloads": {
-        "message": "Téléchargements récents"
+        "message": "Récents"
     },
     "noDownloads": {
-        "message": "Aucun téléchargement"
+        "message": "Rien pour l’instant. Envoie une vidéo pour la voir ici."
     },
     "browser": {
         "message": "Navigateur"
@@ -30,7 +30,7 @@
         "message": "Jeton"
     },
     "autoCookies": {
-        "message": "Cookies auto"
+        "message": "Partager ma session"
     },
     "adultSites": {
         "message": "Sites adultes"
@@ -240,7 +240,7 @@
         "message": "Taille"
     },
     "qualityMenu": {
-        "message": "Menu qualité"
+        "message": "Menu de qualité"
     },
     "posTopRight": {
         "message": "Haut droite"
@@ -327,10 +327,10 @@
         "message": "Connexion et préférences"
     },
     "syncTikTok": {
-        "message": "Synchroniser les collections TikTok"
+        "message": "Classer mes favoris"
     },
     "syncInProgress": {
-        "message": "Synchronisation demandée…"
+        "message": "Synchro en cours…"
     },
     "syncStarted": {
         "message": "Synchronisation lancée sur la page TikTok."
@@ -402,7 +402,7 @@
         "message": "Aperçu vidéo"
     },
     "contentSyncButton": {
-        "message": "Synchroniser les collections"
+        "message": "Classer mes favoris"
     },
     "contentSyncInProgress": {
         "message": "Synchronisation des collections…"
@@ -429,10 +429,10 @@
         "message": "collections"
     },
     "contentSyncNoVideos": {
-        "message": "Collections visibles, vidéos indisponibles"
+        "message": "Collections visibles, mais TikTok n’a renvoyé aucune vidéo. Recharge la page et relance."
     },
     "contentSyncNoCollections": {
-        "message": "Ouvrez vos Favoris TikTok puis Collections."
+        "message": "Aucune collection visible. Ouvre Favoris, puis Collections sur TikTok."
     },
     "contentSyncFailed": {
         "message": "Synchronisation impossible"
@@ -736,5 +736,107 @@
     },
     "feedCollectionVideosLoaded": {
         "message": "{count} vidéo(s) dans cette collection · Cliquez pour charger toutes les vidéos publiées de @{name}"
+    },
+    "popupSettings": {
+        "message": "Réglages"
+    },
+    "popupSetupTitle": {
+        "message": "Relie l’extension à TapLoad"
+    },
+    "popupSetupStep1": {
+        "message": "Ouvre TapLoad sur ton ordinateur."
+    },
+    "popupSetupStep2": {
+        "message": "Dans Réglages, copie le jeton de l’extension."
+    },
+    "popupSetupStep3": {
+        "message": "Colle-le ici, puis teste."
+    },
+    "popupTokenPlaceholder": {
+        "message": "Jeton TapLoad"
+    },
+    "popupFindTitle": {
+        "message": "Repérer les vidéos"
+    },
+    "popupFindSub": {
+        "message": "Liste toutes les vidéos de la page, prêtes à envoyer."
+    },
+    "popupSendSub": {
+        "message": "Le lien part dans TapLoad."
+    },
+    "popupSyncHintOff": {
+        "message": "Ouvre TikTok, Favoris, Collections."
+    },
+    "popupSyncHintOn": {
+        "message": "Range tes favoris dans leurs collections."
+    },
+    "popupBack": {
+        "message": "Retour"
+    },
+    "popupTokenHelp": {
+        "message": "Il se trouve dans TapLoad, Réglages, Extension."
+    },
+    "popupTokenEdit": {
+        "message": "Changer le jeton"
+    },
+    "popupPortHelp": {
+        "message": "Garde 6969 sauf si tu l’as changé dans TapLoad."
+    },
+    "popupBrowserLabel": {
+        "message": "Navigateur des cookies"
+    },
+    "popupCookiesHelp": {
+        "message": "Nécessaire pour les vidéos privées ou réservées aux comptes connectés."
+    },
+    "popupQualityHelp": {
+        "message": "Choisis la qualité avant d’envoyer une vidéo."
+    },
+    "popupNotLinked": {
+        "message": "Non relié"
+    },
+    "popupLinked": {
+        "message": "TapLoad est relié."
+    },
+    "contentSyncRunningTitle": {
+        "message": "Synchro en cours"
+    },
+    "contentSyncItemsLabel": {
+        "message": "collections lues"
+    },
+    "contentSyncDiscoverLabel": {
+        "message": "collections repérées"
+    },
+    "contentSyncVideosFound": {
+        "message": "{n} vidéos retrouvées"
+    },
+    "contentSyncKeepOpen": {
+        "message": "Garde cet onglet TikTok ouvert."
+    },
+    "contentSyncDoneTitle": {
+        "message": "Favoris classés"
+    },
+    "contentSyncDoneLabel": {
+        "message": "vidéos rangées dans {n} collections"
+    },
+    "contentSyncPartialNote": {
+        "message": "{n} collections incomplètes : TikTok n’a pas tout renvoyé. Relance pour les compléter."
+    },
+    "contentSyncListPartial": {
+        "message": "Certaines collections n’ont peut-être pas été repérées. Relance pour vérifier."
+    },
+    "contentSyncRetry": {
+        "message": "Relancer"
+    },
+    "contentSyncClose": {
+        "message": "Fermer"
+    },
+    "contentSyncErrorTitle": {
+        "message": "Synchro impossible"
+    },
+    "contentSyncAppOffline": {
+        "message": "TapLoad n’est pas ouvert ou pas relié. Ouvre l’application, puis relance."
+    },
+    "feedOptions": {
+        "message": "Options d’affichage"
     }
 }

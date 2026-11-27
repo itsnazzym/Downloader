@@ -517,3 +517,36 @@ test('uses TikTok profile pagination to recover folders absent from the grid', a
   assert.equal(result.collectionListComplete, true);
   assert.equal(result.collections.length, 128);
 });
+
+test('a collection whose pagination fails midway keeps its ids but is incomplete', async () => {
+  let itemCalls = 0;
+  const fetch = async (address) => {
+    const url = new URL(address);
+    if (url.pathname.includes('/collection/list/')) {
+      return json({ collectionList: [{ id: '76000002', name: 'Broken', total: 60 }], hasMore: false });
+    }
+    if (!url.pathname.includes('item_list')) return json({});
+    itemCalls += 1;
+    if (itemCalls === 1) {
+      return json({ itemList: [{ id: '7400000000000000010' }], hasMore: true, cursor: '30' });
+    }
+    return { ok: false, status: 403, json: async () => ({}), text: async () => '{}' };
+  };
+  const result = await loadExtractor(fetch, { querySelector: () => null })();
+  assert.deepEqual(Array.from(result.collections[0].videoIds), ['7400000000000000010']);
+  assert.equal(result.collections[0].complete, false);
+  assert.ok(result.collections[0].error);
+});
+
+test('a collection whose cursor never advances is incomplete, not silently complete', async () => {
+  const fetch = async (address) => {
+    const url = new URL(address);
+    if (url.pathname.includes('/collection/list/')) {
+      return json({ collectionList: [{ id: '76000003', name: 'Stuck', total: 60 }], hasMore: false });
+    }
+    return json({ itemList: [{ id: '7400000000000000020' }], hasMore: true, cursor: '0' });
+  };
+  const result = await loadExtractor(fetch, { querySelector: () => null })();
+  assert.equal(result.collections[0].complete, false);
+  assert.equal(result.collections[0].error, 'item_cursor_stuck');
+});
