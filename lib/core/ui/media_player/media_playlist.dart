@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/download/creator_folder_key.dart';
-import 'package:modern_downloader/core/download/download_file_resolver.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/core/download/creator_folder_key.dart';
+import 'package:tapload/core/download/download_file_resolver.dart';
+import 'package:tapload/core/ui/media_player/media_player_provider.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
 
 /// One playable item in the fullscreen queue (filtered downloads order).
 class PlaylistEntry {

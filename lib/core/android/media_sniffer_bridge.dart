@@ -1,8 +1,8 @@
 import 'package:flutter/services.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/android/netscape_cookie_codec.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/android/netscape_cookie_codec.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/features/browser/sniff/sniffed_media.dart';
 
 /// Android only: reads the media addresses the in-app browser's page loaded
 /// (see `SnifferPlugin.kt`).
@@ -10,7 +10,7 @@ class MediaSnifferBridge {
   MediaSnifferBridge({MethodChannel? channel, AndroidEngineBridge? engine})
     : _channel =
           channel ??
-          const MethodChannel('com.downloader.modern_downloader/sniffer'),
+          const MethodChannel('com.downloader.tapload/sniffer'),
       _engine = engine;
 
   final MethodChannel _channel;

@@ -30,7 +30,7 @@ def main() -> None:
         "titles": "|".join(FILES.values()),
     }
     api = "https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode(params)
-    headers = {"User-Agent": "ModernDownloaderShowcase/1.0 (https://github.com/itsnazzym/Downloader)"}
+    headers = {"User-Agent": "TapLoadShowcase/1.0 (https://github.com/itsnazzym/Downloader)"}
     with urllib.request.urlopen(urllib.request.Request(api, headers=headers)) as response:
         pages = json.load(response)["query"]["pages"].values()
     by_title = {page["title"]: page["imageinfo"][0]["thumburl"] for page in pages}

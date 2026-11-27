@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/designs/shared/design_data.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/designs/shared/design_data.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
 
 void main() {
   test('reads the ERROR line of a real yt-dlp failure, not its warning', () {

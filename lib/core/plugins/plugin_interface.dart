@@ -1,4 +1,4 @@
-/// Base class for all plugins in Modern Downloader.
+/// Base class for all plugins in TapLoad.
 ///
 /// Plugins can hook into download lifecycle events and provide
 /// custom menu actions. Implement this class to create a new plugin.

@@ -4,17 +4,17 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/extension_download_batcher.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/services/local_server_service.dart';
-import 'package:modern_downloader/core/theme/extension_theme.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/core/download/extension_download_batcher.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/services/local_server_service.dart';
+import 'package:tapload/core/theme/extension_theme.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/repositories/i_downloader_repository.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _MemoryTikTokArchiveRepository implements ITikTokArchiveRepository {

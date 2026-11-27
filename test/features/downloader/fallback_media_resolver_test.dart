@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/data/sources/fallback_media_resolver.dart';
+import 'package:tapload/features/downloader/data/sources/fallback_media_resolver.dart';
 
 void main() {
   const fx = '''

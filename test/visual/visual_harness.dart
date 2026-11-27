@@ -9,17 +9,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
-import 'package:modern_downloader/core/plugins/feature_catalog.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/core/ui/mobile/mobile_app_shell.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/plugins/feature_activation.dart';
+import 'package:tapload/core/plugins/feature_catalog.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/core/ui/mobile/mobile_app_shell.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:modern_downloader/features/designs/design_skins.dart';
-import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
+import 'package:tapload/features/designs/design_skins.dart';
+import 'package:tapload/core/services/binary/binary_verifier.dart';
 
 /// Where the PNGs and the report land.
 const String kVisualOutDir =
@@ -355,7 +355,7 @@ void screenTest(
       final text = details.exceptionAsString();
       final stack = details.stack?.toString().split('\n') ?? const [];
       final here = stack
-          .where((l) => l.contains('package:modern_downloader/'))
+          .where((l) => l.contains('package:tapload/'))
           .take(3)
           .join(' | ');
       result.errors.add('$text${here.isEmpty ? '' : '  @ $here'}');

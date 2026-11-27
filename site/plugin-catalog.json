@@ -78,7 +78,7 @@
       "kind": "external_extension",
       "platforms": ["windows"],
       "name": { "en": "Chrome extension", "fr": "Extension Chrome", "ar": "إضافة Chrome" },
-      "description": { "en": "Send links from Chrome or Edge to Modern Downloader.", "fr": "Envoyez des liens depuis Chrome ou Edge vers Modern Downloader.", "ar": "أرسل الروابط من Chrome أو Edge إلى Modern Downloader." },
+      "description": { "en": "Send links from Chrome or Edge to TapLoad.", "fr": "Envoyez des liens depuis Chrome ou Edge vers TapLoad.", "ar": "أرسل الروابط من Chrome أو Edge إلى TapLoad." },
       "icon": "extension",
       "route": "/settings/plugins",
       "defaultEnabled": false
@@ -88,7 +88,7 @@
       "kind": "external_extension",
       "platforms": ["windows"],
       "name": { "en": "Firefox extension", "fr": "Extension Firefox", "ar": "إضافة Firefox" },
-      "description": { "en": "Send links from Firefox to Modern Downloader.", "fr": "Envoyez des liens depuis Firefox vers Modern Downloader.", "ar": "أرسل الروابط من Firefox إلى Modern Downloader." },
+      "description": { "en": "Send links from Firefox to TapLoad.", "fr": "Envoyez des liens depuis Firefox vers TapLoad.", "ar": "أرسل الروابط من Firefox إلى TapLoad." },
       "icon": "extension",
       "route": "/settings/plugins",
       "defaultEnabled": false

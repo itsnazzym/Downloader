@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/design_system/components/app_skeleton.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/design_system/components/app_skeleton.dart';
+import 'package:tapload/core/design_system/foundation/colors.dart';
+import 'package:tapload/core/design_system/foundation/spacing.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
 
 class SidebarDensity extends InheritedWidget {
   final bool compact;

@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/transfer/domain/library_manifest.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_media_filter.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_path_guard.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/transfer/domain/library_manifest.dart';
+import 'package:tapload/features/transfer/domain/transfer_media_filter.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/domain/transfer_path_guard.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
+import 'package:tapload/features/onboarding/data/onboarding_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

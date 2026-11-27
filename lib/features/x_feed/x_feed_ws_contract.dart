@@ -1,4 +1,4 @@
-import 'package:modern_downloader/features/x_feed/gobird_x_feed_service.dart';
+import 'package:tapload/features/x_feed/gobird_x_feed_service.dart';
 
 /// Pure helpers for the authenticated X_FEED WebSocket contract.
 class XFeedWsContract {

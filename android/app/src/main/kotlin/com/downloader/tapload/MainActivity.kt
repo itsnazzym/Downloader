@@ -1,4 +1,4 @@
-package com.downloader.modern_downloader
+package com.downloader.tapload
 
 import android.Manifest
 import android.content.Intent
@@ -12,7 +12,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val permissionsChannel = "modern_downloader/permissions"
+    private val permissionsChannel = "tapload/permissions"
     private val permissionsRequestCode = 901
     private var pendingPermissionsResult: MethodChannel.Result? = null
 

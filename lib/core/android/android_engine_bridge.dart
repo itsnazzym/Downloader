@@ -16,10 +16,10 @@ class AndroidEngineBridge {
     EventChannel? eventChannel,
   }) : _methods =
            methodChannel ??
-           const MethodChannel('com.downloader.modern_downloader/engine'),
+           const MethodChannel('com.downloader.tapload/engine'),
        _events =
            eventChannel ??
-           const EventChannel('com.downloader.modern_downloader/engineEvents');
+           const EventChannel('com.downloader.tapload/engineEvents');
 
   static final AndroidEngineBridge instance = AndroidEngineBridge();
 

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:modern_downloader/core/security/local_server_auth.dart';
+import 'package:tapload/core/security/local_server_auth.dart';
 
 /// Resolves per-domain heartbeat cookie files written by the local WS bridge.
 class HeartbeatCookieLocator {

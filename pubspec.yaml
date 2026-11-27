@@ -1,4 +1,4 @@
-name: modern_downloader
+name: tapload
 description: "TapLoad — privacy-first media downloader for Windows and Android (yt-dlp, gallery-dl, browser extensions, share sheet)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

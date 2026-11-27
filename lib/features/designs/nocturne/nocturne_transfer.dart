@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
-import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/live_activity.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/presentation/transfer_controller.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../shared/design_data.dart';

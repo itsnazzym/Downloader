@@ -3,16 +3,16 @@ Windows Registry Editor Version 5.00
 ; Dev-only template. Prefer tool/register_protocol.ps1 which points at the
 ; locally built Debug executable. The installer registers HKCU classes.
 
-[HKEY_CURRENT_USER\Software\Classes\moderndownloader]
+[HKEY_CURRENT_USER\Software\Classes\tapload]
 @="URL:TapLoad Protocol"
 "URL Protocol"=""
 
-[HKEY_CURRENT_USER\Software\Classes\moderndownloader\DefaultIcon]
-@="modern_downloader.exe,0"
+[HKEY_CURRENT_USER\Software\Classes\tapload\DefaultIcon]
+@="tapload.exe,0"
 
-[HKEY_CURRENT_USER\Software\Classes\moderndownloader\shell]
+[HKEY_CURRENT_USER\Software\Classes\tapload\shell]
 
-[HKEY_CURRENT_USER\Software\Classes\moderndownloader\shell\open]
+[HKEY_CURRENT_USER\Software\Classes\tapload\shell\open]
 
-[HKEY_CURRENT_USER\Software\Classes\moderndownloader\shell\open\command]
-@="\"modern_downloader.exe\" \"%1\""
+[HKEY_CURRENT_USER\Software\Classes\tapload\shell\open\command]
+@="\"tapload.exe\" \"%1\""

@@ -1777,7 +1777,7 @@
   "archiveDeskPickJson": "اختر ملف JSON",
   "archiveDeskSyncTitle": "مزامنة المجموعات",
   "archiveDeskSyncConnected": "تجلب الإضافة مقاطع مجموعاتك من صفحة TikTok مفتوحة.",
-  "archiveDeskSyncDisconnected": "افتح TikTok في متصفح مثبّت فيه امتداد Modern Downloader، ثم عُد إلى هنا.",
+  "archiveDeskSyncDisconnected": "افتح TikTok في متصفح مثبّت فيه امتداد TapLoad، ثم عُد إلى هنا.",
   "archiveDeskSyncing": "جارٍ المزامنة…",
   "archiveDeskSyncAction": "مزامنة مجموعاتي",
   "archiveDeskSyncManual": "المزامنة يدوية. لتحديث مجموعاتك، أبقِ TikTok مفتوحًا في المتصفح وأعد تشغيلها من هنا.",

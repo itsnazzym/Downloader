@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/android/share_url_extractor.dart';
+import 'package:tapload/core/android/share_url_extractor.dart';
 
 void main() {
   group('ShareUrlExtractor', () {

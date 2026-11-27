@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:tapload/core/logger/logger_service.dart';
 import 'package:uuid/uuid.dart';
 
 class DeviceIdentityData {

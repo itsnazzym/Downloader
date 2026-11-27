@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/features/transfer/data/lan_ipv4.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_api.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_client.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/features/transfer/data/lan_ipv4.dart';
+import 'package:tapload/features/transfer/data/localsend_api.dart';
+import 'package:tapload/features/transfer/data/localsend_client.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 
 class TransferDiscovery {
   TransferDiscovery({

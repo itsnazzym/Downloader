@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/core/download/x_library_title_repair.dart';
-import 'package:modern_downloader/core/download/x_tweet_display_title.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/core/download/x_library_title_repair.dart';
+import 'package:tapload/core/download/x_tweet_display_title.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 typedef XLibraryTitleMetadataFetcher =
     Future<Map<String, dynamic>?> Function(

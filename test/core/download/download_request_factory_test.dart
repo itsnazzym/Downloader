@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/download_request_factory.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
+import 'package:tapload/core/download/download_request_factory.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
 
 void main() {
   test('DownloadRequestFactory copies settings and applies overrides', () {

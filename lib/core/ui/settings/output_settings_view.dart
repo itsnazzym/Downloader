@@ -17,7 +17,7 @@ import '../../../features/downloader/presentation/views/dialogs/reorganize_libra
 import '../../../features/onboarding/presentation/onboarding_targets.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/settings_tiles.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'widgets/settings_app_bar.dart';
 
@@ -62,7 +62,7 @@ class OutputSettingsView extends ConsumerWidget {
                                   userProfile:
                                       Platform.environment['USERPROFILE'],
                                   fallbackFolder: Platform.isAndroid
-                                      ? '/storage/emulated/0/Download/ModernDownloader'
+                                      ? '/storage/emulated/0/Download/TapLoad'
                                       : null,
                                 ) ??
                                 '',

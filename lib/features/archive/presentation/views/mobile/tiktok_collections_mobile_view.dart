@@ -3,15 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/design_system/components/app_toast.dart';
-import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_confirm.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/archive/presentation/views/mobile/archive_collection_label.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/showcase/showcase_mode.dart';
+import 'package:tapload/core/design_system/components/app_toast.dart';
+import 'package:tapload/core/ui/mobile/back_navigation.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_confirm.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/archive/presentation/views/mobile/archive_collection_label.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/showcase/showcase_mode.dart';
 
 String _keyOf(TikTokCollectionItem collection) =>
     collection.id ?? collection.name;

@@ -1,4 +1,4 @@
-package com.downloader.modern_downloader
+package com.downloader.tapload
 
 import android.content.Intent
 import android.net.Uri
@@ -79,11 +79,11 @@ class SharePlugin :
             instance = plugin
             MethodChannel(
                 engine.dartExecutor.binaryMessenger,
-                "com.downloader.modern_downloader/share",
+                "com.downloader.tapload/share",
             ).setMethodCallHandler(plugin)
             EventChannel(
                 engine.dartExecutor.binaryMessenger,
-                "com.downloader.modern_downloader/shareEvents",
+                "com.downloader.tapload/shareEvents",
             ).setStreamHandler(plugin)
             return plugin
         }

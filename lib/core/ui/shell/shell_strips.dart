@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/features/downloader/presentation/providers/download_library_counts.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// A row of pill tabs in the active design's shape. Shared by the strips
 /// below so every chrome keeps the library filters and settings sub-pages.

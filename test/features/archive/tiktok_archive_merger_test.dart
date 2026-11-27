@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/archive/data/datasources/tiktok_archive_parser.dart';
-import 'package:modern_downloader/features/archive/data/datasources/tiktok_archive_storage.dart';
-import 'package:modern_downloader/features/archive/data/repositories/tiktok_archive_repository_impl.dart';
-import 'package:modern_downloader/features/archive/data/services/tiktok_archive_merger.dart';
-import 'package:modern_downloader/features/archive/data/services/tiktok_collection_reconciliation_service.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_classification_report.dart';
+import 'package:tapload/features/archive/data/datasources/tiktok_archive_parser.dart';
+import 'package:tapload/features/archive/data/datasources/tiktok_archive_storage.dart';
+import 'package:tapload/features/archive/data/repositories/tiktok_archive_repository_impl.dart';
+import 'package:tapload/features/archive/data/services/tiktok_archive_merger.dart';
+import 'package:tapload/features/archive/data/services/tiktok_collection_reconciliation_service.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_classification_report.dart';
 import 'package:path/path.dart' as p;
 
 String _url(String id) => 'https://www.tiktokv.com/share/video/$id/';

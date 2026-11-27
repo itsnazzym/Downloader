@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/cookie_browser_args.dart';
+import 'package:tapload/core/download/cookie_browser_args.dart';
 
 void main() {
   group('CookieBrowserArgs', () {

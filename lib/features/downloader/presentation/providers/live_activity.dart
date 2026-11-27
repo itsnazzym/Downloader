@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
-import 'package:modern_downloader/core/utils/format_utils.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/utils/format_utils.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 /// True while a download is being fetched or post-processed.
 bool isActiveDownload(DownloadItem item) =>

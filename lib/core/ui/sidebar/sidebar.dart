@@ -16,7 +16,7 @@ import '../../../../features/downloader/presentation/providers/download_library_
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../core/plugins/feature_activation.dart';
 import '../../../../core/ui/layout/pane_layout_provider.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import '../../../../features/archive/presentation/providers/tiktok_archive_provider.dart';
 
 import 'dart:ui'; // For ImageFilter

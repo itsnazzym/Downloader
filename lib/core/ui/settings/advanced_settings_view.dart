@@ -13,11 +13,11 @@ import '../../providers/settings_provider.dart';
 import '../../../../features/downloader/presentation/providers/downloader_provider.dart';
 import '../../design_system/components/app_toast.dart';
 import 'widgets/settings_tiles.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/core/services/binary/binary_locator.dart';
-import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/services/tor/tor_proxy_service.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/services/binary/binary_locator.dart';
+import 'package:tapload/core/services/binary/binary_verifier.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/services/tor/tor_proxy_service.dart';
 import 'widgets/settings_app_bar.dart';
 
 class AdvancedSettingsView extends ConsumerStatefulWidget {

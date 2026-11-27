@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 /// Sanitized tweet / media ids for the extension Downloaded overlay.
 ///

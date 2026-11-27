@@ -652,7 +652,7 @@ class TikTokArchiveNotifier extends StateNotifier<TikTokArchiveState> {
       }
       setExtensionSyncResult(
         ok: false,
-        message: 'Aucune extension Modern Downloader n’est connectée.',
+        message: 'Aucune extension TapLoad n’est connectée.',
       );
       return;
     }

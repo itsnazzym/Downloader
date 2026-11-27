@@ -1,4 +1,4 @@
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 /// The parser stores two system collections under French names that are also
 /// data keys; only the label shown to the user is translated.

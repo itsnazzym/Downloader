@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:tapload/core/download/x_download_url.dart';
 
 void main() {
   group('XDownloadUrl.canonicalize', () {

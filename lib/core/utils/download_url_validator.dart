@@ -1,4 +1,4 @@
-import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:tapload/core/download/x_download_url.dart';
 
 class DownloadUrlValidator {
   static const Set<String> _nonMediaHosts = <String>{

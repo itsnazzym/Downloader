@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/ios_theme.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/ios_theme.dart';
 
 class BlurContainer extends StatelessWidget {
   final Widget child;

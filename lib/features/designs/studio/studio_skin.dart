@@ -1,4 +1,4 @@
-import 'package:modern_downloader/core/design_system/design_skin.dart';
+import 'package:tapload/core/design_system/design_skin.dart';
 
 import 'studio_home.dart';
 import 'studio_settings.dart';

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/download_file_resolver.dart';
+import 'package:tapload/core/download/download_file_resolver.dart';
 
 void main() {
   group('DownloadFileResolver.normalizePath', () {

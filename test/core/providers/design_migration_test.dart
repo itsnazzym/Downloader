@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

@@ -226,7 +226,7 @@ class DownloaderRepositoryImpl implements IDownloaderRepository {
           ? Platform.environment['USERPROFILE']
           : null,
       fallbackFolder: Platform.isAndroid
-          ? '/storage/emulated/0/Download/ModernDownloader'
+          ? '/storage/emulated/0/Download/TapLoad'
           : null,
     );
   }

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/services/binary/binary_verifier.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/core/design_system/design_skin.dart';
+import 'package:tapload/core/design_system/foundation/colors.dart';
+import 'package:tapload/core/design_system/foundation/spacing.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/services/binary/binary_verifier.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/design_skin.dart';
 
 /// True when the settings building blocks render in the OLED language
 /// (hairline outlines, ink-filled selection, no glass): on phones, and when

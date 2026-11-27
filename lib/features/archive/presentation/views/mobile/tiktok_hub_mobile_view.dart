@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/showcase/showcase_mode.dart';
+import 'package:tapload/core/ui/mobile/back_navigation.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/showcase/showcase_mode.dart';
 
 /// Phone version of the archive entry point: one figure, one action.
 /// The browser-extension sync only exists on desktop, so it is not offered.

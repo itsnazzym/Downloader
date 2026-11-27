@@ -8875,7 +8875,7 @@ abstract class AppLocalizations {
   /// No description provided for @archiveDeskSyncDisconnected.
   ///
   /// In en, this message translates to:
-  /// **'Open TikTok in a browser where the Modern Downloader extension is installed, then come back here.'**
+  /// **'Open TikTok in a browser where the TapLoad extension is installed, then come back here.'**
   String get archiveDeskSyncDisconnected;
 
   /// No description provided for @archiveDeskSyncing.

@@ -5,10 +5,10 @@ import '../../design_system/foundation/colors.dart';
 import '../../design_system/foundation/spacing.dart';
 import '../../design_system/foundation/typography.dart';
 import '../../providers/settings_provider.dart';
-import 'package:modern_downloader/core/design_system/design_skin.dart';
+import 'package:tapload/core/design_system/design_skin.dart';
 import 'widgets/settings_tiles.dart';
 import 'widgets/settings_app_bar.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 class PerformanceSettingsView extends ConsumerWidget {
   const PerformanceSettingsView({super.key});

@@ -42,7 +42,7 @@ CI (`.github/workflows/ci.yml`) runs the same format check, `flutter analyze --n
 
 Match the file you edit. The repo is formatted with `dart format`; quote style is mixed (`prefer_single_quotes` is not enabled). Conventions:
 
-- Follow existing imports (`package:modern_downloader/…` or relative) in that file.
+- Follow existing imports (`package:tapload/…` or relative) in that file.
 - Prefer explicit types; avoid unused `dynamic` except JSON/`Map<String, dynamic>` boundaries.
 - User-visible strings go in ARB (`lib/l10n/app_en.arb`, `app_fr.arb`, `app_ar.arb`) — do not hardcode UI copy.
 - Do not add empty `catch` blocks; log with `LoggerService`.

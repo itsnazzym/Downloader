@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
 
 void main() {
   group('TitleCleanerService.clean', () {

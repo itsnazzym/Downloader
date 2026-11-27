@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-$Protocol = "moderndownloader"
-$AppPath = "$PSScriptRoot\..\build\windows\x64\runner\Debug\modern_downloader.exe" 
+$Protocol = "tapload"
+$AppPath = "$PSScriptRoot\..\build\windows\x64\runner\Debug\tapload.exe" 
 # Note: For dev, we point to the Debug exe. In production, this would be the installed path.
 
 # Verify exe exists
@@ -18,7 +18,7 @@ Write-Host "Registering protocol '$Protocol'..."
 
 # Create Key
 New-Item -Path $RegistryPath -Force | Out-Null
-New-ItemProperty -Path $RegistryPath -Name "(Default)" -Value "URL:Modern Downloader Protocol" -PropertyType String -Force | Out-Null
+New-ItemProperty -Path $RegistryPath -Name "(Default)" -Value "URL:TapLoad Protocol" -PropertyType String -Force | Out-Null
 New-ItemProperty -Path $RegistryPath -Name "URL Protocol" -Value "" -PropertyType String -Force | Out-Null
 
 # Create Default Icon

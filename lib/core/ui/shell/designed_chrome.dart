@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/design_spec.dart';
 
 import 'chromes/ios_chrome.dart';
 import 'chromes/nocturne_chrome.dart';

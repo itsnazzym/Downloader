@@ -6,9 +6,9 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_client.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_lan_server.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/data/localsend_client.dart';
+import 'package:tapload/features/transfer/data/transfer_lan_server.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 
 void main() {
   late Directory temp;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
+import 'package:tapload/core/design_system/foundation/colors.dart';
+import 'package:tapload/core/design_system/foundation/spacing.dart';
 
 class AppSkeleton extends StatelessWidget {
   final double? width;

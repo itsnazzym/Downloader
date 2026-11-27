@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/binary/binary_locator.dart';
-import 'package:modern_downloader/core/services/binary/process_runner.dart';
+import 'package:tapload/core/services/binary/binary_locator.dart';
+import 'package:tapload/core/services/binary/process_runner.dart';
 import 'package:path/path.dart' as p;
 
 class _CountingProcessRunner extends ProcessRunner {

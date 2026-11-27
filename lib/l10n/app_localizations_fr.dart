@@ -5270,7 +5270,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get archiveDeskSyncDisconnected =>
-      'Ouvre TikTok dans un navigateur où l’extension Modern Downloader est installée, puis reviens ici.';
+      'Ouvre TikTok dans un navigateur où l’extension TapLoad est installée, puis reviens ici.';
 
   @override
   String get archiveDeskSyncing => 'Synchronisation en cours…';

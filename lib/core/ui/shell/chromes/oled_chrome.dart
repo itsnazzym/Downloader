@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/designs/oled/oled_theme.dart';
-import 'package:modern_downloader/features/designs/oled/oled_widgets.dart';
-import 'package:modern_downloader/features/designs/shared/design_data.dart';
-import 'package:modern_downloader/features/designs/signal/signal_home.dart'
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/designs/oled/oled_theme.dart';
+import 'package:tapload/features/designs/oled/oled_widgets.dart';
+import 'package:tapload/features/designs/shared/design_data.dart';
+import 'package:tapload/features/designs/signal/signal_home.dart'
     show designFreeSpaceProvider;
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/presentation/providers/download_library_counts.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/live_activity.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../desktop_destinations.dart';
 

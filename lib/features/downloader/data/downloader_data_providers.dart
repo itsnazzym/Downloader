@@ -2,20 +2,20 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/core/plugins/plugin_manager.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/services/binary/service_providers.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/features/downloader/data/datasources/persistence_service.dart';
-import 'package:modern_downloader/features/downloader/data/repositories/downloader_repository_impl.dart';
-import 'package:modern_downloader/features/downloader/data/services/library_scanner_service.dart';
-import 'package:modern_downloader/features/downloader/data/sources/gallery_dl_source.dart';
-import 'package:modern_downloader/features/downloader/data/sources/kick_source.dart';
-import 'package:modern_downloader/features/downloader/data/sources/yt_dlp_source.dart';
-import 'package:modern_downloader/features/downloader/domain/exceptions/yt_dlp_exception.dart';
-import 'package:modern_downloader/features/downloader/domain/repositories/i_downloader_repository.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/core/plugins/plugin_manager.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/services/binary/service_providers.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_provider.dart';
+import 'package:tapload/features/downloader/data/datasources/persistence_service.dart';
+import 'package:tapload/features/downloader/data/repositories/downloader_repository_impl.dart';
+import 'package:tapload/features/downloader/data/services/library_scanner_service.dart';
+import 'package:tapload/features/downloader/data/sources/gallery_dl_source.dart';
+import 'package:tapload/features/downloader/data/sources/kick_source.dart';
+import 'package:tapload/features/downloader/data/sources/yt_dlp_source.dart';
+import 'package:tapload/features/downloader/domain/exceptions/yt_dlp_exception.dart';
+import 'package:tapload/features/downloader/domain/repositories/i_downloader_repository.dart';
 
 final ytDlpSourceProvider = Provider<YtDlpSource>((ref) {
   return YtDlpSource(

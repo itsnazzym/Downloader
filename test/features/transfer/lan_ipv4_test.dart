@@ -2,7 +2,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/transfer/data/lan_ipv4.dart';
+import 'package:tapload/features/transfer/data/lan_ipv4.dart';
 
 void main() {
   test('detect LAN IPv4 on current host', () async {

@@ -9,7 +9,7 @@ import 'android_storage.dart' as platform_android;
 class DefaultLibraryPathResolver {
   DefaultLibraryPathResolver._();
 
-  static const String folderName = 'ModernDownloader';
+  static const String folderName = 'TapLoad';
 
   static Future<String> resolveDefaultOutputFolder() async {
     if (Platform.isAndroid) {

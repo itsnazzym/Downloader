@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/plugins/feature_activation.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/downloader/presentation/views/dialogs/add_download_dialog.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// One top-level place of the desktop app, shared by every design's chrome so
 /// none of them can drop a page (plugin gating lives here, once).

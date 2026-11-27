@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/core/download/x_library_title_repair.dart';
-import 'package:modern_downloader/core/download/x_tweet_display_title.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/core/download/x_library_title_repair.dart';
+import 'package:tapload/core/download/x_tweet_display_title.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 DownloadItem _item({
   required String url,

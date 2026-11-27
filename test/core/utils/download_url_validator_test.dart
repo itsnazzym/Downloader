@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/utils/download_url_validator.dart';
+import 'package:tapload/core/utils/download_url_validator.dart';
 
 void main() {
   group('DownloadUrlValidator.isValidHttpUrl', () {

@@ -1,8 +1,8 @@
-import 'package:modern_downloader/core/download/download_url_policy.dart';
-import 'package:modern_downloader/core/download/extension_download_batcher.dart';
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/core/utils/download_url_validator.dart';
+import 'package:tapload/core/download/download_url_policy.dart';
+import 'package:tapload/core/download/extension_download_batcher.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/core/utils/download_url_validator.dart';
 
 /// Result of parsing an extension DOWNLOAD payload.
 class LocalServerDownloadIntakeResult {

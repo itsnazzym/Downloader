@@ -490,7 +490,7 @@
     if (code === 'app_offline' || code === 'request_timeout') {
       return t(
         'xFeedGobirdAppOffline',
-        'Modern Downloader is offline or did not answer. Start the app and retry.',
+        'TapLoad is offline or did not answer. Start the app and retry.',
       );
     }
     var detail = String(errorText || code || '').trim();
@@ -1740,7 +1740,7 @@
       var dlBtn = document.createElement('button');
       dlBtn.type = 'button';
       dlBtn.className = 'creator-card-btn secondary';
-      dlBtn.title = t('feedSendAccountHint', 'Modern Downloader récupérera les vidéos du profil.');
+      dlBtn.title = t('feedSendAccountHint', 'TapLoad récupérera les vidéos du profil.');
       dlBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>App</span>';
       dlBtn.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -1829,7 +1829,7 @@
     }
 
     setBusy(true);
-    setStatus(tf('feedSendingAccounts', 'Envoi de {count} comptes à Modern Downloader…', { count: creators.length }), '');
+    setStatus(tf('feedSendingAccounts', 'Envoi de {count} comptes à TapLoad…', { count: creators.length }), '');
 
     var completed = 0;
     var failed = 0;
@@ -1868,7 +1868,7 @@
 
     sendNextCreator(0).then(function () {
       setBusy(false);
-      var msg = tf('feedAccountsSent', '{count} comptes envoyés à Modern Downloader.', { count: completed });
+      var msg = tf('feedAccountsSent', '{count} comptes envoyés à TapLoad.', { count: completed });
       if (failed > 0) {
         msg += ' · ' + tf('xFeedFailed', '{count} échecs', { count: failed });
       }
@@ -2845,7 +2845,7 @@
 
     setStatus(
       replaceCount(
-        t('xFeedSending', 'Sending {count} videos to Modern Downloader…'),
+        t('xFeedSending', 'Sending {count} videos to TapLoad…'),
         selectedItems.length,
       ),
     );

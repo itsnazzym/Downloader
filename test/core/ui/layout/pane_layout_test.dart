@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/ui/layout/pane_layout_provider.dart';
+import 'package:tapload/core/ui/layout/pane_layout_provider.dart';
 
 void main() {
   group('PaneLayout drag', () {

@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import 'package:modern_downloader/core/download/extraction_placeholders.dart';
-import 'package:modern_downloader/core/download/media_source_resolver.dart';
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/extraction_placeholders.dart';
+import 'package:tapload/core/download/media_source_resolver.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 /// Detects X/Twitter library rows whose titles came from CDN media keys.
 class XLibraryTitleRepair {

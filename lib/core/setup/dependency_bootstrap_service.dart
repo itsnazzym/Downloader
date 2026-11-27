@@ -51,7 +51,7 @@ class DependencyBootstrapService {
   final HttpClient Function() _httpClientFactory;
   final ProcessRunner? _processRunner;
 
-  static const _userAgent = 'ModernDownloader/1.0.3 (Windows; bootstrap)';
+  static const _userAgent = 'TapLoad/1.0.3 (Windows; bootstrap)';
 
   Future<void> ensureReady({
     required void Function(DependencyBootstrapProgress progress) onProgress,

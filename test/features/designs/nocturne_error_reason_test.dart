@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/designs/shared/design_data.dart';
+import 'package:tapload/features/designs/shared/design_data.dart';
 
 void main() {
   test('keeps only the readable reason of a yt-dlp error', () {

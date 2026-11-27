@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/x_feed/gobird_x_feed_service.dart';
-import 'package:modern_downloader/features/x_feed/x_feed_cookie_credentials.dart';
-import 'package:modern_downloader/features/x_feed/x_feed_ws_contract.dart';
-import 'package:modern_downloader/core/services/binary/binary_locator.dart';
+import 'package:tapload/features/x_feed/gobird_x_feed_service.dart';
+import 'package:tapload/features/x_feed/x_feed_cookie_credentials.dart';
+import 'package:tapload/features/x_feed/x_feed_ws_contract.dart';
+import 'package:tapload/core/services/binary/binary_locator.dart';
 
 class _FakeLocator extends BinaryLocator {
   _FakeLocator(this.path);

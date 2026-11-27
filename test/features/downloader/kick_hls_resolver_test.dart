@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:modern_downloader/features/downloader/data/sources/kick/kick_hls.dart';
-import 'package:modern_downloader/features/downloader/data/sources/kick_source.dart';
+import 'package:tapload/features/downloader/data/sources/kick/kick_hls.dart';
+import 'package:tapload/features/downloader/data/sources/kick_source.dart';
 
 void main() {
   group('KickPageRef.tryParse', () {

@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/launch/protocol_url_parser.dart';
-import 'package:modern_downloader/core/plugins/feature_activation.dart';
-import 'package:modern_downloader/core/plugins/feature_catalog.dart';
+import 'package:tapload/core/launch/protocol_url_parser.dart';
+import 'package:tapload/core/plugins/feature_activation.dart';
+import 'package:tapload/core/plugins/feature_catalog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -121,13 +121,13 @@ void main() {
     test('accepts only a single well-formed app catalog ID', () {
       expect(
         ProtocolUrlParser.extractPluginId(
-          'moderndownloader://plugin/x_browser',
+          'tapload://plugin/x_browser',
         ),
         'x_browser',
       );
       expect(
         ProtocolUrlParser.extractPluginId(
-          'moderndownloader://plugin/x_browser?enable=true',
+          'tapload://plugin/x_browser?enable=true',
         ),
         isNull,
       );
@@ -137,13 +137,13 @@ void main() {
       );
       expect(
         ProtocolUrlParser.extractPluginId(
-          'moderndownloader://plugin/x_browser/extra',
+          'tapload://plugin/x_browser/extra',
         ),
         isNull,
       );
       expect(
         ProtocolUrlParser.extractPluginId(
-          'moderndownloader://plugin/../../settings',
+          'tapload://plugin/../../settings',
         ),
         isNull,
       );

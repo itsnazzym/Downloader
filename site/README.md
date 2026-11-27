@@ -13,7 +13,7 @@ features such as the in-app X browser remain in the application catalog for
 Android and do not get a Windows website page.
 
 The catalog is a discovery and handoff layer, not a remote code loader. Selecting
-an entry opens the app through its `moderndownloader://plugin/<id>` protocol;
+an entry opens the app through its `tapload://plugin/<id>` protocol;
 the app then presents the relevant activation or installation flow. Core
 downloads and the media library remain available, and no existing app feature is
 removed by the catalog.

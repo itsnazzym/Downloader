@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/services/binary/binary_locator.dart';
-import 'package:modern_downloader/core/services/binary/process_runner.dart';
-import 'package:modern_downloader/features/downloader/data/sources/tiktok_photo_post_source.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/core/services/binary/binary_locator.dart';
+import 'package:tapload/core/services/binary/process_runner.dart';
+import 'package:tapload/features/downloader/data/sources/tiktok_photo_post_source.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
 
 String _page({List<String> images = const ['https://cdn/a.jpg'], String? music}) {
   final data = {

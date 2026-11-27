@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/core/theme/theme_resolver.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/core/theme/theme_resolver.dart';
 
 double _contrast(Color a, Color b) {
   final la = a.computeLuminance();

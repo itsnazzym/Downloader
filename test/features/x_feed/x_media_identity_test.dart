@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/x_feed/x_media_identity.dart';
+import 'package:tapload/features/x_feed/x_media_identity.dart';
 
 void main() {
   group('XMediaIdentity', () {

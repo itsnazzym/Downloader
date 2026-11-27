@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/async_serializer.dart';
-import 'package:modern_downloader/core/download/extension_download_batcher.dart';
-import 'package:modern_downloader/core/download/fragment_budget.dart';
+import 'package:tapload/core/download/async_serializer.dart';
+import 'package:tapload/core/download/extension_download_batcher.dart';
+import 'package:tapload/core/download/fragment_budget.dart';
 
 class _ManualTimer implements Timer {
   bool _active = true;

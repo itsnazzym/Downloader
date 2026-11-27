@@ -1,18 +1,18 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/utils/browser_launch.dart';
+import 'package:tapload/core/utils/browser_launch.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/app_typography.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_typography.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 
 class AgeVerificationHelpDialog extends ConsumerStatefulWidget {
   const AgeVerificationHelpDialog({

@@ -92,9 +92,9 @@ BEGIN
             VALUE "CompanyName", "com.downloader" "\0"
             VALUE "FileDescription", "TapLoad" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "modern_downloader" "\0"
+            VALUE "InternalName", "tapload" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.downloader. All rights reserved." "\0"
-            VALUE "OriginalFilename", "modern_downloader.exe" "\0"
+            VALUE "OriginalFilename", "tapload.exe" "\0"
             VALUE "ProductName", "TapLoad" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END

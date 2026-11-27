@@ -5214,7 +5214,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get archiveDeskSyncDisconnected =>
-      'افتح TikTok في متصفح مثبّت فيه امتداد Modern Downloader، ثم عُد إلى هنا.';
+      'افتح TikTok في متصفح مثبّت فيه امتداد TapLoad، ثم عُد إلى هنا.';
 
   @override
   String get archiveDeskSyncing => 'جارٍ المزامنة…';

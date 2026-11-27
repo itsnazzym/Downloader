@@ -1,4 +1,4 @@
-import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:tapload/core/logger/logger_service.dart';
 
 class TitleCleanerService {
   static final RegExp _spamPatterns = RegExp(

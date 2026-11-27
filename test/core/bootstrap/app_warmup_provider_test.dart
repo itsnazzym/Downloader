@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/bootstrap/app_warmup_models.dart';
-import 'package:modern_downloader/core/bootstrap/app_warmup_provider.dart';
-import 'package:modern_downloader/core/services/clipboard_service.dart';
-import 'package:modern_downloader/core/services/local_server_service.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_service.dart';
+import 'package:tapload/core/bootstrap/app_warmup_models.dart';
+import 'package:tapload/core/bootstrap/app_warmup_provider.dart';
+import 'package:tapload/core/services/clipboard_service.dart';
+import 'package:tapload/core/services/local_server_service.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_provider.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_service.dart';
 
 class _FakeServer extends LocalServerService {
   _FakeServer(super.ref);

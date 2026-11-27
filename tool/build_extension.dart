@@ -131,7 +131,7 @@ Future<void> main(List<String> args) async {
           {
             'version': version,
             'update_link':
-                'https://github.com/${_githubRepo()}/releases/download/$tag/modern_downloader_firefox.xpi',
+                'https://github.com/${_githubRepo()}/releases/download/$tag/tapload_firefox.xpi',
           },
         ],
       },

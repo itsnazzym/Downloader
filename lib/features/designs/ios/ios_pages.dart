@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:modern_downloader/core/ui/shell/designed_page.dart';
+import 'package:tapload/core/ui/shell/designed_page.dart';
 
 import 'ios_archive.dart';
 import 'ios_home.dart';

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
 
 const _methodChannel = MethodChannel('test/engine');
 const _eventChannel = EventChannel('test/engineEvents');
@@ -111,7 +111,7 @@ void main() {
       'lib/core/android/android_engine_bridge.dart',
     ).readAsStringSync();
     final kotlin = File(
-      'android/app/src/main/kotlin/com/downloader/modern_downloader/EnginePlugin.kt',
+      'android/app/src/main/kotlin/com/downloader/tapload/EnginePlugin.kt',
     ).readAsStringSync();
 
     final invoked = RegExp(

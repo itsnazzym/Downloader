@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_colors.dart';
 
 /// Ambient mesh used by the iOS chrome. Orbs follow the active primary.
 class MeshGradientBackground extends StatefulWidget {

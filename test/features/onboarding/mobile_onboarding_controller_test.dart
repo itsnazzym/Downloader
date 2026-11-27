@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
-import 'package:modern_downloader/features/onboarding/presentation/mobile/mobile_onboarding.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/features/onboarding/data/onboarding_store.dart';
+import 'package:tapload/features/onboarding/presentation/mobile/mobile_onboarding.dart';
 
 void main() {
   test('is never shown on desktop', () {

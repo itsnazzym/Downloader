@@ -2,28 +2,28 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/core/theme/app_typography.dart';
-import 'package:modern_downloader/core/design_system/components/status_badge.dart';
-import 'package:modern_downloader/core/download/download_file_resolver.dart';
-import 'package:modern_downloader/core/download/download_queue_controller.dart';
-import 'package:modern_downloader/core/download/extraction_placeholders.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_typography.dart';
+import 'package:tapload/core/design_system/components/status_badge.dart';
+import 'package:tapload/core/download/download_file_resolver.dart';
+import 'package:tapload/core/download/download_queue_controller.dart';
+import 'package:tapload/core/download/extraction_placeholders.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
-import 'package:modern_downloader/core/download/download_status_guard.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/core/ui/widgets/log_viewer.dart';
+import 'package:tapload/core/download/download_status_guard.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/core/ui/widgets/log_viewer.dart';
 import '../dialogs/age_verification_help_dialog.dart';
 import 'video_preview_widget.dart';
 import '../../widgets/confirm_file_deletion.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
+import 'package:tapload/core/ui/media_player/media_player_provider.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:modern_downloader/core/utils/file_reveal.dart';
+import 'package:tapload/core/utils/file_reveal.dart';
 
 class DownloadInspector extends ConsumerWidget {
   final String downloadId;

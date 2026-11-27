@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
-import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/presentation/transfer_controller.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import '../shared/local_thumb.dart';

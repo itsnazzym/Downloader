@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/theme/design_spec.dart';
-import 'package:modern_downloader/core/ui/settings/widgets/settings_app_bar.dart';
-import 'package:modern_downloader/features/designs/design_pages.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/theme/design_spec.dart';
+import 'package:tapload/core/ui/settings/widgets/settings_app_bar.dart';
+import 'package:tapload/features/designs/design_pages.dart';
 
 /// The top-level pages a design can redraw from its own mockup.
 enum DesignRoute { home, archive, stats, transfer, settings }

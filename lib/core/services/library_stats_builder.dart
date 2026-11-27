@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:modern_downloader/core/download/media_source_resolver.dart';
-import 'package:modern_downloader/core/services/download_stats_service.dart';
-import 'package:modern_downloader/core/utils/format_utils.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/core/download/media_source_resolver.dart';
+import 'package:tapload/core/services/download_stats_service.dart';
+import 'package:tapload/core/utils/format_utils.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 /// Builds [DownloadStats] from the current library — unique files, real sizes,
 /// known platforms only (never "Local").

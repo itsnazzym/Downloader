@@ -1,8 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/android/media_sniffer_bridge.dart';
-import 'package:modern_downloader/features/browser/sniff/sniffed_media.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/android/media_sniffer_bridge.dart';
+import 'package:tapload/features/browser/sniff/sniffed_media.dart';
 
 SniffedMedia media(
   String url, {

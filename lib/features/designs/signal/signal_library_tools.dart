@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_row_host.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/features/downloader/presentation/models/creator_folder.dart';
+import 'package:tapload/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/download_library_counts.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/features/downloader/presentation/views/widgets/download_row_host.dart';
+import 'package:tapload/features/downloader/presentation/views/widgets/download_search_field.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'signal_controls.dart';
 import 'signal_states.dart';

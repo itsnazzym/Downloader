@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_api.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_security.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_zip_bundle.dart';
-import 'package:modern_downloader/features/transfer/domain/library_manifest.dart';
-import 'package:modern_downloader/features/transfer/domain/resume_filter.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_path_guard.dart';
+import 'package:tapload/core/logger/logger_service.dart';
+import 'package:tapload/features/transfer/data/localsend_api.dart';
+import 'package:tapload/features/transfer/data/transfer_security.dart';
+import 'package:tapload/features/transfer/data/transfer_zip_bundle.dart';
+import 'package:tapload/features/transfer/domain/library_manifest.dart';
+import 'package:tapload/features/transfer/domain/resume_filter.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/domain/transfer_path_guard.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 

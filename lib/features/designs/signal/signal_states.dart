@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../shared/empty_art.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/theme/app_colors.dart';
 
 import 'signal_widgets.dart';
 

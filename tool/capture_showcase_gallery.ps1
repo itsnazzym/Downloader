@@ -3,7 +3,7 @@ param(
 )
 
 $workspace = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$exe = Join-Path $workspace "build/windows/x64/runner/$Configuration/modern_downloader.exe"
+$exe = Join-Path $workspace "build/windows/x64/runner/$Configuration/tapload.exe"
 if (-not (Test-Path -LiteralPath $exe)) {
   throw "Build the Windows application first: $exe"
 }

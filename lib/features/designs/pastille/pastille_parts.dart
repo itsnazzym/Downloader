@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/design_system/components/status_badge.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/components/status_badge.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import 'pastille_kit.dart';
 

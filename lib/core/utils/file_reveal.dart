@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/platform/platform_info.dart';
 
 /// Opens [path] with the system's default app, on every platform.
 void openWithSystem(String path) {

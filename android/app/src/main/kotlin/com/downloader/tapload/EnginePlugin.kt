@@ -1,4 +1,4 @@
-package com.downloader.modern_downloader
+package com.downloader.tapload
 
 import android.content.Context
 import android.content.Intent
@@ -335,7 +335,7 @@ class EnginePlugin(
                 try {
                     if (multicastLock == null) {
                         val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-                        multicastLock = wifi?.createMulticastLock("ModernDownloaderMulticast")?.apply {
+                        multicastLock = wifi?.createMulticastLock("TapLoadMulticast")?.apply {
                             setReferenceCounted(true)
                         }
                     }
@@ -498,7 +498,7 @@ class EnginePlugin(
     private fun resolveOutputDir(): File {
         val publicDir =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val preferred = File(publicDir, "ModernDownloader")
+        val preferred = File(publicDir, "TapLoad")
         try {
             if (!preferred.exists()) {
                 preferred.mkdirs()
@@ -540,11 +540,11 @@ class EnginePlugin(
             val plugin = EnginePlugin(context.applicationContext)
             MethodChannel(
                 engine.dartExecutor.binaryMessenger,
-                "com.downloader.modern_downloader/engine",
+                "com.downloader.tapload/engine",
             ).setMethodCallHandler(plugin)
             EventChannel(
                 engine.dartExecutor.binaryMessenger,
-                "com.downloader.modern_downloader/engineEvents",
+                "com.downloader.tapload/engineEvents",
             ).setStreamHandler(plugin)
         }
     }

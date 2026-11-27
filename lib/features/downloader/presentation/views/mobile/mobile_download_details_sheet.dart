@@ -4,22 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/core/android/android_engine_bridge.dart';
-import 'package:modern_downloader/core/design_system/components/app_toast.dart';
-import 'package:modern_downloader/core/download/download_file_resolver.dart';
-import 'package:modern_downloader/core/download/download_status_guard.dart';
-import 'package:modern_downloader/core/download/extraction_placeholders.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
-import 'package:modern_downloader/core/ui/media_player/media_player_provider.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/live_activity.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/android/android_engine_bridge.dart';
+import 'package:tapload/core/design_system/components/app_toast.dart';
+import 'package:tapload/core/download/download_file_resolver.dart';
+import 'package:tapload/core/download/download_status_guard.dart';
+import 'package:tapload/core/download/extraction_placeholders.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
+import 'package:tapload/core/ui/media_player/media_player_provider.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/downloader/presentation/views/dialogs/age_verification_help_dialog.dart';
+import 'package:tapload/l10n/app_localizations.dart';
+import 'package:tapload/features/downloader/presentation/providers/live_activity.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// BottomSheet component replacing the desktop inspector on mobile.
 /// Provides touch-friendly controls, a step-by-step failure diagnostic,

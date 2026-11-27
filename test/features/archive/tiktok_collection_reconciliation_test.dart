@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/features/archive/data/services/tiktok_collection_reconciliation_service.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/archive/data/services/tiktok_collection_reconciliation_service.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/domain/repositories/i_tiktok_archive_repository.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
 
 class _MemoryArchiveRepository implements ITikTokArchiveRepository {
   TikTokArchiveCatalog? catalog;

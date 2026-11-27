@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/designs/ios/ios_ambient.dart';
-import 'package:modern_downloader/features/designs/ios/ios_glass.dart';
-import 'package:modern_downloader/features/designs/ios/ios_settings.dart'
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/designs/ios/ios_ambient.dart';
+import 'package:tapload/features/designs/ios/ios_glass.dart';
+import 'package:tapload/features/designs/ios/ios_settings.dart'
     show iosSettingsSections;
-import 'package:modern_downloader/features/designs/ios/ios_theme.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/filtered_downloads_provider.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/features/designs/ios/ios_theme.dart';
+import 'package:tapload/features/downloader/presentation/providers/download_library_counts.dart';
+import 'package:tapload/features/downloader/presentation/providers/filtered_downloads_provider.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../desktop_destinations.dart';
 

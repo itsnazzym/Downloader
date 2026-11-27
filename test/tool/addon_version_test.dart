@@ -19,7 +19,7 @@ void main() {
       const source = '''
 {
   "version": "2.1.0",
-  "name": "Modern Downloader"
+  "name": "TapLoad"
 }
 ''';
       expect(

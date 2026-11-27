@@ -2,14 +2,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:modern_downloader/core/design_system/components/app_button.dart';
-import 'package:modern_downloader/core/design_system/components/app_toast.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/spacing.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
-import 'package:modern_downloader/features/downloader/data/services/progressive_organizer_service.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/core/design_system/components/app_button.dart';
+import 'package:tapload/core/design_system/components/app_toast.dart';
+import 'package:tapload/core/design_system/foundation/colors.dart';
+import 'package:tapload/core/design_system/foundation/spacing.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
+import 'package:tapload/features/downloader/data/services/progressive_organizer_service.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
 
 class ReorganizeLibraryDialog extends ConsumerStatefulWidget {
   const ReorganizeLibraryDialog({super.key});

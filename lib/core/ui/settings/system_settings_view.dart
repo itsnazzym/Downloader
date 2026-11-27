@@ -12,7 +12,7 @@ import '../../platform/platform_info.dart';
 import '../../android/android_engine_bridge.dart';
 import '../../setup/dependency_bootstrap_provider.dart';
 import 'widgets/settings_tiles.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import 'widgets/settings_app_bar.dart';
 
 class SystemSettingsView extends ConsumerStatefulWidget {

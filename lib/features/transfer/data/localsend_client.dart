@@ -4,9 +4,9 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-import 'package:modern_downloader/features/transfer/data/localsend_api.dart';
-import 'package:modern_downloader/features/transfer/data/transfer_security.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/data/localsend_api.dart';
+import 'package:tapload/features/transfer/data/transfer_security.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 
 class LocalSendClient {
   LocalSendClient({HttpClient? httpClient, this.maxParallel = 3})

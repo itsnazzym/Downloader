@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/download_file_cleanup.dart';
+import 'package:tapload/core/download/download_file_cleanup.dart';
 
 void main() {
   late Directory tmp;

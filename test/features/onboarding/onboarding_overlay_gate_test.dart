@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/core/ui/window_chrome.dart';
-import 'package:modern_downloader/core/setup/dependency_bootstrap_service.dart';
-import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_overlay.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_tooltip.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_provider.dart';
+import 'package:tapload/core/ui/window_chrome.dart';
+import 'package:tapload/core/setup/dependency_bootstrap_service.dart';
+import 'package:tapload/features/onboarding/data/onboarding_store.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_controller.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_overlay.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_tooltip.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:modern_downloader/core/providers/settings_provider.dart'
+import 'package:tapload/core/providers/settings_provider.dart'
     as settings_util;
 
 DependencyBootstrapNotifier _blockingBootstrap() {

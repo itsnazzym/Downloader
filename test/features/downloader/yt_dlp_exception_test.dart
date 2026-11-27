@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/domain/exceptions/yt_dlp_exception.dart';
+import 'package:tapload/features/downloader/domain/exceptions/yt_dlp_exception.dart';
 
 void main() {
   group('YtDlpException.fromLog', () {

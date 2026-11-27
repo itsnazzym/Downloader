@@ -20,7 +20,7 @@ Add-Type -AssemblyName System.Drawing
 $process = if ($ProcessId -gt 0) {
   Get-Process -Id $ProcessId -ErrorAction Stop
 } else {
-  Get-Process modern_downloader -ErrorAction Stop |
+  Get-Process tapload -ErrorAction Stop |
     Where-Object { $_.Path -like '*Downloader-main*' } |
     Select-Object -First 1
 }

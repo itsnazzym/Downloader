@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/design_system/foundation/colors.dart';
-import 'package:modern_downloader/core/design_system/foundation/typography.dart';
-import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/design_system/foundation/colors.dart';
+import 'package:tapload/core/design_system/foundation/typography.dart';
+import 'package:tapload/features/downloader/presentation/models/creator_folder.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Samsung-style vault tile: double-bezel well with a 2×2 peek mosaic.
 class CreatorFolderTile extends StatefulWidget {

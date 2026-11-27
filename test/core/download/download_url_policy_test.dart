@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/download_url_policy.dart';
+import 'package:tapload/core/download/download_url_policy.dart';
 
 void main() {
   group('DownloadUrlPolicy.isAllowed', () {

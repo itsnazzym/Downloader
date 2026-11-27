@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
-import 'package:modern_downloader/features/transfer/domain/library_manifest.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_creator_query.dart';
-import 'package:modern_downloader/features/transfer/domain/qr_payload.dart';
-import 'package:modern_downloader/features/transfer/domain/resume_filter.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_media_filter.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_path_guard.dart';
-import 'package:modern_downloader/features/transfer/domain/transfer_progress_label.dart';
+import 'package:tapload/features/downloader/presentation/models/creator_folder.dart';
+import 'package:tapload/features/transfer/domain/library_manifest.dart';
+import 'package:tapload/features/transfer/domain/transfer_creator_query.dart';
+import 'package:tapload/features/transfer/domain/qr_payload.dart';
+import 'package:tapload/features/transfer/domain/resume_filter.dart';
+import 'package:tapload/features/transfer/domain/transfer_media_filter.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/domain/transfer_path_guard.dart';
+import 'package:tapload/features/transfer/domain/transfer_progress_label.dart';
 
 void main() {
   group('TransferPathGuard', () {

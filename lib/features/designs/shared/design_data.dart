@@ -1,9 +1,9 @@
-import 'package:modern_downloader/core/services/title_cleaner_service.dart';
-import 'package:modern_downloader/core/utils/format_utils.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/services/title_cleaner_service.dart';
+import 'package:tapload/core/utils/format_utils.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
-export 'package:modern_downloader/core/download/download_error_reason.dart';
+export 'package:tapload/core/download/download_error_reason.dart';
 
 /// Data helpers shared by the designs' own pages.
 

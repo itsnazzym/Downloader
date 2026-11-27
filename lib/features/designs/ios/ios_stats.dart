@@ -3,16 +3,16 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:modern_downloader/core/services/download_stats_service.dart';
-import 'package:modern_downloader/core/ui/shell/desktop_destinations.dart';
-import 'package:modern_downloader/features/designs/signal/signal_home.dart'
+import 'package:tapload/core/services/download_stats_service.dart';
+import 'package:tapload/core/ui/shell/desktop_destinations.dart';
+import 'package:tapload/features/designs/signal/signal_home.dart'
     show designFreeSpaceProvider;
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/download_library_counts.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/downloader_provider.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_targets.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/presentation/providers/download_library_counts.dart';
+import 'package:tapload/features/downloader/presentation/providers/downloader_provider.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_targets.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 import '../shared/design_data.dart';
 import 'ios_glass.dart';

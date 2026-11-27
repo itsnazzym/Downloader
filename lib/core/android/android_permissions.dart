@@ -8,7 +8,7 @@ class AndroidPermissions {
   AndroidPermissions._();
 
   static const MethodChannel _channel = MethodChannel(
-    'modern_downloader/permissions',
+    'tapload/permissions',
   );
 
   static Future<void> ensure() async {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
+import 'package:tapload/core/theme/app_colors.dart';
 
 /// Which vertical edge of the pane exposes resize handles (edge + both corners).
 enum PaneResizeFrom { leading, trailing }

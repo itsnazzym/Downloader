@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/providers/settings_provider.dart';
+import 'package:tapload/core/providers/settings_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<SettingsNotifier> notifier([

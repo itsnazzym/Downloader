@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/download/yt_dlp_progress_parser.dart';
+import 'package:tapload/core/download/yt_dlp_progress_parser.dart';
 
 void main() {
   group('YtDlpProgressParser', () {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/features/downloader/data/datasources/download_queue_codec.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_request.dart';
+import 'package:tapload/features/downloader/data/datasources/download_queue_codec.dart';
+import 'package:tapload/features/downloader/domain/entities/download_request.dart';
 
 void main() {
   group('DownloadQueueCodec', () {

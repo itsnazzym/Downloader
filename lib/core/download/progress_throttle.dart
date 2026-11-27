@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
 
 /// UI / WebSocket progress coalescing interval.
 const Duration kProgressThrottleInterval = Duration(milliseconds: 250);

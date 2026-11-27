@@ -14,7 +14,7 @@ import '../../design_system/foundation/spacing.dart';
 import '../../plugins/builtin/smart_organizer_plugin.dart';
 import '../../plugins/plugin_manager.dart'; // Added
 import 'widgets/settings_tiles.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import 'widgets/settings_app_bar_leading.dart';
 import 'widgets/settings_app_bar.dart';
 

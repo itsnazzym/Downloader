@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/download/download_file_resolver.dart';
-import 'package:modern_downloader/core/download/extraction_placeholders.dart';
-import 'package:modern_downloader/features/downloader/domain/entities/download_item.dart';
-import 'package:modern_downloader/features/downloader/domain/enums/download_status.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/download/download_file_resolver.dart';
+import 'package:tapload/core/download/extraction_placeholders.dart';
+import 'package:tapload/features/downloader/domain/entities/download_item.dart';
+import 'package:tapload/features/downloader/domain/enums/download_status.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Shared labels and status helpers for list / grid / inspector cards.
 class DownloadItemDisplay {

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/security/local_server_download_intake.dart';
+import 'package:tapload/core/security/local_server_download_intake.dart';
 
 void main() {
   group('LocalServerDownloadIntake.parse', () {

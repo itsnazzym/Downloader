@@ -52,7 +52,7 @@ try {
             [System.IO.Path]::DirectorySeparatorChar,
             [System.IO.Path]::AltDirectorySeparatorChar
         )
-        $temporaryRoot = Join-Path $tempBase ("moderndownloader-tor-" + [guid]::NewGuid().ToString('N'))
+        $temporaryRoot = Join-Path $tempBase ("tapload-tor-" + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
         $archivePath = Join-Path $temporaryRoot $archiveName
         Invoke-WebRequest -Uri $archiveUrl -OutFile $archivePath

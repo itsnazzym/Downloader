@@ -8,9 +8,9 @@ import '../../design_system/foundation/spacing.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/settings_tiles.dart';
 import '../../setup/dependency_bootstrap_provider.dart';
-import 'package:modern_downloader/features/onboarding/presentation/mobile/mobile_onboarding.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/features/onboarding/presentation/mobile/mobile_onboarding.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_controller.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 import '../../platform/platform_info.dart';
 
 import 'widgets/settings_app_bar.dart';

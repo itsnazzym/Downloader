@@ -13,10 +13,10 @@ class AndroidShareService {
     EventChannel? eventChannel,
   }) : _methods =
            methodChannel ??
-           const MethodChannel('com.downloader.modern_downloader/share'),
+           const MethodChannel('com.downloader.tapload/share'),
        _events =
            eventChannel ??
-           const EventChannel('com.downloader.modern_downloader/shareEvents');
+           const EventChannel('com.downloader.tapload/shareEvents');
 
   static final AndroidShareService instance = AndroidShareService();
 

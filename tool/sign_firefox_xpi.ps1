@@ -1,4 +1,4 @@
-# Signs extension/firefox with Mozilla AMO (unlisted) and writes modern_downloader_firefox.xpi.
+# Signs extension/firefox with Mozilla AMO (unlisted) and writes tapload_firefox.xpi.
 # Requires env: AMO_JWT_ISSUER, AMO_JWT_SECRET (same names as GitHub Actions secrets).
 # Usage: .\tool\sign_firefox_xpi.ps1
 
@@ -85,11 +85,11 @@ for ($attempt = 1; $attempt -le 20; $attempt++) {
 
 if (-not $signed) { throw "web-ext sign produced no XPI" }
 
-if (Test-Path modern_downloader_firefox.xpi) {
-    Move-Item modern_downloader_firefox.xpi modern_downloader_firefox.xpi.old -Force -ErrorAction SilentlyContinue
+if (Test-Path tapload_firefox.xpi) {
+    Move-Item tapload_firefox.xpi tapload_firefox.xpi.old -Force -ErrorAction SilentlyContinue
 }
-Copy-Item $signed.FullName modern_downloader_firefox.xpi -Force
-Remove-Item modern_downloader_firefox.xpi.old -Force -ErrorAction SilentlyContinue
+Copy-Item $signed.FullName tapload_firefox.xpi -Force
+Remove-Item tapload_firefox.xpi.old -Force -ErrorAction SilentlyContinue
 Remove-Item "extension/firefox/.amo-upload-uuid" -Force -ErrorAction SilentlyContinue
 Remove-Item "extension/firefox/.web-extension-id" -Force -ErrorAction SilentlyContinue
-Write-Host ("Signed: modern_downloader_firefox.xpi ({0} bytes)" -f $signed.Length)
+Write-Host ("Signed: tapload_firefox.xpi ({0} bytes)" -f $signed.Length)

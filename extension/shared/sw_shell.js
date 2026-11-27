@@ -1,5 +1,5 @@
 /**
- * Chrome MV3 Service Worker for Modern Downloader.
+ * Chrome MV3 Service Worker for TapLoad.
  * Directly runs the connection client and WebSocket connection (Chrome 116+).
  */
 (function () {

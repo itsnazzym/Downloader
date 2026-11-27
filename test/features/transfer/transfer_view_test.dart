@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart' as widgets;
-import 'package:modern_downloader/features/transfer/domain/transfer_models.dart';
+import 'package:tapload/features/transfer/domain/transfer_models.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/theme/app_theme.dart';
-import 'package:modern_downloader/core/theme/theme_presets.dart';
-import 'package:modern_downloader/features/downloader/presentation/models/creator_folder.dart';
-import 'package:modern_downloader/features/downloader/presentation/providers/creator_folders_provider.dart';
-import 'package:modern_downloader/features/transfer/presentation/transfer_controller.dart';
-import 'package:modern_downloader/features/transfer/presentation/transfer_view.dart';
-import 'package:modern_downloader/l10n/app_localizations.dart';
+import 'package:tapload/core/theme/app_theme.dart';
+import 'package:tapload/core/theme/theme_presets.dart';
+import 'package:tapload/features/downloader/presentation/models/creator_folder.dart';
+import 'package:tapload/features/downloader/presentation/providers/creator_folders_provider.dart';
+import 'package:tapload/features/transfer/presentation/transfer_controller.dart';
+import 'package:tapload/features/transfer/presentation/transfer_view.dart';
+import 'package:tapload/l10n/app_localizations.dart';
 
 class _FakeTransferController extends TransferController {
   _FakeTransferController(super.ref, [TransferUiState? initialState])

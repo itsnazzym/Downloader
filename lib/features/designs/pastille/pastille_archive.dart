@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/features/archive/domain/entities/tiktok_archive_catalog.dart';
-import 'package:modern_downloader/features/archive/presentation/providers/tiktok_archive_provider.dart';
-import 'package:modern_downloader/features/archive/presentation/views/modes/tiktok_collections_view.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
-import 'package:modern_downloader/showcase/showcase_mode.dart';
+import 'package:tapload/features/archive/domain/entities/tiktok_archive_catalog.dart';
+import 'package:tapload/features/archive/presentation/providers/tiktok_archive_provider.dart';
+import 'package:tapload/features/archive/presentation/views/modes/tiktok_collections_view.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
+import 'package:tapload/showcase/showcase_mode.dart';
 
 import 'pastille_archive_parts.dart';
 import 'pastille_kit.dart';

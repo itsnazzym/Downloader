@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/theme/app_colors.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/theme/app_colors.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 class LogViewer extends StatelessWidget {
   final List<String> logs;

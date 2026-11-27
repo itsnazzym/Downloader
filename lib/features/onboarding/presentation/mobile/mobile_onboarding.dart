@@ -4,13 +4,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:modern_downloader/core/platform/platform_info.dart';
-import 'package:modern_downloader/core/ui/mobile/back_navigation.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_glyph.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_kit.dart';
-import 'package:modern_downloader/features/onboarding/data/onboarding_store.dart';
-import 'package:modern_downloader/features/onboarding/presentation/onboarding_controller.dart';
-import 'package:modern_downloader/l10n/l10n_ext.dart';
+import 'package:tapload/core/platform/platform_info.dart';
+import 'package:tapload/core/ui/mobile/back_navigation.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_glyph.dart';
+import 'package:tapload/core/ui/mobile/oled/oled_kit.dart';
+import 'package:tapload/features/onboarding/data/onboarding_store.dart';
+import 'package:tapload/features/onboarding/presentation/onboarding_controller.dart';
+import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Whether the phone introduction is on screen. It runs once on a fresh
 /// install and can be replayed from the settings.

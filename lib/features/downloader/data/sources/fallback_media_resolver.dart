@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:modern_downloader/core/download/x_download_url.dart';
-import 'package:modern_downloader/core/logger/logger_service.dart';
+import 'package:tapload/core/download/x_download_url.dart';
+import 'package:tapload/core/logger/logger_service.dart';
 
 /// A direct media address found without yt-dlp's extractors.
 class ResolvedMedia {

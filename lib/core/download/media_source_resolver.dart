@@ -1,4 +1,4 @@
-import 'package:modern_downloader/core/download/x_download_url.dart';
+import 'package:tapload/core/download/x_download_url.dart';
 
 /// Resolves a known media platform from a URL, folder, or file path.
 /// Never returns "Local" / "Other" — unknown origin is [null].

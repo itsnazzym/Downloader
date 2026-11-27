@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:modern_downloader/core/android/netscape_cookie_codec.dart';
-import 'package:modern_downloader/core/android/overlay_download_message.dart';
-import 'package:modern_downloader/core/download/download_path_resolver.dart';
-import 'package:modern_downloader/core/download/yt_dlp_cookie_args.dart';
-import 'package:modern_downloader/core/setup/dependency_catalog.dart';
+import 'package:tapload/core/android/netscape_cookie_codec.dart';
+import 'package:tapload/core/android/overlay_download_message.dart';
+import 'package:tapload/core/download/download_path_resolver.dart';
+import 'package:tapload/core/download/yt_dlp_cookie_args.dart';
+import 'package:tapload/core/setup/dependency_catalog.dart';
 
 void main() {
   group('OverlayDownloadMessage', () {
@@ -51,9 +51,9 @@ void main() {
           settingsOutputFolder: '',
           itemFolders: const [],
           userProfile: null,
-          fallbackFolder: '/storage/emulated/0/Download/ModernDownloader',
+          fallbackFolder: '/storage/emulated/0/Download/TapLoad',
         ),
-        '/storage/emulated/0/Download/ModernDownloader',
+        '/storage/emulated/0/Download/TapLoad',
       );
     });
   });

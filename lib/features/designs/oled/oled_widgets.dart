@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:modern_downloader/core/ui/mobile/oled/oled_glyph.dart'
+import 'package:tapload/core/ui/mobile/oled/oled_glyph.dart'
     show kOledGlyph, kOledGlyphCols, kOledGlyphRows;
 
 import 'oled_theme.dart';
