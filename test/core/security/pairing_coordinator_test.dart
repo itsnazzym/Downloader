@@ -459,6 +459,19 @@ void main() {
     });
   });
 
+  group('origin paused or revoked while pending', () {
+    // Approval is the user's deliberate click on THIS request: a later pause
+    // only refuses NEW requests.
+    test('the pending request can still be approved', () async {
+      final s = submit();
+      await store.pauseOrigin(_origin);
+      expect(coordinator.state, s.request);
+      expect(await coordinator.approve(s.request!.id), isTrue);
+      expect(await s.outcome!, isA<PairingApproved>());
+      expect(submit().refusal, PairingRefusal.paused);
+    });
+  });
+
   group('deny', () {
     test('unknown or stale id is a no-op', () async {
       final s = submit();

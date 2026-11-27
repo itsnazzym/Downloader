@@ -108,13 +108,22 @@ class _Peer {
 
   void send(Map<String, dynamic> message) => ws.add(jsonEncode(message));
 
+  String? _lastType;
+
+  /// The next message; PAIR_PENDING reminders after a PAIR_PENDING are
+  /// skipped so the keep-alive rhythm never shifts what a test reads.
   Future<Map<String, dynamic>> next() async {
-    while (_read >= inbox.length) {
-      if (isClosed) throw StateError('closed with no further message');
-      _waiter ??= Completer<void>();
-      await _waiter!.future.timeout(_wait);
+    while (true) {
+      while (_read >= inbox.length) {
+        if (isClosed) throw StateError('closed with no further message');
+        _waiter ??= Completer<void>();
+        await _waiter!.future.timeout(_wait);
+      }
+      final m = inbox[_read++];
+      final reminder = m['type'] == 'PAIR_PENDING' && _lastType == m['type'];
+      _lastType = m['type'] as String?;
+      if (!reminder) return m;
     }
-    return inbox[_read++];
   }
 
   Future<void> waitClosed() => closed.future.timeout(_wait);
@@ -195,6 +204,7 @@ void main() {
             helloTimeout: _hello,
             pairRequestWindow: _window,
             pendingKeepAlive: _keepAlive,
+            maxUnauthenticatedSockets: 9,
             showExtensionConnected: () async => notifications++,
           ),
         ),
@@ -778,6 +788,158 @@ void main() {
       expect(await p.next(), {'type': 'PAIR_PAUSED', 'retryAfterSeconds': 600});
       await p.waitClosed();
       expect(coordinator().state, isNull);
+    });
+  });
+
+  group('limits', () {
+    test('at most 8 sockets wait on a request: the 9th gets PAIR_BUSY, a '
+        'freed slot is reused', () async {
+      final waiting = <_Peer>[];
+      String? id;
+      for (var i = 0; i < LocalServerService.maxPairingSockets; i++) {
+        final p = await open();
+        final pending = await requestPairing(p);
+        id ??= pending['requestId'] as String;
+        expect(pending['requestId'], id, reason: 'socket $i adopts');
+        waiting.add(p);
+      }
+      final extra = await open();
+      expect(await requestPairing(extra), {'type': 'PAIR_BUSY'});
+      await extra.waitClosed();
+
+      await waiting.first.ws.close();
+      await waiting.first.waitClosed();
+      await settle();
+      final again = await open();
+      expect((await requestPairing(again))['requestId'], id);
+      expect(coordinator().state!.id, id);
+    });
+
+    test('unauthenticated sockets are capped with 503; authenticated ones do '
+        'not count; a freed slot is reused', () async {
+      final admin = await open(origin: null);
+      admin.send({'type': 'HELLO', 'token': _manual});
+      expect((await admin.next())['type'], 'HELLO_OK');
+      // 8 pending sockets are held open, one silent socket fills the cap (9).
+      for (var i = 0; i < LocalServerService.maxPairingSockets; i++) {
+        await requestPairing(await open());
+      }
+      final silent = await open();
+      await expectLater(
+        open(),
+        throwsA(
+          isA<WebSocketException>().having(
+            (e) => e.toString(),
+            'status',
+            contains('status code: 503'),
+          ),
+        ),
+      );
+
+      await silent.ws.close();
+      await silent.waitClosed();
+      await settle();
+      final p = await open();
+      p.send({'type': 'HELLO', 'token': _manual});
+      expect((await p.next())['type'], 'HELLO_OK');
+    });
+
+    test('binary, invalid and non-object frames before authentication close '
+        'the socket cleanly', () async {
+      for (final frame in <Object>[
+        <int>[1, 2, 3],
+        'not json',
+        '[1, 2]',
+        '"text"',
+        '42',
+        '{"type": 5}',
+      ]) {
+        final p = await open();
+        p.ws.add(frame);
+        await p.waitClosed();
+        expect(p.inbox, isEmpty, reason: '$frame');
+      }
+      expectCleanLogs();
+      final ok = await open();
+      ok.send({'type': 'HELLO', 'token': _manual});
+      expect((await ok.next())['type'], 'HELLO_OK');
+    });
+
+    test('after authentication a malformed frame keeps the socket', () async {
+      final p = await open();
+      p.send({'type': 'HELLO', 'token': _manual});
+      expect((await p.next())['type'], 'HELLO_OK');
+      p.ws.add('not json');
+      p.send({'type': 'PING'});
+      expect((await p.next())['type'], 'PONG');
+    });
+
+    test('an unauthenticated frame over 4 KB closes the socket and is not '
+        'logged', () async {
+      final p = await open();
+      p.send({'type': 'HELLO', 'token': 'Z' * 5000});
+      await p.waitClosed();
+      expect(p.inbox, isEmpty);
+      expect(logs.where((l) => l.contains('ZZZZ')), isEmpty);
+      expect(logs.where((l) => l.contains('frame refused')), hasLength(1));
+    });
+
+    test('the 6th failed HELLO closes the socket', () async {
+      final p = await open();
+      for (var i = 0; i < 6; i++) {
+        p.send({'type': 'HELLO', 'token': 'wrong'});
+      }
+      await p.waitClosed();
+      expect(
+        p.inbox,
+        List.filled(5, {'type': 'AUTH_FAILED', 'reason': 'pairing_required'}),
+      );
+      expect(coordinator().state, isNull);
+    });
+  });
+
+  group('while a request is pending', () {
+    test('a valid-token HELLO on the waiting socket is refused: it stays '
+        'pending and is not promoted', () async {
+      final p = await open();
+      final pending = await requestPairing(p);
+      p.send({'type': 'HELLO', 'token': _manual});
+      expect(await p.next(), {
+        'type': 'AUTH_FAILED',
+        'reason': 'not_authenticated',
+      });
+      expect(container.read(extensionConnectedClientsProvider), 0);
+      p.send({'type': 'PING'});
+      expect(await p.next(), {
+        'type': 'AUTH_FAILED',
+        'reason': 'not_authenticated',
+      });
+
+      await coordinator().approve(pending['requestId'] as String);
+      expect((await p.next())['type'], 'PAIR_OK');
+    });
+
+    test('revoking a browser of the same origin keeps the request: approving '
+        'stays the user\'s deliberate click', () async {
+      final (browser, token) = await store.pair(origin: _ext, label: 'Chrome');
+      final paired = await open();
+      paired.send({'type': 'HELLO', 'token': token});
+      expect((await paired.next())['type'], 'HELLO_OK');
+      final waiting = await open();
+      final pending = await requestPairing(waiting);
+
+      await store.revoke(browser.id);
+      await paired.waitClosed();
+      expect(store.pauseRemaining(_ext), isNotNull);
+      await settle(_keepAlive * 2);
+      expect(waiting.isClosed, isFalse);
+      expect(coordinator().state!.id, pending['requestId']);
+
+      expect(
+        await coordinator().approve(pending['requestId'] as String),
+        isTrue,
+      );
+      expect((await waiting.next())['type'], 'PAIR_OK');
     });
   });
 

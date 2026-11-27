@@ -65,6 +65,16 @@ class LocalServerService {
   /// worker after ~30 s without traffic.
   final Duration pendingKeepAlive;
 
+  /// Unauthenticated sockets (pending ones included) held at once; more get
+  /// 503 before the upgrade, so a local flood cannot pin sockets and timers.
+  final int maxUnauthenticatedSockets;
+
+  /// Sockets waiting on a pairing request at once; more get PAIR_BUSY.
+  static const maxPairingSockets = 8;
+  static const _maxUnauthenticatedFrame = 4096;
+  static const _maxHelloAttempts = 5;
+  var _upgrading = 0; // upgrades in flight, counted against the cap
+
   @visibleForTesting
   int? get boundPort => _server?.port;
 
@@ -78,6 +88,7 @@ class LocalServerService {
     this.helloTimeout = const Duration(seconds: 2),
     this.pairRequestWindow = const Duration(seconds: 10),
     this.pendingKeepAlive = const Duration(seconds: 10),
+    this.maxUnauthenticatedSockets = 32,
     Future<void> Function()? showExtensionConnected,
   }) : _gobirdFeedService =
            gobirdFeedService ?? GobirdXFeedService(locator: BinaryLocator()),
@@ -238,7 +249,15 @@ Ready for Extension Connection
       final label = ExtensionOrigin.browserLabel(
         agents?.length == 1 ? agents!.single : null,
       );
+      final unauthenticated = _connections.values.where((c) => !c.authorized);
+      if (unauthenticated.length + _upgrading >= maxUnauthenticatedSockets) {
+        LoggerService.w('WebSocket refused: too many unauthenticated sockets');
+        request.response.statusCode = HttpStatus.serviceUnavailable;
+        await request.response.close();
+        return;
+      }
       final WebSocket socket;
+      _upgrading++;
       try {
         socket = await WebSocketTransformer.upgrade(request);
       } catch (e) {
@@ -254,6 +273,8 @@ Ready for Extension Connection
           await request.response.close();
         } catch (_) {} // the transformer already answered
         return;
+      } finally {
+        _upgrading--;
       }
       _handleWebSocket(
         socket,
@@ -363,6 +384,11 @@ Ready for Extension Connection
       _send(c, _Msg.authFailedMessage(_Msg.notAuthenticated));
       return;
     }
+    if (!c.authorized && ++c.helloAttempts > _maxHelloAttempts) {
+      LoggerService.w('WebSocket closed: too many HELLO attempts');
+      _close(c);
+      return;
+    }
     final token = LocalServerAuth.tokenFromMessage(data);
     if (_isAuthorized(token)) return _accept(c, 'manual', null);
     final browser = token == null
@@ -390,8 +416,14 @@ Ready for Extension Connection
   /// Only ever SUBMITS: approving or denying is the app UI's job, and no
   /// message can trigger it.
   void _onPairRequest(_Connection c) {
-    c.pairing = true;
-    c.deadline?.cancel(); // neither the HELLO timeout nor the window applies
+    // Adoption skips the rate limit, so cap the sockets one request can hold.
+    if (_connections.values.where((x) => x.pairing).length >=
+        maxPairingSockets) {
+      LoggerService.w('Pairing request refused: too many waiting sockets');
+      _send(c, _Msg.busy());
+      _close(c);
+      return;
+    }
     final origin = c.origin!;
     final store = _ref.read(pairedBrowsersProvider.notifier);
     final coordinator = _ref.read(pairingCoordinatorProvider.notifier);
@@ -413,6 +445,9 @@ Ready for Extension Connection
       return;
     }
     LoggerService.i('Pairing request pending');
+    // Only now: a throw above leaves the HELLO deadline armed.
+    c.pairing = true;
+    c.deadline?.cancel();
     void remind() =>
         _send(c, _Msg.pending(request, coordinator.expiresIn(request)));
     remind();
@@ -475,6 +510,14 @@ Ready for Extension Connection
     socket.listen(
       (message) {
         if (c.closed) return;
+        // Before authentication only small JSON text is read; anything else
+        // closes the socket, logged without its payload.
+        if (!c.authorized &&
+            (message is! String || message.length > _maxUnauthenticatedFrame)) {
+          LoggerService.w('WebSocket closed: unauthenticated frame refused');
+          _close(c);
+          return;
+        }
         try {
           final data = jsonDecode(message) as Map<String, dynamic>;
           final type = data['type'] as String?;
@@ -538,6 +581,13 @@ Ready for Extension Connection
             unawaited(_handleDownloadCommand(socket, data));
           }
         } catch (e) {
+          if (!c.authorized) {
+            LoggerService.w(
+              'WebSocket closed: malformed unauthenticated frame',
+            );
+            _close(c);
+            return;
+          }
           LoggerService.e('Error parsing WS message', e);
         }
       },
@@ -1122,6 +1172,7 @@ class _Connection {
   String? browserId; // paired browser behind the token, for revocation
   var pairing = false; // PAIR_REQUEST accepted, once per socket
   var windowOpen = false;
+  var helloAttempts = 0;
   var closed = false;
   Timer? deadline; // HELLO timeout, then the PAIR_REQUEST window
   Timer? keepAlive; // PAIR_PENDING reminders
