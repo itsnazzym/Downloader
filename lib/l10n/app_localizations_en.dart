@@ -5252,4 +5252,526 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get terminalExtensionOffline => 'extension not connected';
+
+  @override
+  String get nocturneBadgeFavorite => 'Favorite';
+
+  @override
+  String get nocturneBadgeLike => 'Like';
+
+  @override
+  String get nocturneOpenInBrowser => 'Open in browser';
+
+  @override
+  String get nocturneLinkCopied => 'Link copied';
+
+  @override
+  String nocturneDemoClip(String film, int number) {
+    return '$film · clip $number';
+  }
+
+  @override
+  String get nocturneAllCollections => 'All collections';
+
+  @override
+  String nocturneDownloadStarted(String id) {
+    return 'Download started: $id';
+  }
+
+  @override
+  String nocturneFolderDownloading(int count) {
+    return 'Downloading the folder’s $count videos…';
+  }
+
+  @override
+  String get nocturneShowCovers => 'Show covers';
+
+  @override
+  String get nocturneShowFolders => 'Show folders';
+
+  @override
+  String get nocturneSyncIncomplete =>
+      'Sync incomplete. The last reliable state is kept.';
+
+  @override
+  String nocturneSyncIncompleteReason(String reason) {
+    return 'Sync incomplete: $reason';
+  }
+
+  @override
+  String nocturneSuggestionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classification suggestions to review',
+      one: '1 classification suggestion to review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsReview(int count) {
+    return 'Review ($count)';
+  }
+
+  @override
+  String get nocturneSuggestionsApplying => 'Sorting…';
+
+  @override
+  String get nocturneSuggestionsTitle => 'Review the suggestions';
+
+  @override
+  String get nocturneSuggestionsHint =>
+      'Tick the videos to file. Nothing changes until you apply.';
+
+  @override
+  String nocturneSuggestionVideo(String id) {
+    return 'Video $id';
+  }
+
+  @override
+  String get nocturneReasonPartial => 'Incomplete sync result';
+
+  @override
+  String get nocturneReasonDate => 'Date close to confirmed videos';
+
+  @override
+  String get nocturneReasonImported => 'Old mapping file';
+
+  @override
+  String get nocturneReasonOther => 'Old classification to check';
+
+  @override
+  String nocturneSuggestionsSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSuggestionsApply => 'Apply';
+
+  @override
+  String nocturneSuggestionsApplied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggestions added to the collections.',
+      one: '1 suggestion added to the collections.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsFailed(String error) {
+    return 'Couldn’t apply these suggestions: $error';
+  }
+
+  @override
+  String get nocturneClose => 'Close';
+
+  @override
+  String get nocturneArchiveLoadingHint =>
+      'Reading in the background: the app stays usable.';
+
+  @override
+  String nocturneLogInit(String id) {
+    return 'Download prepared: $id';
+  }
+
+  @override
+  String get nocturneLogStarted => 'Download started…';
+
+  @override
+  String get nocturneLogCompleted => 'Download completed.';
+
+  @override
+  String get nocturneLogCanceled => 'Download canceled.';
+
+  @override
+  String get signalArchiveFavorite => 'Favorite';
+
+  @override
+  String get signalArchiveLiked => 'Liked';
+
+  @override
+  String get signalArchiveOpenInBrowser => 'Open in the browser';
+
+  @override
+  String get signalArchiveSearchCollection => 'Search collections';
+
+  @override
+  String get signalArchiveAllCollections => 'All collections';
+
+  @override
+  String get signalArchiveResetMenu => 'Remove the videos from this collection';
+
+  @override
+  String get signalArchiveResetTitle => 'Reset the collection';
+
+  @override
+  String signalArchiveResetBody(int count, String name) {
+    return 'Remove the $count videos from “$name”? The videos and their other collections are kept.';
+  }
+
+  @override
+  String get signalArchiveResetAction => 'Reset';
+
+  @override
+  String signalArchiveResetDone(String name) {
+    return 'Removed the collection from “$name”. The videos are kept.';
+  }
+
+  @override
+  String get signalArchiveDeleteMenu => 'Delete permanently';
+
+  @override
+  String get signalArchiveDeleteTitle => 'Delete the collection';
+
+  @override
+  String signalArchiveDeleteBody(int count, String name) {
+    return 'Delete the collection “$name” permanently? Its $count videos stay on disk but no longer belong to it.';
+  }
+
+  @override
+  String signalArchiveDeleteDone(String name) {
+    return 'Collection “$name” deleted.';
+  }
+
+  @override
+  String get pastilleArcFilters => 'Filters';
+
+  @override
+  String get pastilleArcClear => 'Clear';
+
+  @override
+  String get pastilleArcType => 'Video type';
+
+  @override
+  String get pastilleArcAll => 'All';
+
+  @override
+  String get pastilleArcLikes => 'Likes';
+
+  @override
+  String get pastilleArcYear => 'Year';
+
+  @override
+  String pastilleArcCollections(int count) {
+    return 'Collections ($count)';
+  }
+
+  @override
+  String get pastilleArcCollectionSearch => 'Search a collection';
+
+  @override
+  String get pastilleArcFavoriteTag => 'Favorite';
+
+  @override
+  String get pastilleArcLikeTag => 'Like';
+
+  @override
+  String get pastilleArcCopyLink => 'Copy link';
+
+  @override
+  String get pastilleArcLinkCopied => 'Link copied';
+
+  @override
+  String get pastilleArcOpenBrowser => 'Open in browser';
+
+  @override
+  String pastilleArcDemoClip(String film, int number) {
+    return '$film · clip $number';
+  }
+
+  @override
+  String get pastilleArcAllCollections => 'All collections';
+
+  @override
+  String get pastilleArcRemoveFromCollection =>
+      'Remove the videos from this collection';
+
+  @override
+  String get pastilleArcResetTitle => 'Reset the collection';
+
+  @override
+  String pastilleArcResetBody(int count, String name) {
+    return 'Remove the $count videos from “$name”? The videos and their other collections are kept.';
+  }
+
+  @override
+  String get pastilleArcResetAction => 'Reset';
+
+  @override
+  String pastilleArcResetDone(String name) {
+    return '“$name” is cleared. The videos are kept.';
+  }
+
+  @override
+  String get pastilleArcDeleteMenu => 'Delete permanently';
+
+  @override
+  String get pastilleArcDeleteTitle => 'Delete the collection';
+
+  @override
+  String pastilleArcDeleteBody(String name, int count) {
+    return 'Delete the collection “$name” for good? The $count videos stay on your disk but leave this folder.';
+  }
+
+  @override
+  String pastilleArcDeleteDone(String name) {
+    return 'Collection “$name” deleted.';
+  }
+
+  @override
+  String get pastilleArcPlayFeed => 'Play the videos full screen, vertically';
+
+  @override
+  String pastilleArcDownloadAll(int count) {
+    return 'Download all ($count)';
+  }
+
+  @override
+  String pastilleArcDownloadingFolder(int count) {
+    return 'Downloading the $count videos of this folder…';
+  }
+
+  @override
+  String pastilleArcDownloadStarted(String id) {
+    return 'Download started: $id';
+  }
+
+  @override
+  String get pastilleArcEmptyCollection => 'No video in this collection';
+
+  @override
+  String get studioArchiveAllCollections => 'All collections';
+
+  @override
+  String studioArchiveBatchRunning(int done, int total) {
+    return 'Running ($done/$total)';
+  }
+
+  @override
+  String get studioArchiveDemo => 'Demo mode: download simulated.';
+
+  @override
+  String get studioArchiveFavorite => 'Favorite';
+
+  @override
+  String get studioArchiveLike => 'Like';
+
+  @override
+  String get studioArchiveCopyLink => 'Copy link';
+
+  @override
+  String get studioArchiveLinkCopied => 'Link copied';
+
+  @override
+  String get studioArchiveOpenBrowser => 'Open in browser';
+
+  @override
+  String get studioArchiveShowPosters => 'Show thumbnails';
+
+  @override
+  String get studioArchiveShowFolders => 'Show folders';
+
+  @override
+  String get studioArchiveSyncIncomplete =>
+      'Sync incomplete. The last reliable state is kept.';
+
+  @override
+  String studioArchiveSyncIncompleteWhy(String error) {
+    return 'Sync incomplete: $error';
+  }
+
+  @override
+  String studioArchiveDeclared(int count, int total) {
+    return '$count videos synced out of $total declared';
+  }
+
+  @override
+  String studioArchiveSuggestions(int count) {
+    return '$count sorting suggestions to review';
+  }
+
+  @override
+  String studioArchiveReview(int count) {
+    return 'Review the $count suggestions';
+  }
+
+  @override
+  String get studioArchiveApplying => 'Sorting…';
+
+  @override
+  String get studioArchiveReviewTitle => 'Review the suggestions';
+
+  @override
+  String get studioArchiveReviewHint =>
+      'Tick the videos to sort. Nothing changes until you apply.';
+
+  @override
+  String get studioArchiveReasonPartial => 'Incomplete sync result';
+
+  @override
+  String get studioArchiveReasonDate => 'Date close to confirmed videos';
+
+  @override
+  String get studioArchiveReasonMapping => 'Old mapping file';
+
+  @override
+  String get studioArchiveReasonOther => 'Old sorting to check';
+
+  @override
+  String studioArchiveSuggestionVideo(String id) {
+    return 'Video $id';
+  }
+
+  @override
+  String get studioArchiveApply => 'Apply';
+
+  @override
+  String studioArchiveApplied(int count) {
+    return '$count suggestions added to the collections.';
+  }
+
+  @override
+  String studioArchiveApplyFailed(String error) {
+    return 'Could not apply these suggestions: $error';
+  }
+
+  @override
+  String studioArchiveFolderQueued(int count) {
+    return 'Downloading the folder’s $count videos…';
+  }
+
+  @override
+  String get studioArchiveEmptyCollection => 'No video in this collection';
+
+  @override
+  String get porcelaineArchiveFavorite => 'Favorite';
+
+  @override
+  String get porcelaineArchiveLike => 'Like';
+
+  @override
+  String get porcelaineCopyLink => 'Copy link';
+
+  @override
+  String get porcelaineLinkCopied => 'Link copied';
+
+  @override
+  String get porcelaineOpenInBrowser => 'Open in browser';
+
+  @override
+  String porcelaineDemoExcerpt(String film, int n) {
+    return '$film · excerpt $n';
+  }
+
+  @override
+  String get porcelaineClear => 'Clear';
+
+  @override
+  String get porcelaineAllCollections => 'All collections';
+
+  @override
+  String get porcelaineCollectionEmpty => 'No videos in this collection';
+
+  @override
+  String porcelaineDownloadingFolder(int count) {
+    return 'Downloading the folder\'s $count videos…';
+  }
+
+  @override
+  String porcelaineSuggestionsBanner(int count) {
+    return '$count sorting suggestions to review';
+  }
+
+  @override
+  String porcelaineSuggestionsReview(int count) {
+    return 'Review the $count suggestions';
+  }
+
+  @override
+  String get porcelaineSuggestionsApplying => 'Sorting…';
+
+  @override
+  String get porcelaineSuggestionsTitle => 'Review suggestions';
+
+  @override
+  String get porcelaineSuggestionsHint =>
+      'Tick the videos to file. Nothing changes until you apply.';
+
+  @override
+  String porcelaineSuggestionVideo(String id) {
+    return 'Video $id';
+  }
+
+  @override
+  String get porcelaineSuggestionPartial => 'Incomplete sync result';
+
+  @override
+  String get porcelaineSuggestionDate => 'Date close to confirmed videos';
+
+  @override
+  String get porcelaineSuggestionMapping => 'Old mapping file';
+
+  @override
+  String get porcelaineSuggestionOther => 'Old classification to check';
+
+  @override
+  String porcelaineSuggestionsSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get porcelaineSuggestionsApply => 'Apply';
+
+  @override
+  String porcelaineSuggestionsDone(int count) {
+    return '$count suggestions added to collections.';
+  }
+
+  @override
+  String porcelaineSuggestionsFailed(String error) {
+    return 'Could not apply these suggestions: $error';
+  }
+
+  @override
+  String porcelaineEta(String eta) {
+    return 'ETA $eta';
+  }
+
+  @override
+  String porcelaineLogInit(String id) {
+    return 'Download set up: $id';
+  }
+
+  @override
+  String get porcelaineLogStarted => 'Download started…';
+
+  @override
+  String porcelaineLogStep(String step) {
+    return 'Step: $step';
+  }
+
+  @override
+  String porcelaineLogSpeed(String speed) {
+    return 'Speed: $speed';
+  }
+
+  @override
+  String porcelaineLogError(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get porcelaineLogDone => 'Download completed.';
+
+  @override
+  String get porcelaineLogCanceled => 'Download canceled.';
 }

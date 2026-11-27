@@ -5258,4 +5258,526 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get terminalExtensionOffline => 'الإضافة غير متصلة';
+
+  @override
+  String get nocturneBadgeFavorite => 'مفضّل';
+
+  @override
+  String get nocturneBadgeLike => 'إعجاب';
+
+  @override
+  String get nocturneOpenInBrowser => 'فتح في المتصفح';
+
+  @override
+  String get nocturneLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String nocturneDemoClip(String film, int number) {
+    return '$film · مقطع $number';
+  }
+
+  @override
+  String get nocturneAllCollections => 'كل المجموعات';
+
+  @override
+  String nocturneDownloadStarted(String id) {
+    return 'بدأ التنزيل: $id';
+  }
+
+  @override
+  String nocturneFolderDownloading(int count) {
+    return 'جارٍ تنزيل $count مقاطع من المجلد…';
+  }
+
+  @override
+  String get nocturneShowCovers => 'عرض الأغلفة';
+
+  @override
+  String get nocturneShowFolders => 'عرض المجلدات';
+
+  @override
+  String get nocturneSyncIncomplete =>
+      'مزامنة غير مكتملة. تم الاحتفاظ بآخر حالة موثوقة.';
+
+  @override
+  String nocturneSyncIncompleteReason(String reason) {
+    return 'مزامنة غير مكتملة: $reason';
+  }
+
+  @override
+  String nocturneSuggestionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count اقتراحات تصنيف للمراجعة',
+      one: 'اقتراح تصنيف واحد للمراجعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsReview(int count) {
+    return 'مراجعة ($count)';
+  }
+
+  @override
+  String get nocturneSuggestionsApplying => 'جارٍ التصنيف…';
+
+  @override
+  String get nocturneSuggestionsTitle => 'مراجعة الاقتراحات';
+
+  @override
+  String get nocturneSuggestionsHint =>
+      'حدّد المقاطع المراد ترتيبها. لا يتغيّر شيء قبل التطبيق.';
+
+  @override
+  String nocturneSuggestionVideo(String id) {
+    return 'مقطع $id';
+  }
+
+  @override
+  String get nocturneReasonPartial => 'نتيجة مزامنة غير مكتملة';
+
+  @override
+  String get nocturneReasonDate => 'تاريخ قريب من المقاطع المؤكدة';
+
+  @override
+  String get nocturneReasonImported => 'ملف مطابقة قديم';
+
+  @override
+  String get nocturneReasonOther => 'تصنيف قديم للتحقق';
+
+  @override
+  String nocturneSuggestionsSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محددة',
+      one: '1 محدد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nocturneSuggestionsApply => 'تطبيق';
+
+  @override
+  String nocturneSuggestionsApplied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُضيفت $count اقتراحات إلى المجموعات.',
+      one: 'أُضيف اقتراح واحد إلى المجموعات.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nocturneSuggestionsFailed(String error) {
+    return 'تعذّر تطبيق هذه الاقتراحات: $error';
+  }
+
+  @override
+  String get nocturneClose => 'إغلاق';
+
+  @override
+  String get nocturneArchiveLoadingHint =>
+      'تتم القراءة في الخلفية: يبقى التطبيق قابلًا للاستخدام.';
+
+  @override
+  String nocturneLogInit(String id) {
+    return 'تم تجهيز التنزيل: $id';
+  }
+
+  @override
+  String get nocturneLogStarted => 'بدأ التنزيل…';
+
+  @override
+  String get nocturneLogCompleted => 'اكتمل التنزيل.';
+
+  @override
+  String get nocturneLogCanceled => 'أُلغي التنزيل.';
+
+  @override
+  String get signalArchiveFavorite => 'مفضّلة';
+
+  @override
+  String get signalArchiveLiked => 'أعجبني';
+
+  @override
+  String get signalArchiveOpenInBrowser => 'فتح في المتصفح';
+
+  @override
+  String get signalArchiveSearchCollection => 'البحث عن مجموعة';
+
+  @override
+  String get signalArchiveAllCollections => 'كل المجموعات';
+
+  @override
+  String get signalArchiveResetMenu => 'إزالة الفيديوهات من هذه المجموعة';
+
+  @override
+  String get signalArchiveResetTitle => 'إعادة تعيين المجموعة';
+
+  @override
+  String signalArchiveResetBody(int count, String name) {
+    return 'إزالة $count فيديو من «$name»؟ تُحفظ الفيديوهات وتصنيفاتها الأخرى.';
+  }
+
+  @override
+  String get signalArchiveResetAction => 'إعادة تعيين';
+
+  @override
+  String signalArchiveResetDone(String name) {
+    return 'أُزيل تصنيف «$name». تُحفظ الفيديوهات.';
+  }
+
+  @override
+  String get signalArchiveDeleteMenu => 'حذف نهائي';
+
+  @override
+  String get signalArchiveDeleteTitle => 'حذف المجموعة';
+
+  @override
+  String signalArchiveDeleteBody(int count, String name) {
+    return 'حذف المجموعة «$name» نهائيًا؟ تبقى فيديوهاتها ($count) على القرص لكنها لن تنتمي إليها بعد الآن.';
+  }
+
+  @override
+  String signalArchiveDeleteDone(String name) {
+    return 'حُذفت المجموعة «$name».';
+  }
+
+  @override
+  String get pastilleArcFilters => 'المرشحات';
+
+  @override
+  String get pastilleArcClear => 'مسح';
+
+  @override
+  String get pastilleArcType => 'نوع الفيديو';
+
+  @override
+  String get pastilleArcAll => 'الكل';
+
+  @override
+  String get pastilleArcLikes => 'الإعجابات';
+
+  @override
+  String get pastilleArcYear => 'السنة';
+
+  @override
+  String pastilleArcCollections(int count) {
+    return 'المجموعات ($count)';
+  }
+
+  @override
+  String get pastilleArcCollectionSearch => 'ابحث عن مجموعة';
+
+  @override
+  String get pastilleArcFavoriteTag => 'مفضلة';
+
+  @override
+  String get pastilleArcLikeTag => 'إعجاب';
+
+  @override
+  String get pastilleArcCopyLink => 'نسخ الرابط';
+
+  @override
+  String get pastilleArcLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get pastilleArcOpenBrowser => 'فتح في المتصفح';
+
+  @override
+  String pastilleArcDemoClip(String film, int number) {
+    return '$film · مقطع $number';
+  }
+
+  @override
+  String get pastilleArcAllCollections => 'كل المجموعات';
+
+  @override
+  String get pastilleArcRemoveFromCollection =>
+      'إزالة الفيديوهات من هذه المجموعة';
+
+  @override
+  String get pastilleArcResetTitle => 'إعادة تعيين المجموعة';
+
+  @override
+  String pastilleArcResetBody(int count, String name) {
+    return 'إزالة $count فيديو من «$name»؟ ستبقى الفيديوهات وتصنيفاتها الأخرى.';
+  }
+
+  @override
+  String get pastilleArcResetAction => 'إعادة تعيين';
+
+  @override
+  String pastilleArcResetDone(String name) {
+    return 'أُزيل التصنيف من «$name». الفيديوهات محفوظة.';
+  }
+
+  @override
+  String get pastilleArcDeleteMenu => 'حذف نهائي';
+
+  @override
+  String get pastilleArcDeleteTitle => 'حذف المجموعة';
+
+  @override
+  String pastilleArcDeleteBody(String name, int count) {
+    return 'حذف المجموعة «$name» نهائيًا؟ لن تُحذف الفيديوهات الـ$count من القرص لكنها لن تبقى في هذا المجلد.';
+  }
+
+  @override
+  String pastilleArcDeleteDone(String name) {
+    return 'حُذفت المجموعة «$name».';
+  }
+
+  @override
+  String get pastilleArcPlayFeed => 'تشغيل الفيديوهات بملء الشاشة عموديًا';
+
+  @override
+  String pastilleArcDownloadAll(int count) {
+    return 'تنزيل الكل ($count)';
+  }
+
+  @override
+  String pastilleArcDownloadingFolder(int count) {
+    return 'جارٍ تنزيل $count فيديو من المجلد…';
+  }
+
+  @override
+  String pastilleArcDownloadStarted(String id) {
+    return 'بدأ التنزيل: $id';
+  }
+
+  @override
+  String get pastilleArcEmptyCollection => 'لا يوجد فيديو في هذه المجموعة';
+
+  @override
+  String get studioArchiveAllCollections => 'كل المجموعات';
+
+  @override
+  String studioArchiveBatchRunning(int done, int total) {
+    return 'قيد التنفيذ ($done/$total)';
+  }
+
+  @override
+  String get studioArchiveDemo => 'وضع العرض: تنزيل محاكى.';
+
+  @override
+  String get studioArchiveFavorite => 'مفضلة';
+
+  @override
+  String get studioArchiveLike => 'إعجاب';
+
+  @override
+  String get studioArchiveCopyLink => 'نسخ الرابط';
+
+  @override
+  String get studioArchiveLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get studioArchiveOpenBrowser => 'فتح في المتصفح';
+
+  @override
+  String get studioArchiveShowPosters => 'عرض الصور المصغرة';
+
+  @override
+  String get studioArchiveShowFolders => 'عرض المجلدات';
+
+  @override
+  String get studioArchiveSyncIncomplete =>
+      'المزامنة غير مكتملة. تم الاحتفاظ بآخر حالة موثوقة.';
+
+  @override
+  String studioArchiveSyncIncompleteWhy(String error) {
+    return 'المزامنة غير مكتملة: $error';
+  }
+
+  @override
+  String studioArchiveDeclared(int count, int total) {
+    return 'تمت مزامنة $count من أصل $total فيديو';
+  }
+
+  @override
+  String studioArchiveSuggestions(int count) {
+    return '$count اقتراحات تصنيف للمراجعة';
+  }
+
+  @override
+  String studioArchiveReview(int count) {
+    return 'مراجعة $count اقتراحات';
+  }
+
+  @override
+  String get studioArchiveApplying => 'جارٍ التصنيف…';
+
+  @override
+  String get studioArchiveReviewTitle => 'مراجعة الاقتراحات';
+
+  @override
+  String get studioArchiveReviewHint =>
+      'حدد الفيديوهات المراد ترتيبها. لا شيء يتغير قبل التأكيد.';
+
+  @override
+  String get studioArchiveReasonPartial => 'نتيجة مزامنة غير مكتملة';
+
+  @override
+  String get studioArchiveReasonDate => 'تاريخ قريب من الفيديوهات المؤكدة';
+
+  @override
+  String get studioArchiveReasonMapping => 'ملف مطابقة قديم';
+
+  @override
+  String get studioArchiveReasonOther => 'تصنيف قديم للتحقق';
+
+  @override
+  String studioArchiveSuggestionVideo(String id) {
+    return 'فيديو $id';
+  }
+
+  @override
+  String get studioArchiveApply => 'تطبيق';
+
+  @override
+  String studioArchiveApplied(int count) {
+    return 'تمت إضافة $count اقتراحات إلى المجموعات.';
+  }
+
+  @override
+  String studioArchiveApplyFailed(String error) {
+    return 'تعذر تطبيق هذه الاقتراحات: $error';
+  }
+
+  @override
+  String studioArchiveFolderQueued(int count) {
+    return 'جارٍ تنزيل $count فيديو من المجلد…';
+  }
+
+  @override
+  String get studioArchiveEmptyCollection => 'لا يوجد فيديو في هذه المجموعة';
+
+  @override
+  String get porcelaineArchiveFavorite => 'مفضّلة';
+
+  @override
+  String get porcelaineArchiveLike => 'إعجاب';
+
+  @override
+  String get porcelaineCopyLink => 'نسخ الرابط';
+
+  @override
+  String get porcelaineLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get porcelaineOpenInBrowser => 'فتح في المتصفح';
+
+  @override
+  String porcelaineDemoExcerpt(String film, int n) {
+    return '$film · مقتطف $n';
+  }
+
+  @override
+  String get porcelaineClear => 'مسح';
+
+  @override
+  String get porcelaineAllCollections => 'كل المجموعات';
+
+  @override
+  String get porcelaineCollectionEmpty => 'لا توجد فيديوهات في هذه المجموعة';
+
+  @override
+  String porcelaineDownloadingFolder(int count) {
+    return 'جارٍ تنزيل $count فيديو من المجلد…';
+  }
+
+  @override
+  String porcelaineSuggestionsBanner(int count) {
+    return '$count اقتراحات تصنيف للمراجعة';
+  }
+
+  @override
+  String porcelaineSuggestionsReview(int count) {
+    return 'مراجعة $count اقتراحات';
+  }
+
+  @override
+  String get porcelaineSuggestionsApplying => 'جارٍ التصنيف…';
+
+  @override
+  String get porcelaineSuggestionsTitle => 'مراجعة الاقتراحات';
+
+  @override
+  String get porcelaineSuggestionsHint =>
+      'حدّد الفيديوهات المراد ترتيبها. لا يتغيّر شيء قبل التأكيد.';
+
+  @override
+  String porcelaineSuggestionVideo(String id) {
+    return 'فيديو $id';
+  }
+
+  @override
+  String get porcelaineSuggestionPartial => 'نتيجة مزامنة غير مكتملة';
+
+  @override
+  String get porcelaineSuggestionDate => 'تاريخ قريب من الفيديوهات المؤكدة';
+
+  @override
+  String get porcelaineSuggestionMapping => 'ملف تطابق قديم';
+
+  @override
+  String get porcelaineSuggestionOther => 'تصنيف قديم للتحقق';
+
+  @override
+  String porcelaineSuggestionsSelected(int count) {
+    return '$count محددة';
+  }
+
+  @override
+  String get porcelaineSuggestionsApply => 'تطبيق';
+
+  @override
+  String porcelaineSuggestionsDone(int count) {
+    return 'أُضيفت $count اقتراحات إلى المجموعات.';
+  }
+
+  @override
+  String porcelaineSuggestionsFailed(String error) {
+    return 'تعذّر تطبيق هذه الاقتراحات: $error';
+  }
+
+  @override
+  String porcelaineEta(String eta) {
+    return 'متبقٍ $eta';
+  }
+
+  @override
+  String porcelaineLogInit(String id) {
+    return 'تم تجهيز التنزيل: $id';
+  }
+
+  @override
+  String get porcelaineLogStarted => 'بدأ التنزيل…';
+
+  @override
+  String porcelaineLogStep(String step) {
+    return 'المرحلة: $step';
+  }
+
+  @override
+  String porcelaineLogSpeed(String speed) {
+    return 'السرعة: $speed';
+  }
+
+  @override
+  String porcelaineLogError(String error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get porcelaineLogDone => 'اكتمل التنزيل.';
+
+  @override
+  String get porcelaineLogCanceled => 'أُلغي التنزيل.';
 }
