@@ -9,7 +9,8 @@
   var store = MDFeedStore.create();
   var feedOrder = 'flux'; // 'flux' = page order, 'recent' = newest detected first
   var lastSeenSeq = 0;
-  var selectedIds = new Set();
+  var sel = MDSelection.create();
+  var anchorId = null; // last card clicked, start of a Shift+click range
   var busy = false;
   var liveCollectionEnabled = true;
   var renderLimit = 80;
@@ -632,7 +633,7 @@
     activeCreatorFilter = 'all';
     activeCreatorPlatform = '';
     resetFeed();
-    selectedIds.clear();
+    sel.clear();
     sniffedStreams = [];
     updateSniffedCount();
     renderItems();
@@ -1362,7 +1363,7 @@
       activeCreatorFilter = clean;
       activeCreatorPlatform = platform || '';
     }
-    selectedIds.clear();
+    sel.clear();
     syncCreatorProfileBanner();
     renderItems();
     updateFeedCountStatus();
@@ -2024,26 +2025,24 @@
     filteredItems().forEach(function (item) {
       visibleIds[item.id] = true;
     });
-    Array.from(selectedIds).forEach(function (id) {
-      if (!visibleIds[id]) selectedIds.delete(id);
-    });
+    sel.prune(Object.keys(visibleIds));
   }
 
   function selectFirstDisplayed(count) {
     var visible = filteredItems();
-    selectedIds.clear();
+    sel.clear();
     var added = 0;
     // Prefer non-downloaded items first
     for (var i = 0; i < visible.length && added < count; i++) {
       var it = visible[i];
       if (isItemDownloaded(it)) continue;
-      selectedIds.add(it.id);
+      if (!sel.has(it.id)) sel.toggle(it.id);
       added++;
     }
     // If all items are downloaded and user requested selection, fallback to selecting them
     if (added === 0 && count > 0 && visible.length > 0) {
       for (var j = 0; j < Math.min(count, visible.length); j++) {
-        selectedIds.add(visible[j].id);
+        if (!sel.has(visible[j].id)) sel.toggle(visible[j].id);
         added++;
       }
     }
@@ -2098,7 +2097,7 @@
       syncCreatorsSelection();
       return;
     }
-    var count = selectedIds.size;
+    var count = sel.size();
     selectionCount.textContent = replaceCount(
       t('xFeedSelection', '{count} selected'),
       count,
@@ -2112,7 +2111,7 @@
 
   function syncCardSelection() {
     feedList.querySelectorAll('.feed-card').forEach(function (card) {
-      var selected = selectedIds.has(card.dataset.feedId);
+      var selected = sel.has(card.dataset.feedId);
       card.classList.toggle('selected', selected);
       var checkbox = card.querySelector('.feed-checkbox');
       if (checkbox) checkbox.checked = selected;
@@ -2215,7 +2214,7 @@
         }, 320);
       }
       store.remove(targetId);
-      selectedIds.delete(targetId);
+      pruneHiddenSelection();
       updateSelectionUi();
       updateFeedCountStatus();
       syncPlatformFilterPills();
@@ -2231,7 +2230,7 @@
 
     var card = document.createElement('article');
     card.className = 'feed-card' +
-      (selectedIds.has(item.id) ? ' selected' : '') +
+      (sel.has(item.id) ? ' selected' : '') +
       (downloaded ? ' is-downloaded' : '');
     card.dataset.feedId = item.id;
     card.dataset.isActive = String(Boolean(item.isActive));
@@ -2243,12 +2242,12 @@
     var checkbox = document.createElement('input');
     checkbox.className = 'feed-checkbox';
     checkbox.type = 'checkbox';
-    checkbox.checked = selectedIds.has(item.id);
+    checkbox.checked = sel.has(item.id);
     checkbox.setAttribute('aria-label', displayTitle);
     checkbox.title = downloaded ? t('feedAlreadyDownloaded', 'Déjà téléchargé ou doublon') : t('selectAll', 'Sélectionner');
     checkbox.addEventListener('change', function () {
-      if (checkbox.checked) selectedIds.add(item.id);
-      else selectedIds.delete(item.id);
+      if (checkbox.checked !== sel.has(item.id)) sel.toggle(item.id);
+      anchorId = item.id;
       card.classList.toggle('selected', checkbox.checked);
       updateSelectionUi();
     });
@@ -2263,6 +2262,13 @@
     });
 
     card.addEventListener('click', function (e) {
+      if (gestureMoved) return; // this click ends a drag-select
+      if (e.shiftKey && anchorId && !e.target.closest('button, a, .thumbnail-container, .card-title') &&
+          sel.range(anchorId, item.id, renderedCardIds()).length) {
+        e.preventDefault();
+        syncCardSelection();
+        return;
+      }
       if (e.target.closest('button, input, a, .thumbnail-container, .card-title')) return;
       checkbox.checked = !checkbox.checked;
       checkbox.dispatchEvent(new Event('change'));
@@ -2412,7 +2418,7 @@
   function replaceItems(items) {
     resetFeed();
     mergeItems(items);
-    selectedIds.clear();
+    sel.clear();
     feedList.querySelectorAll('.feed-card').forEach(function (card) {
       card.remove();
     });
@@ -2683,7 +2689,7 @@
       activeCreatorFilter = 'all';
       activeCreatorPlatform = '';
       resetFeed();
-      selectedIds.clear();
+      sel.clear();
       renderItems();
       updateFeedCountStatus();
       setTimeout(analyzeLoadedFeed, 400);
@@ -2815,7 +2821,7 @@
       return;
     }
     var selectedItems = filteredItems().filter(function (item) {
-      return selectedIds.has(item.id);
+      return sel.has(item.id);
     });
     if (selectedItems.length === 0) {
       setStatus(t('xFeedNoSelection', 'Select at least one video.'), 'error');
@@ -2947,11 +2953,102 @@
       selectedCreatorKeys.clear();
       syncCreatorsSelection();
     } else {
-      selectedIds.clear();
+      sel.clear();
       syncCardSelection();
     }
   });
   downloadSelectedButton.addEventListener('click', downloadSelected);
+
+  // Drag-to-select: mouse press + move over other cards; touch long-press, then move.
+  var LONG_PRESS_MS = 350;
+  var LONG_PRESS_SLOP = 10;
+  var gesture = null;
+  var gestureMoved = false;
+
+  function renderedCardIds() {
+    return Array.from(feedList.querySelectorAll('.feed-card'), function (card) {
+      return card.dataset.feedId;
+    });
+  }
+
+  function endGesture(commit) {
+    var g = gesture;
+    if (!g) return;
+    gesture = null;
+    clearTimeout(g.timer);
+    // A long-press released in place selects the card itself.
+    if (commit && g.armed && !sel.isDragging()) {
+      sel.toggle(g.id);
+      anchorId = g.id;
+      gestureMoved = true;
+      syncCardSelection();
+    }
+    sel.pressEnd();
+    feedList.classList.remove('is-selecting');
+  }
+
+  feedList.addEventListener('pointerdown', function (e) {
+    if (!e.isPrimary || e.button !== 0) return;
+    var card = e.target.closest('.feed-card');
+    if (!card || e.target.closest('button, a, input, select, textarea')) return;
+    endGesture(false);
+    gestureMoved = false;
+    var touch = e.pointerType === 'touch';
+    var g = {
+      id: card.dataset.feedId,
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      touch: touch,
+      armed: !touch,
+      ordered: renderedCardIds(),
+      timer: 0,
+    };
+    gesture = g;
+    sel.pressStart(g.id, g.ordered);
+    if (touch) {
+      g.timer = setTimeout(function () {
+        g.armed = true;
+        feedList.classList.add('is-selecting');
+        if (navigator.vibrate) navigator.vibrate(15);
+      }, LONG_PRESS_MS);
+    }
+  });
+
+  window.addEventListener('pointermove', function (e) {
+    var g = gesture;
+    if (!g || e.pointerId !== g.pointerId) return;
+    if (!g.armed) {
+      // The finger moved before the long-press fired: it is a scroll.
+      if (Math.abs(e.clientX - g.x) > LONG_PRESS_SLOP || Math.abs(e.clientY - g.y) > LONG_PRESS_SLOP) endGesture(false);
+      return;
+    }
+    var under = document.elementFromPoint(e.clientX, e.clientY);
+    var card = under && under.closest('.feed-card');
+    if (!card || !feedList.contains(card)) return;
+    var changed = sel.pressEnter(card.dataset.feedId, g.ordered);
+    if (sel.isDragging() && !gestureMoved) {
+      gestureMoved = true;
+      anchorId = g.id;
+      feedList.classList.add('is-selecting');
+      if (window.getSelection) window.getSelection().removeAllRanges();
+    }
+    if (changed.length) syncCardSelection();
+  });
+  window.addEventListener('pointerup', function (e) {
+    if (gesture && e.pointerId === gesture.pointerId) endGesture(true);
+  });
+  window.addEventListener('pointercancel', function () { endGesture(false); });
+  window.addEventListener('blur', function () { endGesture(false); });
+  // Once armed, a touch drag must select, not scroll.
+  feedList.addEventListener('touchmove', function (e) {
+    if (gesture && gesture.armed && e.cancelable) e.preventDefault();
+  }, { passive: false });
+  // The native image drag and the long-press menu would cancel the gesture.
+  feedList.addEventListener('dragstart', function (e) { if (gesture) e.preventDefault(); });
+  feedList.addEventListener('contextmenu', function (e) {
+    if (gesture && gesture.touch && gesture.armed) e.preventDefault();
+  });
 
   if (api.runtime && api.runtime.onMessage) {
     api.runtime.onMessage.addListener(handleLiveFeedUpdate);
