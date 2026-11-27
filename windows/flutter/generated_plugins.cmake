@@ -6,10 +6,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   local_notifier
   media_kit_libs_windows_video
-  media_kit_video
   protocol_handler_windows
   screen_retriever_windows
   tray_manager
+  media_kit_video
   window_manager
 )
 
