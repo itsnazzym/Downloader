@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const source = fs.readFileSync(path.join(__dirname, '../../extension/shared/selection.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '../../extension/shared/selection.js'), 'utf8').replace(/\r\n/g, '\n');
 
 function load() {
   const context = {};

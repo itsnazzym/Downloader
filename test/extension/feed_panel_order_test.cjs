@@ -5,8 +5,8 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 const shared = path.join(__dirname, '../../extension/shared');
-const source = fs.readFileSync(path.join(shared, 'feed_panel.js'), 'utf8');
-const html = fs.readFileSync(path.join(shared, 'feed_panel.html'), 'utf8');
+const source = fs.readFileSync(path.join(shared, 'feed_panel.js'), 'utf8').replace(/\r\n/g, '\n');
+const html = fs.readFileSync(path.join(shared, 'feed_panel.html'), 'utf8').replace(/\r\n/g, '\n');
 
 // Body of `function name(...) { ... }` up to the next top-level (2-space) function.
 function body(name) {
@@ -51,7 +51,7 @@ test('order toggle and new-videos chip exist in the panel html and are wired', (
 
 test('every new i18n key exists in fr, en and ar', () => {
   for (const lang of ['fr', 'en', 'ar']) {
-    const messages = JSON.parse(fs.readFileSync(path.join(shared, '_locales', lang, 'messages.json'), 'utf8'));
+    const messages = JSON.parse(fs.readFileSync(path.join(shared, '_locales', lang, 'messages.json'), 'utf8').replace(/\r\n/g, '\n'));
     for (const key of ['feedOrderFlux', 'feedOrderRecent', 'feedNewVideos']) {
       assert.ok(messages[key] && messages[key].message, lang + ' lacks ' + key);
     }
@@ -64,7 +64,7 @@ function chipHarness() {
   const ctx = { MDFeedStore: undefined, console };
   ctx.self = ctx;
   vm.createContext(ctx);
-  vm.runInContext(fs.readFileSync(path.join(shared, 'feed_store.js'), 'utf8'), ctx);
+  vm.runInContext(fs.readFileSync(path.join(shared, 'feed_store.js'), 'utf8').replace(/\r\n/g, '\n'), ctx);
   const fn = source.match(/\n  function updateNewVideosChip\(filtered\) \{[\s\S]*?\n  \}\n/)[0];
   vm.runInContext(
     'var newVideosChip = { hidden: true, textContent: "" }; var currentViewMode = "videos"; var scrolledAway = false;' +

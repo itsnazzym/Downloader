@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const shared = path.join(__dirname, '../../extension/shared');
-const source = fs.readFileSync(path.join(shared, 'feed_panel.js'), 'utf8');
+const source = fs.readFileSync(path.join(shared, 'feed_panel.js'), 'utf8').replace(/\r\n/g, '\n');
 
 test('feed_panel.js never builds a TikTok profile URL by hand', () => {
   assert.doesNotMatch(source, /https:\/\/www\.tiktok\.com\/@/);
@@ -50,7 +50,7 @@ test('the platform travels with the selected creator, never guessed from the fee
 
 test('profileUnavailable is translated in every locale', () => {
   for (const lang of ['fr', 'en', 'ar']) {
-    const messages = JSON.parse(fs.readFileSync(path.join(shared, '_locales', lang, 'messages.json'), 'utf8'));
+    const messages = JSON.parse(fs.readFileSync(path.join(shared, '_locales', lang, 'messages.json'), 'utf8').replace(/\r\n/g, '\n'));
     assert.ok(messages.profileUnavailable && messages.profileUnavailable.message, `${lang} is missing profileUnavailable`);
   }
 });

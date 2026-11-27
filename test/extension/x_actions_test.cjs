@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 const shared = path.join(__dirname, '../../extension/shared');
-const read = (name) => fs.readFileSync(path.join(shared, name), 'utf8');
+const read = (name) => fs.readFileSync(path.join(shared, name), 'utf8').replace(/\r\n/g, '\n');
 const plain = (v) => JSON.parse(JSON.stringify(v));
 
 function load() {
@@ -307,8 +307,8 @@ test('x_actions.js loads before content.js everywhere content.js is injected', (
   assert.ok(read('manifest.firefox.json').includes(list));
   assert.ok(read('connection.js').includes("files: ['url_policy.js', 'theme.js', 'x_actions.js', 'content.js']"));
   const root = path.join(__dirname, '../..');
-  const build = fs.readFileSync(path.join(root, 'tool/build_extension.dart'), 'utf8');
-  const contract = fs.readFileSync(path.join(root, 'tool/check_extension_contract.dart'), 'utf8');
+  const build = fs.readFileSync(path.join(root, 'tool/build_extension.dart'), 'utf8').replace(/\r\n/g, '\n');
+  const contract = fs.readFileSync(path.join(root, 'tool/check_extension_contract.dart'), 'utf8').replace(/\r\n/g, '\n');
   assert.match(build, /'x_actions\.js',/);
   assert.equal((contract.match(/'x_actions\.js'/g) || []).length, 2);
 });

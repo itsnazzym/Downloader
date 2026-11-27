@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const source = fs.readFileSync(path.join(__dirname, '../../extension/shared/content.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '../../extension/shared/content.js'), 'utf8').replace(/\r\n/g, '\n');
 const start = source.indexOf('  function waitForTikTok(ms) {');
 const end = source.indexOf('  function injectTikTokSyncBanner()', start);
 assert.ok(start >= 0 && end > start, 'collection implementation is available');

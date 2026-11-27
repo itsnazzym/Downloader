@@ -9,7 +9,7 @@ const path = require('node:path');
 // tested here directly; the DOM wiring in feed_panel.js / .html / .css is covered
 // by structural source checks at the bottom.
 const shared = path.join(__dirname, '../../extension/shared');
-const read = (name) => fs.readFileSync(path.join(shared, name), 'utf8');
+const read = (name) => fs.readFileSync(path.join(shared, name), 'utf8').replace(/\r\n/g, '\n');
 
 function load(file, extra) {
   const context = Object.assign({ URL }, extra);
