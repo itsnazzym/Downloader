@@ -308,7 +308,6 @@ README.bak.md
 !assets/
 !assets/**
 !tool/build_extension.dart
-!tool/generate_extension_icons.js
 !tool/launch_desktop.py
 !tool/package_windows.ps1
 !tool/prepare_tor_bundle.ps1

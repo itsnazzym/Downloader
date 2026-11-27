@@ -10,9 +10,11 @@ const root = path.resolve(__dirname, '..', '..');
 const shared = path.join(root, 'extension', 'shared');
 const SIZES = [16, 32, 48, 96, 128];
 // Mean absolute difference per channel (0-255, premultiplied RGBA) between an
-// icon and the box-filtered desktop logo. Generated icons score 3.5 (16px),
-// 1.2 (32), 0.9 (48), 0.5 (96), 0.4 (128); an inverted logo scores 178.
-const TOLERANCE = 8;
+// icon and the box-filtered desktop logo. Generated icons score 3.45 (16px),
+// 1.16 (32), 0.91 (48), 0.46 (96), 0.35 (128); the tolerance is about twice that
+// so a logo with a different dot layout fails. An inverted logo scores 178.
+const TOLERANCE = { 16: 7, 32: 2.5, 48: 2, 96: 1, 128: 0.8 };
+const MAX_TOLERANCE = 7;
 
 function decodePng(buf) {
   assert.equal(buf.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'not a PNG');
@@ -117,18 +119,27 @@ test('icons have the dimensions written in their file name', () => {
 test('icons are the desktop logo (box-filter comparison)', () => {
   for (const size of SIZES) {
     const d = score(readIcon(size));
-    assert.ok(d < TOLERANCE, `icon${size}.png differs from the desktop logo: ${d.toFixed(2)} >= ${TOLERANCE}`);
+    assert.ok(d < TOLERANCE[size], `icon${size}.png differs from the desktop logo: ${d.toFixed(2)} >= ${TOLERANCE[size]}`);
   }
 });
 
 test('the comparison can fail: other images score above the tolerance', () => {
   const inverted = { width: 512, height: 512, px: Buffer.from(logo.px) };
   for (let i = 0; i < inverted.px.length; i += 4) for (let c = 0; c < 3; c++) inverted.px[i + c] = 255 - inverted.px[i + c];
-  assert.ok(score(inverted) > TOLERANCE * 2, 'inverted logo must not pass');
+  assert.ok(score(inverted) > MAX_TOLERANCE * 2, 'inverted logo must not pass');
 
   const redSquare = { width: 128, height: 128, px: Buffer.alloc(128 * 128 * 4) };
   for (let i = 0; i < redSquare.px.length; i += 4) redSquare.px.set([220, 40, 40, 255], i);
-  assert.ok(score(redSquare) > TOLERANCE * 2, 'flat image must not pass');
+  assert.ok(score(redSquare) > MAX_TOLERANCE * 2, 'flat image must not pass');
+});
+
+test('a small change to the icon (a moved dot) fails the comparison', () => {
+  const icon = readIcon(128);
+  const tampered = { width: 128, height: 128, px: Buffer.from(icon.px) };
+  for (let y = 58; y < 70; y++) {
+    for (let x = 58; x < 70; x++) for (let c = 0; c < 3; c++) tampered.px[(y * 128 + x) * 4 + c] = 255 - tampered.px[(y * 128 + x) * 4 + c];
+  }
+  assert.ok(score(tampered) > TOLERANCE[128], 'a 12 px patch must fail at 128 px');
 });
 
 test('icons keep transparent rounded corners and an opaque centre', () => {
