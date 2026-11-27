@@ -95,8 +95,20 @@
     }
   }
 
+  // Callers waiting on the app (ACKs, feed results) must not outlive their socket: the answer can
+  // never come, and a stale ACK resolver would swallow the next socket's ACK.
+  function failPending() {
+    pendingDownloadAcks.splice(0).forEach(function (finish) { finish({ ok: false, error: 'app_offline' }); });
+    Object.keys(pendingCorrelated).forEach(function (requestId) {
+      var finish = pendingCorrelated[requestId];
+      delete pendingCorrelated[requestId];
+      finish({ ok: false, error: 'app_offline', requestId: requestId });
+    });
+  }
+
   function closeSocketQuietly() {
     if (!socket) return;
+    failPending();
     try {
       socket.onclose = null;
       socket.onerror = null;
@@ -166,6 +178,8 @@
           console.log('Disconnected from App. Reconnecting...');
           isConnected = false;
           socket = null;
+          activeDownloadCount = 0; // the app's queue is unknown until it is back
+          failPending();
           publishConnectionState();
           scheduleReconnect();
         };
@@ -211,6 +225,8 @@
         if (cookieRes.autoSendCookies !== false) {
           setTimeout(sendCurrentTabCookies, 2000);
         }
+      }).catch(function (e) {
+        logDiag('COOKIE_PREF_ERR', (e && e.message) || String(e));
       });
       return;
     }
@@ -332,6 +348,8 @@
         }).length;
         publishConnectionState();
         return api.storage.local.set({ recentDownloads: recents });
+      }).catch(function (e) {
+        logDiag('RECENTS_ERR', (e && e.message) || String(e));
       });
     }
   }
@@ -847,6 +865,7 @@
         payload.preferredQuality = safeOpts.preferredQuality;
       }
 
+      if (!socket || socket.readyState !== WebSocket.OPEN) return { ok: false, error: 'app_offline' }; // closed while cookies loaded
       var ackPromise = waitForAck(5000);
       socket.send(JSON.stringify(payload));
       // Do not log cookies, token, or UA.

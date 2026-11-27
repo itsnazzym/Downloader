@@ -13,7 +13,7 @@ const EXT_ORIGIN = 'chrome-extension://' + EXT_ID + '/';
 const PANEL_SENDER = { id: EXT_ID, url: EXT_ORIGIN + 'feed_panel.html' };
 
 // Loads the whole background script with stubbed browser APIs, a fake socket and inert timers.
-async function load() {
+async function load(opts = {}) {
   const sockets = [];
   const relayed = [];
   const listeners = [];
@@ -33,7 +33,7 @@ async function load() {
       onInstalled: { addListener: noop },
       sendMessage: (msg) => { relayed.push(plain(msg)); return Promise.resolve(); },
     },
-    storage: { local: { get: () => Promise.resolve({}), set: () => Promise.resolve(), remove: () => Promise.resolve() } },
+    storage: { local: { get: opts.storageGet || (() => Promise.resolve({})), set: () => Promise.resolve(), remove: () => Promise.resolve() } },
     action: {},
   };
   const context = {
@@ -47,7 +47,8 @@ async function load() {
     MDBadge: { setConnected: noop, updateActiveBadge: noop },
     navigator: { userAgent: 'test' },
     console: { log: noop, warn: noop, debug: noop, error: noop },
-    setTimeout: () => 0, clearTimeout: noop, setInterval: () => 0, clearInterval: noop,
+    // opts.settleHeartbeat: the 250 ms pause of an X feed request resolves at once; every other timer stays inert.
+    setTimeout: (fn, ms) => { if (opts.settleHeartbeat && ms === 250) queueMicrotask(fn); return 0; }, clearTimeout: noop, setInterval: () => 0, clearInterval: noop,
     URL,
   };
   vm.createContext(context);
@@ -62,11 +63,14 @@ async function load() {
     return response;
   };
   const sentOfType = (type) => ws.sent.filter((m) => m.type === type);
-  return { ws, relayed, fromApp, ask, sentOfType };
+  const askAsync = (msg, sender = PANEL_SENDER) => new Promise((resolve) => {
+    listeners.forEach((fn) => fn(msg, sender, (r) => resolve(plain(r))));
+  });
+  return { ws, relayed, fromApp, ask, askAsync, sentOfType };
 }
 
-async function loadReady() {
-  const bg = await load();
+async function loadReady(opts) {
+  const bg = await load(opts);
   bg.ws.readyState = 1;
   bg.ws.onopen();
   bg.fromApp({ type: 'HELLO_OK' });
@@ -181,4 +185,42 @@ test('extension pages are accepted, also when opened in a tab', async () => {
   assert.deepEqual(bg.ask({ type: 'MD_DOWNLOAD_COMMAND', command: 'pause', id: 'd2' }, panelInTab), { ok: true, sent: true });
   assert.deepEqual(bg.ask({ type: 'MD_DOWNLOAD_COMMAND', command: 'retry', id: 'd3' }), { ok: true, sent: true });
   assert.deepEqual(bg.sentOfType('DOWNLOAD_COMMAND').map((m) => m.command), ['pause', 'retry']);
+});
+
+test('a socket close tells the panel the app is offline and resets the active count', async () => {
+  const bg = await loadReady();
+  bg.fromApp({ type: 'PROGRESS', data: { id: 'a', status: 2, progress: 0.4 } });
+  await flush();
+  bg.relayed.length = 0;
+  bg.ws.onclose({ code: 1006 });
+  assert.deepEqual(bg.relayed, [{ type: 'MD_CONNECTION_STATE', connected: false, activeCount: 0 }]);
+  assert.deepEqual(bg.ask({ type: 'GET_CONNECTION_STATE' }), { ok: true, connected: false, activeCount: 0 });
+});
+
+test('a close while an X feed request waits answers app_offline instead of hanging', async () => {
+  const bg = await loadReady({ settleHeartbeat: true });
+  let answer;
+  bg.askAsync({ type: 'ANALYZE_X_FEED', maxItems: 10 }).then((r) => { answer = r; });
+  await flush();
+  assert.equal(bg.sentOfType('X_FEED_REQUEST').length, 1, 'the request reached the app');
+  assert.equal(answer, undefined, 'still waiting for the app');
+  bg.ws.onclose({ code: 1006 });
+  await flush();
+  assert.ok(answer, 'the caller is released as soon as the socket closes');
+  assert.equal(answer.gobirdErrorCode, 'app_offline');
+});
+
+test('a failing storage read while handling PROGRESS is logged, not an unhandled rejection', async () => {
+  const unhandled = [];
+  const onUnhandled = (reason) => unhandled.push(reason);
+  process.on('unhandledRejection', onUnhandled);
+  try {
+    const bg = await loadReady({ storageGet: (keys) => (keys.includes('recentDownloads') ? Promise.reject(new Error('storage down')) : Promise.resolve({})) });
+    bg.fromApp({ type: 'PROGRESS', data: { id: 'a', status: 2, progress: 0.4 } });
+    await flush();
+    await flush();
+    assert.deepEqual(unhandled.map(String), []);
+  } finally {
+    process.off('unhandledRejection', onUnhandled);
+  }
 });
