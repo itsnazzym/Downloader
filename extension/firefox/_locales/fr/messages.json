@@ -890,6 +890,9 @@
     "dlClearDone": {
         "message": "Vider"
     },
+    "dlDoneHidden": {
+        "message": "{count} autres masqués"
+    },
     "dlCancelAll": {
         "message": "Tout annuler"
     },

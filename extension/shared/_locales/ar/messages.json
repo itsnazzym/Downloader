@@ -788,6 +788,9 @@
     "dlClearDone": {
         "message": "مسح"
     },
+    "dlDoneHidden": {
+        "message": "{count} عناصر أخرى مخفية"
+    },
     "dlCancelAll": {
         "message": "إلغاء الكل"
     },

@@ -640,7 +640,7 @@
   function downloadStateLine(dl) {
     if (MDDownloads.displayStatus(dl.status, connectionFlag()) === 'offline') return t('appOffline', 'Application hors ligne');
     if (dl.status === 'queued') {
-      return tf('dlQueuedLine', 'En attente · position {pos}', { pos: downloads.groups().queued.indexOf(dl) + 1 });
+      return tf('dlQueuedLine', 'En attente · position {pos}', { pos: downloads.queuePosition(dl.id) });
     }
     if (dl.status === 'running') {
       var parts = [formatPct(dl.pct)];
@@ -746,8 +746,21 @@
     });
   }
 
+  // One snapshot per 3 s at most: the background already asks for one on HELLO_OK.
   function requestQueueSnapshot() {
+    var now = downloadsNow();
+    if (!downloads.snapshotDue(now)) return;
+    downloads.noteSnapshotRequest(now);
     sendRuntimeMessage({ type: 'MD_QUEUE_SNAPSHOT_REQUEST' }).catch(function () {});
+  }
+
+  // On a reconnect the background has just asked for a snapshot; ask ourselves only if none arrives.
+  function expectQueueSnapshot() {
+    var since = downloadsNow();
+    downloads.noteSnapshotRequest(since);
+    setTimeout(function () {
+      if (!downloads.snapshotSince(since)) requestQueueSnapshot();
+    }, MDDownloads.SNAPSHOT_DEDUPE_MS + 100);
   }
 
   // The panel may open while the app is already connected or down: ask instead of waiting for a change.
@@ -900,6 +913,7 @@
     ['error', 'dlSectionFailed', 'Échecs'],
     ['done', 'dlSectionDone', 'Terminés'],
   ];
+  var DL_DONE_SHOWN = 50;   // older finished rows are counted, not built
   var dlView = null;        // persistent skeleton of the Downloads view
   var dlRows = new Map();   // id -> { el, title, state, fill }
   var dlRowOrder = [];      // [{ id, sig }] as last rendered
@@ -936,8 +950,12 @@
       var list = dlElement('div', 'dl-section-list');
       box.appendChild(head);
       box.appendChild(list);
+      // Outside the list: domMoves reads the row id of every list child.
+      var more = dlElement('div', 'dl-section-more');
+      more.hidden = true;
+      box.appendChild(more);
       downloadsView.appendChild(box);
-      view.sections[s[0]] = { box: box, label: label, list: list };
+      view.sections[s[0]] = { box: box, label: label, list: list, more: more };
     });
     return view;
   }
@@ -950,11 +968,12 @@
     // A rebuilt row must not steal keyboard focus from the button the user is on.
     var focused = document.activeElement;
     var focusKey = focused && downloadsView.contains(focused) ? focused.dataset.focusKey : null;
+    var done = MDDownloads.capRecent(groups.done, DL_DONE_SHOWN);
     var bySection = {
       running: groups.running.concat(groups.paused),
       queued: groups.queued,
       error: groups.error,
-      done: groups.done,
+      done: done.shown,
     };
     var byId = new Map();
     var next = [];
@@ -977,8 +996,11 @@
     DL_SECTIONS.forEach(function (s) {
       var section = dlView.sections[s[0]];
       var ids = bySection[s[0]].map(function (dl) { return dl.id; });
+      var hidden = s[0] === 'done' ? done.hidden : 0;
       section.box.hidden = ids.length === 0;
-      setText(section.label, t(s[1], s[2]) + ' (' + ids.length + ')');
+      setText(section.label, t(s[1], s[2]) + ' (' + (ids.length + hidden) + ')');
+      section.more.hidden = hidden === 0;
+      if (hidden) setText(section.more, tf('dlDoneHidden', '{count} autres masqués', { count: hidden }));
       ids.forEach(function (id) {
         var el = dlRows.get(id).el;
         if (el.parentNode !== section.list) section.list.appendChild(el);
@@ -3450,7 +3472,7 @@
     if (message.type === 'MD_CONNECTION_STATE') {
       // Republished on every PROGRESS: only a reconnect needs a fresh snapshot.
       var wasFlag = connectionFlag();
-      if (message.connected && !appConnected) requestQueueSnapshot();
+      if (message.connected && !appConnected) expectQueueSnapshot();
       appConnected = !!message.connected;
       connectionKnown = true;
       // Live downloads read "offline" while the app is away; the snapshot after a reconnect settles them.

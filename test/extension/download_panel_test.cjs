@@ -12,7 +12,7 @@ const NEW_KEYS = [
   'tabDownloads', 'feedViewDownloadsTitle',
   'dlQueuedLine', 'dlEtaLeft', 'dlPaused', 'dlFailed', 'dlCanceled',
   'dlSectionRunning', 'dlSectionQueued', 'dlSectionFailed', 'dlSectionDone',
-  'dlClearDone', 'dlCancelAll', 'dlSummaryCounts', 'dlEmpty',
+  'dlClearDone', 'dlDoneHidden', 'dlCancelAll', 'dlSummaryCounts', 'dlEmpty',
   'dlCmdCancel', 'dlCmdRemove', 'dlCmdPause', 'dlCmdResume', 'dlCmdRetry',
   'dlErrInvalidState', 'dlErrUnknownId', 'dlErrCommandFailed', 'dlErrNotConnected', 'appOffline',
 ];
@@ -114,6 +114,33 @@ test('live downloads read offline when the app is unreachable, with their action
   assert.match(css, /\[data-dl-state="offline"\]/);
 });
 
-test('a reconnect asks for a snapshot, which replaces the offline downloads', () => {
-  assert.match(panel, /if \(message\.connected && !appConnected\) requestQueueSnapshot\(\)/);
+test('a reconnect waits for the snapshot the background asks for, and asks only if none arrives', () => {
+  assert.match(panel, /if \(message\.connected && !appConnected\) expectQueueSnapshot\(\)/);
+  const start = panel.indexOf('function expectQueueSnapshot(');
+  const body = panel.slice(start, panel.indexOf('\n  }\n', start));
+  assert.match(body, /downloads\.noteSnapshotRequest\(since\)/);
+  assert.match(body, /if \(!downloads\.snapshotSince\(since\)\) requestQueueSnapshot\(\)/);
+  assert.equal(/sendRuntimeMessage/.test(body), false);
+});
+
+test('the panel asks for a snapshot at most once per 3 s', () => {
+  const start = panel.indexOf('function requestQueueSnapshot(');
+  const body = panel.slice(start, panel.indexOf('\n  }\n', start));
+  assert.match(body, /if \(!downloads\.snapshotDue\(now\)\) return;\s*downloads\.noteSnapshotRequest\(now\);\s*sendRuntimeMessage\(\{ type: 'MD_QUEUE_SNAPSHOT_REQUEST' \}\)/);
+  assert.equal((panel.match(/type: 'MD_QUEUE_SNAPSHOT_REQUEST'/g) || []).length, 1);
+});
+
+test('the finished section builds at most 50 rows and counts the others', () => {
+  assert.match(panel, /DL_DONE_SHOWN = 50/);
+  assert.match(panel, /MDDownloads\.capRecent\(groups\.done, DL_DONE_SHOWN\)/);
+  assert.match(panel, /done: done\.shown/);
+  assert.match(panel, /tf\('dlDoneHidden', '\{count\} autres masqués', \{ count: hidden \}\)/);
+  // the "N more" line sits outside the row list that domMoves walks
+  assert.match(panel, /box\.appendChild\(list\);\s*\/\/[^\n]*\n\s*var more = dlElement\('div', 'dl-section-more'\)/);
+  assert.match(css, /\.dl-section-more \{/);
+});
+
+test('queue positions and groups come from the tracker caches, not a scan per row', () => {
+  assert.match(panel, /pos: downloads\.queuePosition\(dl\.id\)/);
+  assert.equal(/groups\(\)\.queued\.indexOf/.test(panel), false);
 });
