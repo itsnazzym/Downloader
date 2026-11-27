@@ -88,6 +88,21 @@ Future<void> main(List<String> args) async {
     }
   }
 
+  // connection.js needs MDPairing: pairing.js must load before it in every packaged context.
+  const loadOrder = {
+    'chrome/background.js': ["importScripts('pairing.js')", "importScripts('connection.js')"],
+    'chrome/offscreen.html': ['src="pairing.js"', 'src="connection.js"'],
+    'firefox/manifest.json': ['"pairing.js"', '"background.js"'],
+  };
+  for (final entry in loadOrder.entries) {
+    final file = File('${root.path}/extension/${entry.key}');
+    final source = file.existsSync() ? await file.readAsString() : '';
+    final first = source.indexOf(entry.value[0]);
+    if (first < 0 || first > source.indexOf(entry.value[1])) {
+      fail('extension/${entry.key} must load pairing.js before the connection client');
+    }
+  }
+
   for (final browser in ['chrome', 'firefox']) {
     for (final size in [16, 32, 48, 96, 128]) {
       final shared = File('${root.path}/extension/shared/icons/icon$size.png');

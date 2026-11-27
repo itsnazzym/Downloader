@@ -9,8 +9,9 @@
   var SLOW_RECONNECT_MS = 10000;
   var FAST_WINDOW_MS = 5 * 60 * 1000;
   var DEFAULT_PAUSE_S = 600; // the app's pause after a refusal
-  // PAIR_EXPIRED / PAIR_BUSY carry no delay: no new prompt for 10 min unless Retry; busy clears soon.
-  var EXPIRED_PAUSE_MS = 10 * 60 * 1000;
+  var MIN_DELAY_S = 10; // a 0 s delay from the app would loop requests
+  // PAIR_EXPIRED / PAIR_BUSY carry no delay: no new prompt for 30 min unless Retry (no re-invite loop); busy clears soon.
+  var EXPIRED_PAUSE_MS = 30 * 60 * 1000;
   var BUSY_PAUSE_MS = 30 * 1000;
   var PAUSE_PHASES = ['denied', 'paused', 'expired', 'busy'];
 
@@ -23,20 +24,23 @@
 
   function seconds(value, fallback) {
     var n = Number(value);
-    return Number.isFinite(n) && n >= 0 ? n : fallback;
+    return Number.isFinite(n) && n >= 0 ? Math.max(n, MIN_DELAY_S) : fallback;
   }
 
-  // event.now (ms) dates the pauses; event.requested = a PAIR_REQUEST went out on this socket.
+  // event.now (ms) dates the pauses; event.noToken = the socket's HELLO carried no token.
   function next(state, event) {
     state = state && state.phase ? state : IDLE;
     var now = (event && event.now) || 0;
     switch (event && event.type) {
       case 'AUTH_FAILED':
-        if (!event.reason && event.requested) return { phase: 'update_needed' };
+        // An up-to-date app answers a tokenless HELLO with pairing_required: a bare refusal is an old app.
+        if (!event.reason && event.noToken) return { phase: 'update_needed' };
         // Only an up-to-date app says pairing_required.
         if (event.reason === 'pairing_required' && state.phase === 'update_needed') return IDLE;
         return state;
       case 'PAIR_PENDING':
+        // The app repeats PAIR_PENDING every 10 s: same request, same state (and no storage write).
+        if (state.phase === 'pending' && state.requestId === event.requestId && state.code === String(event.code || '')) return state;
         return {
           phase: 'pending',
           code: String(event.code || ''),

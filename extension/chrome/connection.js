@@ -44,6 +44,7 @@
   // ==========================================
   var serverPort = 6969;
   var apiToken = '';
+  var apiTokenSource = ''; // 'paired' = obtained by pairing (cleared if the app forgets it); anything else is manual
   var socket = null;
   var isConnected = false;
   var reconnectTimer = null;
@@ -51,6 +52,8 @@
   var unreachableSince = 0;
   var pairingState = { phase: 'idle' };
   var pairRequested = false; // a PAIR_REQUEST went out on the current socket
+  var helloToken = ''; // the token the current socket's HELLO carries
+  var helloTimer = null;
   var authRefused = false; // the app refused the current socket: retrying fast cannot help
   var cookieDebounce = null;
   var cookieDebounceByDomain = {};
@@ -79,11 +82,15 @@
     }, MDPairing.reconnectDelayMs(reconnectAttempt++, elapsed));
   }
 
-  function clearReconnect() {
+  function cancelReconnect() {
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
+  }
+
+  function clearReconnect() {
+    cancelReconnect();
     reconnectAttempt = 0;
     unreachableSince = 0;
   }
@@ -148,9 +155,11 @@
   }
 
   function closeSocketQuietly() {
+    clearTimeout(helloTimer);
     if (!socket) return;
     failPending();
     try {
+      socket.onopen = null;
       socket.onclose = null;
       socket.onerror = null;
       socket.onmessage = null;
@@ -177,50 +186,55 @@
   }
 
   function connect() {
-    api.storage.local.get(['serverPort', 'apiToken', 'adultSitesEnabled', 'pairing']).then(function (res) {
+    api.storage.local.get(['serverPort', 'apiToken', 'apiTokenSource', 'adultSitesEnabled', 'pairing']).then(function (res) {
       serverPort = parseInt(res.serverPort, 10) || 6969;
       if (serverPort < 1024 || serverPort > 65535) {
         console.warn('Invalid server port; using 6969');
         serverPort = 6969;
       }
       apiToken = res.apiToken || '';
+      apiTokenSource = res.apiTokenSource || '';
       adultSitesEnabled = res.adultSitesEnabled !== false;
       // The service worker restarts often: a pause must outlive it.
       pairingState = res.pairing && res.pairing.phase ? res.pairing : { phase: 'idle' };
 
       closeSocketQuietly();
+      cancelReconnect(); // this attempt replaces a scheduled one; the pace counters stay
       pairRequested = false;
       authRefused = false;
+      helloToken = apiToken;
       logDiag('CONNECT_START', 'port=' + serverPort + ' tokenLen=' + apiToken.length);
       console.log('Connecting to TapLoad on 127.0.0.1:' + serverPort + '...');
 
       try {
         // Token is NOT placed in the URL — only sent in HELLO.
-        socket = new WebSocket('ws://127.0.0.1:' + serverPort + '/');
+        // Every handler below belongs to this socket only: a replaced socket's late events are ignored.
+        var ws = socket = new WebSocket('ws://127.0.0.1:' + serverPort + '/');
 
-        var helloTimer = setTimeout(function () {
-          if (!isConnected && socket) {
+        helloTimer = setTimeout(function () {
+          if (socket === ws && !isConnected) {
             logDiag('HELLO_TIMEOUT', 'No HELLO_OK received');
             console.warn('HELLO handshake timed out');
-            try { socket.close(); } catch (e) { /* ignore */ }
+            try { ws.close(); } catch (e) { /* ignore */ }
           }
         }, HELLO_TIMEOUT_MS + 1000);
 
-        socket.onopen = function () {
+        ws.onopen = function () {
+          if (socket !== ws) return;
           clearTimeout(helloTimer);
           unreachableSince = 0;
           logDiag('WS_OPEN', 'Sending HELLO');
           var version = getManifestVersion();
-          socket.send(JSON.stringify({
+          ws.send(JSON.stringify({
             type: 'HELLO',
             version: version,
-            token: apiToken,
+            token: helloToken,
           }));
-          // Sent right away: an old app answers this HELLO with a bare AUTH_FAILED, which then reads as "update the app".
-          if (!apiToken) requestPairing();
+          // No PAIR_REQUEST here: the app only accepts one after its AUTH_FAILED { pairing_required }.
         };
 
-        socket.onclose = function (event) {
+        ws.onclose = function (event) {
+          if (socket !== ws) return;
           clearTimeout(helloTimer);
           logDiag('WS_CLOSE', 'code=' + (event ? event.code : 'unknown'));
           console.log('Disconnected from App. Reconnecting...');
@@ -233,7 +247,8 @@
           scheduleReconnect();
         };
 
-        socket.onmessage = function (event) {
+        ws.onmessage = function (event) {
+          if (socket !== ws) return;
           try {
             var message = JSON.parse(event.data);
             handleAppMessage(message);
@@ -242,8 +257,9 @@
           }
         };
 
-        socket.onerror = function () {
-          logDiag('WS_OFFLINE', 'ReadyState=' + (socket ? socket.readyState : 'null'));
+        ws.onerror = function () {
+          if (socket !== ws) return;
+          logDiag('WS_OFFLINE', 'ReadyState=' + ws.readyState);
           console.debug('TapLoad desktop app is offline or unreachable on ws://127.0.0.1:' + serverPort);
         };
       } catch (e) {
@@ -287,15 +303,20 @@
       isConnected = false;
       publishConnectionState();
       var reason = message.reason || 'auth_failed';
-      var hadToken = !!apiToken;
-      api.storage.local.set({ lastAuthError: reason });
+      // An up-to-date app answers any refused token with pairing_required. Only a paired token falls back to
+      // pairing; a typed one keeps its "check token" error until the user empties the field.
+      var manualRefused = !!helloToken && apiTokenSource !== 'paired';
+      api.storage.local.set({ lastAuthError: manualRefused && reason === 'pairing_required' ? 'auth_failed' : reason });
       logDiag('AUTH_FAILED', reason);
-      pairingEvent({ type: 'AUTH_FAILED', reason: message.reason, hadToken: hadToken, requested: pairRequested });
-      if (message.reason === 'pairing_required') {
-        if (hadToken) {
-          // Only an up-to-date app says this: the stored token was revoked.
+      pairingEvent({ type: 'AUTH_FAILED', reason: message.reason, noToken: !helloToken });
+      if (message.reason === 'pairing_required' && !manualRefused) {
+        if (helloToken) {
+          // The paired token was revoked.
           apiToken = '';
-          api.storage.local.remove(['apiToken']);
+          apiTokenSource = '';
+          api.storage.local.remove(['apiToken', 'apiTokenSource']).catch(function (e) {
+            logDiag('PAIR_TOKEN_ERR', (e && e.message) || String(e));
+          });
           pairingEvent({ type: 'TOKEN_CLEARED' });
         }
         if (requestPairing() || pairRequested) return; // keep the socket open for the answer
@@ -321,10 +342,10 @@
     }
 
     if (message.type === 'PAIR_OK') {
-      if (typeof message.token !== 'string' || !message.token) return;
+      if (!pairRequested || typeof message.token !== 'string' || !message.token) return;
       logDiag('PAIR_OK', 'paired');
       pairingEvent({ type: 'PAIR_OK' });
-      api.storage.local.set({ apiToken: message.token }).then(function () {
+      api.storage.local.set({ apiToken: message.token, apiTokenSource: 'paired' }).then(function () {
         clearReconnect(); // the app closes this socket after its answer
         connect();
       }).catch(function (e) {
@@ -1597,7 +1618,8 @@
       api.alarms.onAlarm.addListener(function (alarm) {
         if (alarm.name === 'md-keepalive') {
           if (!socket || socket.readyState !== WebSocket.OPEN) {
-            connect();
+            // Without a token, a running pause has nothing to ask: the slow reconnect is enough.
+            if (apiToken || MDPairing.shouldRequestPairing(pairingState, Date.now())) connect();
           } else if (isConnected) {
             try { socket.send(JSON.stringify({ type: 'PING' })); } catch (e) { /* ignore */ }
           }
