@@ -47,9 +47,12 @@ class _Body extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => ListView(
+  Widget build(BuildContext context) => SingleChildScrollView(
     padding: const EdgeInsets.fromLTRB(4, 4, 8, 16),
-    children: children,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: children,
+    ),
   );
 }
 
@@ -418,8 +421,7 @@ class _StorageState extends State<_Storage> {
                   const SizedBox(width: 10),
                 ],
                 TButton(
-                  label: 'r',
-                  square: true,
+                  label: 'du -sh',
                   height: 26,
                   tooltip: l10n.storageUsage,
                   onTap: _scanning && snap == null

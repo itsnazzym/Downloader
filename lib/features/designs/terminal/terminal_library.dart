@@ -109,8 +109,7 @@ class _RowActions extends StatelessWidget {
         ],
         if (_restartable(item)) ...[
           TButton(
-            label: 'r',
-            square: true,
+            label: l10n.retry,
             height: 26,
             tooltip: l10n.retryDownload,
             onTap: row.onRetry,

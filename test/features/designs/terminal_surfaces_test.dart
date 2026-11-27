@@ -160,7 +160,12 @@ void main() {
         ),
       ],
     );
-    await shot(tester, key, 'folders');
+    final path = await capture(tester, key, 'surface_terminal_folders');
+    // ignore: avoid_print
+    print('[terminal] folders -> $path');
+    await tester.tap(find.text('@atelier_nord/'));
+    await settle(tester);
+    await shot(tester, key, 'folder_open');
   });
 
   testWidgets('terminal inspector on a finished item', (tester) async {

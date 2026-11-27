@@ -954,6 +954,8 @@ class TThumb extends StatelessWidget {
               placeholder: (_, _) => empty,
               errorWidget: (_, _, _) => local,
             )
+          : u.startsWith('assets/')
+          ? Image.asset(u, fit: BoxFit.cover, errorBuilder: (_, _, _) => local)
           : Image.file(
               File(u),
               fit: BoxFit.cover,

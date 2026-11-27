@@ -21,7 +21,6 @@ import 'package:modern_downloader/core/ui/settings/general_settings_view.dart';
 import 'package:modern_downloader/core/ui/settings/plugins_settings_view.dart';
 import 'package:modern_downloader/core/ui/sidebar/sidebar.dart';
 import 'package:modern_downloader/core/ui/settings/settings_hub_view.dart';
-import 'package:modern_downloader/features/downloader/presentation/views/widgets/download_search_field.dart';
 import 'package:modern_downloader/features/designs/pastille/pastille_kit.dart';
 import 'package:modern_downloader/features/designs/signal/signal_home.dart';
 import 'package:modern_downloader/features/designs/terminal/terminal_library.dart';

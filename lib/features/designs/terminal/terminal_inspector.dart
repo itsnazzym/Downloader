@@ -113,15 +113,7 @@ class TerminalInspector extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // A wide sheet would make a 16:9 preview fill the screen.
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 240),
-                  child: _Preview(
-                    item: item,
-                    path: path,
-                    onOpen: (p) => _open(ref, p),
-                  ),
-                ),
+                _Preview(item: item, path: path, onOpen: (p) => _open(ref, p)),
                 if (path != null) ...[
                   const SizedBox(height: 10),
                   TButton(
@@ -286,8 +278,9 @@ class _Preview extends ConsumerWidget {
         ),
       );
     }
-    return AspectRatio(
-      aspectRatio: 16 / 9,
+    // The player's height, whatever the width (a wide sheet would fill up).
+    return SizedBox(
+      height: 220,
       child: Stack(
         fit: StackFit.expand,
         children: [
