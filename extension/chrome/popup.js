@@ -211,6 +211,9 @@
     }
   });
 
+  // Only a token the user edited is written: the field must never overwrite a token stored by pairing.
+  var tokenDirty = false;
+
   function persistSettings(extra) {
     var port = parseInt(portInput.value, 10);
     if (!port || port < 1024 || port > 65535) {
@@ -221,12 +224,16 @@
     var payload = {
       serverPort: port,
       autoSendCookies: cookiesToggle.checked,
-      apiToken: tokenInput ? tokenInput.value.trim() : '',
       showQualitySelector: qualityToggle ? qualityToggle.checked : true,
       adultSitesEnabled: true,
     };
     if (browserSelect) {
       payload.preferredBrowser = browserSelect.value;
+    }
+    if (tokenDirty) {
+      tokenDirty = false;
+      payload.apiToken = tokenInput.value.trim();
+      payload.apiTokenSource = ''; // typed or emptied by the user: not a paired token
     }
     if (extra) {
       Object.keys(extra).forEach(function (k) { payload[k] = extra[k]; });
@@ -247,10 +254,14 @@
   if (tokenInput) {
     var tokenDebounce = null;
     tokenInput.addEventListener('input', function () {
+      tokenDirty = true;
       clearTimeout(tokenDebounce);
       tokenDebounce = setTimeout(saveSettings, 300);
     });
-    tokenInput.addEventListener('change', saveSettings);
+    tokenInput.addEventListener('change', function () {
+      tokenDirty = true;
+      saveSettings();
+    });
   }
   var toggleTokenBtn = document.getElementById('toggle-token-btn');
   if (toggleTokenBtn && tokenInput) {
@@ -340,7 +351,7 @@
         renderList(changes.recentDownloads.newValue);
       }
       // A pairing finishing while the popup is open: the field must follow, or the next save would overwrite the new token.
-      if (area === 'local' && changes.apiToken && tokenInput && tokenInput.value.trim() !== (changes.apiToken.newValue || '')) {
+      if (area === 'local' && changes.apiToken && tokenInput && !tokenDirty && tokenInput.value.trim() !== (changes.apiToken.newValue || '')) {
         tokenInput.value = changes.apiToken.newValue || '';
       }
       if (area === 'local' && (changes.isConnected || changes.lastAuthError || changes.pairing)) {

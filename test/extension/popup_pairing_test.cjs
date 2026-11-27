@@ -242,6 +242,47 @@ test('a token paired while the popup is open is not wiped by the next settings s
   assert.equal(popup.storage.autoSendCookies, false);
 });
 
+const fire = (popup, id, type) => popup.el(id).handlers[type].forEach((fn) => fn({}));
+
+test('a settings save never writes apiToken unless the token field was edited', async () => {
+  const popup = await load(stateFor('pending'));
+  popup.storage.apiToken = 'paired-token'; // stored by the background, change event not seen yet
+  popup.storage.apiTokenSource = 'paired';
+  popup.el('cookies-toggle').checked = false;
+  fire(popup, 'cookies-toggle', 'change');
+  await flush();
+  assert.equal(popup.storage.apiToken, 'paired-token');
+  assert.equal(popup.storage.apiTokenSource, 'paired');
+  assert.ok(popup.tokenSaves.length > 0 && popup.tokenSaves.every((o) => !('apiToken' in o) && !('apiTokenSource' in o)));
+});
+
+test('emptying or retyping the token field is saved and drops the paired source', async () => {
+  const popup = await load({ apiToken: 'paired-token', apiTokenSource: 'paired' });
+  popup.el('token-input').value = '';
+  fire(popup, 'token-input', 'input');
+  fire(popup, 'token-input', 'change');
+  await flush();
+  assert.equal(popup.storage.apiToken, '');
+  assert.equal(popup.storage.apiTokenSource, '', 'an emptied field pairs again');
+  popup.storage.apiTokenSource = 'paired';
+  popup.el('token-input').value = 'typed';
+  fire(popup, 'token-input', 'change');
+  await flush();
+  assert.equal(popup.storage.apiToken, 'typed');
+  assert.equal(popup.storage.apiTokenSource, '', 'a typed token is manual');
+});
+
+test('the echo of the popup\'s own token save does not erase what was typed since', async () => {
+  const popup = await load();
+  popup.el('token-input').value = 'abc';
+  fire(popup, 'token-input', 'change');
+  await flush();
+  popup.el('token-input').value = 'abcd';
+  fire(popup, 'token-input', 'input'); // debounced save still waiting
+  await popup.changed({ apiToken: { newValue: 'abc' } });
+  assert.equal(popup.el('token-input').value, 'abcd');
+});
+
 test('connected: the card keeps no title or body from an earlier phase', () => {
   assert.match(popupCss, /body\[data-pair="none"\][^{]*#setup-title[^{]*\{\s*display:\s*none/);
   assert.match(popupCss, /body\[data-pair="none"\][^{]*#pair-body/);

@@ -30,7 +30,7 @@ test('the diagnostics log ignores a failed storage write', () => {
 });
 
 test('closing or replacing a socket releases the callers waiting on it', () => {
-  assert.match(connection, /function closeSocketQuietly\(\) \{\s*if \(!socket\) return;\s*failPending\(\);/);
+  assert.match(connection, /function closeSocketQuietly\(\) \{\s*clearTimeout\(helloTimer\);\s*if \(!socket\) return;\s*failPending\(\);/);
   assert.match(connection, /activeDownloadCount = 0;[^\n]*\n\s*failPending\(\);\s*publishConnectionState\(\);/);
 });
 
