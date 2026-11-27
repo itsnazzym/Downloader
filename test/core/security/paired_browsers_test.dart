@@ -110,7 +110,7 @@ void main() {
     );
 
     test('lastSeenAt throttle is measured against the STORED value', () async {
-      final (browser, token) = await store.pair(origin: _origin, label: 'C');
+      final (_, token) = await store.pair(origin: _origin, label: 'C');
       final base = prefs.writes;
 
       store.authenticate(token); // never stored -> writes
@@ -134,7 +134,6 @@ void main() {
         (stored['browsers'] as List).single['lastSeenAt'],
         now.toIso8601String(),
       );
-      expect(browser.id, isNotEmpty);
     });
 
     test('a failing prefs write never throws out of authenticate', () async {
@@ -332,11 +331,15 @@ void main() {
           label: '$i',
         );
       }
+      final writesBefore = prefs.writes;
+      final storedBefore = prefs.getString(_key);
       await expectLater(
         store.pair(origin: _origin, label: 'x'),
         throwsA(isA<PairedBrowsersFull>()),
       );
       expect(store.state.browsers, hasLength(20));
+      expect(prefs.writes, writesBefore);
+      expect(prefs.getString(_key), storedBefore);
       // Revoking frees a slot.
       await store.revoke(store.state.browsers.first.id);
       await store.pair(origin: _origin, label: 'x');
@@ -398,6 +401,110 @@ void main() {
         reloaded.dispose();
       },
     );
+  });
+
+  group('surrogates', () {
+    bool wellFormed(String s) => s.runes.every((r) => r < 0xD800 || r > 0xDFFF);
+
+    test('lone high / lone low / reversed pair become U+FFFD', () async {
+      for (final bad in ['ab\uD83Dcd', 'ab\uDE00cd', 'ab\uDE00\uD83Dcd']) {
+        final (b, _) = await store.pair(origin: 'o$bad', label: bad);
+        expect(wellFormed(b.label), isTrue, reason: bad);
+        expect(wellFormed(b.origin), isTrue, reason: bad);
+        expect(b.label, contains('\uFFFD'));
+        expect(b.label, startsWith('ab'));
+      }
+      expect(wellFormed(prefs.getString(_key)!), isTrue);
+    });
+
+    test('valid emoji are preserved', () async {
+      final (b, _) = await store.pair(
+        origin: _origin,
+        label: 'Chrome \u{1F600}',
+      );
+      expect(b.label, 'Chrome \u{1F600}');
+    });
+
+    test('emoji at the 80-rune cap boundary stay well-formed', () async {
+      final (b, _) = await store.pair(
+        origin: _origin,
+        label: 'a' * 79 + '\u{1F600}' * 5,
+      );
+      expect(wellFormed(b.label), isTrue);
+      expect(b.label.runes.length, 80);
+      expect(b.label, endsWith('\u{1F600}'));
+      expect(b.label, isNot(contains('\uFFFD')));
+    });
+
+    test('999 spaces + emoji: the pre-cap never splits the pair', () async {
+      for (final label in [' ' * 999 + '\u{1F600}', 'a' * 999 + '\u{1F600}']) {
+        final (b, _) = await store.pair(origin: _origin, label: label);
+        expect(wellFormed(b.label), isTrue);
+        expect(b.label, isNot(contains('\uFFFD')));
+      }
+      final (o, _) = await store.pair(
+        origin: 'o' * 999 + '\u{1F600}',
+        label: 'C',
+      );
+      expect(wellFormed(o.origin), isTrue);
+      expect(o.origin, isNot(contains('\uFFFD')));
+    });
+
+    test('tampered prefs with lone surrogates load well-formed', () async {
+      await prefs.setString(
+        _key,
+        jsonEncode({
+          'browsers': [
+            {
+              'id': 'a',
+              'origin': 'x\uD83Dy',
+              'label': 'l\uDE00l',
+              'tokenHash': PairedBrowsersStore.hashToken('t'),
+              'createdAt': now.toIso8601String(),
+            },
+          ],
+          'blockedOrigins': ['b\uD83D'],
+          'pausedUntil': {
+            'p\uDE00': now.add(const Duration(minutes: 5)).toIso8601String(),
+          },
+        }),
+      );
+      final s = newStore();
+      expect(wellFormed(s.state.browsers.single.label), isTrue);
+      expect(wellFormed(s.state.browsers.single.origin), isTrue);
+      expect(s.state.blockedOrigins.every(wellFormed), isTrue);
+      expect(s.state.pausedUntil.keys.every(wellFormed), isTrue);
+      s.dispose();
+    });
+  });
+
+  group('origin lookups use the cleaned origin', () {
+    test(
+      'isBlocked / unblock / pauseRemaining find a clamped origin',
+      () async {
+        final longOrigin = 'https://${'a' * 300}.example';
+        final dirtyOrigin = 'https://ev\nil\u200B.example\t';
+        for (final raw in [longOrigin, dirtyOrigin]) {
+          await store.block(raw);
+          expect(store.isBlocked(raw), isTrue, reason: raw);
+          await store.unblock(raw);
+          expect(store.isBlocked(raw), isFalse, reason: raw);
+          expect(store.state.blockedOrigins, isEmpty, reason: raw);
+
+          final (b, _) = await store.pair(origin: raw, label: 'C');
+          await store.revoke(b.id);
+          expect(store.pauseRemaining(raw), const Duration(minutes: 10));
+          expect(store.pauseRemaining(b.origin), const Duration(minutes: 10));
+        }
+      },
+    );
+
+    test('queries on empty/garbage origins return false/null, never throw', () {
+      expect(store.isBlocked(''), isFalse);
+      expect(store.isBlocked('\u200B\n'), isFalse);
+      expect(store.pauseRemaining(''), isNull);
+      expect(store.unblock(''), completes);
+    });
   });
 
   group('tampered prefs', () {

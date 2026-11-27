@@ -33,10 +33,21 @@ String _capRunes(String s, int max) =>
     s.runes.length <= max ? s : String.fromCharCodes(s.runes.take(max));
 
 // Pre-truncating first keeps the regexes cheap on a multi-megabyte input.
-String _preCap(String s) => s.length > 1000 ? s.substring(0, 1000) : s;
+// Never cuts between the two halves of a surrogate pair.
+String _preCap(String s) {
+  if (s.length <= 1000) return s;
+  final lastIsHigh = (s.codeUnitAt(999) & 0xFC00) == 0xD800;
+  return s.substring(0, lastIsHigh ? 999 : 1000);
+}
+
+/// Replaces lone surrogates with U+FFFD: Flutter text layout throws on
+/// ill-formed UTF-16, and `runes` surfaces a lone surrogate as 0xD800-0xDFFF.
+String _wellFormed(String s) => String.fromCharCodes(
+  s.runes.map((r) => r >= 0xD800 && r <= 0xDFFF ? 0xFFFD : r),
+);
 
 String _cleanLabel(String raw) {
-  final s = _preCap(raw)
+  final s = _wellFormed(_preCap(raw))
       .replaceAll(_invisibleChars, '')
       .replaceAll(_controlChars, ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
@@ -46,8 +57,8 @@ String _cleanLabel(String raw) {
 }
 
 String _cleanOrigin(String raw) => _capRunes(
-  _preCap(
-    raw,
+  _wellFormed(
+    _preCap(raw),
   ).replaceAll(_invisibleChars, '').replaceAll(_controlChars, '').trim(),
   _maxOrigin,
 );
@@ -227,16 +238,22 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
     return _save(blocked: blocked);
   }
 
-  Future<void> unblock(String origin) =>
-      _save(blocked: {...state.blockedOrigins}..remove(origin));
+  /// Queries clean their argument exactly like [block] / [pair] do, so an
+  /// origin stored clamped is found again from its raw form.
+  Future<void> unblock(String origin) {
+    final o = _cleanOrigin(origin);
+    if (!state.blockedOrigins.contains(o)) return Future.value();
+    return _save(blocked: {...state.blockedOrigins}..remove(o));
+  }
 
-  bool isBlocked(String origin) => state.blockedOrigins.contains(origin);
+  bool isBlocked(String origin) =>
+      state.blockedOrigins.contains(_cleanOrigin(origin));
 
   /// Time left on the post-revocation pause for [origin], or null if none.
   /// The pause is per origin: revoking one of several browsers sharing an
   /// origin pauses NEW pairings from it, while the others still authenticate.
   Duration? pauseRemaining(String origin) {
-    final until = state.pausedUntil[origin];
+    final until = state.pausedUntil[_cleanOrigin(origin)];
     if (until == null) return null;
     final left = until.difference(_clock());
     return left > Duration.zero ? left : null;
