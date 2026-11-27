@@ -92,7 +92,8 @@
   function createLimiter(opts, now) {
     var stamps = [];
     return {
-      next: function () {
+      // maxWaitMs (optional): a call that would wait longer is refused and takes no slot.
+      next: function (maxWaitMs) {
         var t = now();
         var at = stamps.length ? Math.max(t, stamps[stamps.length - 1] + opts.minGapMs) : t;
         while (stamps.length && stamps[0] <= at - 60000) stamps.shift();
@@ -100,7 +101,7 @@
           at = Math.max(at, stamps[stamps.length - opts.perMinute] + 60000);
         }
         // Record the scheduled time so back-to-back calls queue up instead of firing together.
-        stamps.push(at);
+        if (!(at - t > maxWaitMs)) stamps.push(at);
         return { waitMs: at - t };
       },
     };
@@ -188,7 +189,7 @@
     tweetId = String(tweetId);
     if (!isOp(op) || !TWEET_ID.test(tweetId)) return result(false, 'unknown');
     if (!limiter) limiter = createLimiter({ minGapMs: 1500, perMinute: 30 }, env.now);
-    var waitMs = limiter.next().waitMs;
+    var waitMs = limiter.next(MAX_WAIT_MS).waitMs;
     // Refuse rather than fire early: a capped sleep would let a burst go out all at once.
     if (waitMs > MAX_WAIT_MS) return result(false, 'rate');
     if (waitMs > 0) await env.sleep(waitMs);

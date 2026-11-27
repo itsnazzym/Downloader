@@ -111,6 +111,16 @@ test('limiter: the 31st call within a minute waits until the oldest leaves the w
   assert.equal(lim.next().waitMs, 15000);
 });
 
+test('limiter: a call refused for waiting too long does not take a slot', () => {
+  let t = 1000;
+  const lim = load().createLimiter({ minGapMs: 1500, perMinute: 30 }, () => t);
+  assert.equal(lim.next(1000).waitMs, 0);
+  assert.equal(lim.next(1000).waitMs, 1500); // refused by the caller: over 1000 ms
+  assert.equal(lim.next(1000).waitMs, 1500); // still the same slot, not 3000
+  assert.equal(lim.next().waitMs, 1500); // no cap: taken
+  assert.equal(lim.next().waitMs, 3000);
+});
+
 // Fake page: script tags, cookie, optional articles with action buttons.
 function fakeDocument({ scripts = [], cookie = 'ct0=csrf42; lang=en', articles = [] } = {}) {
   const clicks = [];
