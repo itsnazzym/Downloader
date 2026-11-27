@@ -63,6 +63,12 @@ class DesignPageTransitionsBuilder extends PageTransitionsBuilder {
       // Nocturne: the page drifts in from the right as it fades in.
       case DesignNav.iconRail:
         return _fadeSlide(animation, child, const Offset(0.012, 0));
+      // OLED: the page lights up from black, nothing moves.
+      case DesignNav.textLinks:
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        );
       case DesignNav.sidebar:
         return const ZoomPageTransitionsBuilder().buildTransitions(
           route,

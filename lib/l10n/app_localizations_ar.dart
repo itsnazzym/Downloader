@@ -5794,4 +5794,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'أُلغي التنزيل.';
+
+  @override
+  String get oledNavHome => 'الرئيسية';
+
+  @override
+  String get oledMainNavigation => 'التنقل الرئيسي';
+
+  @override
+  String get oledFreeWord => 'متاحة';
 }

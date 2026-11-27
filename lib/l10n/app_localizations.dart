@@ -9789,6 +9789,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download canceled.'**
   String get designLogCanceled;
+
+  /// No description provided for @oledNavHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get oledNavHome;
+
+  /// No description provided for @oledMainNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Main navigation'**
+  String get oledMainNavigation;
+
+  /// No description provided for @oledFreeWord.
+  ///
+  /// In en, this message translates to:
+  /// **'free'**
+  String get oledFreeWord;
 }
 
 class _AppLocalizationsDelegate

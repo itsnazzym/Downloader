@@ -1929,5 +1929,8 @@
   "designLogInit": "Téléchargement préparé : {id}",
   "designLogStarted": "Téléchargement démarré…",
   "designLogCompleted": "Téléchargement terminé.",
-  "designLogCanceled": "Téléchargement annulé."
+  "designLogCanceled": "Téléchargement annulé.",
+  "oledNavHome": "Accueil",
+  "oledMainNavigation": "Navigation principale",
+  "oledFreeWord": "libres"
 }

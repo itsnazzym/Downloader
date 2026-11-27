@@ -5855,4 +5855,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get designLogCanceled => 'Téléchargement annulé.';
+
+  @override
+  String get oledNavHome => 'Accueil';
+
+  @override
+  String get oledMainNavigation => 'Navigation principale';
+
+  @override
+  String get oledFreeWord => 'libres';
 }

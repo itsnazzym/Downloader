@@ -1929,5 +1929,8 @@
   "designLogInit": "تم تجهيز التنزيل: {id}",
   "designLogStarted": "بدأ التنزيل…",
   "designLogCompleted": "اكتمل التنزيل.",
-  "designLogCanceled": "أُلغي التنزيل."
+  "designLogCanceled": "أُلغي التنزيل.",
+  "oledNavHome": "الرئيسية",
+  "oledMainNavigation": "التنقل الرئيسي",
+  "oledFreeWord": "متاحة"
 }
