@@ -76,5 +76,11 @@
     };
   }
 
-  root.MDSelection = { create: create };
+  // What a pointer release does on its own: only a touch long-press released in
+  // place selects the card; mouse clicks are left to the card click handler.
+  function releaseAction(p) {
+    return p.pointerType === 'touch' && p.armed && !p.dragging && !p.moved ? 'toggle' : 'none';
+  }
+
+  root.MDSelection = { create: create, releaseAction: releaseAction };
 })(typeof self !== 'undefined' ? self : this);

@@ -2977,7 +2977,12 @@
     gesture = null;
     clearTimeout(g.timer);
     // A long-press released in place selects the card itself.
-    if (commit && g.armed && !sel.isDragging()) {
+    if (commit && MDSelection.releaseAction({
+      pointerType: g.touch ? 'touch' : 'mouse',
+      armed: g.armed,
+      dragging: sel.isDragging(),
+      moved: gestureMoved,
+    }) === 'toggle') {
       sel.toggle(g.id);
       anchorId = g.id;
       gestureMoved = true;
@@ -2990,7 +2995,7 @@
   feedList.addEventListener('pointerdown', function (e) {
     if (!e.isPrimary || e.button !== 0) return;
     var card = e.target.closest('.feed-card');
-    if (!card || e.target.closest('button, a, input, select, textarea')) return;
+    if (!card || e.target.closest('button, a, input, select, textarea, .thumbnail-container, .card-title')) return;
     endGesture(false);
     gestureMoved = false;
     var touch = e.pointerType === 'touch';
@@ -3018,6 +3023,8 @@
   window.addEventListener('pointermove', function (e) {
     var g = gesture;
     if (!g || e.pointerId !== g.pointerId) return;
+    // A mouse pointer with no button down means the pointerup was lost.
+    if (!g.touch && e.buttons === 0) { endGesture(false); return; }
     if (!g.armed) {
       // The finger moved before the long-press fired: it is a scroll.
       if (Math.abs(e.clientX - g.x) > LONG_PRESS_SLOP || Math.abs(e.clientY - g.y) > LONG_PRESS_SLOP) endGesture(false);

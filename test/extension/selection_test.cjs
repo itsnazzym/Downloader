@@ -106,3 +106,12 @@ test('clear empties the selection', () => {
   s.clear();
   assert.equal(s.size(), 0);
 });
+
+test('releaseAction: only an in-place touch long-press toggles', () => {
+  const r = load().releaseAction;
+  assert.equal(r({ pointerType: 'mouse', armed: true, dragging: false, moved: false }), 'none');
+  assert.equal(r({ pointerType: 'mouse', armed: true, dragging: true, moved: true }), 'none');
+  assert.equal(r({ pointerType: 'touch', armed: true, dragging: false, moved: false }), 'toggle');
+  assert.equal(r({ pointerType: 'touch', armed: false, dragging: false, moved: false }), 'none');
+  assert.equal(r({ pointerType: 'touch', armed: true, dragging: true, moved: true }), 'none');
+});

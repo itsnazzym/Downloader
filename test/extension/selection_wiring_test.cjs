@@ -24,3 +24,7 @@ test('css and html support the gestures', () => {
   assert.ok(html.indexOf('selection.js') > -1);
   assert.ok(html.indexOf('selection.js') < html.indexOf('feed_panel.js'));
 });
+
+test('release decision goes through MDSelection.releaseAction', () => {
+  assert.match(panel, /MDSelection\.releaseAction\(/);
+});
