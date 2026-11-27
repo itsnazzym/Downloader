@@ -8,6 +8,9 @@
 
   var ALPHA = 0.3;
   var TOMBSTONE_CAP = 2000;
+  var SNAPSHOT_DEDUPE_MS = 3000;
+  var PENDING_MS = 15000;
+  var KEY_FIELDS = ['tweetId', 'tikTokId', 'url'];
   // Desktop DownloadStatus index -> tracker status.
   var STATUSES = ['queued', 'running', 'running', 'running', 'done', 'error', 'canceled', 'paused', 'duplicate'];
   var TERMINAL = { done: 1, error: 1, canceled: 1, duplicate: 1 };
@@ -106,9 +109,60 @@
     return typeof v === 'string' && v !== '' ? v : null;
   }
 
+  // The `max` items with the latest updatedAt (ties: the later one), kept in list order.
+  function capRecent(list, max) {
+    if (list.length <= max) return { shown: list, hidden: 0 };
+    var keep = new Set(list.map(function (dl, i) { return i; })
+      .sort(function (a, b) { return list[b].updatedAt - list[a].updatedAt || b - a; })
+      .slice(0, max));
+    return { shown: list.filter(function (dl, i) { return keep.has(i); }), hidden: list.length - max };
+  }
+
+  // A card spinner set at `pendingAt` waits for the app's first report, at most PENDING_MS.
+  function pendingActive(pendingAt, dl, now) {
+    return !!pendingAt && now - pendingAt < PENDING_MS && (!dl || dl.updatedAt <= pendingAt);
+  }
+
   function create() {
     var items = new Map();      // id -> { dl, progress, dlBytes, sampleAt, remaining }
     var tombstones = new Map(); // id -> updatedAt of a removed terminal item
+    var byKey = { tweetId: new Map(), tikTokId: new Map(), url: new Map() }; // value -> Set of ids
+    var groupsCache = null;     // { groups, positions } until the next change
+    var snapshotAskedAt = -Infinity;
+    var snapshotGotAt = -Infinity;
+
+    function indexKeys(dl, add) {
+      KEY_FIELDS.forEach(function (f) {
+        var v = dl[f];
+        if (!v) return;
+        var ids = byKey[f].get(v);
+        if (add) {
+          if (!ids) byKey[f].set(v, (ids = new Set()));
+          ids.add(dl.id);
+        } else if (ids) {
+          ids.delete(dl.id);
+          if (!ids.size) byKey[f].delete(v);
+        }
+      });
+    }
+
+    // Every write to `items` goes through put/drop so the key index and groups stay in sync.
+    function put(id, rec) {
+      var prev = items.get(id);
+      var rekey = !prev || KEY_FIELDS.some(function (f) { return prev.dl[f] !== rec.dl[f]; });
+      if (prev && rekey) indexKeys(prev.dl, false);
+      items.set(id, rec);
+      if (rekey) indexKeys(rec.dl, true);
+      groupsCache = null;
+    }
+
+    function drop(id) {
+      var rec = items.get(id);
+      if (!rec) return;
+      indexKeys(rec.dl, false);
+      items.delete(id);
+      groupsCache = null;
+    }
 
     // `now` is the receive time and must be monotonic across calls: a strictly
     // newer non-terminal message restarts a terminal item (retry) by design.
@@ -170,21 +224,23 @@
         error: status === 'error' ? str(p.error) : null,
         updatedAt: now
       };
-      items.set(id, { dl: dl, progress: progress, dlBytes: dlBytes, sampleAt: now, remaining: remaining });
+      put(id, { dl: dl, progress: progress, dlBytes: dlBytes, sampleAt: now, remaining: remaining });
       return dl;
     }
 
-    // The snapshot is the desktop's full queue: tracked items it omits are gone
-    // (no tombstone). Same monotonic `now` contract as ingest.
+    // The snapshot is the desktop's activity (everything unfinished plus its latest
+    // finished downloads): tracked items it omits are gone (no tombstone).
+    // Same monotonic `now` contract as ingest.
     function ingestSnapshot(list, now) {
       if (!Array.isArray(list)) return;
+      snapshotGotAt = now;
       var seen = new Set();
       for (var i = 0; i < list.length; i++) {
         if (list[i] && list[i].id != null) seen.add(String(list[i].id));
         ingest(list[i], now);
       }
       Array.from(items.keys()).forEach(function (id) {
-        if (!seen.has(id)) items.delete(id);
+        if (!seen.has(id)) drop(id);
       });
     }
 
@@ -195,31 +251,39 @@
         tombstones.set(id, rec.dl.updatedAt);
         if (tombstones.size > TOMBSTONE_CAP) tombstones.delete(tombstones.keys().next().value);
       }
-      items.delete(id);
+      drop(id);
     }
 
     function findByCardKey(key) {
       if (!key) return undefined;
-      var fields = [['tweetId', key.tweetId], ['tikTokId', key.tikTokId], ['url', key.url]];
-      for (var f = 0; f < fields.length; f++) {
-        var value = fields[f][1];
-        if (!value) continue;
+      for (var f = 0; f < KEY_FIELDS.length; f++) {
+        var ids = key[KEY_FIELDS[f]] && byKey[KEY_FIELDS[f]].get(key[KEY_FIELDS[f]]);
+        if (!ids) continue;
         var best;
-        items.forEach(function (rec) {
-          if (rec.dl[fields[f][0]] === value && (!best || rec.dl.updatedAt >= best.updatedAt)) best = rec.dl;
+        ids.forEach(function (id) {
+          var dl = items.get(id).dl;
+          if (!best || dl.updatedAt >= best.updatedAt) best = dl;
         });
         if (best) return best;
       }
       return undefined;
     }
 
-    function groups() {
+    // Shared until the next change: callers must not mutate the arrays.
+    function grouped() {
+      if (groupsCache) return groupsCache;
       var g = { running: [], queued: [], paused: [], error: [], done: [] };
       items.forEach(function (rec) {
         var s = rec.dl.status;
         g[s === 'canceled' ? 'error' : s === 'duplicate' ? 'done' : s].push(rec.dl);
       });
-      return g;
+      var positions = new Map();
+      g.queued.forEach(function (dl, i) { positions.set(dl.id, i + 1); });
+      return (groupsCache = { groups: g, positions: positions });
+    }
+
+    function groups() {
+      return grouped().groups;
     }
 
     function summary() {
@@ -258,6 +322,12 @@
       get: function (id) { var r = items.get(id); return r && r.dl; },
       findByCardKey: findByCardKey,
       groups: groups,
+      // 1-based place in the queued group, 0 when not queued.
+      queuePosition: function (id) { return grouped().positions.get(id) || 0; },
+      // Snapshot dedupe: one requested or received in the last SNAPSHOT_DEDUPE_MS is enough.
+      snapshotDue: function (now) { return now - Math.max(snapshotAskedAt, snapshotGotAt) >= SNAPSHOT_DEDUPE_MS; },
+      noteSnapshotRequest: function (now) { snapshotAskedAt = now; },
+      snapshotSince: function (t) { return snapshotGotAt >= t; },
       summary: summary,
       remove: forget,
       clearDone: clearDone
@@ -269,6 +339,10 @@
     allowedCommands: allowedCommands,
     displayStatus: displayStatus,
     planRowUpdates: planRowUpdates,
+    capRecent: capRecent,
+    pendingActive: pendingActive,
+    SNAPSHOT_DEDUPE_MS: SNAPSHOT_DEDUPE_MS,
+    PENDING_MS: PENDING_MS,
     parseSpeed: parseSpeed,
     parseEta: parseEta,
     create: create

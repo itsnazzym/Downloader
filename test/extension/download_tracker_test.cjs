@@ -420,3 +420,95 @@ test('a snapshot after a reconnect removes the downloads the app no longer has',
   assert.equal(t.get('ghost'), undefined);
   assert.equal(t.get('kept').pct, 90);
 });
+
+test('findByCardKey follows removals, prunes, tombstones and changed keys', () => {
+  const t = load().create();
+  t.ingest(p('live', { tweetId: '1' }), 1000);
+  t.remove('live');
+  assert.equal(t.findByCardKey({ tweetId: '1' }), undefined);
+
+  t.ingest(p('done', { status: 4, tikTokId: '2' }), 1000);
+  t.remove('done'); // tombstoned
+  t.ingestSnapshot([p('done', { status: 4, tikTokId: '2' })], 2000);
+  assert.equal(t.findByCardKey({ tikTokId: '2' }), undefined);
+  t.ingest(p('done', { status: 0, tikTokId: '2' }), 3000); // newer live message restarts it
+  assert.equal(t.findByCardKey({ tikTokId: '2' }).id, 'done');
+
+  t.ingest(p('gone', { url: 'https://e.com/a' }), 3000);
+  t.ingestSnapshot([p('done', { status: 0, tikTokId: '2' })], 4000);
+  assert.equal(t.findByCardKey({ url: 'https://e.com/a' }), undefined);
+
+  t.ingest(p('done', { status: 0, tikTokId: '2', url: 'https://e.com/new' }), 5000);
+  assert.equal(t.findByCardKey({ url: 'https://x.com/done' }), undefined);
+  assert.equal(t.findByCardKey({ url: 'https://e.com/new' }).id, 'done');
+});
+
+test('findByCardKey picks the newest of several downloads with the same key (retry)', () => {
+  const t = load().create();
+  t.ingest(p('old', { status: 6, tweetId: '7' }), 1000);
+  t.ingest(p('new', { status: 0, tweetId: '7' }), 2000);
+  assert.equal(t.findByCardKey({ tweetId: '7' }).id, 'new');
+  t.remove('new');
+  assert.equal(t.findByCardKey({ tweetId: '7' }).id, 'old');
+});
+
+test('5000 card lookups over 5000 downloads stay under 50 ms', () => {
+  const t = load().create();
+  for (let i = 0; i < 5000; i++) t.ingest(p('d' + i, { status: 4, tweetId: 't' + i, url: 'https://x.com/u/status/' + i }), 1000);
+  const t0 = process.hrtime.bigint();
+  for (let i = 0; i < 5000; i++) t.findByCardKey({ tweetId: 'n' + i, tikTokId: null, url: 'https://x.com/u/status/' + i });
+  const took = Number(process.hrtime.bigint() - t0) / 1e6;
+  assert.ok(took < 50, 'took ' + took.toFixed(1) + ' ms');
+  assert.equal(t.findByCardKey({ tweetId: 't42' }).id, 'd42');
+});
+
+test('groups is computed once until the tracker changes; queue positions are O(1)', () => {
+  const t = load().create();
+  t.ingest(p('q1', { status: 0 }), 1);
+  t.ingest(p('q2', { status: 0 }), 1);
+  const g = t.groups();
+  assert.equal(t.groups(), g);
+  assert.equal(t.queuePosition('q1'), 1);
+  assert.equal(t.queuePosition('q2'), 2);
+  assert.equal(t.queuePosition('nope'), 0);
+  t.ingest(p('q0', { status: 0 }), 2);
+  assert.notEqual(t.groups(), g);
+  assert.equal(t.queuePosition('q0'), 3);
+  t.remove('q1');
+  assert.equal(t.queuePosition('q2'), 1);
+});
+
+test('capRecent keeps the most recent items in their order and counts the rest', () => {
+  const { capRecent } = load();
+  const list = [{ id: 'a', updatedAt: 5 }, { id: 'b', updatedAt: 1 }, { id: 'c', updatedAt: 5 }, { id: 'd', updatedAt: 3 }];
+  const r = capRecent(list, 2);
+  assert.deepEqual(Array.from(r.shown, (d) => d.id), ['a', 'c']);
+  assert.equal(r.hidden, 2);
+  // ties go to the later item
+  assert.deepEqual(Array.from(capRecent(list, 1).shown, (d) => d.id), ['c']);
+  const all = capRecent(list, 50);
+  assert.equal(all.shown.length, 4);
+  assert.equal(all.hidden, 0);
+});
+
+test('a snapshot is not asked again within 3 s of a request or a received one', () => {
+  const t = load().create();
+  assert.equal(t.snapshotDue(10000), true);
+  t.noteSnapshotRequest(10000);
+  assert.equal(t.snapshotDue(12999), false);
+  assert.equal(t.snapshotDue(13000), true);
+  assert.equal(t.snapshotSince(10000), false);
+  t.ingestSnapshot([], 14000);
+  assert.equal(t.snapshotSince(10000), true);
+  assert.equal(t.snapshotDue(16000), false);
+  assert.equal(t.snapshotDue(17000), true);
+});
+
+test('a card spinner waits for the app at most 15 s', () => {
+  const { pendingActive } = load();
+  assert.equal(pendingActive(0, null, 1000), false);
+  assert.equal(pendingActive(1000, null, 15999), true);
+  assert.equal(pendingActive(1000, { updatedAt: 900 }, 2000), true);
+  assert.equal(pendingActive(1000, { updatedAt: 1500 }, 2000), false); // the app answered
+  assert.equal(pendingActive(1000, null, 16000), false); // no PROGRESS: give up
+});
