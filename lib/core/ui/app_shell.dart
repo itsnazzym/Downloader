@@ -204,9 +204,13 @@ class AppShell extends ConsumerWidget {
       }().whenComplete(() {
         _inviteOpen = false;
         // A request that arrived meanwhile (e.g. another origin after this
-        // one ended) still needs its own dialog.
+        // one ended) still needs its own dialog; the one just approved stays
+        // pending while it is stored and must not come back.
         final current = ref.read(pairingCoordinatorProvider);
-        if (current != null && context.mounted) {
+        if (current != null &&
+            current.id != request.id &&
+            !ref.read(pairingCoordinatorProvider.notifier).approving &&
+            context.mounted) {
           _showPairingInvite(context, ref, current);
         }
       }),
