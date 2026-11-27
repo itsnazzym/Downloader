@@ -69,6 +69,7 @@ class DesignPageTransitionsBuilder extends PageTransitionsBuilder {
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
           child: child,
         );
+      case DesignNav.glassSidebar:
       case DesignNav.sidebar:
         return const ZoomPageTransitionsBuilder().buildTransitions(
           route,

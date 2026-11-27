@@ -10431,6 +10431,366 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rules that sort your downloads into folders.'**
   String get oledLeadOrganizer;
+
+  /// No description provided for @iosFailures.
+  ///
+  /// In en, this message translates to:
+  /// **'Failures'**
+  String get iosFailures;
+
+  /// No description provided for @iosTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get iosTools;
+
+  /// No description provided for @iosRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get iosRecent;
+
+  /// No description provided for @iosEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get iosEmptyTitle;
+
+  /// No description provided for @iosEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link from YouTube, TikTok, X or anywhere else: your videos, music and pictures will line up here.'**
+  String get iosEmptyBody;
+
+  /// No description provided for @iosNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No match'**
+  String get iosNoResultsTitle;
+
+  /// No description provided for @iosNoResultsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No download matches these filters.'**
+  String get iosNoResultsFilters;
+
+  /// No description provided for @iosNoResultsQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”.'**
+  String iosNoResultsQuery(String query);
+
+  /// No description provided for @iosClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search and filters'**
+  String get iosClearFilters;
+
+  /// No description provided for @iosClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get iosClearSearch;
+
+  /// No description provided for @iosLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not be read'**
+  String get iosLoadErrorTitle;
+
+  /// No description provided for @iosLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your files are untouched. Try reading it again.'**
+  String get iosLoadErrorBody;
+
+  /// No description provided for @iosFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 download failed} other{{count} downloads failed}}'**
+  String iosFailedCount(int count);
+
+  /// No description provided for @iosEtaLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{eta} left'**
+  String iosEtaLeft(String eta);
+
+  /// No description provided for @iosWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get iosWeek;
+
+  /// No description provided for @iosMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get iosMonth;
+
+  /// No description provided for @iosStatsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No statistics yet'**
+  String get iosStatsEmptyTitle;
+
+  /// No description provided for @iosStatsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first download will draw the bars, the rings and the storage here.'**
+  String get iosStatsEmptyBody;
+
+  /// No description provided for @iosDownloadsWord.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{download} other{downloads}}'**
+  String iosDownloadsWord(int count);
+
+  /// No description provided for @iosVsBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'vs the period before'**
+  String get iosVsBefore;
+
+  /// No description provided for @iosBarsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads per day over {days} days, {today} today'**
+  String iosBarsLabel(int days, int today);
+
+  /// No description provided for @iosSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get iosSuccess;
+
+  /// No description provided for @iosSpaceUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Space used'**
+  String get iosSpaceUsed;
+
+  /// No description provided for @iosStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get iosStorage;
+
+  /// No description provided for @iosFreeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{free} free'**
+  String iosFreeLeft(String free);
+
+  /// No description provided for @iosTransferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices on the same Wi-Fi · click a device to send it the selection'**
+  String get iosTransferHint;
+
+  /// No description provided for @iosThisPc.
+  ///
+  /// In en, this message translates to:
+  /// **'This PC'**
+  String get iosThisPc;
+
+  /// No description provided for @iosSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending… {percent} %'**
+  String iosSending(int percent);
+
+  /// No description provided for @iosSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get iosSelected;
+
+  /// No description provided for @iosAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get iosAvailable;
+
+  /// No description provided for @iosSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get iosSent;
+
+  /// No description provided for @iosRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get iosRemove;
+
+  /// No description provided for @iosPairingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing code'**
+  String get iosPairingCode;
+
+  /// No description provided for @iosCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get iosCopy;
+
+  /// No description provided for @iosCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied.'**
+  String get iosCopied;
+
+  /// No description provided for @iosChooseFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose files…'**
+  String get iosChooseFiles;
+
+  /// No description provided for @iosCollectionFigures.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}} · {downloaded} downloaded'**
+  String iosCollectionFigures(int count, int downloaded);
+
+  /// No description provided for @iosInCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'In {name}'**
+  String iosInCollection(String name);
+
+  /// No description provided for @iosSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String iosSelectedCount(int count);
+
+  /// No description provided for @iosClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get iosClearSelection;
+
+  /// No description provided for @iosSelectVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Select {date}'**
+  String iosSelectVideo(String date);
+
+  /// No description provided for @iosDownloadsGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get iosDownloadsGroup;
+
+  /// No description provided for @iosNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get iosNotifications;
+
+  /// No description provided for @iosNotificationsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tells you when each download finishes'**
+  String get iosNotificationsDesc;
+
+  /// No description provided for @iosQualityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Used when nothing is specified'**
+  String get iosQualityDesc;
+
+  /// No description provided for @iosAutoStartOn.
+  ///
+  /// In en, this message translates to:
+  /// **'New links start as soon as they are added.'**
+  String get iosAutoStartOn;
+
+  /// No description provided for @iosAutoStartOff.
+  ///
+  /// In en, this message translates to:
+  /// **'New links wait in the queue until you start them.'**
+  String get iosAutoStartOff;
+
+  /// No description provided for @iosOutputGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Output folder'**
+  String get iosOutputGroup;
+
+  /// No description provided for @iosAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get iosAuto;
+
+  /// No description provided for @iosTint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tint'**
+  String get iosTint;
+
+  /// No description provided for @iosTintBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get iosTintBlue;
+
+  /// No description provided for @iosTintPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get iosTintPurple;
+
+  /// No description provided for @iosTintPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get iosTintPink;
+
+  /// No description provided for @iosTintOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get iosTintOrange;
+
+  /// No description provided for @iosTintGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get iosTintGreen;
+
+  /// No description provided for @iosTintGraphite.
+  ///
+  /// In en, this message translates to:
+  /// **'Graphite'**
+  String get iosTintGraphite;
+
+  /// No description provided for @iosChangeDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Change design'**
+  String get iosChangeDesign;
+
+  /// No description provided for @iosDesignCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} interface styles'**
+  String iosDesignCount(int count);
+
+  /// No description provided for @iosLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get iosLight;
+
+  /// No description provided for @iosDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get iosDark;
 }
 
 class _AppLocalizationsDelegate

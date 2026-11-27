@@ -6202,4 +6202,237 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get oledLeadOrganizer =>
       'Rules that sort your downloads into folders.';
+
+  @override
+  String get iosFailures => 'Failures';
+
+  @override
+  String get iosTools => 'Tools';
+
+  @override
+  String get iosRecent => 'Recent';
+
+  @override
+  String get iosEmptyTitle => 'Nothing here yet';
+
+  @override
+  String get iosEmptyBody =>
+      'Paste a link from YouTube, TikTok, X or anywhere else: your videos, music and pictures will line up here.';
+
+  @override
+  String get iosNoResultsTitle => 'No match';
+
+  @override
+  String get iosNoResultsFilters => 'No download matches these filters.';
+
+  @override
+  String iosNoResultsQuery(String query) {
+    return 'Nothing matches “$query”.';
+  }
+
+  @override
+  String get iosClearFilters => 'Clear search and filters';
+
+  @override
+  String get iosClearSearch => 'Clear search';
+
+  @override
+  String get iosLoadErrorTitle => 'The library could not be read';
+
+  @override
+  String get iosLoadErrorBody =>
+      'Your files are untouched. Try reading it again.';
+
+  @override
+  String iosFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count downloads failed',
+      one: '1 download failed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String iosEtaLeft(String eta) {
+    return '$eta left';
+  }
+
+  @override
+  String get iosWeek => 'Week';
+
+  @override
+  String get iosMonth => 'Month';
+
+  @override
+  String get iosStatsEmptyTitle => 'No statistics yet';
+
+  @override
+  String get iosStatsEmptyBody =>
+      'Your first download will draw the bars, the rings and the storage here.';
+
+  @override
+  String iosDownloadsWord(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'downloads',
+      one: 'download',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosVsBefore => 'vs the period before';
+
+  @override
+  String iosBarsLabel(int days, int today) {
+    return 'Downloads per day over $days days, $today today';
+  }
+
+  @override
+  String get iosSuccess => 'Success';
+
+  @override
+  String get iosSpaceUsed => 'Space used';
+
+  @override
+  String get iosStorage => 'Storage';
+
+  @override
+  String iosFreeLeft(String free) {
+    return '$free free';
+  }
+
+  @override
+  String get iosTransferHint =>
+      'Devices on the same Wi-Fi · click a device to send it the selection';
+
+  @override
+  String get iosThisPc => 'This PC';
+
+  @override
+  String iosSending(int percent) {
+    return 'Sending… $percent %';
+  }
+
+  @override
+  String get iosSelected => 'Selected';
+
+  @override
+  String get iosAvailable => 'Available';
+
+  @override
+  String get iosSent => 'Sent';
+
+  @override
+  String get iosRemove => 'Remove';
+
+  @override
+  String get iosPairingCode => 'Pairing code';
+
+  @override
+  String get iosCopy => 'Copy';
+
+  @override
+  String get iosCopied => 'Code copied.';
+
+  @override
+  String get iosChooseFiles => 'Choose files…';
+
+  @override
+  String iosCollectionFigures(int count, int downloaded) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '1 video',
+    );
+    return '$_temp0 · $downloaded downloaded';
+  }
+
+  @override
+  String iosInCollection(String name) {
+    return 'In $name';
+  }
+
+  @override
+  String iosSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iosClearSelection => 'Clear selection';
+
+  @override
+  String iosSelectVideo(String date) {
+    return 'Select $date';
+  }
+
+  @override
+  String get iosDownloadsGroup => 'Downloads';
+
+  @override
+  String get iosNotifications => 'Notifications';
+
+  @override
+  String get iosNotificationsDesc => 'Tells you when each download finishes';
+
+  @override
+  String get iosQualityDesc => 'Used when nothing is specified';
+
+  @override
+  String get iosAutoStartOn => 'New links start as soon as they are added.';
+
+  @override
+  String get iosAutoStartOff =>
+      'New links wait in the queue until you start them.';
+
+  @override
+  String get iosOutputGroup => 'Output folder';
+
+  @override
+  String get iosAuto => 'Auto';
+
+  @override
+  String get iosTint => 'Tint';
+
+  @override
+  String get iosTintBlue => 'Blue';
+
+  @override
+  String get iosTintPurple => 'Purple';
+
+  @override
+  String get iosTintPink => 'Pink';
+
+  @override
+  String get iosTintOrange => 'Orange';
+
+  @override
+  String get iosTintGreen => 'Green';
+
+  @override
+  String get iosTintGraphite => 'Graphite';
+
+  @override
+  String get iosChangeDesign => 'Change design';
+
+  @override
+  String iosDesignCount(int count) {
+    return '$count interface styles';
+  }
+
+  @override
+  String get iosLight => 'Light';
+
+  @override
+  String get iosDark => 'Dark';
 }

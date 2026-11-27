@@ -24,6 +24,7 @@ class AppTheme {
     // the platform look they were built with.
     final designed =
         spec.nav != DesignNav.sidebar &&
+        spec.nav != DesignNav.glassSidebar &&
         // OLED has its own desktop design; phones keep its platform look.
         !(palette.id == 'oled' && PlatformInfo.isMobile);
     final panel = BorderRadius.circular(

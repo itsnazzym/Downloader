@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:modern_downloader/core/theme/design_spec.dart';
 
+import 'chromes/ios_chrome.dart';
 import 'chromes/nocturne_chrome.dart';
 import 'chromes/oled_chrome.dart';
 import 'chromes/pastille_chrome.dart';
@@ -25,6 +26,8 @@ Widget designedChrome(DesignNav nav, String location, Widget child) {
       return TerminalChrome(location: location, child: child);
     case DesignNav.textLinks:
       return OledChrome(location: location, child: child);
+    case DesignNav.glassSidebar:
+      return IosChrome(location: location, child: child);
     case DesignNav.topTabs:
     case DesignNav.sidebar:
       return SignalChrome(location: location, child: child);
