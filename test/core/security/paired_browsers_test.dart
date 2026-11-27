@@ -10,7 +10,7 @@ const _origin = 'chrome-extension://abcdefghijklmnopabcdefghijklmnop';
 const _other = 'moz-extension://11111111-2222-3333-4444-555555555555';
 
 void main() {
-  late SharedPreferences prefs;
+  late _CountingPrefs prefs;
   late DateTime now;
   late PairedBrowsersStore store;
 
@@ -19,7 +19,7 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    prefs = await SharedPreferences.getInstance();
+    prefs = _CountingPrefs(await SharedPreferences.getInstance());
     now = DateTime.utc(2026, 11, 27, 12);
     store = newStore();
   });
@@ -90,18 +90,60 @@ void main() {
       expect(store.authenticate(token)?.id, second.id);
     });
 
-    test('5000 authentications stay fast', () async {
-      for (var i = 0; i < 5; i++) {
-        await store.pair(
-          origin: 'chrome-extension://abcdefghijklmnop$i',
-          label: '$i',
-        );
-      }
-      final sw = Stopwatch()..start();
-      for (var i = 0; i < 5000; i++) {
-        store.authenticate('A' * 42 + String.fromCharCode(65 + i % 26));
-      }
-      expect(sw.elapsedMilliseconds, lessThan(5000));
+    test(
+      '5000 authentications: all correct, at most one prefs write',
+      () async {
+        final (browser, token) = await store.pair(origin: _origin, label: 'C');
+        final writesBefore = prefs.writes;
+        for (var i = 0; i < 5000; i++) {
+          if (i.isEven) {
+            expect(store.authenticate(token)?.id, browser.id);
+          } else {
+            expect(
+              store.authenticate('A' * 42 + String.fromCharCode(65 + i % 26)),
+              isNull,
+            );
+          }
+        }
+        expect(prefs.writes - writesBefore, lessThanOrEqualTo(1));
+      },
+    );
+
+    test('lastSeenAt throttle is measured against the STORED value', () async {
+      final (browser, token) = await store.pair(origin: _origin, label: 'C');
+      final base = prefs.writes;
+
+      store.authenticate(token); // never stored -> writes
+      expect(prefs.writes, base + 1);
+
+      now = now.add(const Duration(seconds: 30));
+      store.authenticate(token); // in memory only
+      expect(prefs.writes, base + 1);
+      expect(store.state.browsers.single.lastSeenAt, now);
+
+      now = now.add(const Duration(seconds: 29)); // 59 s after the write
+      store.authenticate(token);
+      expect(prefs.writes, base + 1);
+
+      now = now.add(const Duration(seconds: 2)); // 61 s after the write
+      store.authenticate(token);
+      expect(prefs.writes, base + 2);
+      await Future<void>.delayed(Duration.zero);
+      final stored = jsonDecode(prefs.getString(_key)!) as Map;
+      expect(
+        (stored['browsers'] as List).single['lastSeenAt'],
+        now.toIso8601String(),
+      );
+      expect(browser.id, isNotEmpty);
+    });
+
+    test('a failing prefs write never throws out of authenticate', () async {
+      final (_, token) = await store.pair(origin: _origin, label: 'C');
+      prefs.failWrites = true;
+      expect(store.authenticate(token), isNotNull);
+      await Future<void>.delayed(
+        Duration.zero,
+      ); // unhandled error would fail the test
     });
   });
 
@@ -218,4 +260,252 @@ void main() {
       s.dispose();
     });
   });
+
+  group('bounds', () {
+    test(
+      'label: control/bidi chars stripped, trimmed, collapsed, <= 80',
+      () async {
+        final (b, _) = await store.pair(
+          origin: _origin,
+          label: '\u202E  Chro\u200Bme\r\n\t  \u0000 Evil\u2066  ${'x' * 200}',
+        );
+        expect(b.label, startsWith('Chrome Evil '));
+        expect(b.label.length, lessThanOrEqualTo(80));
+        expect(
+          b.label,
+          isNot(
+            matches(
+              RegExp(r'[\u0000-\u001F\u200B-\u200F\u202A-\u202E\u2066-\u2069]'),
+            ),
+          ),
+        );
+        expect(b.label, isNot(contains('  ')));
+      },
+    );
+
+    test(
+      'label of 5 MB is capped and the persisted JSON stays small',
+      () async {
+        final (b, _) = await store.pair(
+          origin: _origin,
+          label: 'a' * 5 * 1024 * 1024,
+        );
+        expect(b.label.length, lessThanOrEqualTo(80));
+        expect(prefs.getString(_key)!.length, lessThan(2000));
+      },
+    );
+
+    test('empty or invisible-only label falls back to Navigateur', () async {
+      final (a, _) = await store.pair(origin: _origin, label: '');
+      final (b, _) = await store.pair(origin: _other, label: '\u200B\u202E \n');
+      expect(a.label, 'Navigateur');
+      expect(b.label, 'Navigateur');
+    });
+
+    test('origin: control chars stripped and capped at 200', () async {
+      final (b, _) = await store.pair(
+        origin: ' chrome-extension://ab\ncd\u200B ${'z' * 5000}',
+        label: 'C',
+      );
+      expect(b.origin, startsWith('chrome-extension://abcd'));
+      expect(b.origin.length, lessThanOrEqualTo(200));
+    });
+
+    test('empty origin throws ArgumentError in pair and block', () async {
+      await expectLater(
+        store.pair(origin: '', label: 'C'),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.pair(origin: ' \u200B\n', label: 'C'),
+        throwsArgumentError,
+      );
+      expect(() => store.block(''), throwsArgumentError);
+      expect(store.state.browsers, isEmpty);
+      expect(store.state.blockedOrigins, isEmpty);
+    });
+
+    test('21st pairing throws PairedBrowsersFull and stores nothing', () async {
+      for (var i = 0; i < 20; i++) {
+        await store.pair(
+          origin: 'chrome-extension://abcdefghijklmnop$i',
+          label: '$i',
+        );
+      }
+      await expectLater(
+        store.pair(origin: _origin, label: 'x'),
+        throwsA(isA<PairedBrowsersFull>()),
+      );
+      expect(store.state.browsers, hasLength(20));
+      // Revoking frees a slot.
+      await store.revoke(store.state.browsers.first.id);
+      await store.pair(origin: _origin, label: 'x');
+      expect(store.state.browsers, hasLength(20));
+    });
+
+    test('51st blocked origin drops the oldest', () async {
+      for (var i = 0; i < 51; i++) {
+        await store.block('https://site$i.example');
+      }
+      expect(store.state.blockedOrigins, hasLength(50));
+      expect(store.isBlocked('https://site0.example'), isFalse);
+      expect(store.isBlocked('https://site1.example'), isTrue);
+      expect(store.isBlocked('https://site50.example'), isTrue);
+    });
+
+    test(
+      'block does NOT invalidate existing pairings (new invitations only)',
+      () async {
+        final (browser, token) = await store.pair(origin: _origin, label: 'C');
+        await store.block(_origin);
+        expect(store.isBlocked(_origin), isTrue);
+        expect(store.authenticate(token)?.id, browser.id);
+      },
+    );
+
+    test(
+      'same origin twice: revoking one pauses new pairings, other still authenticates',
+      () async {
+        final (a, _) = await store.pair(origin: _origin, label: 'A');
+        final (b, tb) = await store.pair(origin: _origin, label: 'B');
+        await store.revoke(a.id);
+        expect(store.pauseRemaining(_origin), const Duration(minutes: 10));
+        expect(store.authenticate(tb)?.id, b.id);
+      },
+    );
+
+    test(
+      'concurrent mutations: memory and prefs keep the last state',
+      () async {
+        final results = await Future.wait([
+          store.pair(origin: _origin, label: 'A'),
+          store.pair(origin: _other, label: 'B'),
+          store.block('https://x.example'),
+          store.block('https://y.example'),
+        ]);
+        expect(results, hasLength(4));
+        expect(store.state.browsers, hasLength(2));
+        expect(store.state.blockedOrigins, {
+          'https://x.example',
+          'https://y.example',
+        });
+        final reloaded = newStore();
+        expect(
+          reloaded.state.browsers.map((b) => b.id).toSet(),
+          store.state.browsers.map((b) => b.id).toSet(),
+        );
+        expect(reloaded.state.blockedOrigins, store.state.blockedOrigins);
+        reloaded.dispose();
+      },
+    );
+  });
+
+  group('tampered prefs', () {
+    String hash(int i) => PairedBrowsersStore.hashToken('t$i');
+    Map<String, dynamic> entry(
+      String id,
+      String h, {
+      String origin = _origin,
+      String label = 'L',
+    }) => {
+      'id': id,
+      'origin': origin,
+      'label': label,
+      'tokenHash': h,
+      'createdAt': now.toIso8601String(),
+      'lastSeenAt': null,
+    };
+
+    test('duplicate ids and duplicate token hashes are deduped', () async {
+      await prefs.setString(
+        _key,
+        jsonEncode({
+          'browsers': [
+            entry('a', hash(1)),
+            entry('a', hash(2)), // dup id
+            entry('b', hash(1)), // dup hash
+            entry('c', hash(3)),
+            entry('d', 'not-a-hash'),
+            entry('e', hash(4), origin: ' \u200B'),
+          ],
+        }),
+      );
+      final s = newStore();
+      expect(s.state.browsers.map((b) => b.id), ['a', 'c']);
+      s.dispose();
+    });
+
+    test(
+      'over-long fields and too many entries are truncated on load',
+      () async {
+        await prefs.setString(
+          _key,
+          jsonEncode({
+            'browsers': [
+              for (var i = 0; i < 40; i++)
+                entry('id$i', hash(i), origin: 'o' * 2000, label: 'l' * 2000),
+            ],
+            'blockedOrigins': [
+              for (var i = 0; i < 80; i++) 'https://b$i.example',
+            ],
+            'pausedUntil': {
+              for (var i = 0; i < 300; i++)
+                'o$i': now.add(const Duration(minutes: 5)).toIso8601String(),
+            },
+          }),
+        );
+        expect(prefs.getString(_key)!.length, lessThan(256 * 1024));
+        final s = newStore();
+        expect(s.state.browsers, hasLength(20));
+        expect(
+          s.state.browsers.every(
+            (b) => b.label.length <= 80 && b.origin.length <= 200,
+          ),
+          isTrue,
+        );
+        expect(s.state.blockedOrigins, hasLength(50));
+        expect(s.state.blockedOrigins.contains('https://b79.example'), isTrue);
+        expect(s.state.pausedUntil.length, lessThanOrEqualTo(100));
+        s.dispose();
+      },
+    );
+
+    test(
+      'a 2 MB prefs string loads without throwing and keeps nothing',
+      () async {
+        await prefs.setString(
+          _key,
+          jsonEncode({
+            'browsers': [entry('a', hash(1), label: 'l' * 2 * 1024 * 1024)],
+          }),
+        );
+        final s = newStore();
+        expect(s.state.browsers, isEmpty);
+        expect(s.state.blockedOrigins, isEmpty);
+        expect(s.state.pausedUntil, isEmpty);
+        s.dispose();
+      },
+    );
+  });
+}
+
+/// Counts writes; every other member is unused by the store.
+class _CountingPrefs implements SharedPreferences {
+  _CountingPrefs(this._inner);
+  final SharedPreferences _inner;
+  int writes = 0;
+  bool failWrites = false;
+
+  @override
+  String? getString(String key) => _inner.getString(key);
+
+  @override
+  Future<bool> setString(String key, String value) {
+    writes++;
+    if (failWrites) return Future.error(StateError('disk full'));
+    return _inner.setString(key, value);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

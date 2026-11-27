@@ -12,6 +12,55 @@ const _tokenLength = 43; // 32 random bytes, base64url without padding
 const _pauseAfterRevoke = Duration(minutes: 10);
 const _lastSeenPersistEvery = Duration(minutes: 1);
 
+// Label and origin come from the (attacker-influenced) browser, and everything
+// is rewritten into ONE prefs string on each save, so every size is bounded.
+const _maxBrowsers = 20;
+const _maxBlocked = 50;
+const _maxPaused = 100;
+const _maxLabel = 80;
+const _maxOrigin = 200;
+const _maxStoredChars = 256 * 1024; // legit data is well under 60 KB
+const _defaultLabel = 'Navigateur';
+
+final _controlChars = RegExp(r'[\u0000-\u001F\u007F-\u009F\u2028\u2029]');
+// Zero-width, bidi marks/overrides/isolates, word joiner, BOM.
+final _invisibleChars = RegExp(
+  r'[\u200B-\u200F\u202A-\u202E\u2060\u2066-\u2069\uFEFF]',
+);
+final _sha256Hex = RegExp(r'^[0-9a-f]{64}$');
+
+String _capRunes(String s, int max) =>
+    s.runes.length <= max ? s : String.fromCharCodes(s.runes.take(max));
+
+// Pre-truncating first keeps the regexes cheap on a multi-megabyte input.
+String _preCap(String s) => s.length > 1000 ? s.substring(0, 1000) : s;
+
+String _cleanLabel(String raw) {
+  final s = _preCap(raw)
+      .replaceAll(_invisibleChars, '')
+      .replaceAll(_controlChars, ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  final capped = _capRunes(s, _maxLabel).trim();
+  return capped.isEmpty ? _defaultLabel : capped;
+}
+
+String _cleanOrigin(String raw) => _capRunes(
+  _preCap(
+    raw,
+  ).replaceAll(_invisibleChars, '').replaceAll(_controlChars, '').trim(),
+  _maxOrigin,
+);
+
+/// Thrown by [PairedBrowsersStore.pair] when [_maxBrowsers] pairings already
+/// exist. The caller should refuse the pairing (the user must revoke one).
+class PairedBrowsersFull implements Exception {
+  const PairedBrowsersFull();
+  @override
+  String toString() =>
+      'PairedBrowsersFull: at most $_maxBrowsers paired browsers';
+}
+
 /// A browser extension that completed pairing. Only the SHA-256 of its
 /// token is kept; the token itself is shown once, at pairing time.
 class PairedBrowser {
@@ -80,12 +129,15 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
       _random = random ?? Random.secure(),
       super(const PairedBrowsersState()) {
     state = _load();
+    _syncPersistedSeen();
   }
 
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
   final Random _random;
   final _revoked = StreamController<PairedBrowser>.broadcast();
+  // lastSeenAt as last written to prefs, per browser id (drives the throttle).
+  var _persistedSeen = <String, DateTime>{};
 
   /// Emits each browser removed by [revoke] / [revokeAll], so the server can
   /// close its sockets.
@@ -95,15 +147,23 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
       sha256.convert(utf8.encode(token)).toString();
 
   /// Creates a pairing. The returned token is the only copy ever in clear.
+  ///
+  /// [label] is sanitised (control/bidi chars removed, <= 80 chars, falls back
+  /// to "Navigateur"); [origin] is cleaned and capped at 200 chars.
+  /// Throws [ArgumentError] if the cleaned origin is empty and
+  /// [PairedBrowsersFull] when 20 browsers are already paired.
   Future<(PairedBrowser, String)> pair({
     required String origin,
     required String label,
   }) async {
+    final cleanOrigin = _cleanOrigin(origin);
+    if (cleanOrigin.isEmpty) throw ArgumentError.value(origin, 'origin');
+    if (state.browsers.length >= _maxBrowsers) throw const PairedBrowsersFull();
     final token = base64Url.encode(_bytes(32)).replaceAll('=', '');
     final browser = PairedBrowser(
       id: _hex(_bytes(8)),
-      origin: origin,
-      label: label,
+      origin: cleanOrigin,
+      label: _cleanLabel(label),
       tokenHash: hashToken(token),
       createdAt: _clock(),
     );
@@ -124,13 +184,14 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
 
     final now = _clock();
     final seen = match._seen(now);
-    final previous = match.lastSeenAt;
+    final persisted = _persistedSeen[match.id];
     final browsers = [
       for (final b in state.browsers) b.id == seen.id ? seen : b,
     ];
-    // Disk write only when the stored value is stale: authenticate is hot.
-    if (previous == null || now.difference(previous) >= _lastSeenPersistEvery) {
-      unawaited(_save(browsers: browsers));
+    // Disk write only when the STORED value is stale: authenticate is hot.
+    if (persisted == null ||
+        now.difference(persisted) >= _lastSeenPersistEvery) {
+      unawaited(_save(browsers: browsers).catchError((_) {}));
     } else {
       state = PairedBrowsersState(
         browsers: browsers,
@@ -152,8 +213,19 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
     await _remove(List.of(state.browsers));
   }
 
-  Future<void> block(String origin) =>
-      _save(blocked: {...state.blockedOrigins, origin});
+  /// Blocks an origin for NEW invitations only: existing pairings of that
+  /// origin keep authenticating (revoke them to cut access). Keeps the 50
+  /// newest entries; throws [ArgumentError] on an empty origin.
+  Future<void> block(String origin) {
+    final o = _cleanOrigin(origin);
+    if (o.isEmpty) throw ArgumentError.value(origin, 'origin');
+    if (state.blockedOrigins.contains(o)) return Future.value();
+    final blocked = {...state.blockedOrigins, o};
+    while (blocked.length > _maxBlocked) {
+      blocked.remove(blocked.first);
+    }
+    return _save(blocked: blocked);
+  }
 
   Future<void> unblock(String origin) =>
       _save(blocked: {...state.blockedOrigins}..remove(origin));
@@ -161,6 +233,8 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
   bool isBlocked(String origin) => state.blockedOrigins.contains(origin);
 
   /// Time left on the post-revocation pause for [origin], or null if none.
+  /// The pause is per origin: revoking one of several browsers sharing an
+  /// origin pauses NEW pairings from it, while the others still authenticate.
   Duration? pauseRemaining(String origin) {
     final until = state.pausedUntil[origin];
     if (until == null) return null;
@@ -176,10 +250,15 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
 
   Future<void> _remove(List<PairedBrowser> gone) async {
     final ids = gone.map((b) => b.id).toSet();
-    final until = _clock().add(_pauseAfterRevoke);
+    final now = _clock();
+    final until = now.add(_pauseAfterRevoke);
     await _save(
       browsers: state.browsers.where((b) => !ids.contains(b.id)).toList(),
-      paused: {...state.pausedUntil, for (final b in gone) b.origin: until},
+      paused: {
+        for (final e in state.pausedUntil.entries)
+          if (e.value.isAfter(now)) e.key: e.value,
+        for (final b in gone) b.origin: until,
+      },
     );
     if (_revoked.isClosed) return;
     gone.forEach(_revoked.add);
@@ -196,6 +275,7 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
       pausedUntil: paused ?? state.pausedUntil,
     );
     state = next;
+    _syncPersistedSeen();
     await _prefs.setString(
       _kPairedBrowsers,
       jsonEncode({
@@ -209,22 +289,54 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
     );
   }
 
-  /// Corrupt or oddly typed data yields an empty (or partial) state, never
-  /// an exception; pauses already over are dropped.
+  void _syncPersistedSeen() => _persistedSeen = {
+    for (final b in state.browsers)
+      if (b.lastSeenAt != null) b.id: b.lastSeenAt!,
+  };
+
+  /// Corrupt, oversized or oddly typed data yields an empty (or partial)
+  /// state, never an exception. Entries are re-sanitised, deduped by id and
+  /// token hash and capped; pauses already over are dropped.
   PairedBrowsersState _load() {
     try {
       final raw = _prefs.getString(_kPairedBrowsers);
-      if (raw == null) return const PairedBrowsersState();
+      if (raw == null || raw.length > _maxStoredChars) {
+        return const PairedBrowsersState();
+      }
       final j = jsonDecode(raw);
       if (j is! Map) return const PairedBrowsersState();
 
       final browsers = <PairedBrowser>[];
+      final ids = <String>{};
+      final hashes = <String>{};
       final rawBrowsers = j['browsers'];
       if (rawBrowsers is List) {
         for (final e in rawBrowsers) {
+          if (browsers.length >= _maxBrowsers) break;
           try {
+            final b = PairedBrowser.fromJson(
+              Map<String, dynamic>.from(e as Map),
+            );
+            final origin = _cleanOrigin(b.origin);
+            if (origin.isEmpty ||
+                b.id.isEmpty ||
+                b.id.length > 64 ||
+                !_sha256Hex.hasMatch(b.tokenHash) ||
+                ids.contains(b.id) ||
+                hashes.contains(b.tokenHash)) {
+              continue;
+            }
+            ids.add(b.id);
+            hashes.add(b.tokenHash);
             browsers.add(
-              PairedBrowser.fromJson(Map<String, dynamic>.from(e as Map)),
+              PairedBrowser(
+                id: b.id,
+                origin: origin,
+                label: _cleanLabel(b.label),
+                tokenHash: b.tokenHash,
+                createdAt: b.createdAt,
+                lastSeenAt: b.lastSeenAt,
+              ),
             );
           } catch (_) {
             // Skip an unreadable entry, keep the others.
@@ -232,9 +344,16 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
         }
       }
       final rawBlocked = j['blockedOrigins'];
-      final blocked = rawBlocked is List
-          ? rawBlocked.whereType<String>().toSet()
-          : <String>{};
+      final blocked = <String>{};
+      if (rawBlocked is List) {
+        for (final o in rawBlocked.whereType<String>()) {
+          final c = _cleanOrigin(o);
+          if (c.isNotEmpty) blocked.add(c);
+        }
+        while (blocked.length > _maxBlocked) {
+          blocked.remove(blocked.first); // keep the newest
+        }
+      }
 
       final now = _clock();
       final paused = <String, DateTime>{};
@@ -242,8 +361,12 @@ class PairedBrowsersStore extends StateNotifier<PairedBrowsersState> {
       if (rawPaused is Map) {
         for (final e in rawPaused.entries) {
           final until = e.value is String ? DateTime.tryParse(e.value) : null;
-          if (e.key is String && until != null && until.isAfter(now)) {
-            paused[e.key as String] = until;
+          if (e.key is! String || until == null || !until.isAfter(now)) {
+            continue;
+          }
+          final origin = _cleanOrigin(e.key as String);
+          if (origin.isNotEmpty && paused.length < _maxPaused) {
+            paused[origin] = until;
           }
         }
       }
