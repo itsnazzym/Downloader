@@ -35,7 +35,8 @@ If nobody answers within 2 minutes the request expires; the app sets no pause, a
 (the app's pause would refuse an earlier retry) and the extension asks again once the pause is over. Only after an expiry or a busy answer does the
 popup offer a **Try again** button, which asks the background script to start over immediately.
 The hourly limit is not a refusal: the popup says "Too many requests" with the time left and no button. Without a
-token the extension does not reconnect before a pause ends (once a day after Always deny, not every 10 seconds).
+token the extension schedules no reconnect before a pause ends (not every 10 seconds); only a restart of its
+background script still makes one attempt.
 Saving a setting or **Test connection** while a request waits keeps its socket, so the code does not change.
 
 **Security.**
