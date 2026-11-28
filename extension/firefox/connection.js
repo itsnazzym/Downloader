@@ -343,6 +343,7 @@
         requestId: message.requestId,
         expiresInSeconds: message.expiresInSeconds,
         retryAfterSeconds: message.retryAfterSeconds,
+        reason: message.reason,
       });
       return;
     }

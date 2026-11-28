@@ -39,6 +39,13 @@ Future<void> main(List<String> args) async {
     }
   }
 
+  // The hourly limit must not read as a refusal (PAIR_PAUSED reason).
+  final pairing = File('${root.path}/extension/shared/pairing.js');
+  if (pairing.existsSync() &&
+      !(await pairing.readAsString()).contains("'rate_limited'")) {
+    fail("pairing.js missing expected token: 'rate_limited'");
+  }
+
   for (final name in [
     'url_policy.js',
     'theme.js',

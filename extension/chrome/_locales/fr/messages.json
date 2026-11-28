@@ -1037,6 +1037,15 @@
     "pairUpdateBody": {
         "message": "Cette version de TapLoad est trop ancienne pour l’appairage automatique."
     },
+    "pairLimitedTitle": {
+        "message": "Trop de demandes"
+    },
+    "pairLimitedBody": {
+        "message": "TapLoad limite le nombre de demandes d’appairage par heure."
+    },
+    "pairLimitedIn": {
+        "message": "Nouvel essai automatique dans {time}."
+    },
     "pairRetryIn": {
         "message": "Nouvelle demande possible dans {time}."
     },

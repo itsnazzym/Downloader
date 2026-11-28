@@ -13,7 +13,7 @@
   // PAIR_EXPIRED / PAIR_BUSY carry no delay: no new prompt for 30 min unless Retry (no re-invite loop); busy clears soon.
   var EXPIRED_PAUSE_MS = 30 * 60 * 1000;
   var BUSY_PAUSE_MS = 30 * 1000;
-  var PAUSE_PHASES = ['denied', 'paused', 'expired', 'busy'];
+  var PAUSE_PHASES = ['denied', 'paused', 'limited', 'expired', 'busy'];
 
   var IDLE = { phase: 'idle' };
 
@@ -53,7 +53,11 @@
       case 'PAIR_DENIED':
         return { phase: 'denied', until: now + seconds(event.retryAfterSeconds, DEFAULT_PAUSE_S) * 1000 };
       case 'PAIR_PAUSED':
-        return { phase: 'paused', until: now + seconds(event.retryAfterSeconds, DEFAULT_PAUSE_S) * 1000 };
+        // rate_limited = too many requests this hour, not the user's refusal (an older app sends no reason).
+        return {
+          phase: event.reason === 'rate_limited' ? 'limited' : 'paused',
+          until: now + seconds(event.retryAfterSeconds, DEFAULT_PAUSE_S) * 1000,
+        };
       case 'PAIR_EXPIRED':
         return { phase: 'expired', until: now + EXPIRED_PAUSE_MS };
       case 'PAIR_BUSY':

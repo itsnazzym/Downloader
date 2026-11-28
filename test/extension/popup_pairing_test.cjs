@@ -106,6 +106,7 @@ const PHASES = {
   pending: { title: 'pairPendingTitle', body: 'pairPendingBody' },
   denied: { title: 'pairDeniedTitle', body: 'pairDeniedBody' },
   paused: { title: 'pairDeniedTitle', body: 'pairDeniedBody' },
+  limited: { title: 'pairLimitedTitle', body: 'pairLimitedBody' },
   expired: { title: 'pairExpiredTitle', body: 'pairExpiredBody' },
   busy: { title: 'pairBusyTitle', body: 'pairBusyBody' },
   update_needed: { title: 'pairUpdateTitle', body: 'pairUpdateBody' },
@@ -147,7 +148,7 @@ test('a stale pending state (past its deadline) is shown as app not found', asyn
 test('after a refusal only the remaining delay shows; Retry exists only for expired and busy', async () => {
   for (const phase of Object.keys(PHASES)) {
     const popup = await load(stateFor(phase));
-    const counts = ['denied', 'paused'].includes(phase);
+    const counts = ['denied', 'paused', 'limited'].includes(phase);
     assert.equal(popup.el('pair-retry-btn').hidden, !['expired', 'busy'].includes(phase), phase + ' retry');
     assert.equal(popup.el('pair-delay').hidden, !counts, phase + ' delay');
     if (counts) {
@@ -159,6 +160,16 @@ test('after a refusal only the remaining delay shows; Retry exists only for expi
   assert.equal(over.el('pair-retry-btn').hidden, true, 'the extension asks again by itself after the pause');
   const always = await load({ pairing: { phase: 'denied', until: T0 + 86400000 } });
   assert.match(always.text('pair-delay'), /24/);
+});
+
+test('the hourly limit reads as a neutral automatic retry, never as a refusal', async () => {
+  for (const locale of ['fr', 'en', 'ar']) {
+    const popup = await load(stateFor('limited'), { locale });
+    assert.notEqual(popup.title(), msg('pairDeniedTitle', locale), locale);
+    const [before, after] = msg('pairLimitedIn', locale).split('{time}');
+    const delay = popup.text('pair-delay');
+    assert.ok(delay.startsWith(before) && delay.endsWith(after) && delay.length > before.length + after.length, locale + ': ' + delay);
+  }
 });
 
 test('Retry sends MD_PAIRING_RETRY to the background', async () => {
@@ -322,6 +333,7 @@ test('fr, en and ar define exactly the same keys, and every key the popup uses',
   }
   for (const l of ['fr', 'en', 'ar']) {
     assert.match(msg('pairRetryIn', l), /\{time\}/, l);
+    assert.match(msg('pairLimitedIn', l), /\{time\}/, l);
     for (const [key, value] of Object.entries(locales[l])) assert.ok(value.message.trim(), key + ' empty in ' + l);
   }
 });

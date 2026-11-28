@@ -54,7 +54,10 @@ test('paused, expired and busy each carry an until', () => {
   assert.deepEqual(plain(expired), { phase: 'expired', until: NOW + 30 * 60000 }, 'no quick re-invite loop');
   const busy = P.next(idle, { type: 'PAIR_BUSY', now: NOW });
   assert.deepEqual(plain(busy), { phase: 'busy', until: NOW + 30000 });
-  [paused, expired, busy].forEach((s) => {
+  // The hourly limit is not the user's refusal; an older app sends no reason and stays 'paused'.
+  const limited = P.next(idle, { type: 'PAIR_PAUSED', retryAfterSeconds: 1800, reason: 'rate_limited', now: NOW });
+  assert.deepEqual(plain(limited), { phase: 'limited', until: NOW + 1800000 });
+  [paused, expired, busy, limited].forEach((s) => {
     assert.equal(P.shouldRequestPairing(s, NOW + 1), false);
     assert.equal(P.shouldRequestPairing(s, s.until), true);
   });

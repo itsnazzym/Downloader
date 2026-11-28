@@ -28,6 +28,10 @@ class ExtensionPairingContract {
   static const notAuthenticated = 'not_authenticated';
   static const helloTimeout = 'hello_timeout';
 
+  /// PAIR_PAUSED reason: too many requests, not the user's refusal (an
+  /// older app sends no reason).
+  static const rateLimited = 'rate_limited';
+
   /// What an origin blocked with "Always deny" is told to wait.
   static const blockedRetryAfter = Duration(days: 1);
 
@@ -57,9 +61,10 @@ class ExtensionPairingContract {
     'retryAfterSeconds': _seconds(retryAfter),
   };
 
-  static Map<String, dynamic> paused(Duration retryAfter) => {
+  static Map<String, dynamic> paused(Duration retryAfter, {String? reason}) => {
     'type': pairPaused,
     'retryAfterSeconds': _seconds(retryAfter),
+    'reason': ?reason,
   };
 
   static Map<String, dynamic> expired() => {'type': pairExpired};

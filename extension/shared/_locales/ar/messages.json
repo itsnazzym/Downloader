@@ -1037,6 +1037,15 @@
     "pairUpdateBody": {
         "message": "هذا الإصدار من TapLoad قديم جدًا للاقتران التلقائي."
     },
+    "pairLimitedTitle": {
+        "message": "طلبات كثيرة جدًا"
+    },
+    "pairLimitedBody": {
+        "message": "يحدّ TapLoad من عدد طلبات الاقتران في الساعة."
+    },
+    "pairLimitedIn": {
+        "message": "ستُعاد المحاولة تلقائيًا بعد {time}."
+    },
     "pairRetryIn": {
         "message": "يمكن إرسال طلب جديد بعد {time}."
     },

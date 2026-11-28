@@ -521,7 +521,8 @@ void main() {
       },
     );
 
-    test('the 4th request within the hour is PAIR_PAUSED', () async {
+    test('the 4th request within the hour is PAIR_PAUSED rate_limited, '
+        'not a refusal', () async {
       for (var i = 0; i < 3; i++) {
         final p = await open();
         expect((await requestPairing(p))['type'], 'PAIR_PENDING');
@@ -533,6 +534,7 @@ void main() {
       expect(await requestPairing(p), {
         'type': 'PAIR_PAUSED',
         'retryAfterSeconds': 1800,
+        'reason': 'rate_limited',
       });
     });
 

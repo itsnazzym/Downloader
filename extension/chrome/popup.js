@@ -104,10 +104,12 @@
     expired: ['pairExpiredTitle', 'Demande expirée', 'pairExpiredBody', 'Aucune réponse dans TapLoad.'],
     busy: ['pairBusyTitle', 'Une autre demande est en cours', 'pairBusyBody', 'Nouvel essai automatique dans un instant.'],
     update_needed: ['pairUpdateTitle', 'Mettez à jour l’application', 'pairUpdateBody', 'Cette version de TapLoad est trop ancienne pour l’appairage automatique.'],
+    // The app's hourly request limit: nobody refused.
+    limited: ['pairLimitedTitle', 'Trop de demandes', 'pairLimitedBody', 'TapLoad limite le nombre de demandes d’appairage par heure.'],
   };
   PAIR_TEXT.paused = PAIR_TEXT.denied;
-  // After a refusal the app's pause covers retries, so denied/paused only count down; expired/busy can ask again at once.
-  var PAIR_COUNTDOWN_PHASES = ['denied', 'paused'];
+  // After a refusal or the hourly limit the app's pause covers retries, so these only count down; expired/busy can ask again at once.
+  var PAIR_COUNTDOWN_PHASES = ['denied', 'paused', 'limited'];
   var PAIR_RETRY_PHASES = ['expired', 'busy'];
 
   // null once connected; a pending code past its deadline is no longer on the app's screen.
@@ -143,8 +145,11 @@
     pairDelay.hidden = !countdown;
     if (countdown) {
       var left = Math.ceil(((pairing && pairing.until) - now) / 1000);
+      var retryIn = phase === 'limited'
+        ? t('pairLimitedIn', 'Nouvel essai automatique dans {time}.')
+        : t('pairRetryIn', 'Nouvelle demande possible dans {time}.');
       pairDelay.textContent = left > 0
-        ? t('pairRetryIn', 'Nouvelle demande possible dans {time}.').replace('{time}', formatDelay(left))
+        ? retryIn.replace('{time}', formatDelay(left))
         : t('pairRetryReady', 'Une nouvelle demande est possible.');
     }
   }

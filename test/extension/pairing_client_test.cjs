@@ -264,6 +264,18 @@ test('PAIR_BUSY: asks again after 30 s', async () => {
   assert.equal(bg.sentOfType('PAIR_REQUEST').length, 1);
 });
 
+test('PAIR_PAUSED rate_limited is stored as limited, a bare PAIR_PAUSED (older app) as paused', async () => {
+  const bg = await load();
+  bg.open();
+  bg.fromApp(PAIRING_REQUIRED);
+  bg.fromApp({ type: 'PAIR_PAUSED', retryAfterSeconds: 1800, reason: 'rate_limited' });
+  await flush();
+  assert.deepEqual(bg.storage.pairing, { phase: 'limited', until: T0 + 1800000 });
+  bg.fromApp({ type: 'PAIR_PAUSED', retryAfterSeconds: 600 });
+  await flush();
+  assert.deepEqual(bg.storage.pairing, { phase: 'paused', until: T0 + 600000 });
+});
+
 test('a pause stored by a previous service worker is respected', async () => {
   const bg = await load({ pairing: { phase: 'paused', until: T0 + 60000 } });
   bg.open();

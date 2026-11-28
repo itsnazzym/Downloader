@@ -442,8 +442,12 @@ Ready for Extension Connection
     if (request == null || outcome == null) {
       LoggerService.i('Pairing request refused: ${submitted.refusal?.name}');
       _send(c, switch (submitted.refusal) {
-        PairingRefusal.paused || PairingRefusal.rateLimited => _Msg.paused(
+        PairingRefusal.paused => _Msg.paused(
           submitted.retryAfter ?? Duration.zero,
+        ),
+        PairingRefusal.rateLimited => _Msg.paused(
+          submitted.retryAfter ?? Duration.zero,
+          reason: _Msg.rateLimited,
         ),
         PairingRefusal.blocked => _Msg.denied(_Msg.blockedRetryAfter),
         PairingRefusal.busy || PairingRefusal.full || null => _Msg.busy(),
