@@ -47,7 +47,7 @@ class El {
 }
 
 // popup.js against a minimal DOM built from popup.html's ids; timers never run.
-async function load(store = {}, { locale = 'fr', now = T0 } = {}) {
+async function load(store = {}, { locale = 'fr', now = T0, responses = {} } = {}) {
   const storage = plain(store);
   const sent = [];
   const els = {};
@@ -67,7 +67,7 @@ async function load(store = {}, { locale = 'fr', now = T0 } = {}) {
     runtime: {
       sendMessage: (message, cb) => {
         sent.push(message);
-        if (cb) cb(message.type === 'MD_PAIRING_RETRY' ? { ok: true } : undefined);
+        if (cb) cb(message.type === 'MD_PAIRING_RETRY' ? { ok: true } : responses[message.type]);
       },
     },
     storage: {
@@ -199,6 +199,19 @@ test('pairing_required is never reported as a bad token; real auth errors still 
   assert.equal(old.text('connection-msg'), '', 'update_needed already explains it');
   const wrong = await load({ lastAuthError: 'auth_failed', apiToken: 'typo' });
   assert.equal(wrong.text('connection-msg'), msg('authFailed'));
+});
+
+test('Test connection during the wait reports nothing: the waiting card already explains', async () => {
+  const popup = await load(
+    { lastAuthError: 'pairing_required', ...stateFor('pending') },
+    { responses: { TEST_CONNECTION: { ok: false, error: 'pairing_pending' } } },
+  );
+  popup.el('test-connection-btn').click();
+  await flush();
+  assert.ok(popup.sent.some((m) => m.type === 'TEST_CONNECTION'));
+  assert.equal(popup.text('connection-msg'), msg('connecting'), 'no token or failure message');
+  assert.equal(popup.el('test-connection-btn').disabled, false);
+  assert.equal(popup.body.dataset.pair, 'pending');
 });
 
 test('the token field lives in a collapsed Advanced section', () => {

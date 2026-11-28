@@ -1356,7 +1356,8 @@
   }
 
   function sendTikTokCollectionsToApp(collections, collectionListComplete, requestId) {
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
+    // Not while pairing: a big frame on the waiting socket makes the app close it and withdraw the request.
+    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
       logDiag('TIKTOK_SEND_ERR', 'Socket not open');
       return false;
     }
@@ -1539,6 +1540,11 @@
         sendResponse({ ok: true, connected: true });
         return false;
       }
+      // Reconnecting would withdraw the request the app is showing and change its code.
+      if (pairRequested && socket && socket.readyState === WebSocket.OPEN) {
+        sendResponse({ ok: false, error: 'pairing_pending' });
+        return false;
+      }
 
       // If disconnected or connecting, trigger connect and wait up to 3 seconds for HELLO_OK
       connect();
@@ -1578,8 +1584,8 @@
       api.storage.local.get(['serverPort', 'apiToken']).then(function (res) {
         var newPort = parseInt(res.serverPort, 10) || 6969;
         var newToken = res.apiToken || '';
-        // If already connected with the same port and token, keep the connection intact!
-        if (isConnected && socket && socket.readyState === WebSocket.OPEN &&
+        // Same port and token: keep the connection, or the socket waiting for the user's answer.
+        if ((isConnected || pairRequested) && socket && socket.readyState === WebSocket.OPEN &&
             newPort === serverPort && newToken === apiToken) {
           logDiag('CONFIG_UPDATED', 'unchanged; keeping socket');
           sendResponse({ ok: true, unchanged: true });

@@ -30,6 +30,7 @@ Future<void> main(List<String> args) async {
       "type: 'PAIR_REQUEST'",
       "'pairing_required'",
       "'PAIR_OK'",
+      "error: 'pairing_pending'",
     ];
     for (final token in requiredTokens) {
       if (!source.contains(token)) {

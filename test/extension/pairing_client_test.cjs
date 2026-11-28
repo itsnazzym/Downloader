@@ -404,12 +404,36 @@ test('connect() cancels a scheduled reconnect but keeps the reconnect pace', asy
   assert.deepEqual(bg.reconnectDelays().slice(-1), [10000], 'still unreachable for 5 minutes: slow pace');
 });
 
+test('CONFIG_UPDATED or TEST_CONNECTION during the wait: no new socket, no second PAIR_REQUEST', async () => {
+  const bg = await load();
+  bg.open();
+  bg.fromApp(PAIRING_REQUIRED);
+  bg.fromApp({ type: 'PAIR_PENDING', requestId: 'r1', code: '1234', expiresInSeconds: 120 });
+  const waiting = bg.ws();
+  bg.storage.autoSendCookies = false; // a setting saved from the popup, port and token unchanged
+  bg.ask({ type: 'CONFIG_UPDATED' });
+  await flush();
+  assert.deepEqual(bg.ask({ type: 'TEST_CONNECTION' }), { ok: false, error: 'pairing_pending' });
+  await flush();
+  assert.equal(bg.sockets.length, 1);
+  assert.equal(waiting.closed, false);
+  assert.equal(bg.sentOfType('PAIR_REQUEST', waiting).length, 1);
+  assert.equal(bg.storage.pairing.code, '1234');
+  // A new port still replaces the socket.
+  bg.storage.serverPort = 7070;
+  bg.ask({ type: 'CONFIG_UPDATED' });
+  await flush();
+  assert.equal(bg.sockets.length, 2);
+  assert.equal(waiting.closed, true);
+});
+
 test('a late PAIR_OK from a replaced socket that had asked is ignored', async () => {
   const bg = await load();
   bg.open();
   bg.fromApp(PAIRING_REQUIRED);
   const old = bg.ws();
   const oldMessage = old.onmessage;
+  bg.storage.serverPort = 7070; // a real change: the waiting socket is replaced
   bg.ask({ type: 'CONFIG_UPDATED' });
   await flush();
   assert.notEqual(bg.ws(), old);

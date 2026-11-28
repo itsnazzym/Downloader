@@ -461,6 +461,8 @@
       persistSettings().then(function () {
         api.runtime.sendMessage({ type: 'TEST_CONNECTION' }, function (response) {
           testBtn.disabled = false;
+          // The waiting card already says the app is asking the user.
+          if (response && response.error === 'pairing_pending') return;
           if (api.runtime.lastError || !response || !response.ok) {
             var reason = (response && response.error);
             var msg = reason === 'auth_failed'
