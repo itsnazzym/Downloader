@@ -47,9 +47,10 @@ class El {
 }
 
 // popup.js against a minimal DOM built from popup.html's ids; timers never run.
-async function load(store = {}, { locale = 'fr', now = T0, responses = {} } = {}) {
+async function load(store = {}, { locale = 'fr', now = T0, responses = {}, hold = [] } = {}) {
   const storage = plain(store);
   const sent = [];
+  const held = []; // callbacks of the message types in `hold`, answered by release()
   const els = {};
   const changeListeners = [];
   const intervals = [];
@@ -67,6 +68,7 @@ async function load(store = {}, { locale = 'fr', now = T0, responses = {} } = {}
     runtime: {
       sendMessage: (message, cb) => {
         sent.push(message);
+        if (cb && hold.includes(message.type)) return held.push(cb);
         if (cb) cb(message.type === 'MD_PAIRING_RETRY' ? { ok: true } : responses[message.type]);
       },
     },
@@ -94,6 +96,7 @@ async function load(store = {}, { locale = 'fr', now = T0, responses = {} } = {}
   const el = (id) => document.getElementById(id);
   return {
     body, el, sent, storage, tokenSaves,
+    release: async () => { held.splice(0).forEach((cb) => cb(undefined)); await flush(); },
     refresh: async () => { intervals.forEach((fn) => fn()); await flush(); },
     changed: async (changes) => { changeListeners.forEach((fn) => fn(changes, 'local')); await flush(); },
     title: () => el('setup-title').textContent,
@@ -223,6 +226,19 @@ test('Test connection during the wait reports nothing: the waiting card already 
   assert.equal(popup.text('connection-msg'), msg('connecting'), 'no token or failure message');
   assert.equal(popup.el('test-connection-btn').disabled, false);
   assert.equal(popup.body.dataset.pair, 'pending');
+});
+
+test('Test connection waits until the background has applied the saved settings', async () => {
+  // A token typed during the wait must replace the waiting socket before the test, not get pairing_pending.
+  const popup = await load(stateFor('pending'), { hold: ['CONFIG_UPDATED'] });
+  popup.el('token-input').value = 'typed';
+  fire(popup, 'token-input', 'input');
+  popup.el('test-connection-btn').click();
+  await flush();
+  assert.ok(popup.sent.some((m) => m.type === 'CONFIG_UPDATED'));
+  assert.ok(!popup.sent.some((m) => m.type === 'TEST_CONNECTION'), 'not before CONFIG_UPDATED is answered');
+  await popup.release();
+  assert.ok(popup.sent.some((m) => m.type === 'TEST_CONNECTION'));
 });
 
 test('the token field lives in a collapsed Advanced section', () => {

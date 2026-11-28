@@ -452,6 +452,11 @@ test('CONFIG_UPDATED or TEST_CONNECTION during the wait: no new socket, no secon
   assert.equal(waiting.closed, true);
 });
 
+test('TikTok collections are only sent once authenticated (a big frame would drop the waiting socket)', () => {
+  const body = connectionSource.slice(connectionSource.indexOf('function sendTikTokCollectionsToApp('));
+  assert.match(body.slice(0, body.indexOf('socket.send(')), /if \(!isConnected \|\|/);
+});
+
 test('a late PAIR_OK from a replaced socket that had asked is ignored', async () => {
   const bg = await load();
   bg.open();

@@ -243,9 +243,13 @@
     if (extra) {
       Object.keys(extra).forEach(function (k) { payload[k] = extra[k]; });
     }
+    // Resolves once the background has applied it: a following TEST_CONNECTION must see the new socket.
     return api.storage.local.set(payload).then(function () {
-      api.runtime.sendMessage({ type: 'CONFIG_UPDATED' }, function () {
-        void api.runtime.lastError;
+      return new Promise(function (resolve) {
+        api.runtime.sendMessage({ type: 'CONFIG_UPDATED' }, function () {
+          void api.runtime.lastError;
+          resolve();
+        });
       });
     });
   }
