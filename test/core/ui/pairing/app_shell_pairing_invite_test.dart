@@ -67,23 +67,11 @@ void main() {
     }
   });
 
-  testWidgets('after Autoriser the invite does not reopen while the approval '
-      'is stored, and Toujours refuser is never offered for it', (
-    tester,
+  Future<void> pumpShell(
+    WidgetTester tester,
+    SharedPreferences prefs,
+    PairingCoordinator coordinator,
   ) async {
-    tester.view.physicalSize = const Size(1280, 800);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-
-    SharedPreferences.setMockInitialValues({OnboardingStore.prefsKey: true});
-    final prefs = await SharedPreferences.getInstance();
-    initPrefs(prefs);
-    final store = _GatedStore(prefs);
-    final coordinator = PairingCoordinator(
-      store,
-      random: Random(3),
-      schedule: (_, _) => _NoopTimer(),
-    );
     final catalog = FeatureCatalog.decode(
       File('site/plugin-catalog.json').readAsStringSync(),
     );
@@ -136,6 +124,30 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  Future<SharedPreferences> setUpView(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    SharedPreferences.setMockInitialValues({OnboardingStore.prefsKey: true});
+    final prefs = await SharedPreferences.getInstance();
+    initPrefs(prefs);
+    return prefs;
+  }
+
+  testWidgets('after Autoriser the invite does not reopen while the approval '
+      'is stored, and Toujours refuser is never offered for it', (
+    tester,
+  ) async {
+    final prefs = await setUpView(tester);
+    final store = _GatedStore(prefs);
+    final coordinator = PairingCoordinator(
+      store,
+      random: Random(3),
+      schedule: (_, _) => _NoopTimer(),
+    );
+    await pumpShell(tester, prefs, coordinator);
 
     final s = coordinator.submit(
       origin: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop',
@@ -155,6 +167,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(await s.outcome, isA<PairingApproved>());
     expect(coordinator.state, isNull);
+    expect(find.byType(AlertDialog), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 100));
+  });
+
+  testWidgets('a request replaced while the window comes to the front opens '
+      'with the current code, not the replaced one', (tester) async {
+    final prefs = await setUpView(tester);
+    final coordinator = PairingCoordinator(
+      PairedBrowsersStore(prefs, random: Random(7)),
+      random: Random(3),
+      schedule: (_, _) => _NoopTimer(),
+    );
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    const channel = MethodChannel('window_manager');
+    final shown = Completer<void>();
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      if (call.method == 'show') await shown.future;
+      return true;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(channel, (_) async => true),
+    );
+    await pumpShell(tester, prefs, coordinator);
+
+    const origin = 'chrome-extension://abcdefghijklmnopabcdefghijklmnop';
+    final first = coordinator.submit(origin: origin, label: 'Chrome');
+    await tester.pump(); // the shell starts bringing the window up
+    // The extension reconnected meanwhile: new request, new code.
+    coordinator.withdraw(first.request!.id);
+    final second = coordinator.submit(origin: origin, label: 'Chrome');
+    String spaced(PairingSubmit s) => s.request!.code.split('').join(' ');
+    expect(spaced(second), isNot(spaced(first)));
+    shown.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text(spaced(second)), findsOneWidget);
+    expect(find.text(spaced(first)), findsNothing);
+    await tester.tap(find.text('Autoriser'));
+    await tester.pumpAndSettle();
+    expect(await second.outcome, isA<PairingApproved>());
     expect(find.byType(AlertDialog), findsNothing);
 
     await tester.pumpWidget(const SizedBox());

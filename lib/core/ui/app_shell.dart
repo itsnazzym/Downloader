@@ -193,6 +193,7 @@ class AppShell extends ConsumerWidget {
   ) {
     if (_inviteOpen) return;
     _inviteOpen = true;
+    var shown = request;
     unawaited(
       () async {
         try {
@@ -200,7 +201,12 @@ class AppShell extends ConsumerWidget {
           await windowManager.focus();
         } catch (_) {}
         if (!context.mounted) return;
-        await showPairingInvite(context, ref, request);
+        // Replaced or withdrawn while the window came up: its listener
+        // call was skipped, so show what is pending now.
+        final current = ref.read(pairingCoordinatorProvider);
+        if (current == null) return;
+        shown = current;
+        await showPairingInvite(context, ref, current);
       }().whenComplete(() {
         _inviteOpen = false;
         // A request that arrived meanwhile (e.g. another origin after this
@@ -208,7 +214,7 @@ class AppShell extends ConsumerWidget {
         // pending while it is stored and must not come back.
         final current = ref.read(pairingCoordinatorProvider);
         if (current != null &&
-            current.id != request.id &&
+            current.id != shown.id &&
             !ref.read(pairingCoordinatorProvider.notifier).approving &&
             context.mounted) {
           _showPairingInvite(context, ref, current);
