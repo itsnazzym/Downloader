@@ -188,7 +188,7 @@ test('a failing apiToken write is logged, not thrown', async () => {
   assert.ok(bg.storage._mdDiag.some((l) => l.e === 'PAIR_TOKEN_ERR'));
 });
 
-test('no second PAIR_REQUEST during a pause, and a slow reconnect meanwhile', async () => {
+test('no second PAIR_REQUEST during a pause, and no reconnect before its end without a token', async () => {
   const bg = await load();
   bg.open();
   bg.fromApp(PAIRING_REQUIRED);
@@ -196,7 +196,7 @@ test('no second PAIR_REQUEST during a pause, and a slow reconnect meanwhile', as
   await flush();
   assert.deepEqual(bg.storage.pairing, { phase: 'denied', until: T0 + 600000 });
   bg.serverClose();
-  assert.deepEqual(bg.reconnectDelays(), [10000]);
+  assert.deepEqual(bg.reconnectDelays(), [600000]);
   await bg.fireReconnect();
   bg.open();
   bg.fromApp(PAIRING_REQUIRED);
@@ -212,6 +212,19 @@ test('no second PAIR_REQUEST during a pause, and a slow reconnect meanwhile', as
   assert.equal(bg.sentOfType('PAIR_REQUEST').length, 1);
 });
 
+test('Always deny: one reconnect a day, not every 10 s; a pause about to end still waits 10 s', async () => {
+  const bg = await load();
+  bg.open();
+  bg.fromApp(PAIRING_REQUIRED);
+  bg.fromApp({ type: 'PAIR_DENIED', retryAfterSeconds: 86400 });
+  bg.serverClose();
+  assert.deepEqual(bg.reconnectDelays(), [86400000]);
+  await bg.fireReconnect();
+  bg.advance(86400000 - 2000);
+  bg.ws().onclose({ code: 1006 });
+  assert.deepEqual(bg.reconnectDelays().slice(-1), [10000]);
+});
+
 test('PAIR_EXPIRED: no new invitation for 30 minutes', async () => {
   const bg = await load();
   bg.open();
@@ -223,7 +236,7 @@ test('PAIR_EXPIRED: no new invitation for 30 minutes', async () => {
   assert.equal(bg.badge[bg.badge.length - 1], '');
   bg.serverClose();
   assert.deepEqual(bg.storage.pairing, { phase: 'expired', until: T0 + 30 * 60000 }, 'closing keeps the pause');
-  assert.deepEqual(bg.reconnectDelays(), [10000]);
+  assert.deepEqual(bg.reconnectDelays(), [30 * 60000], 'Retry reconnects at once; otherwise nothing to ask before');
   bg.advance(29 * 60000);
   await bg.fireReconnect();
   bg.open();

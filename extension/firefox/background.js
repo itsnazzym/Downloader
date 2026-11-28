@@ -74,12 +74,18 @@
     var now = Date.now();
     if (!unreachableSince) unreachableSince = now;
     // After a refusal, during a pause or with an old app there is nothing to ask: always the slow pace.
-    var slow = authRefused || !MDPairing.shouldRequestPairing(pairingState, now);
-    var elapsed = slow ? Infinity : now - unreachableSince;
+    var paused = !MDPairing.shouldRequestPairing(pairingState, now);
+    var slow = authRefused || paused;
+    var delay = MDPairing.reconnectDelayMs(reconnectAttempt++, slow ? Infinity : now - unreachableSince);
+    // Without a token a pause has nothing to ask: wait it out (a day after "Always deny"), capped below
+    // setTimeout's 24.8-day overflow, which would fire at once.
+    if (paused && !apiToken && pairingState.until > now) {
+      delay = Math.max(delay, Math.min(pairingState.until - now, 86400000));
+    }
     reconnectTimer = setTimeout(function () {
       reconnectTimer = null;
       connect();
-    }, MDPairing.reconnectDelayMs(reconnectAttempt++, elapsed));
+    }, delay);
   }
 
   function cancelReconnect() {
