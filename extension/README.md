@@ -34,6 +34,9 @@ If nobody answers within 2 minutes the request expires; the app sets no pause, a
 (after a busy answer it waits 30 seconds). After a refusal or a revocation the popup only shows the remaining time
 (the app's pause would refuse an earlier retry) and the extension asks again once the pause is over. Only after an expiry or a busy answer does the
 popup offer a **Try again** button, which asks the background script to start over immediately.
+The hourly limit is not a refusal: the popup says "Too many requests" with the time left and no button. Without a
+token the extension does not reconnect before a pause ends (once a day after Always deny, not every 10 seconds).
+Saving a setting or **Test connection** while a request waits keeps its socket, so the code does not change.
 
 **Security.**
 
@@ -43,6 +46,8 @@ popup offer a **Try again** button, which asks the background script to start ov
   logged, and it is shown for comparison only (it grants nothing by itself).
 - One request is pending at a time per browser origin; a second browser origin waits (`PAIR_BUSY`).
 - Each browser gets its own random token; the app keeps only its SHA-256, and tokens are revocable one by one.
+- **Always deny** applies to the origin id shown in the invitation. A code that your popup does not show means
+  the request does not come from your TapLoad extension (a local program can claim any origin, including yours).
 
 **Manual token.** The token field remains in the popup under **Advanced** (collapsed). A token pasted from TapLoad,
 Settings, Extension still works exactly as before and never triggers pairing.
