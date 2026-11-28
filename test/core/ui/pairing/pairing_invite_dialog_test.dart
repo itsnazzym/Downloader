@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -161,11 +162,21 @@ void main() {
     );
   });
 
-  testWidgets('dismissing the dialog denies', (tester) async {
+  testWidgets('a click outside keeps the invite; Escape denies', (
+    tester,
+  ) async {
     final s = coordinator.submit(origin: _origin, label: 'Chrome');
     await open(tester, s.request!);
+    var resolved = false;
+    unawaited(s.outcome!.then((_) => resolved = true));
     await tester.tapAt(const Offset(2, 2));
     await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(resolved, isFalse, reason: 'a stray click is not a refusal');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
     expect(await s.outcome, isA<PairingDenied>());
   });
 

@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tapload/core/security/pairing_coordinator.dart';
 import 'package:tapload/core/ui/settings/widgets/paired_browsers_panel.dart';
 import 'package:tapload/l10n/l10n_ext.dart';
 
 /// Asks the user to compare the code with the one in the extension popup.
-/// Closing the dialog without a choice denies; it closes itself when the
+/// Escape denies; a click outside does nothing (the invite steals focus, so a
+/// click already on its way must not refuse). It closes itself when the
 /// request expires or is replaced.
 Future<void> showPairingInvite(
   BuildContext context,
@@ -18,6 +20,7 @@ Future<void> showPairingInvite(
   final coordinator = ref.read(pairingCoordinatorProvider.notifier);
   await showDialog<void>(
     context: context,
+    barrierDismissible: false,
     builder: (_) => _PairingInvite(request: request),
   );
   // No-op when a button already resolved it or it is being approved.
@@ -52,12 +55,20 @@ class _PairingInviteState extends ConsumerState<_PairingInvite> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<PairingRequest?>(pairingCoordinatorProvider, (_, next) {
+      if (next?.id != widget.request.id) _close();
+    });
+    // A non-dismissible route ignores Escape: keep it as an explicit refusal.
+    return CallbackShortcuts(
+      bindings: {const SingleActivator(LogicalKeyboardKey.escape): _close},
+      child: Focus(autofocus: true, child: _dialog(context)),
+    );
+  }
+
+  Widget _dialog(BuildContext context) {
     final l10n = context.l10n;
     final request = widget.request;
     final coordinator = ref.read(pairingCoordinatorProvider.notifier);
-    ref.listen<PairingRequest?>(pairingCoordinatorProvider, (_, next) {
-      if (next?.id != request.id) _close();
-    });
     final scheme = Theme.of(context).colorScheme;
     return AlertDialog(
       title: Text(
