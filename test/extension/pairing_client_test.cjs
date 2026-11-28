@@ -258,17 +258,17 @@ test('a pause stored by a previous service worker is respected', async () => {
   assert.deepEqual(bg.sentOfType('PAIR_REQUEST'), []);
 });
 
-test('a pending request stored by a previous service worker is re-attached without a storage write', async () => {
-  const pending = { phase: 'pending', code: '0042', requestId: 'r1', until: T0 + 90000 };
-  const bg = await load({ pairing: pending });
+test('a pending request stored by a previous service worker is replaced by the new socket\'s request and code', async () => {
+  const bg = await load({ pairing: { phase: 'pending', code: '0042', requestId: 'r1', until: T0 + 90000 } });
   bg.open();
   assert.deepEqual(bg.sentOfType('PAIR_REQUEST'), []);
   bg.fromApp(PAIRING_REQUIRED);
   assert.equal(bg.sentOfType('PAIR_REQUEST').length, 1);
-  bg.fromApp({ type: 'PAIR_PENDING', requestId: 'r1', code: '0042', expiresInSeconds: 90 });
+  // The app withdrew r1 when the old socket closed: a reconnect always gets a new id and a new code.
+  bg.fromApp({ type: 'PAIR_PENDING', requestId: 'r2', code: '7311', expiresInSeconds: 120 });
   await flush();
-  assert.deepEqual(bg.storage.pairing, pending);
-  assert.equal(bg.pairingWrites(), 0);
+  assert.deepEqual(bg.storage.pairing, { phase: 'pending', code: '7311', requestId: 'r2', until: T0 + 120000 });
+  assert.equal(bg.badge[bg.badge.length - 1], '?');
 });
 
 test('the keepalive alarm does not reconnect during a pause without a token, and does otherwise', async () => {
