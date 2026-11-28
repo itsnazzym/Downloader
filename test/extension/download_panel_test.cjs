@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8');
+const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8').replace(/\r\n/g, '\n');
 const panel = read('feed_panel.js');
 const html = read('feed_panel.html');
 const css = read('feed_panel.css');

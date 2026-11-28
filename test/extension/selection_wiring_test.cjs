@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8');
+const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8').replace(/\r\n/g, '\n');
 const panel = read('feed_panel.js');
 
 test('feed_panel no longer owns a selectedIds set', () => {
@@ -50,7 +50,7 @@ test('pointerdown resets gestureMoved before its first early return', () => {
 test('the click swallow ignores a script click (the load-more auto-click) even with a stale flag', () => {
   const m = panel.match(/feedList\.addEventListener\('click', function \(e\) \{\n    \/\/ A script's click[\s\S]*?\}, true\);/);
   assert.ok(m, 'capture-phase click listener not found');
-  const selectionSource = fs.readFileSync(path.join(__dirname, '../../extension/shared/selection.js'), 'utf8');
+  const selectionSource = fs.readFileSync(path.join(__dirname, '../../extension/shared/selection.js'), 'utf8').replace(/\r\n/g, '\n');
   const ctx = { gestureMoved: true };
   ctx.self = ctx;
   let handler;

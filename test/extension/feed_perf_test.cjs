@@ -12,7 +12,7 @@ function load(file, name) {
   const context = {};
   context.self = context;
   vm.createContext(context);
-  vm.runInContext(fs.readFileSync(path.join(__dirname, '../../extension/shared', file), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../../extension/shared', file), 'utf8').replace(/\r\n/g, '\n'), context);
   return context[name];
 }
 const MDFeedStore = load('feed_store.js', 'MDFeedStore');

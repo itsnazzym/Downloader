@@ -4,8 +4,8 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const css = fs.readFileSync(path.join(__dirname, '../../extension/shared/feed_panel.css'), 'utf8');
-const themeSource = fs.readFileSync(path.join(__dirname, '../../extension/shared/theme.js'), 'utf8');
+const css = fs.readFileSync(path.join(__dirname, '../../extension/shared/feed_panel.css'), 'utf8').replace(/\r\n/g, '\n');
+const themeSource = fs.readFileSync(path.join(__dirname, '../../extension/shared/theme.js'), 'utf8').replace(/\r\n/g, '\n');
 
 function loadTheme() {
   const context = { document: { documentElement: { style: { props: {}, setProperty(k, v) { this.props[k] = v; } } } } };

@@ -154,7 +154,7 @@ test('icons keep transparent rounded corners and an opaque centre', () => {
 
 for (const browser of ['chrome', 'firefox']) {
   test(`manifest.${browser}.json references the expected icon sizes`, () => {
-    const manifest = JSON.parse(fs.readFileSync(path.join(shared, `manifest.${browser}.json`), 'utf8'));
+    const manifest = JSON.parse(fs.readFileSync(path.join(shared, `manifest.${browser}.json`), 'utf8').replace(/\r\n/g, '\n'));
     const expect = (map, sizes) => {
       assert.deepEqual(Object.keys(map).map(Number).sort((a, b) => a - b), sizes);
       for (const [size, rel] of Object.entries(map)) {
@@ -169,7 +169,7 @@ for (const browser of ['chrome', 'firefox']) {
 
 test('panel and popup headers use the desktop logo icon', () => {
   for (const page of ['feed_panel.html', 'popup.html']) {
-    const html = fs.readFileSync(path.join(shared, page), 'utf8');
+    const html = fs.readFileSync(path.join(shared, page), 'utf8').replace(/\r\n/g, '\n');
     assert.match(html, /<img[^>]+src="icons\/icon48\.png"/, `${page} must show icons/icon48.png`);
   }
 });

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8');
+const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8').replace(/\r\n/g, '\n');
 const num = (src, name) => Number(new RegExp('var ' + name + ' = (\\d+);').exec(src)[1]);
 
 test('the page cache never holds more than the panel keeps after an eviction', () => {

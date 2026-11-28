@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 // Source-level checks of the Task 13 layout (feed_panel.js is one DOM-bound IIFE, not loadable here).
-const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8');
+const read = (f) => fs.readFileSync(path.join(__dirname, '../../extension/shared', f), 'utf8').replace(/\r\n/g, '\n');
 const html = read('feed_panel.html');
 const panel = read('feed_panel.js');
 const css = read('feed_panel.css');
